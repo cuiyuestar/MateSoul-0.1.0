@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61a301beb053047f69bf1f51f6a8d579, type: 3}
+  m_Name: Mug
+  m_EditorClassIdentifier: 
+  id: mug
+  displayName: "\u9A6C\u514B\u676F"
+  prefab: {fileID: 7978461436767914320, guid: 30390cf0c757f441ab49ab48f5c20305, type: 3}
+  capabilities:
+  - visit
+  approachOffset: {x: 0, y: 0, z: -0.65}
+  catalogVisible: 1
+  footprint: {x: 0.113, y: 0.08}
+  placementHeight: 0.095
+  focusMaterial: {fileID: 2100000, guid: ba4a28338c39c4aa9bf425819dbfad5b, type: 2}
+  physics:
+    mass: 0.34
+    material: {fileID: 13400000, guid: 0c9e504ae4846493596f1dff8ccf2e91, type: 2}
+    linearDrag: 0.02
+    angularDrag: 0.05
+  allowSurfacePlacement: 1
+  breakable:
+    enabled: 1
+    lightForceThreshold: 38
+    heavyForceThreshold: 80
+    lightFragmentCount: 6
+    heavyFragmentCount: 22
+    debrisLifetime: 20
+    lightDebrisPrefab: {fileID: 4727832092692499282, guid: c6747317ef724410e821d110e1c2bd9c,
+      type: 3}
+    heavyDebrisPrefab: {fileID: 392873246554036891, guid: 81525d06c91de4b29ad338c92950c220,
+      type: 3}
+  placementParts: []

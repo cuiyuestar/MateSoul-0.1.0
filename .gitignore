@@ -1,0 +1,103 @@
+# Local toolchain caches and environment directories.
+.pico-home/
+.pico-cli-workspace/
+.unity-home/
+.artifacts/
+.dbg/
+.hairlab-unity/
+.trae/
+.validation/
+.mcp.json
+adbkey
+adbkey.pub
+emu-last-feature-flags.protobuf
+
+# Local notes, diagnostics, and generated evidence.
+AGENTS.md
+ArtSource/
+scripts/
+项目沉淀资料/
+debug-*.md
+*.ndjson
+*.trace
+*.har
+*.pcap
+**/evidence/
+**/reports/
+**/recordings/
+**/screenshots/
+
+# Common local and temporary files.
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+
+# Unity and IDE generated directories.
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+.vs/
+.idea/
+
+# Unity test and validation content.
+MateSoul/Assets/MateSoul/Tests/
+MateSoul/Assets/MateSoul/Tests.meta
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Validation/
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Validation.meta
+MateSoul/Assets/Samples/
+MateSoul/Assets/Samples.meta
+
+# Standalone development probes, validation runners, and simulator helpers.
+MateSoul/Assets/Characters/SapphiArtCustom/Runtime/HairPerformanceProbe.cs
+MateSoul/Assets/Characters/SapphiArtCustom/Runtime/HairPerformanceProbe.cs.meta
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueAppearanceReview.cs
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueAppearanceReview.cs.meta
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueWardrobeValidation.cs
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueWardrobeValidation.cs.meta
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueYummyUnityReview.cs
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueYummyUnityReview.cs.meta
+MateSoul/Assets/MateSoul/Editor/BuildItemFocusDebugOnce.cs
+MateSoul/Assets/MateSoul/Editor/BuildItemFocusDebugOnce.cs.meta
+MateSoul/Assets/MateSoul/Editor/HandHoldSimulatorSetup.cs
+MateSoul/Assets/MateSoul/Editor/HandHoldSimulatorSetup.cs.meta
+MateSoul/Assets/MateSoul/Editor/SeatingWorkbench.cs
+MateSoul/Assets/MateSoul/Editor/SeatingWorkbench.cs.meta
+MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomEnvironmentCapabilityProbe.cs
+MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomEnvironmentCapabilityProbe.cs.meta
+MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomNavigationValidationProbe.cs
+MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomNavigationValidationProbe.cs.meta
+MateSoul/Assets/MateSoul/Runtime/BowlingGrabDeviceProbe.cs
+MateSoul/Assets/MateSoul/Runtime/BowlingGrabDeviceProbe.cs.meta
+MateSoul/Assets/MateSoul/Runtime/DevelopmentNavigationProbe.cs
+MateSoul/Assets/MateSoul/Runtime/DevelopmentNavigationProbe.cs.meta
+MateSoul/Assets/MateSoul/Runtime/DialogueDeviceProbe.cs
+MateSoul/Assets/MateSoul/Runtime/DialogueDeviceProbe.cs.meta
+MateSoul/Assets/MateSoul/Runtime/SeatingDeviceProbe.cs
+MateSoul/Assets/MateSoul/Runtime/SeatingDeviceProbe.cs.meta
+
+# PICO SDK samples are not required by the game runtime.
+XR/**/Sample/
+XR/**/Sample.meta
+XR/**/Samples/
+XR/**/Samples.meta
+XR/Samples~/
+
+# Blender local recovery files.
+*.blend1
+*.blend2
+
+# Local test binaries and runner crash reports.
+mono_crash.*
+
+# Node service dependencies, build output, and tests.
+node_modules/
+services/ai-gateway/dist/
+services/ai-gateway/coverage/
+services/ai-gateway/scripts/
+services/ai-gateway/tests/

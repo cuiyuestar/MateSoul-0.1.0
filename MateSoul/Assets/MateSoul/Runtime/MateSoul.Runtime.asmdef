@@ -1,0 +1,17 @@
+{
+  "name": "MateSoul.Runtime",
+  "rootNamespace": "MateSoul.Runtime",
+  "references": [
+    "MateSoul.Core",
+    "MateSoul.Gameplay",
+    "MateSoul.Character",
+    "MateSoul.RoomNavigation",
+    "ByteDance.PICO.XR",
+    "Unity.Animation.Rigging",
+    "Unity.InputSystem",
+    "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.CoreUtils",
+    "UnityEngine.UI",
+    "Unity.TextMeshPro"
+  ]
+}

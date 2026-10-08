@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61a301beb053047f69bf1f51f6a8d579, type: 3}
+  m_Name: Spoon
+  m_EditorClassIdentifier: 
+  id: spoon
+  displayName: "\u52FA\u5B50"
+  prefab: {fileID: 7107761414956850967, guid: 6e5129a8dccd2407d820f535f21e6480, type: 3}
+  capabilities:
+  - visit
+  approachOffset: {x: 0, y: 0, z: -0.65}
+  catalogVisible: 1
+  footprint: {x: 0.025, y: 0.14}
+  placementHeight: 0.012
+  focusMaterial: {fileID: 2100000, guid: ba4a28338c39c4aa9bf425819dbfad5b, type: 2}
+  physics:
+    mass: 0.04
+    material: {fileID: 13400000, guid: 0c9e504ae4846493596f1dff8ccf2e91, type: 2}
+    linearDrag: 0.02
+    angularDrag: 0.05
+  allowSurfacePlacement: 1
+  breakable:
+    enabled: 0
+    lightForceThreshold: 0
+    heavyForceThreshold: 0
+    lightFragmentCount: 0
+    heavyFragmentCount: 0
+    debrisLifetime: 0
+    lightDebrisPrefab: {fileID: 0}
+    heavyDebrisPrefab: {fileID: 0}
+  placementParts: []

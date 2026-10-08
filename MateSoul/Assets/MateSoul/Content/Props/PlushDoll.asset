@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61a301beb053047f69bf1f51f6a8d579, type: 3}
+  m_Name: PlushDoll
+  m_EditorClassIdentifier: 
+  id: plush-doll
+  displayName: "\u51B7\u6708\u73A9\u5076"
+  prefab: {fileID: 4430955804094990257, guid: 5c4dfab6bb82347f7b0bde42c9e711cb, type: 3}
+  capabilities:
+  - visit
+  approachOffset: {x: 0, y: 0, z: -0.65}
+  catalogVisible: 1
+  footprint: {x: 0.2116, y: 0.2015}
+  placementHeight: 0.3
+  focusMaterial: {fileID: 2100000, guid: ba4a28338c39c4aa9bf425819dbfad5b, type: 2}
+  physics:
+    mass: 0.38
+    material: {fileID: 13400000, guid: 2e6fddf8a200a4ceb94f2ee512600af8, type: 2}
+    linearDrag: 0.02
+    angularDrag: 0.05
+  allowSurfacePlacement: 1
+  breakable:
+    enabled: 0
+    lightForceThreshold: 0
+    heavyForceThreshold: 0
+    lightFragmentCount: 0
+    heavyFragmentCount: 0
+    debrisLifetime: 0
+    lightDebrisPrefab: {fileID: 0}
+    heavyDebrisPrefab: {fileID: 0}
+  placementParts: []

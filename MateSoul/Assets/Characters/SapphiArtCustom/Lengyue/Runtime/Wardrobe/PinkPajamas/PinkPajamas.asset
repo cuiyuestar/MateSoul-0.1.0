@@ -1,0 +1,555 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fc84019860724145a6610f54841fda2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outfitId: pink-pajamas
+  displayName: "\u7C89\u683C\u7761\u8863\u4E0E\u7761\u5E3D"
+  enableSleeveCloth: 0
+  enableSkirtPoseGuard: 0
+  parts:
+  - partName: PinkPajamas_Garments
+    role: 0
+    mesh: {fileID: 4300000, guid: 42f50350c7ff44a0e8c92d50c8578bdb, type: 2}
+    materials:
+    - {fileID: 2100000, guid: b0fd76746f09d40f895832611484e403, type: 2}
+    - {fileID: 2100000, guid: 406503c2b7d1e4e73ac7552e7e17b2a9, type: 2}
+    - {fileID: 2100000, guid: b63b99fb25ad940feaa14453cc58cdbd, type: 2}
+    - {fileID: 2100000, guid: 5d226ddba5eeb449e972bcc9cd1be798, type: 2}
+    rootBoneName: PelvisRoot
+    boneNames:
+    - PelvisRoot
+    - Hips
+    - Skirt_Front_01
+    - Skirt_Front_02
+    - Skirt_FrontSide_01_L
+    - Skirt_FrontSide_02_L
+    - Skirt_Side_01_L
+    - Skirt_Side_02_L
+    - Skirt_BackSide_01_L
+    - Skirt_BackSide_02_L
+    - Skirt_Back_01
+    - Skirt_Back_02
+    - Skirt_FrontSide_01_R
+    - Skirt_FrontSide_02_R
+    - Skirt_Side_01_R
+    - Skirt_Side_02_R
+    - Skirt_BackSide_01_R
+    - Skirt_BackSide_02_R
+    - Leg_L
+    - Knee_L
+    - Foot_L
+    - Toe_L
+    - Mech_Out_L
+    - Mech_In_L
+    - Mech_cover_L
+    - Leg_R
+    - Knee_R
+    - Foot_R
+    - Toe_R
+    - Mech_Out_R
+    - Mech_In_R
+    - Mech_cover_R
+    - OuterSkirt_Front_01_L
+    - OuterSkirt_Front_02_L
+    - OuterSkirt_Side_01_L
+    - OuterSkirt_Side_02_L
+    - OuterSkirt_Back_01_L
+    - OuterSkirt_Back_02_L
+    - OuterSkirt_Back_03_L
+    - OuterSkirt_Front_01_R
+    - OuterSkirt_Front_02_R
+    - OuterSkirt_Side_01_R
+    - OuterSkirt_Side_02_R
+    - OuterSkirt_Back_01_R
+    - OuterSkirt_Back_02_R
+    - OuterSkirt_Back_03_R
+    - Spine
+    - Chest
+    - Neck
+    - Head 1
+    - Head_End
+    - Hair_Side_01_R
+    - Hair_Front_01_R
+    - Hair_Front_02_R
+    - Hair_Front_01_L
+    - Hair_Front_02_L
+    - Hair_Side_01_L
+    - Hair_Side_02_L
+    - Backhair_01_L
+    - Backhair_02_L
+    - Backhair_03_L
+    - Backhair_04_L
+    - Backhair_05_L
+    - Backhair_01_R
+    - Backhair_02_R
+    - Backhair_03_R
+    - Backhair_04_R
+    - Backhair_05_R
+    - Eye_L
+    - Eye_R
+    - Shoulder_L
+    - UpperArm_L
+    - Forearm_L
+    - Hand_L
+    - Index_01_L
+    - Index_02_L
+    - Index_03_L
+    - Middle_01_L
+    - Middle_02_L
+    - Middle_03_L
+    - Ring_01_L
+    - Ring_02_L
+    - Ring_03_L
+    - Pinky_01_L
+    - Pinky_02_L
+    - Pinky_03_L
+    - Thumb_01_L
+    - Thumb_02_L
+    - Thumb_03_L
+    - ForearmTwist_L
+    - UpperArmTwist_L
+    - Breast_L
+    - Breast_Tip_L
+    - Breast_R
+    - Breast_Tip_R
+    - Shoulder_R
+    - UpperArm_R
+    - Forearm_R
+    - Hand_R
+    - Index_01_R
+    - Index_02_R
+    - Index_03_R
+    - Middle_01_R
+    - Middle_02_R
+    - Middle_03_R
+    - Ring_01_R
+    - Ring_02_R
+    - Ring_03_R
+    - Pinky_01_R
+    - Pinky_02_R
+    - Pinky_03_R
+    - Thumb_01_R
+    - Thumb_02_R
+    - Thumb_03_R
+    - ForearmTwist_R
+    - UpperArmTwist_R
+    localPosition: {x: 0, y: 0, z: 0}
+    localRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+    localScale: {x: 1, y: 1, z: 1}
+    localBounds:
+      m_Center: {x: 0.00000008940697, y: 0.6825303, z: -0.0015636012}
+      m_Extent: {x: 0.5477371, y: 0.77476346, z: 0.1833216}
+    skinQuality: 4
+    updateWhenOffscreen: 1
+    shadowCastingMode: 1
+    receiveShadows: 1
+  - partName: PinkPajamas_HandsCoverage
+    role: 1
+    mesh: {fileID: 4300000, guid: 5f55303570e65430b98bdba9e5631606, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 3f81cda9b84b840faa9d8120c937b4e4, type: 2}
+    rootBoneName: PelvisRoot
+    boneNames:
+    - PelvisRoot
+    - Hips
+    - Skirt_Front_01
+    - Skirt_Front_02
+    - Skirt_FrontSide_01_L
+    - Skirt_FrontSide_02_L
+    - Skirt_Side_01_L
+    - Skirt_Side_02_L
+    - Skirt_BackSide_01_L
+    - Skirt_BackSide_02_L
+    - Skirt_Back_01
+    - Skirt_Back_02
+    - Skirt_FrontSide_01_R
+    - Skirt_FrontSide_02_R
+    - Skirt_Side_01_R
+    - Skirt_Side_02_R
+    - Skirt_BackSide_01_R
+    - Skirt_BackSide_02_R
+    - Leg_L
+    - Knee_L
+    - Foot_L
+    - Toe_L
+    - Mech_Out_L
+    - Mech_In_L
+    - Mech_cover_L
+    - Leg_R
+    - Knee_R
+    - Foot_R
+    - Toe_R
+    - Mech_Out_R
+    - Mech_In_R
+    - Mech_cover_R
+    - OuterSkirt_Front_01_L
+    - OuterSkirt_Front_02_L
+    - OuterSkirt_Side_01_L
+    - OuterSkirt_Side_02_L
+    - OuterSkirt_Back_01_L
+    - OuterSkirt_Back_02_L
+    - OuterSkirt_Back_03_L
+    - OuterSkirt_Front_01_R
+    - OuterSkirt_Front_02_R
+    - OuterSkirt_Side_01_R
+    - OuterSkirt_Side_02_R
+    - OuterSkirt_Back_01_R
+    - OuterSkirt_Back_02_R
+    - OuterSkirt_Back_03_R
+    - Spine
+    - Chest
+    - Neck
+    - Head 1
+    - Head_End
+    - Hair_Side_01_R
+    - Hair_Front_01_R
+    - Hair_Front_02_R
+    - Hair_Front_01_L
+    - Hair_Front_02_L
+    - Hair_Side_01_L
+    - Hair_Side_02_L
+    - Backhair_01_L
+    - Backhair_02_L
+    - Backhair_03_L
+    - Backhair_04_L
+    - Backhair_05_L
+    - Backhair_01_R
+    - Backhair_02_R
+    - Backhair_03_R
+    - Backhair_04_R
+    - Backhair_05_R
+    - Eye_L
+    - Eye_R
+    - Shoulder_L
+    - UpperArm_L
+    - Forearm_L
+    - Hand_L
+    - Index_01_L
+    - Index_02_L
+    - Index_03_L
+    - Middle_01_L
+    - Middle_02_L
+    - Middle_03_L
+    - Ring_01_L
+    - Ring_02_L
+    - Ring_03_L
+    - Pinky_01_L
+    - Pinky_02_L
+    - Pinky_03_L
+    - Thumb_01_L
+    - Thumb_02_L
+    - Thumb_03_L
+    - ForearmTwist_L
+    - UpperArmTwist_L
+    - Breast_L
+    - Breast_Tip_L
+    - Breast_R
+    - Breast_Tip_R
+    - Shoulder_R
+    - UpperArm_R
+    - Forearm_R
+    - Hand_R
+    - Index_01_R
+    - Index_02_R
+    - Index_03_R
+    - Middle_01_R
+    - Middle_02_R
+    - Middle_03_R
+    - Ring_01_R
+    - Ring_02_R
+    - Ring_03_R
+    - Pinky_01_R
+    - Pinky_02_R
+    - Pinky_03_R
+    - Thumb_01_R
+    - Thumb_02_R
+    - Thumb_03_R
+    - ForearmTwist_R
+    - UpperArmTwist_R
+    localPosition: {x: 0.0000000023725442, y: 1.6875151e-17, z: 2.2351818e-10}
+    localRotation: {x: -0.000000037748947, y: -1.469402e-39, z: -0, w: 1}
+    localScale: {x: 0.01, y: 0.01, z: 0.01}
+    localBounds:
+      m_Center: {x: 0.000000029802322, y: 1.3470826, z: 0.0093709305}
+      m_Extent: {x: 0.6930429, y: 0.030900478, z: 0.04429509}
+    skinQuality: 4
+    updateWhenOffscreen: 1
+    shadowCastingMode: 1
+    receiveShadows: 1
+  - partName: PinkPajamas_SleepCap
+    role: 4
+    mesh: {fileID: 4300000, guid: 794e0b0d5151c4403bb98f1d97a87c66, type: 2}
+    materials:
+    - {fileID: 2100000, guid: b0fd76746f09d40f895832611484e403, type: 2}
+    - {fileID: 2100000, guid: b63b99fb25ad940feaa14453cc58cdbd, type: 2}
+    rootBoneName: PelvisRoot
+    boneNames:
+    - PelvisRoot
+    - Hips
+    - Skirt_Front_01
+    - Skirt_Front_02
+    - Skirt_FrontSide_01_L
+    - Skirt_FrontSide_02_L
+    - Skirt_Side_01_L
+    - Skirt_Side_02_L
+    - Skirt_BackSide_01_L
+    - Skirt_BackSide_02_L
+    - Skirt_Back_01
+    - Skirt_Back_02
+    - Skirt_FrontSide_01_R
+    - Skirt_FrontSide_02_R
+    - Skirt_Side_01_R
+    - Skirt_Side_02_R
+    - Skirt_BackSide_01_R
+    - Skirt_BackSide_02_R
+    - Leg_L
+    - Knee_L
+    - Foot_L
+    - Toe_L
+    - Mech_Out_L
+    - Mech_In_L
+    - Mech_cover_L
+    - Leg_R
+    - Knee_R
+    - Foot_R
+    - Toe_R
+    - Mech_Out_R
+    - Mech_In_R
+    - Mech_cover_R
+    - OuterSkirt_Front_01_L
+    - OuterSkirt_Front_02_L
+    - OuterSkirt_Side_01_L
+    - OuterSkirt_Side_02_L
+    - OuterSkirt_Back_01_L
+    - OuterSkirt_Back_02_L
+    - OuterSkirt_Back_03_L
+    - OuterSkirt_Front_01_R
+    - OuterSkirt_Front_02_R
+    - OuterSkirt_Side_01_R
+    - OuterSkirt_Side_02_R
+    - OuterSkirt_Back_01_R
+    - OuterSkirt_Back_02_R
+    - OuterSkirt_Back_03_R
+    - Spine
+    - Chest
+    - Neck
+    - Head 1
+    - Head_End
+    - Hair_Side_01_R
+    - Hair_Front_01_R
+    - Hair_Front_02_R
+    - Hair_Front_01_L
+    - Hair_Front_02_L
+    - Hair_Side_01_L
+    - Hair_Side_02_L
+    - Backhair_01_L
+    - Backhair_02_L
+    - Backhair_03_L
+    - Backhair_04_L
+    - Backhair_05_L
+    - Backhair_01_R
+    - Backhair_02_R
+    - Backhair_03_R
+    - Backhair_04_R
+    - Backhair_05_R
+    - Eye_L
+    - Eye_R
+    - Shoulder_L
+    - UpperArm_L
+    - Forearm_L
+    - Hand_L
+    - Index_01_L
+    - Index_02_L
+    - Index_03_L
+    - Middle_01_L
+    - Middle_02_L
+    - Middle_03_L
+    - Ring_01_L
+    - Ring_02_L
+    - Ring_03_L
+    - Pinky_01_L
+    - Pinky_02_L
+    - Pinky_03_L
+    - Thumb_01_L
+    - Thumb_02_L
+    - Thumb_03_L
+    - ForearmTwist_L
+    - UpperArmTwist_L
+    - Breast_L
+    - Breast_Tip_L
+    - Breast_R
+    - Breast_Tip_R
+    - Shoulder_R
+    - UpperArm_R
+    - Forearm_R
+    - Hand_R
+    - Index_01_R
+    - Index_02_R
+    - Index_03_R
+    - Middle_01_R
+    - Middle_02_R
+    - Middle_03_R
+    - Ring_01_R
+    - Ring_02_R
+    - Ring_03_R
+    - Pinky_01_R
+    - Pinky_02_R
+    - Pinky_03_R
+    - Thumb_01_R
+    - Thumb_02_R
+    - Thumb_03_R
+    - ForearmTwist_R
+    - UpperArmTwist_R
+    localPosition: {x: 0, y: 0, z: 0}
+    localRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+    localScale: {x: 1, y: 1, z: 1}
+    localBounds:
+      m_Center: {x: -0.033000007, y: 1.6969794, z: -0.010000214}
+      m_Extent: {x: 0.16900012, y: 0.15397954, z: 0.14800003}
+    skinQuality: 4
+    updateWhenOffscreen: 1
+    shadowCastingMode: 1
+    receiveShadows: 1
+  - partName: PinkPajamas_NeckExtension
+    role: 2
+    mesh: {fileID: 4300000, guid: f91a219041d184186a2cd3d00ca98dad, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 7007d1c56eeeb4817b019becd3471820, type: 2}
+    rootBoneName: PelvisRoot
+    boneNames:
+    - PelvisRoot
+    - Hips
+    - Skirt_Front_01
+    - Skirt_Front_02
+    - Skirt_FrontSide_01_L
+    - Skirt_FrontSide_02_L
+    - Skirt_Side_01_L
+    - Skirt_Side_02_L
+    - Skirt_BackSide_01_L
+    - Skirt_BackSide_02_L
+    - Skirt_Back_01
+    - Skirt_Back_02
+    - Skirt_FrontSide_01_R
+    - Skirt_FrontSide_02_R
+    - Skirt_Side_01_R
+    - Skirt_Side_02_R
+    - Skirt_BackSide_01_R
+    - Skirt_BackSide_02_R
+    - Leg_L
+    - Knee_L
+    - Foot_L
+    - Toe_L
+    - Mech_Out_L
+    - Mech_In_L
+    - Mech_cover_L
+    - Leg_R
+    - Knee_R
+    - Foot_R
+    - Toe_R
+    - Mech_Out_R
+    - Mech_In_R
+    - Mech_cover_R
+    - OuterSkirt_Front_01_L
+    - OuterSkirt_Front_02_L
+    - OuterSkirt_Side_01_L
+    - OuterSkirt_Side_02_L
+    - OuterSkirt_Back_01_L
+    - OuterSkirt_Back_02_L
+    - OuterSkirt_Back_03_L
+    - OuterSkirt_Front_01_R
+    - OuterSkirt_Front_02_R
+    - OuterSkirt_Side_01_R
+    - OuterSkirt_Side_02_R
+    - OuterSkirt_Back_01_R
+    - OuterSkirt_Back_02_R
+    - OuterSkirt_Back_03_R
+    - Spine
+    - Chest
+    - Neck
+    - Head 1
+    - Head_End
+    - Hair_Side_01_R
+    - Hair_Front_01_R
+    - Hair_Front_02_R
+    - Hair_Front_01_L
+    - Hair_Front_02_L
+    - Hair_Side_01_L
+    - Hair_Side_02_L
+    - Backhair_01_L
+    - Backhair_02_L
+    - Backhair_03_L
+    - Backhair_04_L
+    - Backhair_05_L
+    - Backhair_01_R
+    - Backhair_02_R
+    - Backhair_03_R
+    - Backhair_04_R
+    - Backhair_05_R
+    - Eye_L
+    - Eye_R
+    - Shoulder_L
+    - UpperArm_L
+    - Forearm_L
+    - Hand_L
+    - Index_01_L
+    - Index_02_L
+    - Index_03_L
+    - Middle_01_L
+    - Middle_02_L
+    - Middle_03_L
+    - Ring_01_L
+    - Ring_02_L
+    - Ring_03_L
+    - Pinky_01_L
+    - Pinky_02_L
+    - Pinky_03_L
+    - Thumb_01_L
+    - Thumb_02_L
+    - Thumb_03_L
+    - ForearmTwist_L
+    - UpperArmTwist_L
+    - Breast_L
+    - Breast_Tip_L
+    - Breast_R
+    - Breast_Tip_R
+    - Shoulder_R
+    - UpperArm_R
+    - Forearm_R
+    - Hand_R
+    - Index_01_R
+    - Index_02_R
+    - Index_03_R
+    - Middle_01_R
+    - Middle_02_R
+    - Middle_03_R
+    - Ring_01_R
+    - Ring_02_R
+    - Ring_03_R
+    - Pinky_01_R
+    - Pinky_02_R
+    - Pinky_03_R
+    - Thumb_01_R
+    - Thumb_02_R
+    - Thumb_03_R
+    - ForearmTwist_R
+    - UpperArmTwist_R
+    localPosition: {x: 0, y: 0, z: 0}
+    localRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+    localScale: {x: 1, y: 1, z: 1}
+    localBounds:
+      m_Center: {x: -0.0000000037252903, y: 1.3951844, z: -0.00036429614}
+      m_Extent: {x: 0.054471344, y: 0.044795513, z: 0.050635893}
+    skinQuality: 4
+    updateWhenOffscreen: 1
+    shadowCastingMode: 1
+    receiveShadows: 1

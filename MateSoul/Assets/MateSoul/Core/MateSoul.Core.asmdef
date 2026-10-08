@@ -1,0 +1,5 @@
+{
+  "name": "MateSoul.Core",
+  "rootNamespace": "MateSoul.Core",
+  "noEngineReferences": true
+}

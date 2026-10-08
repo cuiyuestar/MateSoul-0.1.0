@@ -1,0 +1,31 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8787,
+    "requestBodyLimit": "128kb",
+    "clientTokenEnvironmentVariable": null
+  },
+  "deepseek": {
+    "baseUrl": "https://api.deepseek.com",
+    "model": "deepseek-v4-pro",
+    "thinking": "disabled",
+    "maxTokens": 800,
+    "requestTimeoutMs": 45000,
+    "maxToolRounds": 4
+  },
+  "conversation": {
+    "characterConfig": "character.json",
+    "maxHistoryMessages": 16,
+    "maxReplyCharacters": 600,
+    "maxToolResultCharacters": 16000
+  },
+  "web": {
+    "searchEndpoint": "https://www.bing.com/search",
+    "searchMarket": "zh-CN",
+    "searchTimeoutMs": 10000,
+    "fetchTimeoutMs": 12000,
+    "maxSearchResults": 8,
+    "maxFetchBytes": 1048576,
+    "maxFetchCharacters": 20000
+  }
+}

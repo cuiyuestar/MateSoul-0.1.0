@@ -1,0 +1,21 @@
+{
+  "name": "MateSoul.RoomNavigation.Editor",
+  "rootNamespace": "MateSoul.RoomNavigation.Editor",
+  "references": [
+    "MateSoul.RoomNavigation",
+    "ByteDance.PICO.XR",
+    "Unity.InputSystem",
+    "Unity.XR.CoreUtils"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

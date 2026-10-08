@@ -1,0 +1,10 @@
+{
+  "name": "MateSoul.Editor",
+  "references": [
+    "MateSoul.Core", "MateSoul.Gameplay", "MateSoul.Runtime", "MateSoul.Character",
+    "MateSoul.RoomNavigation", "MateSoul.RoomNavigation.Editor",
+    "ByteDance.PICO.XR", "Unity.Animation.Rigging", "Unity.InputSystem", "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.CoreUtils", "UnityEngine.UI", "Unity.TextMeshPro"
+  ],
+  "includePlatforms": ["Editor"]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "MateSoul.Gameplay",
+  "rootNamespace": "MateSoul.Gameplay",
+  "references": ["MateSoul.Core"],
+  "noEngineReferences": true
+}

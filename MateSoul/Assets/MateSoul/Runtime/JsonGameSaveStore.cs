@@ -16,6 +16,8 @@ namespace MateSoul.Runtime
             var data = JsonUtility.FromJson<GameSaveData>(File.ReadAllText(path));
             if (data != null && data.personality == null)
                 data.personality = new PersonalitySelectionData();
+            if (data != null && data.inventory == null)
+                data.inventory = Array.Empty<ItemInventorySaveData>();
             Validate(data);
             return data;
         }
@@ -35,7 +37,8 @@ namespace MateSoul.Runtime
             if (data == null || data.version != 1)
                 throw new InvalidDataException("Unsupported or invalid MateSoul save version.");
             if (data.personality == null || data.personality.selections == null ||
-                data.mood == null || data.mood.meters == null || data.items == null)
+                data.mood == null || data.mood.meters == null || data.items == null ||
+                data.inventory == null)
                 throw new InvalidDataException("Save is missing its personality, mood, or item collections.");
             var ids = new HashSet<string>();
             foreach (var item in data.items)
@@ -46,7 +49,28 @@ namespace MateSoul.Runtime
                     !Finite(item.qx) || !Finite(item.qy) || !Finite(item.qz) || !Finite(item.qw) ||
                     Mathf.Abs(item.qx * item.qx + item.qy * item.qy + item.qz * item.qz + item.qw * item.qw - 1) > .01f)
                     throw new InvalidDataException("Save contains an invalid item ID or pose.");
+                if (item.cutState?.planes == null ||
+                    item.cutState.planes.Length == 0) continue;
+                if (item.cutState.version != 1 ||
+                    item.cutState.planes.Length > 4)
+                    throw new InvalidDataException("Save contains an unsupported cut history.");
+                foreach (var plane in item.cutState.planes)
+                {
+                    if (plane == null || !Finite(plane.nx) || !Finite(plane.ny) ||
+                        !Finite(plane.nz) || !Finite(plane.distance))
+                        throw new InvalidDataException("Save contains an invalid cut plane.");
+                    var length = plane.nx * plane.nx + plane.ny * plane.ny +
+                                 plane.nz * plane.nz;
+                    if (Mathf.Abs(length - 1f) > .002f)
+                        throw new InvalidDataException(
+                            "Save contains a non-normalized cut plane.");
+                }
             }
+            ids.Clear();
+            foreach (var stock in data.inventory)
+                if (stock == null || string.IsNullOrWhiteSpace(stock.definitionId) ||
+                    stock.remaining < 0 || !ids.Add(stock.definitionId))
+                    throw new InvalidDataException("Save contains invalid or duplicate item inventory.");
             if (data.items.Length > 0 && string.IsNullOrWhiteSpace(data.roomAnchorId))
                 throw new InvalidDataException("Saved items need a room anchor.");
             if (data.hasRoomAnchorPose &&

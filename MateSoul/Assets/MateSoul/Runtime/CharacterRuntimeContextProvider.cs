@@ -65,12 +65,6 @@ namespace MateSoul.Runtime
                 .FirstOrDefault(value => !string.IsNullOrEmpty(value)) ?? "standing";
             var capturedOutfitId = wardrobe.CurrentOutfitId;
             var capturedDisplayName = wardrobe.CurrentDisplayName;
-#region debug-point B-D-E:context-capture
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            var debugPayload = $"{{\"sessionId\":\"outfit-context-stale\",\"runId\":\"pre-fix\",\"hypothesisId\":\"B,D,E\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()},\"location\":\"CharacterRuntimeContextProvider.Capture\",\"msg\":\"[DEBUG] runtime context captured\",\"data\":{{\"wardrobeInstanceId\":{wardrobe.GetInstanceID()},\"revision\":{revision},\"outfitId\":\"{capturedOutfitId}\",\"displayName\":\"{capturedDisplayName}\",\"recentEvents\":{recentEvents.Count}}}}}";
-            UnityWebRequest.Post("http://127.0.0.1:7782/event", debugPayload, "application/json").SendWebRequest();
-#endif
-#endregion
             return new CharacterContextSnapshot
             {
                 persona = persona.Capture(),
@@ -127,12 +121,6 @@ namespace MateSoul.Runtime
         private void OnOutfitChanged(string outfitId)
         {
             revision++;
-#region debug-point B-E:outfit-event
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            var debugPayload = $"{{\"sessionId\":\"outfit-context-stale\",\"runId\":\"pre-fix\",\"hypothesisId\":\"B,E\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()},\"location\":\"CharacterRuntimeContextProvider.OnOutfitChanged\",\"msg\":\"[DEBUG] outfit event received\",\"data\":{{\"wardrobeInstanceId\":{wardrobe.GetInstanceID()},\"eventOutfitId\":\"{outfitId}\",\"currentOutfitId\":\"{wardrobe.CurrentOutfitId}\",\"revision\":{revision}}}}}";
-            UnityWebRequest.Post("http://127.0.0.1:7782/event", debugPayload, "application/json").SendWebRequest();
-#endif
-#endregion
             AddEvent(new RuntimeEventSnapshot
             {
                 type = "outfit_changed",

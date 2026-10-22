@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace MateSoul.Runtime
 {
@@ -15,6 +16,9 @@ namespace MateSoul.Runtime
 
         public int FragmentCount => bodies.Length;
         public IReadOnlyList<PhysicsBody> Bodies => bodies;
+        public AudioSource BreakSoundSource { get; private set; }
+        public double BreakSoundRequestedAt { get; private set; } = -1;
+        public double FragmentsReadyAt { get; private set; } = -1;
 
         internal static BreakableDebris Create(GameSession owner, Transform parent, string itemName,
             Pose pose, Vector2 footprint, float height, BodySettings physics,
@@ -36,6 +40,7 @@ namespace MateSoul.Runtime
             var debris = root.AddComponent<BreakableDebris>();
             debris.session = owner;
             debris.remainingLifetime = settings.debrisLifetime;
+            debris.PlayBreakSound(settings.breakSound, severity);
             try
             {
                 var template = severity == BreakSeverity.Heavy
@@ -47,6 +52,9 @@ namespace MateSoul.Runtime
                     : CreateProceduralFragments(debris, count, pose, footprint, height,
                         physics, severity, materials, impactPoint, inheritedVelocity,
                         inheritedAngularVelocity);
+                debris.FragmentsReadyAt = Time.realtimeSinceStartupAsDouble;
+                Debug.Log($"BREAK_SOUND_TIMING item={itemName} severity={severity} " +
+                          $"leadMs={(debris.FragmentsReadyAt - debris.BreakSoundRequestedAt) * 1000:F1}");
                 owner.RegisterDebris(debris);
                 return debris;
             }
@@ -63,6 +71,29 @@ namespace MateSoul.Runtime
             paused = value;
             foreach (var body in bodies)
                 if (body != null) body.SetPaused(value);
+            if (BreakSoundSource == null) return;
+            if (value) BreakSoundSource.Pause();
+            else BreakSoundSource.UnPause();
+        }
+
+        internal void PlayBreakSound(AudioClip clip, BreakSeverity severity)
+        {
+            if (clip == null || BreakSoundSource != null) return;
+            var source = gameObject.AddComponent<AudioSource>();
+            source.clip = clip;
+            source.playOnAwake = false;
+            source.loop = false;
+            source.spatialBlend = 1f;
+            source.dopplerLevel = .2f;
+            source.spread = 25f;
+            source.rolloffMode = AudioRolloffMode.Logarithmic;
+            source.minDistance = .35f;
+            source.maxDistance = 7f;
+            source.volume = severity == BreakSeverity.Heavy ? .95f : .72f;
+            source.pitch = severity == BreakSeverity.Heavy ? .94f : 1.04f;
+            BreakSoundSource = source;
+            BreakSoundRequestedAt = Time.realtimeSinceStartupAsDouble;
+            source.Play();
         }
 
         private void Update()

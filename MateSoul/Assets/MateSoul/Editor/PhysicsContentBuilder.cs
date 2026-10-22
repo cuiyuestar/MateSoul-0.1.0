@@ -11,6 +11,7 @@ namespace MateSoul.Editor
         public static PhysicMaterial Wood => Surface("Wood", .55f, .4f, .05f);
         public static PhysicMaterial Metal => Surface("Metal", .5f, .35f, .08f);
         public static PhysicMaterial Ceramic => Surface("Ceramic", .48f, .32f, .04f);
+        public static PhysicMaterial Glass => Surface("Glass", .34f, .22f, .03f);
         public static PhysicMaterial Plastic => Surface("Plastic", .42f, .3f, .06f);
         public static PhysicMaterial Paper => Surface("Paper", .62f, .48f, .02f);
         public static PhysicMaterial Food => Surface("Food", .58f, .44f, .03f);

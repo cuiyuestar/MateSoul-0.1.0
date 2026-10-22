@@ -7,6 +7,7 @@ import { ConversationService } from "./conversation-service.js";
 import { createConversationRequestSchema } from "./contracts.js";
 import { DeepSeekClient } from "./deepseek-client.js";
 import { McpToolRuntime } from "./mcp-runtime.js";
+import { SpontaneousReplyService } from "./spontaneous-reply-service.js";
 
 async function main(): Promise<void> {
   dotenv.config({ path: resolve(".env.local"), quiet: true });
@@ -33,15 +34,22 @@ async function main(): Promise<void> {
       ...fields,
     })}\n`);
   };
+  const model = new DeepSeekClient(apiKey, loaded.gateway.deepseek);
   const conversations = new ConversationService(
-    new DeepSeekClient(apiKey, loaded.gateway.deepseek),
+    model,
     mcp,
     loaded.character,
     loaded.gateway,
     log,
   );
+  const spontaneousReplies = new SpontaneousReplyService(
+    model,
+    loaded.character,
+    loaded.gateway,
+  );
   const app = createApp({
     handler: conversations,
+    spontaneousReplyHandler: spontaneousReplies,
     requestSchema: createConversationRequestSchema(
       loaded.gateway.conversation.maxHistoryMessages,
     ),

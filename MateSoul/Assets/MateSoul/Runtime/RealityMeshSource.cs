@@ -86,9 +86,6 @@ namespace MateSoul.Runtime
                     : Array.Empty<RealityItemObservation>();
                 geometry = Convert(blocks, semanticVolumes);
                 Updated?.Invoke(geometry, Time.unscaledTime);
-#if DEVELOPMENT_BUILD
-                SeatingDeviceProbe.WriteMeshOnce(blocks);
-#endif
             }
             catch (Exception error)
             {

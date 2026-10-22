@@ -14,31 +14,133 @@ namespace MateSoul.Runtime
         private ItemRegistry registry;
         private GameSession session;
         private ItemDefinition definition;
-        private readonly Dictionary<Renderer, Material[]> baseMaterials =
+        private ItemInteractionFocusTarget[] focusTargets =
+            Array.Empty<ItemInteractionFocusTarget>();
+        private readonly Dictionary<Renderer, Material[]> recycleBaseMaterials =
             new Dictionary<Renderer, Material[]>();
+        private Material recycleFocusMaterial;
         private PhysicsGrabInteractable grab;
+        private RuntimeCuttable cuttable;
         private NavMeshObstacle obstacle;
         private Pose stablePose;
+        private Guid interactionReleaseOwner;
+        private bool fixedAfterPlacement, recycleFocused;
+        private float nextUnavailableHint;
         public PhysicsBody Body { get; private set; }
         public ItemInstance Instance { get; private set; }
         public Vector3 ApproachPosition => transform.TransformPoint(definition.ApproachOffset);
         public ItemDefinition Definition => definition;
-        public bool IsHeld { get; private set; }
+        public string InventoryDefinitionId { get; private set; }
+        public string InventoryUnitId { get; private set; }
+        public bool IsFixedAfterPlacement => fixedAfterPlacement;
+        public bool IsImmovableAfterPlacement =>
+            definition != null && definition.ImmovableAfterPlacement;
+        public bool IsRecycleFocused => recycleFocused;
+        public Material RecycleFocusMaterial => recycleFocusMaterial;
+        public RuntimeCuttable Cuttable => cuttable;
+        public bool IsHeld => Instance != null &&
+            (Instance.ControlState == ItemControlState.PlayerHeld ||
+             Instance.ControlState == ItemControlState.HeldByCharacter);
+        public bool IsReserved => Instance != null && Instance.IsCharacterOwned;
+        public float LastInteractionReleasePositionDelta { get; private set; }
+        public float LastInteractionReleaseRotationDelta { get; private set; }
+        public bool CanPlayerUse => Instance != null && !Instance.IsOccupied &&
+            Body != null && !Body.IsPaused;
+        public ItemRegistry Registry => registry;
         internal GameSession Session => session;
 
+        private void Awake() => ResolveFocusTargets();
+
+        private void ResolveFocusTargets()
+            => focusTargets = GetComponentsInChildren<ItemInteractionFocusTarget>(true);
+
+        public void ReportUnavailable()
+        {
+            if (!IsReserved || Time.unscaledTime < nextUnavailableHint) return;
+            nextUnavailableHint = Time.unscaledTime + 1;
+            session?.Notifications.ShowHint($"冷月正在使用{definition.DisplayName}。");
+        }
+
+        public void Stabilize(ItemReservation lease)
+        {
+            if (lease == null || !lease.IsValid || lease.InteractionId != Instance.InteractionId ||
+                !IsReserved) throw new InvalidOperationException("物品预约已失效。");
+            var id = lease.InteractionId;
+            if (interactionReleaseOwner != id)
+            {
+                interactionReleaseOwner = id;
+                lease.OnRelease(reason =>
+                {
+                    if (this == null || Body == null) return;
+                    Body.EndInteraction(id);
+                    interactionReleaseOwner = Guid.Empty;
+                    if (obstacle != null)
+                        obstacle.enabled = fixedAfterPlacement;
+                });
+            }
+            LastInteractionReleasePositionDelta = 0;
+            LastInteractionReleaseRotationDelta = 0;
+            Body.BeginInteraction(id);
+            if (obstacle != null && !fixedAfterPlacement) obstacle.enabled = false;
+        }
+
+        public void CheckpointInteraction()
+        {
+            if (!IsReserved || !Body.IsInteractionControlled)
+                throw new InvalidOperationException("物品工作位置缺少有效操作所有权。");
+            stablePose = Body.Pose;
+        }
+
+        public void ReleaseInteractionToPhysics(ItemReservation lease)
+        {
+            if (lease == null || !lease.IsValid ||
+                lease.InteractionId != Instance.InteractionId ||
+                !IsReserved || !Body.IsInteractionControlled)
+                throw new InvalidOperationException(
+                    "物品释放时缺少有效操作所有权。");
+            stablePose = Body.Pose;
+            var before = Body.Pose;
+            Body.EndInteraction(lease.InteractionId);
+            LastInteractionReleasePositionDelta = Vector3.Distance(
+                before.position, Body.Pose.position);
+            LastInteractionReleaseRotationDelta = Quaternion.Angle(
+                before.rotation, Body.Pose.rotation);
+        }
+
         public void Bind(ItemDefinition content, ItemRegistry owner, GameSession gameSession,
-            string instanceId, string stateId = "default")
+            string instanceId, string stateId = "default",
+            string inventoryDefinitionId = null, string inventoryUnitId = null)
         {
             definition = content;
             registry = owner;
             session = gameSession;
+            InventoryDefinitionId = string.IsNullOrEmpty(inventoryDefinitionId)
+                ? content.Id : inventoryDefinitionId;
+            InventoryUnitId = string.IsNullOrEmpty(inventoryUnitId)
+                ? instanceId : inventoryUnitId;
+            fixedAfterPlacement = content.FixedAfterPlacement;
             Instance = new ItemInstance(instanceId, content.Id, content.DisplayName, content.Capabilities, stateId);
             registry.Register(Instance);
+            if (content.Interaction != null)
+                registry.AddCapability(instanceId, content.Interaction.capability);
+            cuttable = GetComponent<RuntimeCuttable>();
+            if (content.Cuttable.enabled)
+            {
+                if (cuttable == null)
+                    throw new InvalidOperationException(
+                        $"{content.DisplayName}已标记可切割，但预制体缺少 RuntimeCuttable。");
+                cuttable.Bind(content.Cuttable);
+            }
             stablePose = new Pose(transform.position, transform.rotation);
             obstacle = GetComponent<NavMeshObstacle>();
 
             Body = GetComponent<PhysicsBody>() ?? gameObject.AddComponent<PhysicsBody>();
             Body.Configure(content.Physics);
+            if (cuttable != null)
+                Body.Rigidbody.mass = Mathf.Max(.001f,
+                    content.Physics.mass * cuttable.VolumeRatio);
+            Body.Rigidbody.useGravity =
+                content.PlacementSurface != ItemPlacementSurface.Wall;
             Body.Place(new Pose(transform.position, transform.rotation));
             grab = GetComponent<PhysicsGrabInteractable>() ?? gameObject.AddComponent<PhysicsGrabInteractable>();
             grab.useDynamicAttach = true;
@@ -49,70 +151,109 @@ namespace MateSoul.Runtime
             grab.hoverExited.AddListener(OnHoverExited);
             grab.selectEntered.AddListener(OnSelected);
             grab.selectExited.AddListener(OnReleased);
+            grab.PlayerGrabbable = !fixedAfterPlacement;
+            if (content.ImmovableAfterPlacement)
+                Body.SetContact(true);
+            if (fixedAfterPlacement && obstacle != null) obstacle.enabled = true;
             if (content.Breakable.enabled)
             {
                 var breakable = GetComponent<BreakableItem>() ??
                                 gameObject.AddComponent<BreakableItem>();
                 breakable.Configure(this, content.Breakable);
             }
+            if (content.ImpactSound.enabled)
+            {
+                var impact = GetComponent<ImpactSoundEmitter>() ??
+                             gameObject.AddComponent<ImpactSoundEmitter>();
+                impact.Configure(this, content.ImpactSound);
+            }
+            if (content.Cooking.enabled)
+            {
+                var food = GetComponent<CookableFood>() ??
+                           gameObject.AddComponent<CookableFood>();
+                food.Configure(content.Cooking, this);
+            }
+            if (content.Interaction != null &&
+                content.Interaction.capability == "cutting-tool")
+            {
+                var tool = GetComponent<RuntimeCuttingTool>() ??
+                           gameObject.AddComponent<RuntimeCuttingTool>();
+                tool.Configure(this, session, content.Interaction);
+            }
 
-            foreach (var renderer in GetComponentsInChildren<Renderer>(true))
-                baseMaterials.Add(renderer, renderer.sharedMaterials);
-#region debug-point C:grab-bind
-#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
-            var bindPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
-                              $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                              $"\"location\":\"GameItem.Bind\",\"msg\":\"[DEBUG] grab interactable bound\"," +
-                              $"\"data\":{{\"id\":\"{Instance.Id}\",\"definition\":\"{definition.Id}\"," +
-                              $"\"grabEnabled\":{grab.isActiveAndEnabled.ToString().ToLowerInvariant()}," +
-                              $"\"manager\":{(grab.interactionManager != null).ToString().ToLowerInvariant()}," +
-                              $"\"colliders\":{GetComponentsInChildren<Collider>(true).Length}," +
-                              $"\"renderers\":{baseMaterials.Count}" + "}}";
-            UnityWebRequest.Post("http://10.0.2.2:7782/event", bindPayload, "application/json")
-                .SendWebRequest();
-#endif
-#endregion
+            ResolveFocusTargets();
         }
 
         public void SetFocused(bool value)
         {
-            if (definition == null || definition.FocusMaterial == null || IsHeld) value = false;
-#region debug-point B:focus-material
-#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
-            var shaderName = (definition?.FocusMaterial?.shader == null
-                ? "none"
-                : definition.FocusMaterial.shader.name).Replace("\"", "'");
-            var focusPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
-                               $"\"hypothesisId\":\"B\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                               $"\"location\":\"GameItem.SetFocused\",\"msg\":\"[DEBUG] focus material apply\"," +
-                               $"\"data\":{{\"id\":\"{Instance?.Id ?? "none"}\"," +
-                               $"\"requested\":{value.ToString().ToLowerInvariant()}," +
-                               $"\"held\":{IsHeld.ToString().ToLowerInvariant()}," +
-                               $"\"renderers\":{baseMaterials.Count},\"shader\":\"{shaderName}\"" + "}}";
-            UnityWebRequest.Post("http://10.0.2.2:7782/event", focusPayload, "application/json")
-                .SendWebRequest();
-#endif
-#endregion
-            foreach (var entry in baseMaterials)
+            if (IsHeld || IsReserved) value = false;
+            foreach (var target in focusTargets)
+                if (target != null) target.SetFocused(value);
+        }
+
+        public void SetRecycleFocused(bool value)
+        {
+            if (definition == null || definition.FocusMaterial == null ||
+                IsHeld || IsReserved)
+                value = false;
+            SetWholeItemFocused(value);
+        }
+
+        private void SetWholeItemFocused(bool value)
+        {
+            if (definition == null || definition.FocusMaterial == null)
+                value = false;
+            if (value == recycleFocused) return;
+            if (value)
             {
-                if (entry.Key == null) continue;
-                entry.Key.sharedMaterials = value
-                    ? entry.Value.Concat(new[] { definition.FocusMaterial }).ToArray()
-                    : entry.Value;
+                if (recycleFocusMaterial == null)
+                {
+                    recycleFocusMaterial = new Material(definition.FocusMaterial)
+                    {
+                        name = definition.FocusMaterial.name + " (Recycle)",
+                        hideFlags = HideFlags.HideAndDontSave
+                    };
+                    recycleFocusMaterial.SetColor(
+                        "_Color", new Color(1f, .08f, .34f, .96f));
+                    recycleFocusMaterial.SetFloat("_OutlineWidth", .007f);
+                    recycleFocusMaterial.SetFloat("_Intensity", 1.25f);
+                }
+                recycleBaseMaterials.Clear();
+                foreach (var renderer in GetComponentsInChildren<Renderer>(true))
+                {
+                    if (renderer == null) continue;
+                    var materials = renderer.sharedMaterials
+                        .Where(material => material != recycleFocusMaterial).ToArray();
+                    recycleBaseMaterials.Add(renderer, materials);
+                    renderer.sharedMaterials =
+                        materials.Concat(new[] { recycleFocusMaterial }).ToArray();
+                }
             }
+            else
+            {
+                foreach (var entry in recycleBaseMaterials)
+                    if (entry.Key != null) entry.Key.sharedMaterials = entry.Value;
+                recycleBaseMaterials.Clear();
+            }
+            recycleFocused = value;
         }
 
         public ItemSaveData Capture(Transform anchor)
         {
             // Holding uses the last settled checkpoint. Free bodies retain their actual
             // pose; interrupted falls resume under gravity after a validated restore.
-            var pose = IsHeld ? stablePose : Body.Pose;
+            var pose = IsHeld || IsReserved ? stablePose : Body.Pose;
             var position = anchor.InverseTransformPoint(pose.position);
             var rotation = Quaternion.Inverse(anchor.rotation) * pose.rotation;
             return new ItemSaveData
             {
-                instanceId = Instance.Id, definitionId = Instance.DefinitionId, stateId = Instance.StateId,
-                needsGravitySettling = !Body.HasSupport(),
+                instanceId = Instance.Id, definitionId = Instance.DefinitionId,
+                inventoryDefinitionId = InventoryDefinitionId, inventoryUnitId = InventoryUnitId,
+                stateId = Instance.StateId,
+                cutState = cuttable?.CaptureState(),
+                needsGravitySettling =
+                    definition.PlacementSurface != ItemPlacementSurface.Wall &&
+                    !Body.HasSupport(),
                 x = position.x, y = position.y, z = position.z,
                 qx = rotation.x, qy = rotation.y, qz = rotation.z, qw = rotation.w
             };
@@ -120,76 +261,31 @@ namespace MateSoul.Runtime
 
         private void OnHoverEntered(HoverEnterEventArgs args)
         {
-#region debug-point C:grab-hover-enter
-#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
-            var hoverPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
-                               $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                               $"\"location\":\"GameItem.OnHoverEntered\",\"msg\":\"[DEBUG] grab hover entered\"," +
-                               $"\"data\":{{\"id\":\"{Instance.Id}\"," +
-                               $"\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"" + "}}";
-            UnityWebRequest.Post("http://10.0.2.2:7782/event", hoverPayload, "application/json")
-                .SendWebRequest();
-#endif
-#endregion
         }
 
         private void OnHoverExited(HoverExitEventArgs args)
         {
-#region debug-point C:grab-hover-exit
-#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
-            var hoverPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
-                               $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                               $"\"location\":\"GameItem.OnHoverExited\",\"msg\":\"[DEBUG] grab hover exited\"," +
-                               $"\"data\":{{\"id\":\"{Instance.Id}\"," +
-                               $"\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"" + "}}";
-            UnityWebRequest.Post("http://10.0.2.2:7782/event", hoverPayload, "application/json")
-                .SendWebRequest();
-#endif
-#endregion
         }
 
         private void OnSelected(SelectEnterEventArgs args)
         {
-#region debug-point C:grab-select
-#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
-            var rayInteractor = args.interactorObject as XRRayInteractor;
-            var cameraTransform = Camera.main == null ? null : Camera.main.transform;
-            var selectPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
-                                $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                                $"\"location\":\"GameItem.OnSelected\",\"msg\":\"[DEBUG] grab select entered\"," +
-                                $"\"data\":{{\"id\":\"{Instance.Id}\"," +
-                                $"\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"," +
-                                $"\"forceGrab\":{(rayInteractor != null && rayInteractor.useForceGrab).ToString().ToLowerInvariant()}," +
-                                $"\"cameraDistance\":{(cameraTransform == null ? -1f : Vector3.Distance(transform.position, cameraTransform.position))}" +
-                                "}}";
-            UnityWebRequest.Post("http://10.0.2.2:7782/event", selectPayload, "application/json")
-                .SendWebRequest();
-#endif
-#endregion
-            IsHeld = true;
             SetFocused(false);
             if (obstacle != null) obstacle.enabled = false;
         }
 
         private void OnReleased(SelectExitEventArgs args)
         {
-#region debug-point C:grab-release
-#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
-            var releasePayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
-                                 $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                                 $"\"location\":\"GameItem.OnReleased\",\"msg\":\"[DEBUG] grab select exited\"," +
-                                 $"\"data\":{{\"id\":\"{Instance.Id}\"," +
-                                 $"\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"" + "}}";
-            UnityWebRequest.Post("http://10.0.2.2:7782/event", releasePayload, "application/json")
-                .SendWebRequest();
-#endif
-#endregion
-            IsHeld = false;
         }
 
         private void Update()
         {
             if (Body == null || Body.IsPaused) return;
+            if (IsReserved) return;
+            if (IsImmovableAfterPlacement)
+            {
+                if (obstacle != null) obstacle.enabled = true;
+                return;
+            }
             var settled = Body.IsSettled && !IsHeld;
             if (obstacle != null) obstacle.enabled = settled;
             if (!settled) return;
@@ -217,8 +313,17 @@ namespace MateSoul.Runtime
         internal bool TryBreak(BreakSeverity severity)
             => session != null && Instance != null && session.BreakItem(Instance.Id, severity);
 
+        private void OnDisable()
+        {
+            SetFocused(false);
+            SetRecycleFocused(false);
+            if (Instance != null && registry != null && registry.IsCurrent(Instance))
+                registry.Remove(Instance.Id);
+        }
+
         private void OnDestroy()
         {
+            if (recycleFocusMaterial != null) Destroy(recycleFocusMaterial);
             if (grab != null)
             {
                 grab.hoverEntered.RemoveListener(OnHoverEntered);
@@ -226,7 +331,8 @@ namespace MateSoul.Runtime
                 grab.selectEntered.RemoveListener(OnSelected);
                 grab.selectExited.RemoveListener(OnReleased);
             }
-            if (Instance != null && registry != null) registry.Remove(Instance.Id);
+            if (Instance != null && registry != null && registry.IsCurrent(Instance))
+                registry.Remove(Instance.Id);
         }
     }
 }

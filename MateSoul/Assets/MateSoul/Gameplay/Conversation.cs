@@ -33,6 +33,7 @@ namespace MateSoul.Gameplay
     {
         public string status;
         public string reply_text;
+        public string response_emotion;
         public DialogueAction action;
         public MoodSignal[] mood_signals;
     }
@@ -97,6 +98,8 @@ namespace MateSoul.Gameplay
         public string Text { get; private set; }
         public string ActionError { get; private set; }
         public ActionHandle LastAction { get; private set; }
+        public ResponseEmotion? LastResponseEmotion { get; private set; }
+        public int ReplySequence { get; private set; }
         public event Action Changed;
 
         public ConversationOrchestrator(ILLMProvider provider, IConversationContextProvider context,
@@ -115,7 +118,8 @@ namespace MateSoul.Gameplay
             if (string.IsNullOrWhiteSpace(input)) throw new ArgumentException("Message is empty.");
             if (avatar.HasClaim(ControlChannels.Dialogue))
                 throw new InvalidOperationException("冷月正在完成小游戏回合，请稍候。");
-            Cancel();
+            if (pending != null)
+                throw new InvalidOperationException("冷月正在回复，请稍候。");
             var requestCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             requestCancellation.CancelAfter(TimeSpan.FromSeconds(30));
             pending = requestCancellation;
@@ -123,6 +127,7 @@ namespace MateSoul.Gameplay
             Text = null;
             ActionError = null;
             LastAction = null;
+            LastResponseEmotion = null;
             Changed?.Invoke();
             try
             {
@@ -145,6 +150,8 @@ namespace MateSoul.Gameplay
                     throw new InvalidOperationException("冷月正在完成小游戏回合，请稍候。");
                 if (reply == null || string.IsNullOrWhiteSpace(reply.reply_text) || reply.reply_text.Length > 4096)
                     throw new InvalidOperationException("模型回复缺少有效的 reply_text。");
+                if (!ResponseEmotionProtocol.TryParse(reply.response_emotion, out var responseEmotion))
+                    throw new InvalidOperationException("模型回复缺少有效的 response_emotion。");
 
                 if (reply.action != null && !string.IsNullOrEmpty(reply.action.id) && reply.action.id != "none")
                 {
@@ -167,6 +174,8 @@ namespace MateSoul.Gameplay
                             mood.Apply(signal.id, Math.Max(-32, Math.Min(32, signal.delta)));
                 dialogueContext.Append(input, reply.reply_text);
                 Text = reply.reply_text;
+                LastResponseEmotion = responseEmotion;
+                ReplySequence++;
                 State = ConversationState.Replied;
             }
             catch (OperationCanceledException)

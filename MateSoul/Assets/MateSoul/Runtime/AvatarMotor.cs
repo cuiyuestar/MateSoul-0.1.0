@@ -49,32 +49,57 @@ namespace MateSoul.Runtime
     [RequireComponent(typeof(PhysicsBody), typeof(CapsuleCollider))]
     public sealed class AvatarMotor : MonoBehaviour, IAvatarMotor
     {
+        private const float AnimationIdleSpeed = .05f;
+        private const float TurnAnimationStartSpeed = .12f;
+        private const float TurnBeforeMoveEnterAngle = 70f;
+        private const float TurnBeforeMoveExitAngle = 30f;
+        // One generated TurnStep lasts 1.067s. Keep root yaw within that contact
+        // cadence instead of allowing the capsule to outrun the planted feet.
+        private const float MaximumInPlaceTurnSpeed = 78f;
+        private const float TurnStepSettleSpeed = 28f;
+        private const float TurnStepRecoverySeconds = .6f;
+        private const float RepeatTurnStepAngle = 48f;
+        private const float PhysicalAvoidanceActivationSeconds = .3f;
+        private const float PhysicalAvoidanceHoldSeconds = 1.25f;
+        private const float PhysicalAvoidanceFailureSeconds = 8f;
         [SerializeField] private Animator animator;
         [SerializeField] private float speed = 1.1f;
         [SerializeField] private float turnSpeed = 240f;
         [SerializeField] private float handHoldAcceleration = 2.2f;
         private PhysicsBody body;
         private CapsuleCollider capsule;
+        private NavMeshAgent agent;
         private Vector3[] corners;
         private int corner;
-        private int speedParameter;
+        private int speedParameter, turnRateParameter, socialAttentionParameter;
+        private int turnStepLeftParameter, turnStepRightParameter;
+        private bool hasTurnRateParameter, hasSocialAttentionParameter;
+        private bool hasTurnStepLeftParameter, hasTurnStepRightParameter;
+        private bool turnStepRequested, turnStepWasObserved, completedTurnStep;
+        private float turnStepRecoverySeconds;
         private bool contact;
         private Vector3 contactExit;
         private Vector3 desiredVelocity;
         private Quaternion facing;
-        private bool handHoldDrive;
+        private float facingSpeed;
+        private bool handHoldDrive, waitingForFacing;
+        private readonly TurnInPlaceMotion turnMotion = new TurnInPlaceMotion();
+        private AvatarTurnFootPlantRig turnFootPlant;
+        private Collider physicalBlocker;
+        private Vector3 physicalAvoidanceNormal;
+        private float physicalBlockSeconds, physicalAvoidanceSeconds, physicalAvoidanceSign;
+        private float physicalContactIdleSeconds, physicalAvoidanceTotalSeconds;
         private readonly HashSet<int> contactIgnoredSurfaceSources = new HashSet<int>();
         private readonly RaycastHit[] groundHits = new RaycastHit[12];
-#region debug-point B:grounded-motion
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-        private float debugNextMotorReport;
-#endif
-#endregion
         public PhysicsBody Body => body;
         public string ContactPosture => !contact ? null :
             Vector3.Dot(body.Pose.rotation * Vector3.up, Vector3.up) < .7f ? "lying" : "seated";
         public Vector3 Position => body != null ? body.Pose.position : transform.position;
         public bool IsMoving => corners != null;
+        public bool IsTurning => turnMotion.IsTurning;
+        public bool SocialAttentionEnabled { get; private set; }
+        public bool PhysicalAvoidanceFailed
+            => physicalAvoidanceTotalSeconds >= PhysicalAvoidanceFailureSeconds;
 
         public void Bind(Animator characterAnimator)
         {
@@ -86,8 +111,44 @@ namespace MateSoul.Runtime
             body.Rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
             SetStandingShape();
             body.Place(initialPose);
+            agent = GetComponent<NavMeshAgent>();
+            if (agent == null) agent = gameObject.AddComponent<NavMeshAgent>();
+            agent.radius = RuntimeRoomNavigation.CharacterRadius;
+            agent.height = RuntimeRoomNavigation.CharacterHeight;
+            agent.baseOffset = 0;
+            agent.speed = speed;
+            agent.angularSpeed = turnSpeed;
+            agent.acceleration = 4f;
+            agent.stoppingDistance = .12f;
+            agent.autoBraking = true;
+            agent.autoRepath = true;
+            agent.updatePosition = false;
+            agent.updateRotation = false;
+            agent.updateUpAxis = false;
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+            agent.avoidancePriority = 50;
+            if (!agent.isOnNavMesh &&
+                NavMesh.SamplePosition(Position, out var navHit, .5f, NavMesh.AllAreas))
+                agent.Warp(navHit.position);
+            agent.nextPosition = Position;
+            agent.isStopped = true;
             facing = body.Pose.rotation;
+            facingSpeed = turnSpeed;
             speedParameter = Animator.StringToHash("Speed");
+            turnRateParameter = Animator.StringToHash("TurnRate");
+            socialAttentionParameter = Animator.StringToHash("SocialAttention");
+            turnStepLeftParameter = Animator.StringToHash("TurnStepLeft");
+            turnStepRightParameter = Animator.StringToHash("TurnStepRight");
+            hasTurnRateParameter = HasFloatParameter(turnRateParameter);
+            hasSocialAttentionParameter = HasParameter(
+                socialAttentionParameter, AnimatorControllerParameterType.Bool);
+            hasTurnStepLeftParameter = HasParameter(
+                turnStepLeftParameter, AnimatorControllerParameterType.Trigger);
+            hasTurnStepRightParameter = HasParameter(
+                turnStepRightParameter, AnimatorControllerParameterType.Trigger);
+            turnFootPlant = GetComponent<AvatarTurnFootPlantRig>();
+            turnMotion.Reset();
+            SocialAttentionEnabled = false;
             animator.applyRootMotion = false;
         }
 
@@ -96,13 +157,70 @@ namespace MateSoul.Runtime
             if (path == null || path.Length == 0) throw new ArgumentException("A complete path is required.");
             if (contact) EndBodyContact();
             handHoldDrive = false;
+            waitingForFacing = false;
+            ResetTurnMotion();
             corners = path;
             corner = 0;
+            if (agent == null || !agent.enabled)
+                throw new InvalidOperationException("Navigation avoidance is unavailable.");
+            if (!agent.isOnNavMesh)
+            {
+                if (!NavMesh.SamplePosition(Position, out var hit, .5f, NavMesh.AllAreas) ||
+                    !agent.Warp(hit.position))
+                    throw new InvalidOperationException("Character is outside the navigation mesh.");
+            }
+            agent.nextPosition = Position;
+            var endpoint = path[path.Length - 1];
+            var destinationChanged = !agent.hasPath ||
+                Vector3.ProjectOnPlane(agent.destination - endpoint, Vector3.up).sqrMagnitude > .0025f;
+            agent.isStopped = false;
+            if (destinationChanged && !agent.SetDestination(endpoint))
+                throw new InvalidOperationException("Navigation avoidance rejected the destination.");
         }
 
         public bool Tick(float deltaSeconds)
         {
             if (corners == null) return true;
+            physicalContactIdleSeconds += deltaSeconds;
+            if (physicalAvoidanceSeconds > 0)
+            {
+                physicalAvoidanceTotalSeconds += deltaSeconds;
+                if (!waitingForFacing)
+                    physicalAvoidanceSeconds = Mathf.Max(
+                        0, physicalAvoidanceSeconds - deltaSeconds);
+            }
+            if (physicalBlocker != null && physicalContactIdleSeconds > .5f &&
+                physicalAvoidanceSeconds <= 0)
+            {
+                physicalBlocker = null;
+                physicalBlockSeconds = physicalAvoidanceSign =
+                    physicalContactIdleSeconds = physicalAvoidanceTotalSeconds = 0;
+                physicalAvoidanceNormal = Vector3.zero;
+            }
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
+            {
+                agent.nextPosition = Position;
+                var endpoint = corners[corners.Length - 1];
+                var remaining = Vector3.ProjectOnPlane(endpoint - Position, Vector3.up).magnitude;
+                if (!agent.pathPending && remaining <= agent.stoppingDistance)
+                {
+                    Stop();
+                    return true;
+                }
+                var avoidanceVelocity = Vector3.ProjectOnPlane(agent.desiredVelocity, Vector3.up);
+                if (physicalAvoidanceSeconds > 0)
+                    avoidanceVelocity = PhysicalAvoidanceVelocity();
+                if (avoidanceVelocity.sqrMagnitude > .0025f)
+                {
+                    desiredVelocity = Vector3.ClampMagnitude(avoidanceVelocity, speed);
+                    Face(Position + desiredVelocity, deltaSeconds);
+                    GateMovementForTurn();
+                    var avoidanceActualSpeed = Vector3.ProjectOnPlane(
+                        body.Rigidbody.velocity, Vector3.up).magnitude;
+                    SetAnimationSpeed(avoidanceActualSpeed);
+                    return false;
+                }
+            }
             var difference = corners[corner] - Position;
             difference.y = 0;
             while (difference.magnitude < .12f)
@@ -114,24 +232,84 @@ namespace MateSoul.Runtime
             var movement = difference.normalized * Mathf.Min(speed * deltaSeconds, difference.magnitude);
             desiredVelocity = deltaSeconds > 0 ? movement / deltaSeconds : Vector3.zero;
             Face(corners[corner], deltaSeconds);
+            GateMovementForTurn();
             var actualSpeed = Vector3.ProjectOnPlane(body.Rigidbody.velocity, Vector3.up).magnitude;
-            animator.SetFloat(speedParameter, actualSpeed);
+            SetAnimationSpeed(actualSpeed);
             return false;
         }
 
         public void Face(Vector3 target, float deltaSeconds)
+            => FaceAtSpeed(target, turnSpeed);
+
+        public void FaceAtSpeed(Vector3 target, float degreesPerSecond)
         {
             var direction = Vector3.ProjectOnPlane(target - Position, Vector3.up);
             if (direction.sqrMagnitude < .001f) return;
             facing = Quaternion.LookRotation(direction);
+            facingSpeed = Mathf.Clamp(degreesPerSecond, 1f, turnSpeed);
+        }
+
+        public void HoldFacing()
+        {
+            if (body != null) facing = body.Pose.rotation;
+            facingSpeed = turnSpeed;
+            ResetTurnMotion();
+        }
+
+        public void SetSocialAttention(bool enabled)
+        {
+            SocialAttentionEnabled = enabled;
+            if (animator != null && hasSocialAttentionParameter)
+                animator.SetBool(socialAttentionParameter, enabled);
+            if (!enabled)
+                ResetTurnMotion();
         }
 
         public void Stop()
         {
             corners = null;
             handHoldDrive = false;
+            waitingForFacing = false;
             desiredVelocity = Vector3.zero;
-            if (animator != null) animator.SetFloat(speedParameter, 0);
+            physicalBlocker = null;
+            physicalBlockSeconds = physicalAvoidanceSeconds = physicalAvoidanceSign = 0;
+            physicalContactIdleSeconds = physicalAvoidanceTotalSeconds = 0;
+            physicalAvoidanceNormal = Vector3.zero;
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
+            {
+                agent.isStopped = true;
+                agent.ResetPath();
+                agent.nextPosition = Position;
+            }
+            SetAnimationSpeed(0);
+        }
+
+        private void GateMovementForTurn()
+        {
+            if (desiredVelocity.sqrMagnitude < .0025f || body == null) return;
+            var forward = Vector3.ProjectOnPlane(
+                body.Pose.rotation * Vector3.forward, Vector3.up);
+            var direction = Vector3.ProjectOnPlane(desiredVelocity, Vector3.up);
+            var angle = Vector3.Angle(forward, direction);
+            if (!waitingForFacing && angle >= TurnBeforeMoveEnterAngle)
+                waitingForFacing = true;
+            if (!waitingForFacing) return;
+            if (angle <= TurnBeforeMoveExitAngle)
+            {
+                waitingForFacing = false;
+                return;
+            }
+            desiredVelocity = Vector3.zero;
+        }
+
+        private Vector3 PhysicalAvoidanceVelocity()
+        {
+            var normal = Vector3.ProjectOnPlane(physicalAvoidanceNormal, Vector3.up);
+            if (normal.sqrMagnitude < .01f) return Vector3.zero;
+            normal.Normalize();
+            var tangent = Vector3.Cross(Vector3.up, normal).normalized *
+                          physicalAvoidanceSign;
+            return tangent * speed;
         }
 
         public void BeginHandHold()
@@ -155,7 +333,7 @@ namespace MateSoul.Runtime
             if (!handHoldDrive) return;
             handHoldDrive = false;
             desiredVelocity = Vector3.zero;
-            if (animator != null) animator.SetFloat(speedParameter, 0);
+            SetAnimationSpeed(0);
         }
 
         public bool Dock(Vector3 position, Quaternion rotation, float dt)
@@ -170,6 +348,8 @@ namespace MateSoul.Runtime
         private void FixedUpdate()
         {
             if (body == null || body.IsPaused || contact) return;
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
+                agent.nextPosition = Position;
             var normal = Vector3.up;
             var grounded = false;
             var supportDistance = -1f;
@@ -183,36 +363,6 @@ namespace MateSoul.Runtime
                 grounded = true;
                 break;
             }
-#region debug-point B:grounded-motion
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-            if (corners != null && Time.unscaledTime >= debugNextMotorReport)
-            {
-                debugNextMotorReport = Time.unscaledTime + 1f;
-                var position = Position;
-                var velocity = body.Rigidbody.velocity;
-                var culture = System.Globalization.CultureInfo.InvariantCulture;
-                var payload = $"{{\"sessionId\":\"bowling-companion-timeout\",\"runId\":\"post-fix\"," +
-                              $"\"hypothesisId\":\"B\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                              $"\"location\":\"AvatarMotor.FixedUpdate\",\"msg\":\"[DEBUG] grounded motor sample\",\"data\":{{" +
-                              $"\"grounded\":{grounded.ToString().ToLowerInvariant()},\"hitCount\":{count}," +
-                              $"\"supportDistance\":{supportDistance.ToString("R", culture)}," +
-                              $"\"capsuleRadius\":{capsule.radius.ToString("R", culture)}," +
-                              $"\"capsuleHeight\":{capsule.height.ToString("R", culture)}," +
-                              $"\"positionX\":{position.x.ToString("R", culture)}," +
-                              $"\"positionY\":{position.y.ToString("R", culture)}," +
-                              $"\"positionZ\":{position.z.ToString("R", culture)}," +
-                              $"\"desiredX\":{desiredVelocity.x.ToString("R", culture)}," +
-                              $"\"desiredY\":{desiredVelocity.y.ToString("R", culture)}," +
-                              $"\"desiredZ\":{desiredVelocity.z.ToString("R", culture)}," +
-                              $"\"velocityX\":{velocity.x.ToString("R", culture)}," +
-                              $"\"velocityY\":{velocity.y.ToString("R", culture)}," +
-                              $"\"velocityZ\":{velocity.z.ToString("R", culture)}," +
-                              $"\"sleeping\":{body.Rigidbody.IsSleeping().ToString().ToLowerInvariant()}" + "}}";
-                UnityWebRequest.Post("http://10.0.2.2:7783/event", payload, "application/json")
-                    .SendWebRequest();
-            }
-#endif
-#endregion
             if (grounded)
             {
                 var target = Vector3.ProjectOnPlane(desiredVelocity, normal);
@@ -221,15 +371,215 @@ namespace MateSoul.Runtime
                 body.AddForce(Vector3.ClampMagnitude((target - actual) / Time.fixedDeltaTime, acceleration),
                     ForceMode.Acceleration);
             }
-            body.RotateTowards(facing, turnSpeed * Time.fixedDeltaTime);
+            UpdateFacing(Vector3.ProjectOnPlane(
+                body.Rigidbody.velocity, Vector3.up).magnitude);
             if (handHoldDrive && animator != null)
-                animator.SetFloat(speedParameter,
+                SetAnimationSpeed(
                     Vector3.ProjectOnPlane(body.Rigidbody.velocity, Vector3.up).magnitude);
         }
+
+        private void OnCollisionStay(Collision collision)
+        {
+            if (corners == null || collision == null) return;
+            var other = collision.collider;
+            var normal = collision.contactCount > 0
+                ? collision.GetContact(0).normal : Vector3.zero;
+            var horizontalNormal = Vector3.ProjectOnPlane(normal, Vector3.up);
+            if (Mathf.Abs(normal.y) <= .7f && horizontalNormal.sqrMagnitude > .01f)
+                physicalContactIdleSeconds = 0;
+            var actualSpeed = Vector3.ProjectOnPlane(
+                body.Rigidbody.velocity, Vector3.up).magnitude;
+            if (Mathf.Abs(normal.y) <= .7f &&
+                horizontalNormal.sqrMagnitude > .01f &&
+                Vector3.Dot(desiredVelocity, horizontalNormal.normalized) < -.05f &&
+                actualSpeed < .12f)
+            {
+                if (physicalBlocker != other)
+                {
+                    physicalBlocker = other;
+                    physicalBlockSeconds = 0;
+                    var tangent = Vector3.Cross(
+                        Vector3.up, horizontalNormal.normalized).normalized;
+                    var destinationEndpoint = corners[corners.Length - 1];
+                    var plus = Vector3.ProjectOnPlane(
+                        destinationEndpoint - (Position + tangent), Vector3.up).sqrMagnitude;
+                    var minus = Vector3.ProjectOnPlane(
+                        destinationEndpoint - (Position - tangent), Vector3.up).sqrMagnitude;
+                    physicalAvoidanceSign = Mathf.Abs(plus - minus) > .01f
+                        ? (plus < minus ? 1 : -1)
+                        : (Vector3.Dot(tangent, transform.right) >= 0 ? 1 : -1);
+                }
+                physicalBlockSeconds += Time.fixedDeltaTime;
+                if (physicalBlockSeconds >= PhysicalAvoidanceActivationSeconds)
+                {
+                    physicalAvoidanceNormal = horizontalNormal.normalized;
+                    physicalAvoidanceSeconds = PhysicalAvoidanceHoldSeconds;
+                }
+            }
+            else if (physicalBlocker == other)
+            {
+                physicalBlockSeconds = 0;
+            }
+
+
+        }
+
+        private void OnCollisionExit(Collision collision)
+        {
+            if (collision != null && collision.collider == physicalBlocker)
+                physicalBlockSeconds = 0;
+        }
+
+        private void SetAnimationSpeed(float value)
+        {
+            if (animator != null)
+                animator.SetFloat(speedParameter,
+                    value < AnimationIdleSpeed ? 0 : value);
+        }
+
+        private void UpdateFacing(float actualSpeed)
+        {
+            turnStepRecoverySeconds = Mathf.Max(
+                0, turnStepRecoverySeconds - Time.fixedDeltaTime);
+            if (waitingForFacing && actualSpeed >= TurnAnimationStartSpeed)
+            {
+                ResetTurnMotion();
+                return;
+            }
+            if (desiredVelocity.sqrMagnitude >= AnimationIdleSpeed * AnimationIdleSpeed ||
+                actualSpeed >= TurnAnimationStartSpeed)
+            {
+                ResetTurnMotion();
+                body.RotateTowards(facing, facingSpeed * Time.fixedDeltaTime);
+                return;
+            }
+
+            var forward = Vector3.ProjectOnPlane(
+                body.Pose.rotation * Vector3.forward, Vector3.up);
+            var target = Vector3.ProjectOnPlane(facing * Vector3.forward, Vector3.up);
+            var remaining = forward.sqrMagnitude > .0001f && target.sqrMagnitude > .0001f
+                ? Vector3.SignedAngle(forward, target, Vector3.up) : 0;
+            var sample = turnMotion.Tick(remaining,
+                Mathf.Min(facingSpeed, MaximumInPlaceTurnSpeed), Time.fixedDeltaTime);
+            var turnStepPlaying = IsTurnStepPlaying();
+            UpdateTurnStepAnimation(sample, turnStepPlaying);
+
+            var delta = sample.DeltaAngle;
+            if (sample.IsTurning && !turnStepPlaying)
+            {
+                var settleThreshold = completedTurnStep
+                    ? RepeatTurnStepAngle : TurnInPlaceMotion.EnterAngle;
+                delta = Mathf.Abs(sample.RemainingAngle) < settleThreshold
+                    ? Mathf.Sign(sample.RemainingAngle) * Mathf.Min(
+                        Mathf.Abs(sample.RemainingAngle),
+                        TurnStepSettleSpeed * Time.fixedDeltaTime)
+                    : 0;
+            }
+            if (Mathf.Abs(delta) > .0001f)
+            {
+                var rotationScale = turnFootPlant != null
+                    ? turnFootPlant.RotationScale : 1f;
+                delta *= rotationScale;
+                var step = Quaternion.AngleAxis(delta, Vector3.up) *
+                           body.Pose.rotation;
+                body.RotateTowards(step, Mathf.Abs(delta));
+            }
+            SetAnimationTurnRate(turnStepPlaying ? sample.NormalizedRate : 0);
+        }
+
+        private bool HasFloatParameter(int hash)
+            => HasParameter(hash, AnimatorControllerParameterType.Float);
+
+        private bool HasParameter(int hash, AnimatorControllerParameterType type)
+        {
+            if (animator == null) return false;
+            foreach (var parameter in animator.parameters)
+                if (parameter.nameHash == hash &&
+                    parameter.type == type)
+                    return true;
+            return false;
+        }
+
+        private void ResetTurnMotion()
+        {
+            turnMotion.Reset();
+            SetAnimationTurnRate(0);
+            turnStepRequested = false;
+            turnStepWasObserved = false;
+            completedTurnStep = false;
+            turnStepRecoverySeconds = 0;
+            if (animator != null)
+            {
+                if (hasTurnStepLeftParameter)
+                    animator.ResetTrigger(turnStepLeftParameter);
+                if (hasTurnStepRightParameter)
+                    animator.ResetTrigger(turnStepRightParameter);
+            }
+        }
+
+        private void SetAnimationTurnRate(float value)
+        {
+            if (animator != null && hasTurnRateParameter)
+                animator.SetFloat(turnRateParameter, value);
+        }
+
+        private bool IsTurnStepPlaying()
+        {
+            if (animator == null) return false;
+            var current = animator.GetCurrentAnimatorStateInfo(0);
+            var inStep = current.shortNameHash == Animator.StringToHash("TurnStepLeft") ||
+                         current.shortNameHash == Animator.StringToHash("TurnStepRight");
+            if (!animator.IsInTransition(0)) return inStep;
+            var next = animator.GetNextAnimatorStateInfo(0);
+            return inStep ||
+                   next.shortNameHash == Animator.StringToHash("TurnStepLeft") ||
+                   next.shortNameHash == Animator.StringToHash("TurnStepRight");
+        }
+
+        private void UpdateTurnStepAnimation(
+            TurnMotionSample sample, bool inStep)
+        {
+            if (animator == null ||
+                !hasTurnStepLeftParameter || !hasTurnStepRightParameter)
+                return;
+
+            if (inStep)
+            {
+                turnStepRequested = true;
+                turnStepWasObserved = true;
+                return;
+            }
+            if (animator.IsInTransition(0)) return;
+            if (turnStepRequested)
+            {
+                if (!turnStepWasObserved) return;
+                turnStepRequested = false;
+                turnStepWasObserved = false;
+                completedTurnStep = true;
+                turnStepRecoverySeconds = TurnStepRecoverySeconds;
+                return;
+            }
+            if (turnStepRecoverySeconds > 0) return;
+            var triggerAngle = completedTurnStep
+                ? RepeatTurnStepAngle : TurnInPlaceMotion.EnterAngle;
+            if (!sample.IsTurning ||
+                Mathf.Abs(sample.RemainingAngle) < triggerAngle ||
+                Mathf.Abs(sample.NormalizedRate) < .02f)
+                return;
+
+            animator.ResetTrigger(sample.NormalizedRate < 0
+                ? turnStepRightParameter : turnStepLeftParameter);
+            animator.SetTrigger(sample.NormalizedRate < 0
+                ? turnStepLeftParameter : turnStepRightParameter);
+            turnStepRequested = true;
+            turnStepWasObserved = false;
+        }
+
 
         public void BeginBodyContact(Vector3 exit, float seatHeight, int seatSourceId = -1)
         {
             Stop();
+            ResetTurnMotion();
             contactExit = exit;
             contactIgnoredSurfaceSources.Clear();
             if (seatSourceId != -1) contactIgnoredSurfaceSources.Add(seatSourceId);
@@ -262,6 +612,7 @@ namespace MateSoul.Runtime
         public void BeginLyingContact(Vector3 exit, Pose target)
         {
             Stop();
+            ResetTurnMotion();
             contactExit = exit;
             contactIgnoredSurfaceSources.Clear();
             var from = body.Pose;

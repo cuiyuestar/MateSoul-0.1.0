@@ -19,6 +19,7 @@ MonoBehaviour:
   - visit
   approachOffset: {x: 0, y: 0, z: -0.65}
   catalogVisible: 1
+  category: 5
   footprint: {x: 0.4, y: 0.048}
   placementHeight: 0.4
   focusMaterial: {fileID: 2100000, guid: ba4a28338c39c4aa9bf425819dbfad5b, type: 2}
@@ -28,6 +29,15 @@ MonoBehaviour:
     linearDrag: 0.02
     angularDrag: 0.05
   allowSurfacePlacement: 0
+  inventoryLimit: 1
+  unlimitedInventory: 0
+  restockDaily: 0
+  fixedAfterPlacement: 1
+  placementPreview: 1
+  placementSurface: 1
+  immovableAfterPlacement: 1
+  placementFacingYaw: 0
+  minimumSurfaceSupportRatio: 1
   breakable:
     enabled: 0
     lightForceThreshold: 0
@@ -37,4 +47,32 @@ MonoBehaviour:
     debrisLifetime: 0
     lightDebrisPrefab: {fileID: 0}
     heavyDebrisPrefab: {fileID: 0}
+    breakSound: {fileID: 0}
+  impactSound:
+    enabled: 0
+    lightForceThreshold: 0
+    mediumForceThreshold: 0
+    heavyForceThreshold: 0
+    sound: {fileID: 0}
+  cooking:
+    enabled: 0
+    donenessPerDegreeSecond: 0
+  cuttable:
+    enabled: 0
+    interiorMaterial: {fileID: 0}
+    collisionProxy: {fileID: 0}
+    origin: {x: 0, y: 0, z: 0}
+    axis: {x: 0, y: 0, z: 0}
+    axisLength: 0
+    maximumRadius: 0
+    radiusProfile:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    maximumCutDepth: 0
+    minimumPieceVolumeRatio: 0
+  interaction: {fileID: 11400000, guid: ad1f00f9b0c874986824c2575233219f, type: 2}
+  consumedProduct: 0
   placementParts: []

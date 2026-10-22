@@ -36,7 +36,7 @@ const PersonalityTraitSchema = z.object({
   description: z.string().min(1).max(500),
 }).strict();
 
-const PersonaSchema = z.object({
+export const PersonaSchema = z.object({
   schema_version: z.literal(1),
   character_id: z.string().min(1).max(64),
   name: z.string().min(1).max(64),
@@ -126,6 +126,7 @@ export type ConversationRequest = z.infer<
 const ModelReplySchema = z.object({
   status: z.literal("ok").optional(),
   reply_text: z.string().trim().min(1),
+  response_emotion: z.enum(["normal", "happy", "sad", "angry"]),
   action: z.object({
     id: z.string().min(1),
     target_id: z.string().min(1).nullable().optional(),
@@ -139,6 +140,7 @@ const ModelReplySchema = z.object({
 export interface ConversationReply {
   status: "ok";
   reply_text: string;
+  response_emotion: "normal" | "happy" | "sad" | "angry";
   action: {
     id: string;
     target_id: string | null;
@@ -189,6 +191,7 @@ export function parseConversationReply(
   return {
     status: "ok",
     reply_text: parsed.reply_text,
+    response_emotion: parsed.response_emotion,
     action: { id: action.id, target_id: targetId },
     mood_signals: moodSignals,
   };
@@ -199,5 +202,47 @@ export interface GatewayErrorBody {
     code: string;
     message: string;
     request_id: string;
+  };
+}
+
+export const SpontaneousReplyRequestSchema = z.object({
+  request_id: z.string().min(1).max(128),
+  trigger_id: z.string().min(1).max(256),
+  event_description: z.string().trim().min(1).max(1000),
+  content_requirements: z.array(
+    z.string().trim().min(1).max(500),
+  ).min(1).max(16),
+  rules: z.array(z.string().trim().min(1).max(500)).min(1).max(32),
+  persona: PersonaSchema,
+}).strict();
+
+export type SpontaneousReplyRequest = z.infer<
+  typeof SpontaneousReplyRequestSchema
+>;
+
+const SpontaneousReplyModelSchema = z.object({
+  status: z.literal("ok").optional(),
+  reply_text: z.string().trim().min(1),
+  response_emotion: z.enum(["normal", "happy", "sad", "angry"]),
+}).strict();
+
+export interface SpontaneousReply {
+  status: "ok";
+  reply_text: string;
+  response_emotion: "normal" | "happy" | "sad" | "angry";
+}
+
+export function parseSpontaneousReply(
+  value: unknown,
+  maxReplyCharacters: number,
+): SpontaneousReply {
+  const parsed = SpontaneousReplyModelSchema.parse(value);
+  if (parsed.reply_text.length > maxReplyCharacters) {
+    throw new Error(`reply_text exceeds ${maxReplyCharacters} characters.`);
+  }
+  return {
+    status: "ok",
+    reply_text: parsed.reply_text,
+    response_emotion: parsed.response_emotion,
   };
 }

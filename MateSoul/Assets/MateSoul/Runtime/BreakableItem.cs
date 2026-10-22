@@ -40,7 +40,8 @@ namespace MateSoul.Runtime
             if (broken || item == null || !gameObject.activeInHierarchy ||
                 Time.fixedTime < armedAt || !PhysicsBody.IsFinite(force) ||
                 force < settings.lightForceThreshold ||
-                item.IsHeld || item.Body.IsFollowing || item.Body.IsPaused || item.Body.IsContact)
+                item.IsHeld || item.IsReserved || item.Body.IsFollowing ||
+                item.Body.IsPaused || item.Body.IsContact)
                 return;
 
             var severity = force >= settings.heavyForceThreshold

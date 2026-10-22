@@ -38,12 +38,6 @@ namespace MateSoul.Runtime
         private Pose rackPose, spawnPose, candidate;
         private float elapsed, firstHit = -1, quiet;
         private bool autonomyBefore, initialized, releasedInput, pressedInput, returning, resetBlocked;
-#region debug-point A-D:approach-observation
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-        private Vector3 debugApproachStart, debugApproachTarget;
-        private float debugNextApproachReport;
-#endif
-#endregion
         public BowlingPhase Phase { get; private set; }
         public BowlingBall Ball => ball;
         public System.Collections.Generic.IReadOnlyList<BowlingPin> Pins => pins;
@@ -152,60 +146,9 @@ namespace MateSoul.Runtime
             elapsed += dt;
             if (Phase == BowlingPhase.PlacingPins || Phase == BowlingPhase.PlacingSpawn)
             { UpdatePlacement(); return; }
-#region debug-point A-D:approach-observation
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-            if (Phase == BowlingPhase.Approaching && characterAction != null &&
-                Time.unscaledTime >= debugNextApproachReport)
-            {
-                debugNextApproachReport = Time.unscaledTime + 1f;
-                var current = Session.Motor.Position;
-                var routeValid = Session.Navigation.TryPath(current, debugApproachTarget, out var route);
-                var routeLength = 0f;
-                if (route != null)
-                    for (var index = 1; index < route.Length; index++)
-                        routeLength += Vector3.Distance(route[index - 1], route[index]);
-                var avatar = Session.Motor as AvatarMotor;
-                var rigidbody = avatar?.Body?.Rigidbody;
-                var culture = System.Globalization.CultureInfo.InvariantCulture;
-                var payload = $"{{\"sessionId\":\"bowling-companion-timeout\",\"runId\":\"post-fix\"," +
-                              $"\"hypothesisId\":\"A-B-C-D\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                              $"\"location\":\"BowlingGame.Update\",\"msg\":\"[DEBUG] approach progress\",\"data\":{{" +
-                              $"\"phase\":\"{Phase}\",\"state\":\"{characterAction.State}\"," +
-                              $"\"stopReason\":\"{characterAction.StopReason}\"," +
-                              $"\"actionElapsed\":{characterAction.ElapsedSeconds.ToString("R", culture)}," +
-                              $"\"avatarCount\":{Session.Avatar.Count}," +
-                              $"\"routeValid\":{routeValid.ToString().ToLowerInvariant()}," +
-                              $"\"routeCorners\":{(route?.Length ?? 0)},\"routeLength\":{routeLength.ToString("R", culture)}," +
-                              $"\"positionX\":{current.x.ToString("R", culture)}," +
-                              $"\"positionY\":{current.y.ToString("R", culture)}," +
-                              $"\"positionZ\":{current.z.ToString("R", culture)}," +
-                              $"\"distanceMoved\":{Vector3.Distance(debugApproachStart, current).ToString("R", culture)}," +
-                              $"\"distanceRemaining\":{Vector3.Distance(current, debugApproachTarget).ToString("R", culture)}," +
-                              $"\"motorMoving\":{(avatar?.IsMoving ?? false).ToString().ToLowerInvariant()}," +
-                              $"\"bodyPaused\":{(avatar?.Body?.IsPaused ?? false).ToString().ToLowerInvariant()}," +
-                              $"\"bodyContact\":{(avatar?.Body?.IsContact ?? false).ToString().ToLowerInvariant()}," +
-                              $"\"bodyKinematic\":{(rigidbody?.isKinematic ?? false).ToString().ToLowerInvariant()}," +
-                              $"\"velocity\":{(rigidbody?.velocity.magnitude ?? -1f).ToString("R", culture)}" + "}}";
-                UnityWebRequest.Post("http://10.0.2.2:7783/event", payload, "application/json")
-                    .SendWebRequest();
-            }
-#endif
-#endregion
             if (characterAction != null && characterAction.IsFinished &&
                 characterAction.State != ActionState.Succeeded)
             {
-#region debug-point C-D:approach-failure
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-                var payload = $"{{\"sessionId\":\"bowling-companion-timeout\",\"runId\":\"post-fix\"," +
-                              $"\"hypothesisId\":\"C-D\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                              $"\"location\":\"BowlingGame.Update\",\"msg\":\"[DEBUG] approach failed\",\"data\":{{" +
-                              $"\"state\":\"{characterAction.State}\",\"stopReason\":\"{characterAction.StopReason}\"," +
-                              $"\"elapsed\":{characterAction.ElapsedSeconds.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}," +
-                              $"\"error\":\"{(characterAction.Error ?? "none").Replace("\"", "'")}\"" + "}}";
-                UnityWebRequest.Post("http://10.0.2.2:7783/event", payload, "application/json")
-                    .SendWebRequest();
-#endif
-#endregion
                 Fail("冷月暂时无法完成动作：" + characterAction.Error);
                 return;
             }
@@ -448,36 +391,6 @@ namespace MateSoul.Runtime
             markers = null;
             if (Host.Input != null) Host.Input.PlacementActive = false;
             var direction = Vector3.ProjectOnPlane(rackPose.position - pose.position, Vector3.up).normalized;
-#region debug-point A-B:approach-submit
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-            debugApproachStart = Session.Motor.Position;
-            debugApproachTarget = join;
-            debugNextApproachReport = 0;
-            var validatedStand = join;
-            var routeValid = Session.Navigation.TryPath(debugApproachStart, join, out var route);
-            var routeLength = 0f;
-            if (route != null)
-                for (var index = 1; index < route.Length; index++)
-                    routeLength += Vector3.Distance(route[index - 1], route[index]);
-            var culture = System.Globalization.CultureInfo.InvariantCulture;
-            var payload = $"{{\"sessionId\":\"bowling-companion-timeout\",\"runId\":\"post-fix\"," +
-                          $"\"hypothesisId\":\"A-B\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                          $"\"location\":\"BowlingGame.TryConfirmPlacement\",\"msg\":\"[DEBUG] approach submitted\",\"data\":{{" +
-                          $"\"startX\":{debugApproachStart.x.ToString("R", culture)}," +
-                          $"\"startY\":{debugApproachStart.y.ToString("R", culture)}," +
-                          $"\"startZ\":{debugApproachStart.z.ToString("R", culture)}," +
-                          $"\"joinX\":{join.x.ToString("R", culture)},\"joinY\":{join.y.ToString("R", culture)}," +
-                          $"\"joinZ\":{join.z.ToString("R", culture)}," +
-                          $"\"validatedStandX\":{validatedStand.x.ToString("R", culture)}," +
-                          $"\"validatedStandY\":{validatedStand.y.ToString("R", culture)}," +
-                          $"\"validatedStandZ\":{validatedStand.z.ToString("R", culture)}," +
-                          $"\"targetDelta\":{Vector3.Distance(validatedStand, join).ToString("R", culture)}," +
-                          $"\"routeValid\":{routeValid.ToString().ToLowerInvariant()}," +
-                          $"\"routeCorners\":{(route?.Length ?? 0)},\"routeLength\":{routeLength.ToString("R", culture)}" + "}}";
-            UnityWebRequest.Post("http://10.0.2.2:7783/event", payload, "application/json")
-                .SendWebRequest();
-#endif
-#endregion
             characterAction = Session.Submit(new AvatarIntent("move", IntentSource.System, payload: join));
             SetPhase(BowlingPhase.Approaching);
             Notifications.ShowHint("冷月正在走过来，准备一起玩保龄球。", 0);

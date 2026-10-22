@@ -47,11 +47,12 @@ namespace MateSoul.Runtime
         {
             if (item == null) item = GetComponentInParent<GameItem>();
             return base.IsInteractable() && television != null && television.isActiveAndEnabled &&
-                   (item == null || !item.IsHeld);
+                   (item == null || item.CanPlayerUse);
         }
 
         private void Click()
         {
+            if (!IsInteractable()) return;
             pulseUntil = Time.unscaledTime + .08f;
             television.TogglePower();
         }

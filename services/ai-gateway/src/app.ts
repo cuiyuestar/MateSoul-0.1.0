@@ -2,7 +2,13 @@ import { randomUUID, timingSafeEqual } from "node:crypto";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import type { ZodType } from "zod";
 import type { ConversationCompletion } from "./conversation-service.js";
-import type { ConversationRequest, GatewayErrorBody } from "./contracts.js";
+import {
+  SpontaneousReplyRequestSchema,
+  type ConversationRequest,
+  type GatewayErrorBody,
+  type SpontaneousReplyRequest,
+} from "./contracts.js";
+import type { SpontaneousReplyCompletion } from "./spontaneous-reply-service.js";
 
 export interface ConversationHandler {
   complete(
@@ -11,8 +17,16 @@ export interface ConversationHandler {
   ): Promise<ConversationCompletion>;
 }
 
+export interface SpontaneousReplyHandler {
+  complete(
+    request: SpontaneousReplyRequest,
+    signal: AbortSignal,
+  ): Promise<SpontaneousReplyCompletion>;
+}
+
 export interface AppOptions {
   handler: ConversationHandler;
+  spontaneousReplyHandler: SpontaneousReplyHandler;
   requestSchema: ZodType<ConversationRequest>;
   requestBodyLimit: string;
   clientToken: string | null;
@@ -73,9 +87,6 @@ export function createApp(options: AppOptions): Express {
       mood: conversation.runtime.mood,
       outfitId: conversation.runtime.appearance.outfit_id,
     });
-    // #region debug-point C-D:gateway-request
-    void fetch("http://127.0.0.1:7782/event", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: "outfit-context-stale", runId: "pre-fix", hypothesisId: "C,D", location: "app.ts:conversation-request", msg: "[DEBUG] gateway request received", data: { requestId: conversation.request_id, contextRevision: conversation.runtime.revision, outfitId: conversation.runtime.appearance.outfit_id, displayName: conversation.runtime.appearance.display_name, historyMessages: conversation.history.length, previousAssistantReply: conversation.history.filter((message) => message.role === "assistant").at(-1)?.content ?? null }, ts: Date.now() }) }).catch(() => {});
-    // #endregion
 
     try {
       const completion = await options.handler.complete(conversation, cancellation.signal);
@@ -89,9 +100,6 @@ export function createApp(options: AppOptions): Express {
         actionId: completion.reply.action.id,
         targetId: completion.reply.action.target_id,
       });
-      // #region debug-point C:gateway-reply
-      void fetch("http://127.0.0.1:7782/event", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: "outfit-context-stale", runId: "pre-fix", hypothesisId: "C", location: "app.ts:conversation-reply", msg: "[DEBUG] gateway reply completed", data: { requestId: conversation.request_id, outfitId: conversation.runtime.appearance.outfit_id, replyText: completion.reply.reply_text, modelCalls: completion.modelCalls }, ts: Date.now() }) }).catch(() => {});
-      // #endregion
       response.json(completion.reply);
     } catch (error) {
       options.log("AI_REQUEST_FAILED", {
@@ -107,6 +115,62 @@ export function createApp(options: AppOptions): Express {
           "AI_UPSTREAM_FAILED",
           "AI 服务暂时无法完成这次对话。",
           conversation.request_id,
+        );
+      }
+    }
+  });
+
+  app.post("/v1/system-replies/generate", async (request, response) => {
+    const fallbackRequestId = randomUUID();
+    const parsed = SpontaneousReplyRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      options.log("SYSTEM_REPLY_REQUEST_REJECTED", {
+        requestId: fallbackRequestId,
+        issues: parsed.error.issues.map((issue) => ({
+          path: issue.path.join("."),
+          code: issue.code,
+          message: issue.message,
+        })),
+      });
+      writeError(
+        response, 400, "INVALID_SYSTEM_REPLY_REQUEST",
+        "系统性自发回复请求格式无效。", fallbackRequestId,
+      );
+      return;
+    }
+
+    const systemReply = parsed.data;
+    const started = performance.now();
+    const cancellation = new AbortController();
+    request.once("aborted", () => cancellation.abort());
+    response.setHeader("x-request-id", systemReply.request_id);
+    options.log("SYSTEM_REPLY_REQUEST_STARTED", {
+      requestId: systemReply.request_id,
+      triggerId: systemReply.trigger_id,
+    });
+    try {
+      const completion = await options.spontaneousReplyHandler.complete(
+        systemReply, cancellation.signal,
+      );
+      options.log("SYSTEM_REPLY_REQUEST_COMPLETED", {
+        requestId: systemReply.request_id,
+        triggerId: systemReply.trigger_id,
+        durationMs: Math.round(performance.now() - started),
+        modelCalls: completion.modelCalls,
+        totalTokens: completion.totalTokens ?? null,
+      });
+      response.json(completion.reply);
+    } catch (error) {
+      options.log("SYSTEM_REPLY_REQUEST_FAILED", {
+        requestId: systemReply.request_id,
+        triggerId: systemReply.trigger_id,
+        durationMs: Math.round(performance.now() - started),
+        error: error instanceof Error ? error.message : String(error),
+      });
+      if (!response.headersSent && !cancellation.signal.aborted) {
+        writeError(
+          response, 502, "AI_UPSTREAM_FAILED",
+          "AI 服务暂时无法生成系统性自发回复。", systemReply.request_id,
         );
       }
     }

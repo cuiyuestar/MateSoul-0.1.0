@@ -13,21 +13,31 @@ MonoBehaviour:
   m_Name: Chair
   m_EditorClassIdentifier: 
   id: chair
-  displayName: "\u6905\u5B50"
+  displayName: "\u9910\u6905"
   prefab: {fileID: 2462649329710749308, guid: e0c5b82c8b0db4edc95628e4e213e217, type: 3}
   capabilities:
   - visit
   approachOffset: {x: 0, y: 0, z: -0.65}
   catalogVisible: 1
-  footprint: {x: 0.36, y: 0.38}
-  placementHeight: 0.68
+  category: 0
+  footprint: {x: 0.48, y: 0.505}
+  placementHeight: 0.82
   focusMaterial: {fileID: 2100000, guid: ba4a28338c39c4aa9bf425819dbfad5b, type: 2}
   physics:
-    mass: 4.5
+    mass: 5.5
     material: {fileID: 13400000, guid: 4792dd2622a7d4011a42d305b0320f52, type: 2}
     linearDrag: 0.02
     angularDrag: 0.05
   allowSurfacePlacement: 0
+  inventoryLimit: 1
+  unlimitedInventory: 0
+  restockDaily: 0
+  fixedAfterPlacement: 1
+  placementPreview: 1
+  placementSurface: 0
+  immovableAfterPlacement: 1
+  placementFacingYaw: 0
+  minimumSurfaceSupportRatio: 1
   breakable:
     enabled: 0
     lightForceThreshold: 0
@@ -37,4 +47,32 @@ MonoBehaviour:
     debrisLifetime: 0
     lightDebrisPrefab: {fileID: 0}
     heavyDebrisPrefab: {fileID: 0}
+    breakSound: {fileID: 0}
+  impactSound:
+    enabled: 1
+    lightForceThreshold: 120
+    mediumForceThreshold: 350
+    heavyForceThreshold: 850
+    sound: {fileID: 8300000, guid: 051880da87c444170a0b1985e56e6918, type: 3}
+  cooking:
+    enabled: 0
+    donenessPerDegreeSecond: 0
+  cuttable:
+    enabled: 0
+    interiorMaterial: {fileID: 0}
+    collisionProxy: {fileID: 0}
+    origin: {x: 0, y: 0, z: 0}
+    axis: {x: 0, y: 0, z: 0}
+    axisLength: 0
+    maximumRadius: 0
+    radiusProfile:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    maximumCutDepth: 0
+    minimumPieceVolumeRatio: 0
+  interaction: {fileID: 11400000, guid: 432d2cff1ed0c44d18a82afded9c4d9a, type: 2}
+  consumedProduct: 0
   placementParts: []

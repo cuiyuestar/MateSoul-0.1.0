@@ -2,6 +2,7 @@
 .pico-home/
 .pico-cli-workspace/
 .unity-home/
+.unity-tmp/
 .artifacts/
 .dbg/
 .hairlab-unity/
@@ -15,7 +16,7 @@ emu-last-feature-flags.protobuf
 # Local notes, diagnostics, and generated evidence.
 AGENTS.md
 ArtSource/
-scripts/
+/scripts/
 项目沉淀资料/
 debug-*.md
 *.ndjson
@@ -37,7 +38,9 @@ debug-*.md
 # Unity and IDE generated directories.
 Library/
 Temp/
-Obj/
+/Obj/
+/MateSoul/Obj/
+/MateSoul/obj/
 Build/
 Builds/
 Logs/
@@ -87,6 +90,20 @@ XR/**/Sample.meta
 XR/**/Samples/
 XR/**/Samples.meta
 XR/Samples~/
+XR/Assets/Debugger/
+XR/Assets/Debugger.meta
+XR/Editor/Debugger/
+XR/Editor/Debugger.meta
+XR/Runtime/Debugger/
+XR/Runtime/Debugger.meta
+MateSoul/Assets/Resources/PXR_*Debugger*
+MateSoul/Assets/Resources/PXR_PICODebugger*
+Dependencies/**/Samples/
+Dependencies/**/Samples.meta
+Dependencies/**/Samples~/
+Dependencies/**/Tests/
+Dependencies/**/Tests.meta
+Dependencies/**/Documentation~/
 
 # Blender local recovery files.
 *.blend1
@@ -94,6 +111,25 @@ XR/Samples~/
 
 # Local test binaries and runner crash reports.
 mono_crash.*
+*.apk
+*.aab
+*.unitypackage
+*.blend
+*.zip
+
+# Character authoring tools and standalone review scenes stay local.
+MateSoul/Assets/Characters/SapphiArtCustom/Editor/
+MateSoul/Assets/Characters/SapphiArtCustom/Editor.meta
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/
+MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor.meta
+MateSoul/Assets/MateSoul/Editor/PublicationValidation.cs
+MateSoul/Assets/MateSoul/Editor/PublicationValidation.cs.meta
+MateSoul/Assets/MateSoul/Editor/BowlingAnimationValidation.cs
+MateSoul/Assets/MateSoul/Editor/BowlingAnimationValidation.cs.meta
+MateSoul/Assets/MateSoul/Editor/Idle02PlaybackValidation.cs
+MateSoul/Assets/MateSoul/Editor/Idle02PlaybackValidation.cs.meta
+XR/**/*.pdb
+XR/**/*.pdb.meta
 
 # Node service dependencies, build output, and tests.
 node_modules/

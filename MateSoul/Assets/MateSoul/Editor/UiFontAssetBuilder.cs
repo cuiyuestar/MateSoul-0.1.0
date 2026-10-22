@@ -11,12 +11,16 @@ namespace MateSoul.Editor
 {
     public static class UiFontAssetBuilder
     {
-        private const string SourcePath =
+        public const string SourcePath =
             "Assets/MateSoul/Runtime/Resources/MateSoulUI/NotoSansCJKsc-Regular.otf";
-        private const string AssetPath =
+        public const string AssetPath =
             "Assets/MateSoul/Runtime/Resources/MateSoulUI/NotoSansCJKsc-SDF.asset";
+        public const string DynamicAssetPath =
+            "Assets/MateSoul/Runtime/Resources/MateSoulUI/NotoSansCJKsc-Dynamic-SDF.asset";
+        private const string TmpSettingsPath =
+            "Assets/TextMesh Pro/Resources/TMP Settings.asset";
         private const string ContentRoot = "Assets/MateSoul/Content";
-        private const string WindowCharacters = "‹›“”「」→～";
+        private const string WindowCharacters = "‹›“”「」→～∞";
 
         [InitializeOnLoadMethod]
         private static void EnsureAfterScriptReload()
@@ -31,6 +35,7 @@ namespace MateSoul.Editor
             if (source == null) throw new InvalidOperationException($"{SourcePath} is missing.");
 
             AssetDatabase.DeleteAsset(AssetPath);
+            AssetDatabase.DeleteAsset(DynamicAssetPath);
             var fontAsset = TMP_FontAsset.CreateFontAsset(source, 96, 10,
                 GlyphRenderMode.SDFAA, 2048, 2048, AtlasPopulationMode.Dynamic, true);
             if (fontAsset == null)
@@ -79,17 +84,40 @@ namespace MateSoul.Editor
             fontAsset.material.mainTexture = rgbaAtlases[0];
             fontAsset.atlasPopulationMode = AtlasPopulationMode.Static;
 
+            var dynamicFontAsset = TMP_FontAsset.CreateFontAsset(source, 72, 9,
+                GlyphRenderMode.SDFAA, 2048, 2048, AtlasPopulationMode.Dynamic, true);
+            if (dynamicFontAsset == null)
+                throw new InvalidOperationException("Unable to create the dynamic UI fallback font asset.");
+            dynamicFontAsset.name = "NotoSansCJKsc-Regular Dynamic SDF";
+            dynamicFontAsset.material.name = "NotoSansCJKsc-Regular Dynamic SDF Material";
+            dynamicFontAsset.material.shader = overlayShader;
+            dynamicFontAsset.isMultiAtlasTexturesEnabled = true;
+            dynamicFontAsset.atlasTextures[0].name =
+                "NotoSansCJKsc-Regular Dynamic SDF Atlas 0";
+
             AssetDatabase.CreateAsset(fontAsset, AssetPath);
-            EditorUtility.SetDirty(fontAsset);
+            AssetDatabase.CreateAsset(dynamicFontAsset, DynamicAssetPath);
+            fontAsset.fallbackFontAssetTable = new List<TMP_FontAsset> { dynamicFontAsset };
             for (var index = 0; index < rgbaAtlases.Length; index++)
             {
                 AssetDatabase.AddObjectToAsset(rgbaAtlases[index], fontAsset);
                 EditorUtility.SetDirty(rgbaAtlases[index]);
             }
             AssetDatabase.AddObjectToAsset(fontAsset.material, fontAsset);
+            foreach (var atlas in dynamicFontAsset.atlasTextures)
+            {
+                AssetDatabase.AddObjectToAsset(atlas, dynamicFontAsset);
+                EditorUtility.SetDirty(atlas);
+            }
+            AssetDatabase.AddObjectToAsset(dynamicFontAsset.material, dynamicFontAsset);
+            ConfigureTmpSettings(fontAsset, dynamicFontAsset);
+            EditorUtility.SetDirty(fontAsset);
             EditorUtility.SetDirty(fontAsset.material);
+            EditorUtility.SetDirty(dynamicFontAsset);
+            EditorUtility.SetDirty(dynamicFontAsset.material);
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(AssetPath, ImportAssetOptions.ForceSynchronousImport);
+            AssetDatabase.ImportAsset(DynamicAssetPath, ImportAssetOptions.ForceSynchronousImport);
         }
 
         public static string CollectRequiredCharacters()
@@ -130,15 +158,53 @@ namespace MateSoul.Editor
                 characters.Add(character);
         }
 
+        private static void ConfigureTmpSettings(
+            TMP_FontAsset primary, TMP_FontAsset dynamicFallback)
+        {
+            var settings = AssetDatabase.LoadAssetAtPath<TMP_Settings>(TmpSettingsPath);
+            if (settings == null)
+                throw new InvalidOperationException($"{TmpSettingsPath} is missing.");
+            var serialized = new SerializedObject(settings);
+            serialized.FindProperty("m_defaultFontAsset").objectReferenceValue = primary;
+            var fallbacks = serialized.FindProperty("m_fallbackFontAssets");
+            fallbacks.arraySize = 1;
+            fallbacks.GetArrayElementAtIndex(0).objectReferenceValue = dynamicFallback;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(settings);
+        }
+
+        private static bool TmpSettingsAreConfigured(
+            TMP_FontAsset primary, TMP_FontAsset dynamicFallback)
+        {
+            var settings = AssetDatabase.LoadAssetAtPath<TMP_Settings>(TmpSettingsPath);
+            if (settings == null) return false;
+            var serialized = new SerializedObject(settings);
+            var defaultFont = serialized.FindProperty("m_defaultFontAsset");
+            var fallbacks = serialized.FindProperty("m_fallbackFontAssets");
+            return defaultFont.objectReferenceValue == primary &&
+                   fallbacks.arraySize == 1 &&
+                   fallbacks.GetArrayElementAtIndex(0).objectReferenceValue == dynamicFallback;
+        }
+
         public static void Ensure()
         {
             var fontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(AssetPath);
+            var dynamicFontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(DynamicAssetPath);
+            var source = AssetDatabase.LoadAssetAtPath<Font>(SourcePath);
             if (fontAsset == null || fontAsset.atlasTexture == null ||
                 fontAsset.atlasTexture.width != 2048 || fontAsset.atlasTexture.height != 2048 ||
                 fontAsset.atlasTexture.format != TextureFormat.RGBA32 ||
                 fontAsset.atlasPopulationMode != AtlasPopulationMode.Static ||
                 fontAsset.material.shader.name != AlwaysOnTopUi.TextShaderName ||
-                !fontAsset.HasCharacters(CollectRequiredCharacters(), out _, false, false))
+                !fontAsset.HasCharacters(CollectRequiredCharacters(), out _, false, false) ||
+                dynamicFontAsset == null || dynamicFontAsset.sourceFontFile != source ||
+                dynamicFontAsset.atlasPopulationMode != AtlasPopulationMode.Dynamic ||
+                !dynamicFontAsset.isMultiAtlasTexturesEnabled ||
+                dynamicFontAsset.material.shader.name != AlwaysOnTopUi.TextShaderName ||
+                fontAsset.fallbackFontAssetTable == null ||
+                fontAsset.fallbackFontAssetTable.Count != 1 ||
+                fontAsset.fallbackFontAssetTable[0] != dynamicFontAsset ||
+                !TmpSettingsAreConfigured(fontAsset, dynamicFontAsset))
                 Generate();
         }
     }

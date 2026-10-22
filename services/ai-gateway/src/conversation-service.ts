@@ -183,7 +183,11 @@ export function buildMessages(
   const protocol = [
     "Return the final answer as exactly one JSON object. Do not wrap it in Markdown.",
     `reply_text must be non-empty and at most ${maxReplyCharacters} characters.`,
-    'The JSON shape is {"status":"ok","reply_text":"...","action":{"id":"none","target_id":null},"mood_signals":[]}.',
+    'The JSON shape is {"status":"ok","reply_text":"...","response_emotion":"normal","action":{"id":"none","target_id":null},"mood_signals":[]}.',
+    "response_emotion must be exactly one of: normal, happy, sad, angry.",
+    "Classify the emotion expressed by the character in this reply after interpreting the latest player message in full conversation context.",
+    "Use normal for neutral, factual, thoughtful, or mildly uncertain replies; happy for pleased, amused, grateful, or affectionate replies; sad for hurt, disappointed, discouraged, or grieving replies; angry for annoyed, offended, indignant, or hostile replies.",
+    "Classify the character's response, not merely the player's emotion, and keep reply_text consistent with response_emotion.",
     "action.id must be 'none' or an id from the runtime action catalog below.",
     "When an action has target_capability, target_id must identify an available target containing that capability.",
     "For an action without target_capability, target_id must be null.",

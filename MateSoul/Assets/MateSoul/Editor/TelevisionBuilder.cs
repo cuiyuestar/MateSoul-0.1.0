@@ -20,17 +20,20 @@ namespace MateSoul.Editor
             "Assets/MateSoul/Content/Video/PixelSpaceGameProgram.mp4";
         private const string Source = "Assets/MateSoul/Content/PropsSource/Television";
         private const string Materials = "Assets/MateSoul/Content/Props/TelevisionMaterials";
+        private const string FocusMaterialPath =
+            "Assets/MateSoul/Content/ItemFocusHighlight.mat";
 
         [MenuItem("MateSoul/Game/Build Television Asset")]
         public static void BuildAsset() => Build();
 
-        public static ItemDefinition Build()
+        public static ItemDefinition Build(Material focusMaterial = null)
         {
+            focusMaterial = ResolveFocusMaterial(focusMaterial);
             var programs = LoadPrograms();
             // Preserve source settings and hand-authored prefab changes on scene rebuild.
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
-            if (prefab == null) prefab = CreatePrefab(programs);
-            else prefab = UpgradePrefab(programs);
+            if (prefab == null) prefab = CreatePrefab(programs, focusMaterial);
+            else prefab = UpgradePrefab(programs, focusMaterial);
             var definition = AssetDatabase.LoadAssetAtPath<ItemDefinition>(DefinitionPath);
             if (definition == null)
             {
@@ -38,23 +41,21 @@ namespace MateSoul.Editor
                 AssetDatabase.CreateAsset(definition, DefinitionPath);
             }
             definition.Configure("television", "复古电视", prefab, new[] { "visit" }, true,
-                new Vector2(.48f, .45f), .566f, null);
+                new Vector2(.48f, .45f), .566f, focusMaterial, ItemCategory.Appliance);
             definition.ConfigurePhysics(new BodySettings(18f, PhysicsContentBuilder.Metal), true);
+            definition.ConfigurePlacement(
+                true, true, ItemPlacementSurface.Ground, true);
+            definition.ConfigurePlacementFacing(180f);
+            definition.ConfigureSurfaceSupport(.85f);
             EditorUtility.SetDirty(definition);
             AssetDatabase.SaveAssets();
             return definition;
         }
 
-        private static GameObject CreatePrefab(VideoClip[] programs)
+        private static GameObject CreatePrefab(VideoClip[] programs, Material focusMaterial)
         {
             Directory.CreateDirectory(Source);
             Directory.CreateDirectory(Materials);
-            var art = Path.GetFullPath(Path.Combine(Application.dataPath,
-                "../../ArtSource/SapphiArt/Props/Television"));
-            CopyIfMissing(Path.Combine(art, "exports/LavenderRetroTV_480x450x420mm.fbx"),
-                Source + "/LavenderRetroTV_480x450x420mm.fbx");
-            foreach (var name in new[] { "electronics_atlas.png", "screen_basecolor.png" })
-                CopyIfMissing(Path.Combine(art, "textures", name), Source + "/" + name);
             AssetDatabase.Refresh();
             var importer = (ModelImporter)AssetImporter.GetAtPath(Source + "/LavenderRetroTV_480x450x420mm.fbx");
             importer.importAnimation = false;
@@ -111,7 +112,10 @@ namespace MateSoul.Editor
                     new Vector3(screen.bounds.center.x, screen.bounds.center.y, screen.bounds.min.z - .002f),
                     new Vector2(300, 100));
                 var label = statusCanvas.gameObject.AddComponent<Text>();
-                label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                label.font = AssetDatabase.LoadAssetAtPath<Font>(UiFontAssetBuilder.SourcePath);
+                if (label.font == null)
+                    throw new InvalidOperationException(
+                        $"{UiFontAssetBuilder.SourcePath} is missing.");
                 label.fontSize = 22;
                 label.alignment = TextAnchor.MiddleCenter;
                 label.color = new Color(.7f, .8f, .85f);
@@ -137,6 +141,7 @@ namespace MateSoul.Editor
                 interaction.navigation = new Navigation { mode = Navigation.Mode.None };
                 interaction.Configure(television, button.transform,
                     button.transform.parent.InverseTransformVector(Vector3.forward * .003f));
+                ConfigureInteractionFocus(interaction, button, focusMaterial);
                 EnsurePhysicalPressSurface(root);
                 PhysicsContentBuilder.ConfigureBody(root, new BodySettings(18f, PhysicsContentBuilder.Metal));
 
@@ -149,12 +154,16 @@ namespace MateSoul.Editor
             finally { Object.DestroyImmediate(root); }
         }
 
-        private static GameObject UpgradePrefab(VideoClip[] programs)
+        private static GameObject UpgradePrefab(VideoClip[] programs, Material focusMaterial)
         {
             var root = PrefabUtility.LoadPrefabContents(PrefabPath);
             try
             {
                 EnsurePhysicalPressSurface(root);
+                var button = root.GetComponentInChildren<TelevisionPowerButton>(true);
+                var buttonRenderer = root.GetComponentsInChildren<Renderer>(true)
+                    .Single(renderer => renderer.name == "TV_Power_Button");
+                ConfigureInteractionFocus(button, buttonRenderer, focusMaterial);
                 PhysicsContentBuilder.ConfigureBody(root, new BodySettings(18f, PhysicsContentBuilder.Metal));
                 var television = root.GetComponent<TelevisionController>();
                 if (television == null)
@@ -166,6 +175,25 @@ namespace MateSoul.Editor
             }
             finally { PrefabUtility.UnloadPrefabContents(root); }
             return AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+        }
+
+        private static Material ResolveFocusMaterial(Material material)
+        {
+            material ??= AssetDatabase.LoadAssetAtPath<Material>(FocusMaterialPath);
+            if (material == null)
+                throw new InvalidOperationException($"交互部件光圈材质缺失：{FocusMaterialPath}");
+            return material;
+        }
+
+        private static void ConfigureInteractionFocus(
+            TelevisionPowerButton control, Renderer renderer, Material material)
+        {
+            if (control == null || renderer == null)
+                throw new InvalidOperationException("电视开关缺少交互光圈绑定。");
+            var focus = control.GetComponent<ItemInteractionFocusTarget>() ??
+                        control.gameObject.AddComponent<ItemInteractionFocusTarget>();
+            focus.Configure(control, material, renderer);
+            EditorUtility.SetDirty(focus);
         }
 
         private static void ConfigurePlayer(VideoPlayer player)
@@ -233,11 +261,6 @@ namespace MateSoul.Editor
             var bounds = renderers[0].bounds;
             foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
             return bounds;
-        }
-
-        private static void CopyIfMissing(string source, string destination)
-        {
-            if (!File.Exists(destination)) File.Copy(source, destination);
         }
 
         private static Material ConvertMaterial(Material original)

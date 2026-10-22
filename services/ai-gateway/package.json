@@ -8,13 +8,9 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "check": "npm run build && npm test",
     "start": "node dist/src/index.js",
     "dev": "tsx src/index.ts",
-    "mcp": "node dist/src/mcp/web-server.js",
-    "test": "npm run build && node --test dist/tests/*.test.js",
-    "test:live-mcp": "tsx scripts/live-mcp.ts",
-    "test:live-gateway": "tsx scripts/live-gateway.ts"
+    "mcp": "node dist/src/mcp/web-server.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.0",

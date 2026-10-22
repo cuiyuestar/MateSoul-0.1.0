@@ -245,6 +245,8 @@ namespace MateSoul.Core
                 case IntentSource.Player: return 90;
                 case IntentSource.UI:
                 case IntentSource.AI: return 60;
+                case IntentSource.Autonomous: return 10;
+                case IntentSource.Ambient: return 0;
                 default: return 10;
             }
         }

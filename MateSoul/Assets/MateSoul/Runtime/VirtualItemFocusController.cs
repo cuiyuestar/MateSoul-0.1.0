@@ -9,15 +9,48 @@ namespace MateSoul.Runtime
         private readonly RaycastHit[] focusHits = new RaycastHit[64];
         private GameItem focused;
         public GameItem FocusedItem => focused;
+        public bool RecycleSelectionActive { get; private set; }
+
+        public void BeginRecycleSelection()
+        {
+            if (RecycleSelectionActive) return;
+            RecycleSelectionActive = true;
+            if (focused == null) return;
+            focused.SetFocused(false);
+            focused.SetRecycleFocused(true);
+        }
+
+        public void CancelRecycleSelection()
+        {
+            if (!RecycleSelectionActive) return;
+            RecycleSelectionActive = false;
+            if (focused == null) return;
+            focused.SetRecycleFocused(false);
+            focused.SetFocused(true);
+        }
 
         private void Update()
         {
             var cameraTransform = Camera.main == null ? null : Camera.main.transform;
             var next = ResolveFocusTarget(cameraTransform);
             if (next == focused) return;
-            if (focused != null) focused.SetFocused(false);
+            ClearFocus(focused);
             focused = next;
-            if (focused != null) focused.SetFocused(true);
+            ApplyFocus(focused);
+        }
+
+        private void ApplyFocus(GameItem item)
+        {
+            if (item == null) return;
+            if (RecycleSelectionActive) item.SetRecycleFocused(true);
+            else item.SetFocused(true);
+        }
+
+        private static void ClearFocus(GameItem item)
+        {
+            if (item == null) return;
+            item.SetFocused(false);
+            item.SetRecycleFocused(false);
         }
 
         private GameItem ResolveFocusTarget(Transform cameraTransform)
@@ -38,13 +71,14 @@ namespace MateSoul.Runtime
                 closest = candidate;
             }
             var item = closest == null ? null : closest.GetComponentInParent<GameItem>();
-            return item != null && !item.IsHeld ? item : null;
+            return item != null && !item.IsHeld && !item.IsReserved ? item : null;
         }
 
         private void OnDisable()
         {
-            if (focused != null) focused.SetFocused(false);
+            ClearFocus(focused);
             focused = null;
+            RecycleSelectionActive = false;
         }
     }
 }

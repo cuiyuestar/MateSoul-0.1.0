@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using MateSoul.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -31,7 +33,22 @@ namespace MateSoul.Runtime
         private static readonly Color SelectedColor = new Color(.86f, .72f, .84f, .94f);
         private static readonly Color TextColor = new Color(.98f, .95f, .98f);
         private static readonly Color MutedTextColor = new Color(.77f, .72f, .79f);
+        private static readonly Color DialogueGlassColor = new Color(.72f, .63f, .86f, .68f);
+        private static readonly Color DialogueHazeColor = new Color(.98f, .95f, 1f, .14f);
+        private static readonly Color DialogueInputColor = new Color(.27f, .20f, .34f, .42f);
+        private static readonly Color DialogueSendColor = new Color(.59f, .42f, .77f, .92f);
+        private static readonly Color DialogueCloseColor = new Color(.34f, .28f, .40f, .82f);
+        private static readonly ItemCategory[] CatalogCategories =
+        {
+            ItemCategory.Furniture,
+            ItemCategory.Appliance,
+            ItemCategory.Tableware,
+            ItemCategory.Kitchenware,
+            ItemCategory.Food,
+            ItemCategory.Toy
+        };
         private const int CatalogPageSize = 6;
+        private const float HandToggleHoldSeconds = .5f;
 
         [SerializeField] private GameBootstrap bootstrap;
         private readonly Dictionary<HudPage, GameObject> pages = new Dictionary<HudPage, GameObject>();
@@ -40,21 +57,39 @@ namespace MateSoul.Runtime
         private readonly List<Sprite> iconSprites = new List<Sprite>();
         private readonly List<Texture2D> iconTextures = new List<Texture2D>();
         private readonly List<Button> catalogButtons = new List<Button>();
+        private readonly List<TMP_Text> catalogQuantityLabels = new List<TMP_Text>();
+        private readonly List<Image> catalogCategoryBackgrounds = new List<Image>();
         private ItemDefinition[] catalog = Array.Empty<ItemDefinition>();
+        private ItemDefinition[] categoryCatalog = Array.Empty<ItemDefinition>();
         private TMP_Text status, subtitle, selectedItem, interactionFeedback, catalogPageLabel;
-        private TMP_Text autonomyLabel, pauseLabel, subtitlesLabel, inputModeLabel;
+        private TMP_Text autonomyLabel, pauseLabel, inputModeLabel;
+        private TMP_Text hudVisibilityHint;
         private TMP_InputField input;
+        private Button sendButton, recycleButton;
         private Canvas canvas;
         private TMP_FontAsset font;
         private Material overlayMaterial;
         private VirtualItemFocusController focusController;
+        private ItemPlacementPreviewController placementPreview;
         private Sprite roundedSprite;
         private Texture2D roundedTexture;
         private RectTransform canvasRoot, hudRoot, contentRoot;
+        private RectTransform navigationRoot, dialogueRoot;
         private RectTransform personalitySettingsRoot, systemSettingsRoot;
+        private CanvasGroup navigationGroup, dialogueGroup;
         private HudPage activePage;
+        private PlayerInteractionModeController interactionMode;
+        private InputAction controllerHudToggle, leftHandFist, rightHandFist;
         private int selected, catalogPage;
+        private ItemCategory selectedCategory = ItemCategory.Furniture;
+        private bool hudVisible = true;
+        private bool visibilityInputModeKnown, controllerToggleReady, handToggleReady;
+        private bool handToggleLatched;
+        private bool dialogueOpen;
+        private PlayerInteractionMode visibilityInputMode;
+        private float handToggleStarted = -1;
         private float nextRefresh;
+        private Coroutine dialogueTransition;
         private string localMessage;
         private string message
         {
@@ -67,18 +102,19 @@ namespace MateSoul.Runtime
         }
         private ActionHandle interactionAction;
 
-        #region debug-point A-E:ui-quality-runtime-evidence
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-        private bool uiQualityReported;
-        private bool windowGlyphCoverageReported;
-#endif
-        #endregion
+
+        public bool IsVisible => hudVisible;
+        public bool IsDialogueOpen => dialogueOpen;
 
         public void Configure(GameBootstrap game) { bootstrap = game; }
 
         private void Start()
         {
             focusController = bootstrap == null ? null : bootstrap.GetComponent<VirtualItemFocusController>();
+            placementPreview = bootstrap == null
+                ? null : bootstrap.GetComponent<ItemPlacementPreviewController>();
+            interactionMode = FindObjectOfType<PlayerInteractionModeController>();
+            CreateHudToggleActions();
             font = AlwaysOnTopUi.TextFont;
             roundedSprite = CreateRoundedSprite();
             overlayMaterial = AlwaysOnTopUi.CreateMaterial();
@@ -111,10 +147,12 @@ namespace MateSoul.Runtime
             AlwaysOnTopUi.Configure(canvas);
 
             BuildNavigation();
+            BuildDialogueBar();
             BuildSubtitle();
             BuildPages();
             AlwaysOnTopUi.Apply(root.transform, overlayMaterial);
             SetActivePage(HudPage.None);
+            SetHudVisible(true);
 
             if (EventSystem.current == null)
             {
@@ -127,6 +165,8 @@ namespace MateSoul.Runtime
         {
             var dock = AnchoredRect("Bottom Navigation", hudRoot, new Vector2(.5f, 0),
                 new Vector2(.5f, 0), new Vector2(.5f, 0), Vector2.zero, new Vector2(824, 160));
+            navigationRoot = dock;
+            navigationGroup = dock.gameObject.AddComponent<CanvasGroup>();
             AddBackground(dock, DockColor);
             var labels = new[]
             {
@@ -145,6 +185,50 @@ namespace MateSoul.Runtime
                     width, dock, () => TogglePage(entry.Item2));
                 navigationBackgrounds.Add(entry.Item2, button.GetComponent<Image>());
             }
+            hudVisibilityHint = Label(VisibilityHint(), 12, 137, 800, 18, 14, dock,
+                TextAnchor.MiddleCenter, MutedTextColor, "展示隐藏UI提示");
+        }
+
+        private void BuildDialogueBar()
+        {
+            dialogueRoot = AnchoredRect("Dialogue Bar", hudRoot, new Vector2(.5f, 0),
+                new Vector2(.5f, 0), new Vector2(.5f, 0), Vector2.zero, new Vector2(824, 112));
+            dialogueGroup = dialogueRoot.gameObject.AddComponent<CanvasGroup>();
+            AddBackground(dialogueRoot, DialogueGlassColor);
+            var shadow = dialogueRoot.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(.12f, .07f, .16f, .32f);
+            shadow.effectDistance = new Vector2(0, -7);
+            shadow.useGraphicAlpha = true;
+
+            var haze = Rect("Glass Haze", 5, 5, 814, 44, dialogueRoot);
+            var hazeImage = AddBackground(haze, DialogueHazeColor);
+            hazeImage.raycastTarget = false;
+
+            var inputRoot = Rect("对话输入", 18, 20, 568, 72, dialogueRoot);
+            AddBackground(inputRoot, DialogueInputColor);
+            input = inputRoot.gameObject.AddComponent<TMP_InputField>();
+            var value = Label("", 18, 0, 532, 72, 21, inputRoot,
+                TextAnchor.MiddleLeft, TextColor, "输入内容");
+            var placeholder = Label("输入想对冷月说的话…", 18, 0, 532, 72, 20, inputRoot,
+                TextAnchor.MiddleLeft, new Color(.92f, .87f, .96f, .72f), "输入提示");
+            input.textComponent = value;
+            input.placeholder = placeholder;
+            input.characterLimit = 1000;
+            input.lineType = TMP_InputField.LineType.SingleLine;
+
+            sendButton = Button("发送", 598, 20, 106, 72,
+                SendDialogue, dialogueRoot, 20, "发送");
+            sendButton.GetComponent<Image>().color = DialogueSendColor;
+            var closeButton = Button("关闭", 716, 20, 90, 72,
+                CloseDialogue, dialogueRoot, 18, "关闭");
+            closeButton.GetComponent<Image>().color = DialogueCloseColor;
+
+            dialogueGroup.alpha = 0;
+            dialogueGroup.interactable = false;
+            dialogueGroup.blocksRaycasts = false;
+            dialogueRoot.localScale = new Vector3(.08f, .88f, 1);
+            dialogueRoot.anchoredPosition = new Vector2(0, -10);
+            dialogueRoot.gameObject.SetActive(false);
         }
 
         private void BuildSubtitle()
@@ -168,7 +252,6 @@ namespace MateSoul.Runtime
             contentRoot = AnchoredRect("HUD Content", hudRoot, new Vector2(.5f, 0),
                 new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 383), new Vector2(760, 330));
             AddBackground(contentRoot, PanelColor);
-            BuildDialoguePage();
             BuildInteractionPage();
             BuildMiniGamesPage();
             BuildInformationPage();
@@ -183,47 +266,24 @@ namespace MateSoul.Runtime
             return root.gameObject;
         }
 
-        private void BuildDialoguePage()
-        {
-            var page = CreatePage(HudPage.Dialogue, "对话栏目");
-            Label("文字对话", 22, 16, 716, 34, 25, page.transform,
-                TextAnchor.MiddleLeft, TextColor, "对话标题");
-            Label("输入想对冷月说的话", 22, 58, 716, 28, 18, page.transform,
-                TextAnchor.MiddleLeft, MutedTextColor, "输入说明");
-            var inputRoot = Rect("对话输入", 22, 94, 716, 86, page.transform);
-            AddBackground(inputRoot, new Color(.15f, .13f, .18f, .98f));
-            input = inputRoot.gameObject.AddComponent<TMP_InputField>();
-            var value = Label("", 14, 8, 688, 70, 20, inputRoot,
-                TextAnchor.UpperLeft, TextColor, "输入内容");
-            var placeholder = Label("输入想说的话…", 14, 8, 688, 70, 20, inputRoot,
-                TextAnchor.UpperLeft, MutedTextColor, "输入提示");
-            input.textComponent = value;
-            input.placeholder = placeholder;
-            input.characterLimit = 1000;
-            input.lineType = TMP_InputField.LineType.MultiLineNewline;
-            Button("发送", 22, 204, 220, 52, SendDialogue, page.transform, 21);
-            Button("取消", 270, 204, 220, 52,
-                () => Run(() => bootstrap.Session.Conversation.Cancel()), page.transform, 21);
-            var subtitleButton = Button("字幕：开启", 518, 204, 220, 52,
-                () => Run(() => bootstrap.Session.Subtitles = !bootstrap.Session.Subtitles), page.transform, 20);
-            subtitlesLabel = subtitleButton.GetComponentInChildren<TMP_Text>();
-        }
-
         private void BuildInteractionPage()
         {
             var page = CreatePage(HudPage.Interaction, "互动栏目");
             Label("选择互动", 22, 14, 716, 34, 25, page.transform,
                 TextAnchor.MiddleLeft, TextColor, "互动标题");
-            var activities = new[] { "一起散步", "坐下聊天", "躺床休息", "起身" };
+            var activities = new[] { "一起散步", "坐下聊天", "躺床休息", "起身", "切水果" };
             for (var i = 0; i < activities.Length; i++)
             {
                 var activity = activities[i];
                 Button(activity, 22, 58 + i * 44, 716, 40,
                     () => SelectTestActivity(activity), page.transform, 20, "活动/" + activity);
             }
-            Button("小游戏", 22, 234, 716, 40, () => SetActivePage(HudPage.MiniGames),
+            Button("小游戏", 22, 278, 470, 40, () => SetActivePage(HudPage.MiniGames),
                 page.transform, 24, "活动/小游戏");
-            interactionFeedback = Label("请选择一项互动活动。", 22, 286, 716, 28, 18,
+            Button("取消切水果", 506, 278, 232, 40,
+                () => Run(() => bootstrap.Session.CancelItemAction()),
+                page.transform, 20, "取消切水果");
+            interactionFeedback = Label("请选择一项互动活动。", 22, 326, 716, 28, 18,
                 page.transform, TextAnchor.MiddleLeft, MutedTextColor, "互动反馈");
         }
 
@@ -289,59 +349,95 @@ namespace MateSoul.Runtime
             Label("虚拟物品", 22, 10, 716, 34, 25, page.transform,
                 TextAnchor.MiddleLeft, TextColor, "物品标题");
             catalog = bootstrap.CatalogItems.ToArray();
-            for (var slot = 0; slot < Mathf.Min(CatalogPageSize, catalog.Length); slot++)
+            const float categoryWidth = 112;
+            const float categoryGap = 8.8f;
+            for (var index = 0; index < CatalogCategories.Length; index++)
+            {
+                var category = CatalogCategories[index];
+                var button = Button(category.GetDisplayName(),
+                    22 + index * (categoryWidth + categoryGap), 45, categoryWidth, 34,
+                    () => SelectCatalogCategory(category), page.transform, 16,
+                    "物品分类/" + category.GetDisplayName());
+                catalogCategoryBackgrounds.Add(button.GetComponent<Image>());
+            }
+            for (var slot = 0; slot < CatalogPageSize; slot++)
             {
                 var capturedSlot = slot;
-                catalogButtons.Add(Button("", 22 + slot % 3 * 248, 50 + slot / 3 * 46, 220, 40,
+                var button = Button("", 22 + slot % 3 * 248, 88 + slot / 3 * 44, 220, 40,
                     () => PlaceCatalogItem(capturedSlot), page.transform, 18,
-                    "物品槽位/" + slot));
+                    "物品槽位/" + slot);
+                catalogButtons.Add(button);
+                var titleRect = button.transform.Find("Label") as RectTransform;
+                if (titleRect != null) titleRect.sizeDelta = new Vector2(180, 40);
+                catalogQuantityLabels.Add(Label("", 184, 18, 28, 20, 14, button.transform,
+                    TextAnchor.MiddleRight, TextColor, "剩余数量"));
             }
-            Button("‹", 22, 145, 80, 34, () => ChangeCatalogPage(-1),
+            Button("‹", 22, 179, 80, 34, () => ChangeCatalogPage(-1),
                 page.transform, 24, "物品/上一页");
-            catalogPageLabel = Label("", 110, 145, 540, 34, 17, page.transform,
+            catalogPageLabel = Label("", 110, 179, 540, 34, 17, page.transform,
                 TextAnchor.MiddleCenter, MutedTextColor, "物品页码");
-            Button("›", 658, 145, 80, 34, () => ChangeCatalogPage(1),
+            Button("›", 658, 179, 80, 34, () => ChangeCatalogPage(1),
                 page.transform, 24, "物品/下一页");
-            selectedItem = Label("", 22, 185, 716, 32, 18, page.transform,
+            selectedItem = Label("", 22, 219, 716, 32, 18, page.transform,
                 TextAnchor.MiddleLeft, TextColor, "当前物品");
-            Button("下个已放置", 22, 226, 220, 46, () => selected++, page.transform, 18);
-            Button("过去看看", 270, 226, 220, 46, VisitSelectedItem, page.transform, 18);
-            Button("删除当前物品", 518, 226, 220, 46, RemoveSelectedItem, page.transform, 18);
+            Button("下个已放置", 22, 258, 220, 46, () => selected++, page.transform, 18);
+            Button("过去看看", 270, 258, 220, 46, VisitSelectedItem, page.transform, 18);
+            recycleButton = Button("回收当前物品", 518, 258, 220, 46,
+                RemoveSelectedItem, page.transform, 18);
+            SelectCatalogCategory(selectedCategory);
+        }
+
+        private void SelectCatalogCategory(ItemCategory category)
+        {
+            selectedCategory = category;
+            categoryCatalog = catalog.Where(item => item.Category == category).ToArray();
+            catalogPage = 0;
+            for (var index = 0; index < catalogCategoryBackgrounds.Count; index++)
+                catalogCategoryBackgrounds[index].color =
+                    CatalogCategories[index] == category ? SelectedColor : ButtonColor;
             RefreshCatalogPage();
         }
 
         private void ChangeCatalogPage(int offset)
         {
-            var pageCount = Mathf.Max(1, (catalog.Length + CatalogPageSize - 1) / CatalogPageSize);
+            var pageCount = Mathf.Max(1,
+                (categoryCatalog.Length + CatalogPageSize - 1) / CatalogPageSize);
             catalogPage = (catalogPage + offset + pageCount) % pageCount;
             RefreshCatalogPage();
         }
 
         private void RefreshCatalogPage()
         {
-            var pageCount = Mathf.Max(1, (catalog.Length + CatalogPageSize - 1) / CatalogPageSize);
+            var pageCount = Mathf.Max(1,
+                (categoryCatalog.Length + CatalogPageSize - 1) / CatalogPageSize);
             catalogPage = Mathf.Clamp(catalogPage, 0, pageCount - 1);
             for (var slot = 0; slot < catalogButtons.Count; slot++)
             {
                 var index = catalogPage * CatalogPageSize + slot;
                 var button = catalogButtons[slot];
-                var visible = index < catalog.Length;
+                var visible = index < categoryCatalog.Length;
                 button.gameObject.SetActive(visible);
                 if (!visible) continue;
-                var definition = catalog[index];
+                var definition = categoryCatalog[index];
                 button.name = "物品/" + definition.Id;
-                button.GetComponentInChildren<TMP_Text>().text = definition.DisplayName;
+                var title = button.transform.Find("Label")?.GetComponent<TMP_Text>();
+                if (title != null) title.text = definition.DisplayName;
             }
+            RefreshCatalogQuantities();
             if (catalogPageLabel != null)
-                catalogPageLabel.text = catalog.Length == 0 ? "暂无可用物品" :
-                    $"{catalogPage + 1} / {pageCount}  ·  共 {catalog.Length} 项";
+                catalogPageLabel.text = categoryCatalog.Length == 0 ? "该分类暂无可用物品" :
+                    $"{catalogPage + 1} / {pageCount}  ·  共 {categoryCatalog.Length} 项";
         }
 
         private void PlaceCatalogItem(int slot)
         {
             var index = catalogPage * CatalogPageSize + slot;
-            if (index < 0 || index >= catalog.Length) return;
-            var definition = catalog[index];
+            if (index < 0 || index >= categoryCatalog.Length) return;
+            var definition = categoryCatalog[index];
+            CancelRecycleSelection();
+            if (placementPreview != null && placementPreview.IsActive &&
+                !placementPreview.IsPreviewing(definition))
+                placementPreview.Cancel();
             RunAsync(() => PlaceAsync(definition));
         }
 
@@ -412,22 +508,238 @@ namespace MateSoul.Runtime
 
         private void TogglePage(HudPage page)
         {
+            if (page == HudPage.Dialogue)
+            {
+                SetDialogueOpen(!dialogueOpen);
+                return;
+            }
             SetActivePage(activePage == page ? HudPage.None : page);
         }
 
         private void SetActivePage(HudPage page)
         {
+            if (page != HudPage.Items && placementPreview != null)
+                placementPreview.Cancel();
+            if (page != HudPage.Items) CancelRecycleSelection();
             activePage = page;
             if (contentRoot != null) contentRoot.gameObject.SetActive(page != HudPage.None);
             foreach (var entry in pages) entry.Value.SetActive(entry.Key == page);
+            RefreshNavigationSelection();
+        }
+
+        private void RefreshNavigationSelection()
+        {
             foreach (var entry in navigationBackgrounds)
-                entry.Value.color = entry.Key == page ||
-                    entry.Key == HudPage.Interaction && page == HudPage.MiniGames ? SelectedColor : ButtonColor;
+                entry.Value.color =
+                    entry.Key == HudPage.Dialogue && dialogueOpen ||
+                    entry.Key == activePage ||
+                    entry.Key == HudPage.Interaction && activePage == HudPage.MiniGames
+                        ? SelectedColor
+                        : ButtonColor;
+        }
+
+        private void SetDialogueOpen(bool open)
+        {
+            if (dialogueOpen == open && dialogueTransition == null) return;
+            if (open) SetActivePage(HudPage.None);
+            dialogueOpen = open;
+            bootstrap?.Session?.SetDialogueAttention(open);
+            RefreshNavigationSelection();
+            if (dialogueTransition != null) StopCoroutine(dialogueTransition);
+            dialogueTransition = StartCoroutine(AnimateDialogue(open));
+        }
+
+        private IEnumerator AnimateDialogue(bool open)
+        {
+            navigationRoot.gameObject.SetActive(true);
+            dialogueRoot.gameObject.SetActive(true);
+            navigationGroup.interactable = false;
+            navigationGroup.blocksRaycasts = false;
+            dialogueGroup.interactable = false;
+            dialogueGroup.blocksRaycasts = false;
+
+            var navigationStartAlpha = navigationGroup.alpha;
+            var navigationStartPosition = navigationRoot.anchoredPosition;
+            var navigationStartScale = navigationRoot.localScale;
+            var dialogueStartAlpha = dialogueGroup.alpha;
+            var dialogueStartPosition = dialogueRoot.anchoredPosition;
+            var dialogueStartScale = dialogueRoot.localScale;
+            var duration = open ? .62f : .58f;
+            var elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var navigationProgress = open
+                    ? Mathf.Clamp01(elapsed / .34f)
+                    : Mathf.Clamp01((elapsed - .06f) / .48f);
+                var dialogueProgress = open
+                    ? Mathf.Clamp01((elapsed - .1f) / .48f)
+                    : Mathf.Clamp01(elapsed / .42f);
+                var navigationEase = open
+                    ? EaseInOutCubic(navigationProgress)
+                    : EaseOutBack(navigationProgress);
+                var dialogueEase = open
+                    ? EaseOutQuint(dialogueProgress)
+                    : EaseInOutCubic(dialogueProgress);
+
+                navigationGroup.alpha = Mathf.Lerp(
+                    navigationStartAlpha, open ? 0 : 1, navigationEase);
+                navigationRoot.anchoredPosition = Vector2.LerpUnclamped(
+                    navigationStartPosition, open ? new Vector2(0, -14) : Vector2.zero,
+                    navigationEase);
+                navigationRoot.localScale = Vector3.LerpUnclamped(
+                    navigationStartScale, open ? new Vector3(.98f, .98f, 1) : Vector3.one,
+                    navigationEase);
+
+                dialogueGroup.alpha = Mathf.Lerp(
+                    dialogueStartAlpha, open ? 1 : 0, dialogueEase);
+                dialogueRoot.anchoredPosition = Vector2.LerpUnclamped(
+                    dialogueStartPosition, open ? Vector2.zero : new Vector2(0, -7),
+                    dialogueEase);
+                var targetScale = open
+                    ? Vector3.one
+                    : new Vector3(.04f, .86f, 1);
+                dialogueRoot.localScale = Vector3.LerpUnclamped(
+                    dialogueStartScale, targetScale, dialogueEase);
+                yield return null;
+            }
+
+            navigationGroup.alpha = open ? 0 : 1;
+            navigationRoot.anchoredPosition = open ? new Vector2(0, -14) : Vector2.zero;
+            navigationRoot.localScale = open ? new Vector3(.98f, .98f, 1) : Vector3.one;
+            dialogueGroup.alpha = open ? 1 : 0;
+            dialogueRoot.anchoredPosition = open ? Vector2.zero : new Vector2(0, -7);
+            dialogueRoot.localScale = open ? Vector3.one : new Vector3(.04f, .86f, 1);
+            navigationRoot.gameObject.SetActive(!open);
+            dialogueRoot.gameObject.SetActive(open);
+            navigationGroup.interactable = !open;
+            navigationGroup.blocksRaycasts = !open;
+            dialogueGroup.interactable = open;
+            dialogueGroup.blocksRaycasts = open;
+            dialogueTransition = null;
+        }
+
+        private static float EaseInOutCubic(float value)
+            => value < .5f
+                ? 4f * value * value * value
+                : 1f - Mathf.Pow(-2f * value + 2f, 3f) * .5f;
+
+        private static float EaseOutQuint(float value)
+            => 1f - Mathf.Pow(1f - value, 5f);
+
+        private static float EaseOutBack(float value)
+        {
+            const float overshoot = 1.35f;
+            var shifted = value - 1f;
+            return 1f + (overshoot + 1f) * shifted * shifted * shifted +
+                   overshoot * shifted * shifted;
+        }
+
+        private void CreateHudToggleActions()
+        {
+            controllerHudToggle = new InputAction("展示/隐藏 UI", InputActionType.Button);
+            controllerHudToggle.AddBinding("<XRController>{RightHand}/secondaryButton");
+            leftHandFist = new InputAction("左手握拳", InputActionType.Button,
+                "<PicoHandInteraction>{LeftHand}/graspFirm");
+            rightHandFist = new InputAction("右手握拳", InputActionType.Button,
+                "<PicoHandInteraction>{RightHand}/graspFirm");
+            controllerHudToggle.Enable();
+            leftHandFist.Enable();
+            rightHandFist.Enable();
+        }
+
+        private void UpdateHudVisibilityInput()
+        {
+            if (interactionMode == null)
+                interactionMode = bootstrap?.MiniGames?.Input ??
+                                  FindObjectOfType<PlayerInteractionModeController>();
+            if (interactionMode == null) return;
+            var mode = interactionMode.CurrentMode;
+            if (!visibilityInputModeKnown || visibilityInputMode != mode)
+            {
+                visibilityInputModeKnown = true;
+                visibilityInputMode = mode;
+                controllerToggleReady = false;
+                handToggleReady = false;
+                handToggleLatched = false;
+                handToggleStarted = -1;
+            }
+
+            if (mode == PlayerInteractionMode.Controller)
+            {
+                var pressed = controllerHudToggle != null &&
+                              controllerHudToggle.ReadValue<float>() > .5f;
+                if (!pressed)
+                {
+                    controllerToggleReady = true;
+                    return;
+                }
+                if (!controllerToggleReady || !controllerHudToggle.WasPressedThisFrame()) return;
+                controllerToggleReady = false;
+                SetHudVisible(!hudVisible);
+                return;
+            }
+
+            var left = leftHandFist != null && leftHandFist.ReadValue<float>() > .5f;
+            var right = rightHandFist != null && rightHandFist.ReadValue<float>() > .5f;
+            if (!left && !right)
+            {
+                handToggleReady = true;
+                handToggleLatched = false;
+                handToggleStarted = -1;
+                return;
+            }
+            if (!handToggleReady || handToggleLatched) return;
+            if (!left || !right)
+            {
+                handToggleStarted = -1;
+                return;
+            }
+            if (handToggleStarted < 0)
+            {
+                handToggleStarted = Time.unscaledTime;
+                return;
+            }
+            if (Time.unscaledTime - handToggleStarted < HandToggleHoldSeconds) return;
+            handToggleLatched = true;
+            SetHudVisible(!hudVisible);
+        }
+
+        private string VisibilityHint()
+        {
+            if (interactionMode == null)
+                interactionMode = bootstrap?.MiniGames?.Input ??
+                                  FindObjectOfType<PlayerInteractionModeController>();
+            return "展示/隐藏UI：" +
+                   (interactionMode == null
+                       ? "右手 B 键 / 双手握拳"
+                       : interactionMode.CurrentMode == PlayerInteractionMode.Controller
+                           ? "右手 B 键"
+                           : "双手握拳");
+        }
+
+        private void SetHudVisible(bool visible)
+        {
+            hudVisible = visible;
+            if (hudRoot != null) hudRoot.gameObject.SetActive(visible);
+            if (visible || EventSystem.current == null || canvasRoot == null) return;
+            var selectedObject = EventSystem.current.currentSelectedGameObject;
+            if (selectedObject != null && selectedObject.transform.IsChildOf(canvasRoot))
+                EventSystem.current.SetSelectedGameObject(null);
         }
 
         private void SelectTestActivity(string activity)
         {
-            if (activity == "坐下聊天")
+            if (activity == "切水果")
+            {
+                Run(() =>
+                {
+                    interactionAction = bootstrap.Session.Submit(
+                        new AvatarIntent(CutFruitAction.Id, IntentSource.UI));
+                    message = interactionAction.IsFinished ? interactionAction.Error : "正在准备切水果";
+                });
+            }
+            else if (activity == "坐下聊天")
             {
                 Run(() =>
                 {
@@ -467,16 +779,28 @@ namespace MateSoul.Runtime
             if (interactionFeedback != null) interactionFeedback.text = message;
         }
 
+        private void CloseDialogue() => SetDialogueOpen(false);
+
         private void SendDialogue()
         {
             RunAsync(async () =>
             {
                 var value = input.text;
                 if (string.IsNullOrWhiteSpace(value)) return;
-                input.text = "";
-                await bootstrap.Session.Conversation.SendAsync(value);
+                var conversation = bootstrap.Session.Conversation;
+                if (conversation.State == MateSoul.Gameplay.ConversationState.Thinking)
+                {
+                    message = "冷月正在回复，请稍候。";
+                    return;
+                }
+                var pending = conversation.SendAsync(value);
+                if (conversation.State == MateSoul.Gameplay.ConversationState.Thinking)
+                    input.text = "";
+                await pending;
             });
         }
+
+
 
         private void SwitchOutfit()
         {
@@ -505,21 +829,41 @@ namespace MateSoul.Runtime
         {
             Run(() =>
             {
-                var item = SelectedItem();
-#region debug-point D:delete-selection
-#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
-                var deletePayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
-                                    $"\"hypothesisId\":\"D\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                                    $"\"location\":\"GameHud.RemoveSelectedItem\"," +
-                                    $"\"msg\":\"[DEBUG] delete button target resolved\",\"data\":{{" +
-                                    $"\"focusId\":\"{focusController?.FocusedItem?.Instance?.Id ?? "none"}\"," +
-                                    $"\"targetId\":\"{item?.Instance?.Id ?? "none"}\"" + "}}";
-                UnityWebRequest.Post("http://10.0.2.2:7782/event", deletePayload, "application/json")
-                    .SendWebRequest();
-#endif
-#endregion
-                if (item != null) bootstrap.Session.RemoveItem(item.Instance.Id);
+                if (focusController == null)
+                {
+                    message = "回收选择器未初始化。";
+                    return;
+                }
+                if (!focusController.RecycleSelectionActive)
+                {
+                    if (placementPreview != null) placementPreview.Cancel();
+                    focusController.BeginRecycleSelection();
+                    SetRecycleButtonLabel("确认回收");
+                    message = "移动视野选择物品，光圈亮起后再次点击确认回收。";
+                    return;
+                }
+                var item = focusController.FocusedItem;
+                if (item == null)
+                {
+                    message = "视野中心没有可回收物品。";
+                    return;
+                }
+                if (!bootstrap.Session.RecycleItem(item.Instance.Id)) return;
+                CancelRecycleSelection();
             });
+        }
+
+        private void CancelRecycleSelection()
+        {
+            focusController?.CancelRecycleSelection();
+            SetRecycleButtonLabel("回收当前物品");
+        }
+
+        private void SetRecycleButtonLabel(string value)
+        {
+            var label = recycleButton == null
+                ? null : recycleButton.transform.Find("Label")?.GetComponent<TMP_Text>();
+            if (label != null) label.text = value;
         }
 
         private void Recenter(bool immediate)
@@ -544,6 +888,8 @@ namespace MateSoul.Runtime
 
         private GameItem SelectedItem()
         {
+            if (focusController != null && focusController.RecycleSelectionActive)
+                return focusController.FocusedItem;
             if (focusController != null && focusController.FocusedItem != null)
                 return focusController.FocusedItem;
             var items = bootstrap.Session?.ItemViews.Where(i => i != null).ToArray();
@@ -553,6 +899,29 @@ namespace MateSoul.Runtime
         private async Task PlaceAsync(ItemDefinition definition)
         {
             var s = bootstrap.Session;
+            if (definition.PlacementPreview)
+            {
+                if (placementPreview == null)
+                    throw new InvalidOperationException("物品放置预览未初始化。");
+                if (!placementPreview.IsPreviewing(definition))
+                {
+                    placementPreview.Begin(definition);
+                    var surface = definition.PlacementSurface == ItemPlacementSurface.Wall
+                        ? "墙面" : "地面";
+                    message = $"移动视线选择{surface}位置，绿色可放置；再次点击确认。";
+                    return;
+                }
+                if (!placementPreview.CanPlace)
+                {
+                    message = $"{definition.DisplayName}投影无效，请选择绿色位置。";
+                    return;
+                }
+                var before = s.GetRemainingQuantity(definition.Id);
+                await s.PlaceItemAsync(definition.Id, placementPreview.Placement, false);
+                if (s.GetRemainingQuantity(definition.Id) < before)
+                    placementPreview.Cancel();
+                return;
+            }
             var origin = s.Motor.Position + Vector3.up * 1.6f;
             var forward = Vector3.forward;
             if (Camera.main != null)
@@ -563,38 +932,52 @@ namespace MateSoul.Runtime
             if (forward.sqrMagnitude < .01f) forward = Vector3.forward;
             var desired = origin + forward * 1.45f;
             await s.PlaceItemAsync(definition.Id,
-                new Pose(desired, Quaternion.LookRotation(-forward, Vector3.up)));
+                new Pose(desired, definition.ResolvePlacementRotation(-forward)));
+        }
+
+        private void RefreshCatalogQuantities()
+        {
+            var session = bootstrap == null ? null : bootstrap.Session;
+            for (var slot = 0; slot < catalogButtons.Count; slot++)
+            {
+                var index = catalogPage * CatalogPageSize + slot;
+                if (index >= categoryCatalog.Length) continue;
+                var definition = categoryCatalog[index];
+                var remaining = session == null ? 0 :
+                    session.GetRemainingQuantity(definition.Id);
+                catalogQuantityLabels[slot].text =
+                    definition.UnlimitedInventory ? "∞" : remaining.ToString();
+                catalogButtons[slot].interactable = session != null &&
+                    (definition.UnlimitedInventory || remaining > 0);
+            }
         }
 
         private void Update()
         {
-            #region debug-point A-E:ui-quality-runtime-evidence
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-            if (!uiQualityReported && Time.unscaledTime >= 2f)
-            {
-                uiQualityReported = true;
-                ReportUiQuality();
-            }
-            if (!windowGlyphCoverageReported && Time.unscaledTime >= 2f)
-            {
-                windowGlyphCoverageReported = true;
-                ReportWindowGlyphCoverage();
-            }
-#endif
-            #endregion
+            UpdateHudVisibilityInput();
 
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + .2f;
             var session = bootstrap == null ? null : bootstrap.Session;
+            RefreshCatalogQuantities();
+            if (sendButton != null)
+                sendButton.interactable = session != null &&
+                    session.Conversation.State != MateSoul.Gameplay.ConversationState.Thinking;
             if (interactionAction != null && interactionAction.IsFinished)
             {
                 message = interactionAction.Error ?? (
+                    interactionAction.Intent.ActionId == CutFruitAction.Id
+                        ? (interactionAction.State == ActionState.Succeeded ? "水果已切好并装盘" : "切水果已取消") :
                     interactionAction.Intent.ActionId == "stay" ? "已起身" :
                     interactionAction.Intent.ActionId == RealityInteractionIds.Lie
                         ? "躺床互动已结束" : "落座互动已结束");
                 interactionAction = null;
                 if (interactionFeedback != null) interactionFeedback.text = message;
             }
+            else if (interactionAction != null && interactionAction.Intent.ActionId == CutFruitAction.Id &&
+                     interactionFeedback != null)
+                interactionFeedback.text = "切水果：" + session.Avatar.Capture()
+                    .FirstOrDefault(action => action.action_id == CutFruitAction.Id)?.phase;
             if (status != null)
                 status.text = session == null ? bootstrap?.Status ?? "正在初始化…" :
                     $"{bootstrap.Status} · {(session.Paused ? "已暂停" : "陪伴中")}\n" +
@@ -608,6 +991,7 @@ namespace MateSoul.Runtime
                     : $"{(focusController != null && focusController.FocusedItem == item ? "瞄准物品" : "当前物品")}：" +
                       $"{item.Instance.DisplayName}（{session.Items.Count}）";
             }
+            if (hudVisibilityHint != null) hudVisibilityHint.text = VisibilityHint();
             if (session == null) return;
             EnsurePersonalityControls(session);
             foreach (var trait in session.Persona.Traits)
@@ -618,6 +1002,7 @@ namespace MateSoul.Runtime
             }
             if (subtitle != null)
                 subtitle.text = !session.Subtitles ? "" :
+                    session.SpontaneousReplies.VisibleText ??
                     bootstrap.MiniGames.Active?.DialogueLine ??
                     (session.Conversation.State == MateSoul.Gameplay.ConversationState.Thinking ? "正在想…" :
                     session.Conversation.Text ?? "");
@@ -631,163 +1016,8 @@ namespace MateSoul.Runtime
             if (autonomyLabel != null)
                 autonomyLabel.text = $"自主活动：{(session.Autonomy.Enabled ? "开启" : "关闭")}";
             if (pauseLabel != null) pauseLabel.text = session.Paused ? "继续" : "暂停";
-            if (subtitlesLabel != null) subtitlesLabel.text = $"字幕：{(session.Subtitles ? "开启" : "关闭")}";
         }
 
-        #region debug-point A-E:ui-quality-runtime-evidence
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-        private void ReportUiQuality()
-        {
-            const string endpoint = "http://10.0.2.2:7783/event";
-            var navText = GetComponentsInChildren<TMP_Text>(true)
-                .FirstOrDefault(value => value.name == "功能名称");
-            var icons = GetComponentsInChildren<Image>(true)
-                .Where(value => value.name == "功能图标").ToArray();
-            var icon = icons.FirstOrDefault();
-            var importedIcon = icons.Skip(1).FirstOrDefault();
-            var scaler = canvas == null ? null : canvas.GetComponent<CanvasScaler>();
-            var camera = Camera.main;
-            var corners = new Vector3[4];
-            if (navText != null) navText.rectTransform.GetWorldCorners(corners);
-            var projectedHeight = camera == null || navText == null
-                ? -1f
-                : Vector3.Distance(camera.WorldToScreenPoint(corners[0]),
-                    camera.WorldToScreenPoint(corners[1]));
-            var worldHeight = navText == null ? -1f : Vector3.Distance(corners[0], corners[1]);
-            var pipeline = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline;
-            var renderScaleProperty = pipeline?.GetType().GetProperty("renderScale");
-            var msaaProperty = pipeline?.GetType().GetProperty("msaaSampleCount");
-            var renderScale = renderScaleProperty == null
-                ? -1f
-                : Convert.ToSingle(renderScaleProperty.GetValue(pipeline));
-            var pipelineMsaa = msaaProperty == null
-                ? -1
-                : Convert.ToInt32(msaaProperty.GetValue(pipeline));
-            var pico = FindObjectOfType<ByteDance.PICO.XR.PXR_Manager>();
-            var textTexture = navText?.fontSharedMaterial?.mainTexture;
-            var fontAtlas = navText?.font?.atlasTextures?.FirstOrDefault();
-            var textMaterial = navText == null ? null : navText.materialForRendering;
-            var renderedTextTexture = textMaterial?.mainTexture;
-            var textColor = navText == null ? Color.clear : navText.color;
-            var faceColor = textMaterial != null && textMaterial.HasProperty(ShaderUtilities.ID_FaceColor)
-                ? textMaterial.GetColor(ShaderUtilities.ID_FaceColor)
-                : Color.clear;
-            var gradientScale = textMaterial != null &&
-                                textMaterial.HasProperty(ShaderUtilities.ID_GradientScale)
-                ? textMaterial.GetFloat(ShaderUtilities.ID_GradientScale)
-                : -1f;
-            var textInfo = navText?.textInfo;
-            var firstCharacterVisible = textInfo != null && textInfo.characterCount > 0 &&
-                                        textInfo.characterInfo[0].isVisible;
-            var textInfoVertexCount = textInfo == null || textInfo.meshInfo.Length == 0
-                ? -1
-                : textInfo.meshInfo[0].vertexCount;
-            var zTestMode = textMaterial != null &&
-                            textMaterial.HasProperty(ShaderUtilities.ShaderTag_ZTestMode)
-                ? textMaterial.GetFloat(ShaderUtilities.ShaderTag_ZTestMode)
-                : -1f;
-            var iconTexture = icon == null ? null : icon.mainTexture;
-            var importedIconTexture = importedIcon == null ? null : importedIcon.mainTexture;
-
-            var a =
-                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"A\"," +
-                $"\"location\":\"GameHud.ReportUiQuality:text\",\"msg\":\"[DEBUG] text raster metrics\"," +
-                $"\"data\":{{\"fontSize\":{navText?.fontSize ?? -1},\"pixelsPerUnit\":{navText?.pixelsPerUnit ?? -1:F3}," +
-                $"\"fontMode\":\"{navText?.font?.atlasPopulationMode}\",\"fontAtlasWidth\":{fontAtlas?.width ?? -1}," +
-                $"\"fontAtlasHeight\":{fontAtlas?.height ?? -1},\"materialTextureWidth\":{textTexture?.width ?? -1}," +
-                $"\"materialTextureHeight\":{textTexture?.height ?? -1},\"atlasCount\":{navText?.font?.atlasTextureCount ?? -1}," +
-                $"\"fontAsset\":\"{navText?.font?.name}\",\"sourceFont\":\"{navText?.font?.sourceFontFile?.name}\"," +
-                $"\"fontCharacters\":{navText?.font?.characterTable?.Count ?? -1}," +
-                $"\"textLength\":{navText?.text?.Length ?? -1},\"textCharacters\":{navText?.textInfo?.characterCount ?? -1}," +
-                $"\"rectHeight\":{navText?.rectTransform.rect.height ?? -1:F3}," +
-                $"\"requiredLineHeight\":{(navText == null ? -1f : navText.fontSize * navText.font.faceInfo.lineHeight / navText.font.faceInfo.pointSize):F3}}}}}";
-            UnityWebRequest.Post(endpoint, a, "application/json").SendWebRequest();
-
-            var b =
-                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"B\"," +
-                $"\"location\":\"GameHud.ReportUiQuality:xr\",\"msg\":\"[DEBUG] XR render metrics\"," +
-                $"\"data\":{{\"screenWidth\":{Screen.width},\"screenHeight\":{Screen.height}," +
-                $"\"eyeWidth\":{UnityEngine.XR.XRSettings.eyeTextureWidth}," +
-                $"\"eyeHeight\":{UnityEngine.XR.XRSettings.eyeTextureHeight}," +
-                $"\"eyeScale\":{UnityEngine.XR.XRSettings.eyeTextureResolutionScale:F3}," +
-                $"\"urpRenderScale\":{renderScale:F3},\"quality\":\"{QualitySettings.names[QualitySettings.GetQualityLevel()]}\"," +
-                $"\"qualityMsaa\":{QualitySettings.antiAliasing},\"pipelineMsaa\":{pipelineMsaa}," +
-                $"\"cameraPixelWidth\":{camera?.pixelWidth ?? -1},\"cameraPixelHeight\":{camera?.pixelHeight ?? -1}," +
-                $"\"cameraMsaa\":\"{camera?.allowMSAA}\",\"picoRecommendedMsaa\":\"{pico?.useRecommendedAntiAliasingLevel}\"" +
-                "}}";
-            UnityWebRequest.Post(endpoint, b, "application/json").SendWebRequest();
-
-            var c =
-                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"C\"," +
-                $"\"location\":\"GameHud.ReportUiQuality:projection\",\"msg\":\"[DEBUG] projected text size\"," +
-                $"\"data\":{{\"canvasScaleFactor\":\"{canvas?.scaleFactor ?? -1:F3}\"," +
-                $"\"dynamicPixelsPerUnit\":\"{scaler?.dynamicPixelsPerUnit ?? -1:F3}\"," +
-                $"\"projectedTextHeight\":\"{projectedHeight:F3}\",\"worldTextHeight\":\"{worldHeight:F5}\"," +
-                $"\"canvasWorldScale\":\"{canvasRoot?.lossyScale.x ?? -1:F6}\",\"isRootCanvas\":\"{canvas?.isRootCanvas}\"," +
-                $"\"cameraDistance\":\"{(camera == null || canvasRoot == null ? -1f : Vector3.Distance(camera.transform.position, canvasRoot.position)):F3}\"}}}}";
-            UnityWebRequest.Post(endpoint, c, "application/json").SendWebRequest();
-
-            var d =
-                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"D\"," +
-                $"\"location\":\"GameHud.ReportUiQuality:material\",\"msg\":\"[DEBUG] UI material metrics\"," +
-                $"\"data\":{{\"textShader\":\"{textMaterial?.shader?.name}\"," +
-                $"\"overlayShader\":\"{overlayMaterial?.shader?.name}\",\"textureFilter\":\"{textTexture?.filterMode}\"," +
-                $"\"textureMips\":{textTexture?.mipmapCount ?? -1},\"textOverlay\":\"{navText?.isOverlay}\"," +
-                $"\"renderTextureWidth\":{renderedTextTexture?.width ?? -1},\"renderTextureHeight\":{renderedTextTexture?.height ?? -1}," +
-                $"\"textLength\":{navText?.text?.Length ?? -1},\"textCharacters\":{textInfo?.characterCount ?? -1}," +
-                $"\"textInfoVertexCount\":{textInfoVertexCount},\"firstCharacterVisible\":\"{firstCharacterVisible}\"," +
-                $"\"rendererCull\":\"{navText?.canvasRenderer.cull}\",\"zTestMode\":{zTestMode:F1}," +
-                $"\"textColor\":\"{textColor.r:F3},{textColor.g:F3},{textColor.b:F3},{textColor.a:F3}\"," +
-                $"\"faceColor\":\"{faceColor.r:F3},{faceColor.g:F3},{faceColor.b:F3},{faceColor.a:F3}\"," +
-                $"\"rendererAlpha\":\"{navText?.canvasRenderer?.GetAlpha() ?? -1:F3}\"," +
-                $"\"gradientScale\":\"{gradientScale:F3}\",\"vertexCount\":{navText?.mesh?.vertexCount ?? -1}}}}}";
-            UnityWebRequest.Post(endpoint, d, "application/json").SendWebRequest();
-
-            var e =
-                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"E\"," +
-                $"\"location\":\"GameHud.ReportUiQuality:icon\",\"msg\":\"[DEBUG] icon sampling metrics\"," +
-                $"\"data\":{{\"iconWidth\":{iconTexture?.width ?? -1},\"iconHeight\":{iconTexture?.height ?? -1}," +
-                $"\"iconFilter\":\"{iconTexture?.filterMode}\",\"iconMips\":{iconTexture?.mipmapCount ?? -1}," +
-                $"\"importedIconWidth\":{importedIconTexture?.width ?? -1},\"importedIconHeight\":{importedIconTexture?.height ?? -1}," +
-                $"\"importedIconMips\":{importedIconTexture?.mipmapCount ?? -1}," +
-                $"\"picoSuperResolution\":\"{pico?.enableSuperResolution}\",\"picoAdaptiveResolution\":\"{pico?.adaptiveResolution}\"," +
-                $"\"picoFoveation\":\"{pico?.foveationLevel}\",\"picoSharpening\":\"{pico?.sharpeningMode}\"" +
-                "}}";
-            UnityWebRequest.Post(endpoint, e, "application/json").SendWebRequest();
-        }
-
-        private void ReportWindowGlyphCoverage()
-        {
-            const string endpoint = "http://10.0.2.2:7784/event";
-            var targets = new[]
-            {
-                new { Page = HudPage.Items, Hypothesis = "A,B" },
-                new { Page = HudPage.Settings, Hypothesis = "A,B,D" }
-            };
-            foreach (var target in targets)
-            {
-                var labels = pages[target.Page].GetComponentsInChildren<TMP_Text>(true)
-                    .Where(text => text != null && !string.IsNullOrEmpty(text.text))
-                    .ToArray();
-                var combined = string.Concat(labels.Select(text => text.text));
-                var covered = font.HasCharacters(
-                    combined, out uint[] missing, false, false);
-                var missingCodes = string.Join(",", missing.Select(code => $"U+{code:X4}"));
-                var windowText = string.Join("|", labels.Select(text =>
-                    text.text.Replace("\\", "\\\\").Replace("\"", "\\\"")
-                        .Replace("\r", "").Replace("\n", "\\n")));
-                var payload =
-                    $"{{\"sessionId\":\"window-missing-glyphs\",\"runId\":\"pre-fix\"," +
-                    $"\"hypothesisId\":\"{target.Hypothesis}\",\"location\":\"GameHud.ReportWindowGlyphCoverage\"," +
-                    $"\"msg\":\"[DEBUG] window font coverage\",\"data\":{{\"page\":\"{target.Page}\"," +
-                    $"\"labelCount\":{labels.Length},\"fontCharacters\":{font.characterTable.Count}," +
-                    $"\"covered\":\"{covered}\",\"missingCount\":{missing.Length}," +
-                    $"\"missingCodes\":\"{missingCodes}\",\"windowText\":\"{windowText}\"}}}}";
-                UnityWebRequest.Post(endpoint, payload, "application/json").SendWebRequest();
-            }
-        }
-#endif
-        #endregion
 
         private void Run(Action action)
         {
@@ -1066,7 +1296,7 @@ namespace MateSoul.Runtime
         private Button NavigationButton(string title, HudPage icon, float x, float width,
             Transform parent, UnityEngine.Events.UnityAction action)
         {
-            var rect = Rect(title, x, 10, width, 140, parent);
+            var rect = Rect(title, x, 8, width, 127, parent);
             var image = AddBackground(rect, ButtonColor);
             var shadow = rect.gameObject.AddComponent<Shadow>();
             shadow.effectColor = new Color(.08f, .04f, .09f, .38f);
@@ -1076,7 +1306,7 @@ namespace MateSoul.Runtime
             button.onClick.AddListener(action);
             ConfigureButton(button, image);
 
-            var iconRect = Rect("功能图标", width * .5f - 40, 9, 80, 80, rect);
+            var iconRect = Rect("功能图标", width * .5f - 40, 7, 80, 80, rect);
             var iconImage = iconRect.gameObject.AddComponent<Image>();
             AlwaysOnTopUi.Apply(iconImage, overlayMaterial);
             iconImage.sprite = CreateIconSprite(icon);
@@ -1086,7 +1316,7 @@ namespace MateSoul.Runtime
             iconShadow.effectColor = new Color(.15f, .08f, .16f, .18f);
             iconShadow.effectDistance = new Vector2(1, -1);
             iconShadow.useGraphicAlpha = true;
-            Label(title, 8, 104, width - 16, 28, 20, rect,
+            Label(title, 8, 96, width - 16, 25, 19, rect,
                 TextAnchor.MiddleCenter, TextColor, "功能名称");
             return button;
         }
@@ -1121,6 +1351,12 @@ namespace MateSoul.Runtime
 
         private void OnDestroy()
         {
+            CancelRecycleSelection();
+            if (dialogueTransition != null) StopCoroutine(dialogueTransition);
+            bootstrap?.Session?.SetDialogueAttention(false);
+            controllerHudToggle?.Dispose();
+            leftHandFist?.Dispose();
+            rightHandFist?.Dispose();
             if (overlayMaterial != null) Destroy(overlayMaterial);
             foreach (var sprite in iconSprites) if (sprite != null) Destroy(sprite);
             foreach (var texture in iconTextures) if (texture != null) Destroy(texture);

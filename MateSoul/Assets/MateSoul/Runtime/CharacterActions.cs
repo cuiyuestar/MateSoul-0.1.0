@@ -8,12 +8,16 @@ namespace MateSoul.Runtime
 {
     public sealed class MoveAction : IAvatarAction, IActionRuntimeStatus
     {
+        private const float MinimumProgressDistance = .015f;
+        private const float BlockedDuration = 12f;
         private readonly IAvatarMotor motor;
         private readonly INavigationService navigation;
         private readonly Func<Vector3> destination;
         private Vector3[] path;
         private bool started, cancelled;
-        private float repathSeconds;
+        private float blockedSeconds;
+        private float bestRemainingDistance;
+        private Vector3 progressDestination;
         public MoveAction(IAvatarMotor motor, INavigationService navigation, Func<Vector3> destination)
         {
             this.motor = motor; this.navigation = navigation; this.destination = destination;
@@ -22,19 +26,54 @@ namespace MateSoul.Runtime
         public string PostureId => "standing";
         public string Check()
             => navigation.TryPath(motor.Position, destination(), out path) ? null : "No complete route to the target.";
-        public void Start() { started = true; repathSeconds = 1; motor.Begin(path); }
+        public void Start()
+        {
+            started = true;
+            blockedSeconds = 0;
+            progressDestination = destination();
+            bestRemainingDistance = Vector3.ProjectOnPlane(
+                progressDestination - motor.Position, Vector3.up).magnitude;
+            motor.Begin(path);
+        }
         public ActionProgress Tick(float dt)
         {
             if (cancelled) return ActionProgress.Succeeded;
-            repathSeconds -= dt;
-            if (repathSeconds <= 0)
+            var currentDestination = destination();
+            if (Vector3.ProjectOnPlane(
+                    currentDestination - progressDestination, Vector3.up).sqrMagnitude > .01f)
             {
-                if (!navigation.TryPath(motor.Position, destination(), out path))
+                if (!navigation.TryPath(motor.Position, currentDestination, out path))
                     throw new InvalidOperationException("The route is no longer reachable.");
                 motor.Begin(path);
-                repathSeconds = 1;
+                progressDestination = currentDestination;
+                bestRemainingDistance = Vector3.ProjectOnPlane(
+                    currentDestination - motor.Position, Vector3.up).magnitude;
+                blockedSeconds = 0;
             }
-            return motor.Tick(dt) ? ActionProgress.Succeeded : ActionProgress.Running;
+            if (motor.Tick(dt)) return ActionProgress.Succeeded;
+
+            var remainingDistance = Vector3.ProjectOnPlane(
+                currentDestination - motor.Position, Vector3.up).magnitude;
+            var progress = bestRemainingDistance - remainingDistance;
+            if (progress >= MinimumProgressDistance)
+            {
+                bestRemainingDistance = remainingDistance;
+                blockedSeconds = 0;
+            }
+            else
+            {
+                blockedSeconds += dt;
+            }
+            if (motor is AvatarMotor physicalMotor &&
+                physicalMotor.PhysicalAvoidanceFailed)
+                blockedSeconds = BlockedDuration;
+            if (blockedSeconds >= BlockedDuration)
+            {
+                motor.Stop();
+                throw new InvalidOperationException(
+                    "Movement is blocked by an obstacle.");
+            }
+            return ActionProgress.Running;
         }
         public void Cancel(ActionStopReason reason) { cancelled = true; }
         public void Dispose() { if (started) motor.Stop(); }

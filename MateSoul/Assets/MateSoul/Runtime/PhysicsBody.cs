@@ -36,7 +36,7 @@ namespace MateSoul.Runtime
 
     // The shared owner of Rigidbody state. XR and gameplay submit motion targets here.
     [DisallowMultipleComponent, RequireComponent(typeof(Rigidbody))]
-    public sealed class PhysicsBody : MonoBehaviour
+    public sealed partial class PhysicsBody : MonoBehaviour
     {
         [SerializeField] private BodySettings settings;
         private Rigidbody rigidBody;
@@ -45,7 +45,7 @@ namespace MateSoul.Runtime
         private readonly RaycastHit[] hits = new RaycastHit[32];
         private Pose followTarget;
         private Vector3 pausedVelocity, pausedAngularVelocity;
-        private bool initialized, following, contact, wasSleeping;
+        private bool initialized, following, contact, docked, wasSleeping;
         private bool forceNeedsContinuousDetection;
         private float quietTime;
         public Rigidbody Rigidbody => rigidBody != null ? rigidBody : rigidBody = GetComponent<Rigidbody>();
@@ -53,7 +53,9 @@ namespace MateSoul.Runtime
         public bool IsPaused { get; private set; }
         public bool IsFollowing => following;
         public bool IsContact => contact;
-        public bool IsSettled => initialized && !following && (Rigidbody.IsSleeping() || quietTime >= .5f);
+        public bool IsDocked => docked;
+        public bool IsSettled => initialized && !following &&
+            (docked || Rigidbody.IsSleeping() || quietTime >= .5f);
         public Pose Pose => new Pose(Rigidbody.position, Rigidbody.rotation);
 
         private void Awake()
@@ -102,13 +104,14 @@ namespace MateSoul.Runtime
             rb.maxDepenetrationVelocity = 2;
             rb.solverIterations = 8;
             rb.solverVelocityIterations = 2;
+            docked = false;
             initialized = true;
         }
 
         public void AddForce(Vector3 force, ForceMode mode = ForceMode.Force)
         {
             if (!IsFinite(force)) throw new ArgumentException("Force must be finite.");
-            if (IsPaused || contact) return;
+            if (IsPaused || contact || IsInteractionControlled) return;
             var velocityChange = mode == ForceMode.VelocityChange ? force :
                 mode == ForceMode.Impulse ? force / Rigidbody.mass :
                 mode == ForceMode.Acceleration ? force * Time.fixedDeltaTime :
@@ -124,13 +127,15 @@ namespace MateSoul.Runtime
         public void AddTorque(Vector3 torque, ForceMode mode = ForceMode.Force)
         {
             if (!IsFinite(torque)) throw new ArgumentException("Torque must be finite.");
-            if (!IsPaused && !contact) Rigidbody.AddTorque(torque, mode);
+            if (!IsPaused && !contact && !IsInteractionControlled) Rigidbody.AddTorque(torque, mode);
         }
 
         public void BeginFollow(Pose target)
         {
             ValidatePose(target);
-            if (IsPaused || contact) throw new InvalidOperationException("Body is unavailable for grabbing.");
+            if (docked) Undock();
+            if (IsPaused || contact || IsInteractionControlled)
+                throw new InvalidOperationException("Body is unavailable for grabbing.");
             following = true;
             followTarget = target;
             quietTime = 0;
@@ -152,6 +157,8 @@ namespace MateSoul.Runtime
         public void SetContact(bool value)
         {
             if (IsPaused) throw new InvalidOperationException("Cannot change contact ownership while paused.");
+            if (IsInteractionControlled) throw new InvalidOperationException("An interaction owns this body.");
+            if (docked) Undock();
             following = false;
             contact = value;
             SetKinematic(value);
@@ -171,8 +178,8 @@ namespace MateSoul.Runtime
             }
             else
             {
-                SetKinematic(contact);
-                if (!contact)
+                SetKinematic(contact || docked || IsInteractionControlled);
+                if (!contact && !docked && !IsInteractionControlled)
                 {
                     rb.velocity = pausedVelocity;
                     rb.angularVelocity = pausedAngularVelocity;
@@ -204,8 +211,42 @@ namespace MateSoul.Runtime
             quietTime = 0;
         }
 
+        public void Dock(Pose pose)
+        {
+            ValidatePose(pose);
+            if (IsPaused || following || contact || IsInteractionControlled)
+                throw new InvalidOperationException(
+                    "Body is unavailable for docking.");
+            Place(pose);
+            var rb = Rigidbody;
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.useGravity = false;
+            docked = true;
+            SetKinematic(true);
+            quietTime = 0;
+        }
+
+        public void Undock()
+        {
+            if (!docked) return;
+            docked = false;
+            if (IsPaused) return;
+            var rb = Rigidbody;
+            rb.useGravity = true;
+            SetKinematic(contact || IsInteractionControlled);
+            if (!rb.isKinematic)
+            {
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.WakeUp();
+            }
+            quietTime = 0;
+        }
+
         public bool CanOccupy(Pose pose, float tolerance = .012f, Transform ignoredRoot = null,
-            ISet<int> ignoredRoomSurfaceSources = null)
+            ISet<int> ignoredRoomSurfaceSources = null, Collider ignoredCollider = null,
+            Transform ignoredColliderRoot = null, Action<Collider, float> blocked = null)
         {
             ValidatePose(pose);
             foreach (var shape in shapes)
@@ -224,8 +265,10 @@ namespace MateSoul.Runtime
                 for (var index = 0; index < count; index++)
                 {
                     var other = overlaps[index];
-                    if (other.attachedRigidbody == Rigidbody ||
+                    if (other == ignoredCollider || other.attachedRigidbody == Rigidbody ||
                         ignoredRoot != null && other.transform.IsChildOf(ignoredRoot) ||
+                        ignoredColliderRoot != null &&
+                        other.transform.IsChildOf(ignoredColliderRoot) ||
                         Physics.GetIgnoreCollision(shape, other)) continue;
                     var roomSurface = other.GetComponent<RoomSurfaceCollider>();
                     if (roomSurface != null && ignoredRoomSurfaceSources != null &&
@@ -234,58 +277,7 @@ namespace MateSoul.Runtime
                             other.transform.position, other.transform.rotation, out _, out var depth) &&
                         depth > tolerance)
                     {
-#region debug-point A-B-C-D:avatar-contact-blocker
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        if (contact && GetComponent<AvatarMotor>() != null)
-                        {
-                            var culture = System.Globalization.CultureInfo.InvariantCulture;
-                            var payload = $"{{\"sessionId\":\"chair-contact-false-block\",\"runId\":\"post-fix\"," +
-                                          $"\"hypothesisId\":\"A-B-C-D\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                                          $"\"location\":\"PhysicsBody.CanOccupy\",\"msg\":\"[DEBUG] avatar contact sweep blocked\",\"data\":{{" +
-                                          $"\"body\":\"{name.Replace("\"", "'")}\",\"shape\":\"{shape.name.Replace("\"", "'")}\"," +
-                                          $"\"blocker\":\"{other.name.Replace("\"", "'")}\",\"blockerRoot\":\"{other.transform.root.name.Replace("\"", "'")}\"," +
-                                          $"\"blockerParent\":\"{(other.transform.parent == null ? "none" : other.transform.parent.name.Replace("\"", "'"))}\"," +
-                                          $"\"blockerBody\":\"{(other.attachedRigidbody == null ? "none" : other.attachedRigidbody.name.Replace("\"", "'"))}\"," +
-                                          $"\"blockerLayer\":{other.gameObject.layer},\"blockerSourceId\":{(roomSurface == null ? -1 : roomSurface.SourceId)}," +
-                                          $"\"depth\":{depth.ToString("R", culture)}," +
-                                          $"\"sampleX\":{pose.position.x.ToString("R", culture)},\"sampleY\":{pose.position.y.ToString("R", culture)}," +
-                                          $"\"sampleZ\":{pose.position.z.ToString("R", culture)},\"currentX\":{Rigidbody.position.x.ToString("R", culture)}," +
-                                          $"\"currentY\":{Rigidbody.position.y.ToString("R", culture)},\"currentZ\":{Rigidbody.position.z.ToString("R", culture)}," +
-                                          $"\"transformBodyDelta\":{Vector3.Distance(transform.position, Rigidbody.position).ToString("R", culture)}" +
-                                          $"}}}}";
-                            UnityEngine.Networking.UnityWebRequest.Post(
-                                    Application.isEditor
-                                        ? "http://127.0.0.1:7784/event"
-                                        : "http://10.0.2.2:7784/event",
-                                    payload, "application/json")
-                                .SendWebRequest();
-                        }
-#endif
-#endregion
-#region debug-point A-B-D:bowling-reset-blocker
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
-                        if (GetComponent<BowlingPin>() != null)
-                        {
-                            var payload = $"{{\"sessionId\":\"bowling-pin-reset-blocked\",\"runId\":\"post-fix\"," +
-                                          $"\"hypothesisId\":\"A-B-D\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
-                                          $"\"location\":\"PhysicsBody.CanOccupy\",\"msg\":\"[DEBUG] bowling pin reset blocked\",\"data\":{{" +
-                                          $"\"bodyId\":{GetInstanceID()},\"body\":\"{name.Replace("\"", "'")}\"," +
-                                          $"\"shape\":\"{shape.name.Replace("\"", "'")}\"," +
-                                          $"\"blocker\":\"{other.name.Replace("\"", "'")}\"," +
-                                          $"\"blockerRoot\":\"{other.transform.root.name.Replace("\"", "'")}\"," +
-                                          $"\"blockerBody\":\"{(other.attachedRigidbody == null ? "none" : other.attachedRigidbody.name.Replace("\"", "'"))}\"," +
-                                          $"\"blockerIsPin\":{(other.GetComponentInParent<BowlingPin>() != null).ToString().ToLowerInvariant()}," +
-                                          $"\"depth\":{depth.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}," +
-                                          $"\"tolerance\":{tolerance.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}," +
-                                          $"\"transformBodyDelta\":{Vector3.Distance(transform.position, Rigidbody.position).ToString("R", System.Globalization.CultureInfo.InvariantCulture)}," +
-                                          $"\"target\":{JsonUtility.ToJson(pose.position)}," +
-                                          $"\"current\":{JsonUtility.ToJson(Rigidbody.position)}" + "}}";
-                            UnityEngine.Networking.UnityWebRequest.Post(
-                                    "http://10.0.2.2:7782/event", payload, "application/json")
-                                .SendWebRequest();
-                        }
-#endif
-#endregion
+                        blocked?.Invoke(other, depth);
                         return false;
                     }
                 }
@@ -337,7 +329,8 @@ namespace MateSoul.Runtime
 
         private void FixedUpdate()
         {
-            if (!initialized || IsPaused || contact) return;
+            if (!initialized || IsPaused || contact || docked ||
+                IsInteractionControlled) return;
             var rb = Rigidbody;
             if (following)
             {

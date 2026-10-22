@@ -2,9 +2,9 @@ Shader "MateSoul/Item Focus Highlight"
 {
     Properties
     {
-        _Color ("Outline Color", Color) = (1.0, 0.05, 0.45, 0.95)
-        _OutlineWidth ("Outline Width", Range(0.001, 0.03)) = 0.012
-        _Intensity ("Glow Intensity", Range(0, 4)) = 1.8
+        _Color ("Outline Color", Color) = (1.0, 0.16, 0.48, 0.7)
+        _OutlineWidth ("Outline Width", Range(0.0005, 0.01)) = 0.003
+        _Intensity ("Glow Intensity", Range(0, 2)) = 0.65
     }
 
     SubShader

@@ -58,9 +58,9 @@ namespace MateSoul.RoomNavigation
             var floorSources = new List<NavMeshBuildSource>();
             var obstacleSources = new List<NavMeshBuildSource>();
             var surfaceSources = new List<NavMeshBuildSource>();
+            var usesSurfaceMeshes = snapshot.SurfaceMeshes.Count > 0;
             foreach (var floor in snapshot.Floors)
             {
-                if (snapshot.SurfaceMeshes.Count > 0) break;
                 var floorMesh = RoomGeometry.CreateHorizontalPolygonMesh(
                     floor.Vertices,
                     $"Floor_{floor.Id}");
@@ -78,7 +78,10 @@ namespace MateSoul.RoomNavigation
             var notWalkableArea = NavMesh.GetAreaFromName("Not Walkable");
             foreach (var obstacle in snapshot.Obstacles)
             {
-                if (snapshot.SurfaceMeshes.Count > 0) break;
+                if (usesSurfaceMeshes &&
+                    !IsReliableSpatialObstacle(
+                        obstacle, snapshot.MainFloor.Centroid.y))
+                    continue;
                 var size = obstacle.Size;
                 size.x += obstacleSafetyMargin * 2f;
                 size.z += obstacleSafetyMargin * 2f;
@@ -119,14 +122,8 @@ namespace MateSoul.RoomNavigation
             settings.voxelSize = 0.08f;
             var bounds = snapshot.Bounds;
             bounds.Expand(new Vector3(2f, 4f, 2f));
-            var usesSurfaceMeshes = surfaceSources.Count > 0;
-            var sources = usesSurfaceMeshes
-                ? surfaceSources
-                : new List<NavMeshBuildSource>(floorSources);
-            if (!usesSurfaceMeshes)
-            {
-                sources.AddRange(obstacleSources);
-            }
+            var sources = new List<NavMeshBuildSource>(floorSources);
+            sources.AddRange(obstacleSources);
 
             BuildAndAddNavMesh(settings, sources, bounds);
             stopwatch.Stop();
@@ -146,11 +143,22 @@ namespace MateSoul.RoomNavigation
                 RemoveNavMeshInstance();
                 if (usesSurfaceMeshes)
                 {
+                    BuildAndAddNavMesh(settings, floorSources, bounds);
+                    if (TrySamplePosition(
+                            snapshot.MainFloor.Centroid,
+                            bounds.extents.magnitude, out _))
+                    {
+                        Debug.LogWarning(
+                            "[RoomNavigation] Spatial-mesh obstacle bounds removed the floor; " +
+                            "using the floor hull with physical collision avoidance.");
+                        stopwatch.Stop();
+                        LastBuildMilliseconds = stopwatch.ElapsedMilliseconds;
+                        return;
+                    }
                     Clear();
                     throw new InvalidOperationException(
-                        "PICO Spatial Mesh geometry did not produce a Runtime NavMesh.");
+                        "The spatial-mesh floor hull did not produce a Runtime NavMesh.");
                 }
-
                 BuildAndAddNavMesh(settings, floorSources, bounds);
                 if (TrySamplePosition(snapshot.MainFloor.Centroid, bounds.extents.magnitude, out _))
                 {
@@ -163,6 +171,23 @@ namespace MateSoul.RoomNavigation
                 throw new InvalidOperationException(
                     "The floor geometry did not produce a Runtime NavMesh.");
             }
+        }
+
+        private static bool IsReliableSpatialObstacle(
+            RoomObstacle obstacle, float floorHeight)
+        {
+            if (obstacle.Kind == RoomObstacleKind.Wall ||
+                obstacle.Kind == RoomObstacleKind.VirtualWall ||
+                obstacle.Kind == RoomObstacleKind.Lamp ||
+                obstacle.Kind == RoomObstacleKind.AirConditioner ||
+                obstacle.Kind == RoomObstacleKind.Screen)
+                return false;
+            var bottom = obstacle.Center.y - obstacle.Size.y * .5f;
+            var top = obstacle.Center.y + obstacle.Size.y * .5f;
+            return bottom <= floorHeight + .15f &&
+                   top >= floorHeight + .25f &&
+                   obstacle.Size.x <= 3.5f &&
+                   obstacle.Size.z <= 3.5f;
         }
 
         private static Mesh CreateSurfaceMesh(RoomSurfaceMesh surface)

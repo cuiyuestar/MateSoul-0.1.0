@@ -13,21 +13,31 @@ MonoBehaviour:
   m_Name: Table
   m_EditorClassIdentifier: 
   id: table
-  displayName: "\u684C\u5B50"
+  displayName: "\u9910\u684C"
   prefab: {fileID: 624579885039939542, guid: 3a965031407da4fd89717df03951a545, type: 3}
   capabilities:
   - visit
   approachOffset: {x: 0, y: 0, z: -0.65}
   catalogVisible: 1
-  footprint: {x: 0.6, y: 0.4}
-  placementHeight: 0.75
+  category: 0
+  footprint: {x: 1.2, y: 0.7}
+  placementHeight: 0.7547
   focusMaterial: {fileID: 2100000, guid: ba4a28338c39c4aa9bf425819dbfad5b, type: 2}
   physics:
-    mass: 8
+    mass: 18
     material: {fileID: 13400000, guid: 4792dd2622a7d4011a42d305b0320f52, type: 2}
     linearDrag: 0.02
     angularDrag: 0.05
   allowSurfacePlacement: 0
+  inventoryLimit: 1
+  unlimitedInventory: 0
+  restockDaily: 0
+  fixedAfterPlacement: 1
+  placementPreview: 1
+  placementSurface: 0
+  immovableAfterPlacement: 1
+  placementFacingYaw: 0
+  minimumSurfaceSupportRatio: 1
   breakable:
     enabled: 0
     lightForceThreshold: 0
@@ -37,4 +47,32 @@ MonoBehaviour:
     debrisLifetime: 0
     lightDebrisPrefab: {fileID: 0}
     heavyDebrisPrefab: {fileID: 0}
+    breakSound: {fileID: 0}
+  impactSound:
+    enabled: 1
+    lightForceThreshold: 120
+    mediumForceThreshold: 350
+    heavyForceThreshold: 850
+    sound: {fileID: 8300000, guid: 051880da87c444170a0b1985e56e6918, type: 3}
+  cooking:
+    enabled: 0
+    donenessPerDegreeSecond: 0
+  cuttable:
+    enabled: 0
+    interiorMaterial: {fileID: 0}
+    collisionProxy: {fileID: 0}
+    origin: {x: 0, y: 0, z: 0}
+    axis: {x: 0, y: 0, z: 0}
+    axisLength: 0
+    maximumRadius: 0
+    radiusProfile:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    maximumCutDepth: 0
+    minimumPieceVolumeRatio: 0
+  interaction: {fileID: 11400000, guid: a1683a75216d04e359856b00e606345c, type: 2}
+  consumedProduct: 0
   placementParts: []

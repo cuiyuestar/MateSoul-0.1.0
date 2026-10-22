@@ -4,7 +4,7 @@
     "MateSoul.Core", "MateSoul.Gameplay", "MateSoul.Runtime", "MateSoul.Character",
     "MateSoul.RoomNavigation", "MateSoul.RoomNavigation.Editor",
     "ByteDance.PICO.XR", "Unity.Animation.Rigging", "Unity.InputSystem", "Unity.XR.Interaction.Toolkit",
-    "Unity.XR.CoreUtils", "UnityEngine.UI", "Unity.TextMeshPro"
+    "Unity.XR.CoreUtils", "Unity.RenderPipelines.Universal.Runtime", "UnityEngine.UI", "Unity.TextMeshPro"
   ],
   "includePlatforms": ["Editor"]
 }

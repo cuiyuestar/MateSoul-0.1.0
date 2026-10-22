@@ -12,6 +12,7 @@ namespace MateSoul.Runtime
 {
     [RequireComponent(typeof(RuntimeRoomNavigation))]
     [RequireComponent(typeof(VirtualItemFocusController))]
+    [RequireComponent(typeof(ItemPlacementPreviewController))]
     [RequireComponent(typeof(MiniGameHost))]
     public sealed class GameBootstrap : MonoBehaviour
     {
@@ -23,6 +24,7 @@ namespace MateSoul.Runtime
         private CancellationTokenSource lifetime;
         private Transform itemRoot;
         private Animator animator;
+        private RealityOcclusionMeshRenderer realityOcclusion;
         private bool manualPause, appPause, hasFocus = true;
         public GameSession Session { get; private set; }
         public SystemNotifications Notifications { get; } = new SystemNotifications();
@@ -49,6 +51,7 @@ namespace MateSoul.Runtime
 
         private async void Start()
         {
+            realityOcclusion = RealityOcclusionMeshRenderer.Install(Camera.main);
             gameObject.AddComponent<SystemNotificationPresenter>().Bind(Notifications);
             lifetime = new CancellationTokenSource();
             try { await InitializeAsync(lifetime.Token); }
@@ -78,6 +81,7 @@ namespace MateSoul.Runtime
             }
             var snapshot = await provider.LoadAsync(token);
             token.ThrowIfCancellationRequested();
+            realityOcclusion?.ApplySnapshot(snapshot);
             Room.Build(snapshot, Application.isEditor);
             var spawn = snapshot.MainFloor.Centroid;
             if (!Application.isEditor && Camera.main != null)
@@ -94,29 +98,40 @@ namespace MateSoul.Runtime
             animator = character.GetComponentInChildren<Animator>();
             var motor = character.GetComponent<AvatarMotor>();
             motor.Bind(animator);
+            AvatarIdleVariation.Attach(character, animator);
+            var socialAttentionRig = AvatarSocialAttentionRig.Attach(character, animator);
             itemRoot = new GameObject("Room Items").transform;
             itemRoot.SetParent(transform, false);
             var anchors = Application.isEditor
                 ? (ISpatialAnchorService)new EditorRoomAnchorService() : new PicoSpatialAnchorService();
             try
             {
+                var aiProvider = new HttpLLMProvider(conversationGateway);
                 Session = new GameSession(motor, new RoomNavigationService(Room),
                     character.GetComponentInChildren<LengyueWardrobeController>(), items, itemRoot,
                     new JsonGameSaveStore(Path.Combine(Application.persistentDataPath, "matesoul-v1.json")),
-                    anchors, new HttpLLMProvider(conversationGateway),
-                    CharacterPersonaLoader.Load(characterPersona), Notifications);
+                    anchors, aiProvider, CharacterPersonaLoader.Load(characterPersona),
+                    Notifications, spontaneousReplyProvider: aiProvider);
+                ResponseEmotionAudio.Attach(
+                    character, Session.Conversation, Session.SpontaneousReplies);
             }
-            catch { anchors.Dispose(); throw; }
-            Session.ConfigureHandHold(character.GetComponent<HandIKRig>(),
-                Camera.main != null ? Camera.main.transform : null);
+            catch
+            {
+                if (Session != null)
+                {
+                    Session.Dispose();
+                    Session = null;
+                }
+                else anchors.Dispose();
+                throw;
+            }
+            var playerHead = Camera.main != null ? Camera.main.transform : null;
+            Session.ConfigureSocialAttention(socialAttentionRig, playerHead);
+            Session.ConfigureHandHold(character.GetComponent<HandIKRig>(), playerHead);
             Session.ConfigureRealityItems(snapshot,
                 character.GetComponent<AvatarSeatingRig>(),
                 character.GetComponent<AvatarLyingRig>());
             MiniGames.Bind(Session);
-#if DEVELOPMENT_BUILD
-            gameObject.AddComponent<SeatingDeviceProbe>().Configure(this, character);
-            gameObject.AddComponent<DialogueDeviceProbe>().Configure(this);
-#endif
             ApplyPause();
             await Session.RestoreItemsAsync();
             token.ThrowIfCancellationRequested();
@@ -131,10 +146,21 @@ namespace MateSoul.Runtime
             foreach (Transform child in root) SetLayerRecursively(child, layer);
         }
 
-        private void Update() { Session?.Tick(Time.deltaTime); }
+        private void Update()
+        {
+            Session?.Tick(Time.deltaTime);
+        }
         public void TogglePause() { manualPause = !manualPause; ApplyPause(); }
-        private void OnApplicationPause(bool paused) { appPause = paused; ApplyPause(); }
-        private void OnApplicationFocus(bool focused) { hasFocus = focused; ApplyPause(); }
+        private void OnApplicationPause(bool paused)
+        {
+            appPause = paused;
+            ApplyPause();
+        }
+        private void OnApplicationFocus(bool focused)
+        {
+            hasFocus = focused;
+            ApplyPause();
+        }
         private void ApplyPause()
         {
             var paused = manualPause || appPause || !hasFocus;

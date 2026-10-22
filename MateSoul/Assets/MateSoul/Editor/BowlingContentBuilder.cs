@@ -25,16 +25,6 @@ namespace MateSoul.Editor
             Directory.CreateDirectory(Source);
             Directory.CreateDirectory(Materials);
             Directory.CreateDirectory("Assets/MateSoul/Content/MiniGames");
-            var repository = Path.GetFullPath(Path.Combine(Application.dataPath, "../.."));
-            Copy(Path.Combine(repository,
-                    "ArtSource/SapphiArt/Props/BowlingBall/exports/LavenderChibiBowlingBall_218mm.fbx"),
-                Source + "/LavenderChibiBowlingBall_218mm.fbx");
-            Copy(Path.Combine(repository,
-                    "ArtSource/SapphiArt/Props/BowlingPin/exports/LavenderChibiBowlingPin_380mm.fbx"),
-                Source + "/LavenderChibiBowlingPin_380mm.fbx");
-            Copy(Path.Combine(repository,
-                    "ArtSource/SapphiArt/Props/BowlingBall/textures/bowling_character_decal.png"),
-                Source + "/bowling_character_decal.png");
             AssetDatabase.Refresh();
             ConfigureImporter(Source + "/LavenderChibiBowlingBall_218mm.fbx");
             ConfigureImporter(Source + "/LavenderChibiBowlingPin_380mm.fbx");
@@ -191,14 +181,5 @@ namespace MateSoul.Editor
             return bounds;
         }
 
-        private static void Copy(string source, string assetPath)
-        {
-            if (!File.Exists(source)) throw new FileNotFoundException("保龄球源资产不存在。", source);
-            var destination = Path.GetFullPath(Path.Combine(Application.dataPath,
-                assetPath.Substring("Assets/".Length)));
-            if (!File.Exists(destination) ||
-                !File.ReadAllBytes(source).SequenceEqual(File.ReadAllBytes(destination)))
-                File.Copy(source, destination, true);
-        }
     }
 }

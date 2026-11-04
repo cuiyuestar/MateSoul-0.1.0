@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-24",
+  "progress_status": "awaiting_human_room_recovery",
+  "device": "PB3A10MGL9220170B",
+  "root_cause": {
+    "pico_current_map_uuid_empty": true,
+    "scene_anchor_count": 0,
+    "cloud_candidate_map_found": true,
+    "candidate_map_id": "4d8d4423-76ea-4b0f-a009-961f54978966",
+    "candidate_score": 0.32215264439582825,
+    "candidate_inlier_count": 1613,
+    "candidate_visible_to_scene_capture": false,
+    "old_game_timeout_seconds": 25
+  },
+  "fix": {
+    "source": "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomMapProviders.cs",
+    "source_sha256": "ad65734990b2be1decca65c1cbb7e887166d3153042fd1857f22adae551342f8",
+    "removed_fixed_localization_deadline": true,
+    "keeps_single_scene_capture_provider_alive": true,
+    "query_interval_seconds": 2,
+    "wait_ends_on_valid_room_or_owner_cancellation": true,
+    "automatic_room_capture": false,
+    "spatial_mesh_room_fallback": false
+  },
+  "build": {
+    "result": "PASS",
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RoomPersistentWait_20261024.apk",
+    "sha256": "0b54e7d0aeb0b83715f5863e717b990d7b65e1cf62e79c081447bd9732a24205",
+    "bytes": 183394838,
+    "build_pipeline_seconds": 803.979,
+    "signature_v2_verified": true,
+    "zip_crc_entry_count": 1564,
+    "abi": [
+      "arm64-v8a"
+    ],
+    "package": "com.matesoul.game",
+    "related_current_sources_match_android_pdb": 8,
+    "protected_scene_character_animator_unchanged": true
+  },
+  "deployment": {
+    "installed": true,
+    "installed_apk_sha256_matches": true,
+    "save_before_sha256": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "save_after_sha256": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "save_unchanged": true
+  },
+  "unattended_runtime": {
+    "pid": 16134,
+    "headset_awake_seconds": 10,
+    "system_boundary_preempted_game": true,
+    "bootstrap_started": false,
+    "room_loaded": false,
+    "ready": false,
+    "old_25_second_timeout_observable": false,
+    "human_wearing_verification_required": true
+  },
+  "preserved_parallel_work": {
+    "current_ui_interaction_sources_included": true,
+    "eye_hand_collector_pid": 17660,
+    "eye_hand_collector_healthy": true
+  },
+  "report": "/Users/bytedance/MateSoul/项目沉淀资料/真机验收/MateSoul_启动误入房间标定修复_20261024.md"
+}

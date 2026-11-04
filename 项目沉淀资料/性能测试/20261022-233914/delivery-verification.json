@@ -1,0 +1,40 @@
+{
+  "checked_at_host": "2026-10-23T00:01:34.233915",
+  "adb_identity": "uid=2000(shell) gid=2000(shell) groups=2000(shell),1004(input),1007(log),1011(adb),1015(sdcard_rw),1028(sdcard_r),1078(ext_data_rw),1079(ext_obb_rw),3001(net_bt_admin),3002(net_bt),3003(inet),3006(net_bw_stats),3009(readproc),3011(uhid),3012(readtracefs) context=u:r:shell:s0",
+  "running_game_pid": "14304",
+  "original_save_sha256_before_relaunch": "5fb5e89e29f70e16784db0a453e2550c17be8974b9f49c81a7f14e5f0ce44f01",
+  "restoration_verified_before_relaunch": true,
+  "current_saved_items": 12,
+  "same_item_ids": true,
+  "same_item_definitions": true,
+  "same_inventory": false,
+  "same_room_anchor": true,
+  "post_relaunch_inventory_changes": {
+    "apple": {
+      "before": 4,
+      "after": 5
+    }
+  },
+  "original_daily_inventory_date": "2026-10-22",
+  "current_daily_inventory_date": "2026-10-23",
+  "inventory_matches_daily_restock_rule": true,
+  "post_relaunch_changed_top_level_fields": [
+    "dailyInventoryDate",
+    "inventory",
+    "items"
+  ],
+  "post_relaunch_changed_item_fields": {
+    "qz": 11,
+    "y": 3,
+    "x": 4,
+    "z": 4,
+    "qw": 11,
+    "qy": 7,
+    "qx": 11
+  },
+  "current_save_sha256": "f10da415a2be8a58ee9ac106dd9f5c2c738fa507a82d396469a617facbfb4d26",
+  "current_save_hash_matches_pretest": false,
+  "note": "Original hash was verified before relaunch. Later changes consist of item transforms and the midnight apple restock (4 to 5), matching GameSession.RefreshDailyInventory.",
+  "logs_filtered_to_measurement_evidence": true,
+  "source_code_modified_by_test": false
+}

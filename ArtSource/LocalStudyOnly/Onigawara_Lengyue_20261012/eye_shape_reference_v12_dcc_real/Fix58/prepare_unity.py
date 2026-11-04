@@ -1,0 +1,11 @@
+from pathlib import Path
+R=Path(__file__).resolve().parent;U=R.parents[1]/'Unity6Study/Assets/Study/EyeShapeReferenceV12DCCReal';D=U/'Fix58/Editor'
+s=(U/'Fix55/Editor/Direct55Build.cs').read_text().replace('Direct55','Direct58').replace('Fix55','Fix58').replace('Fix54/Onigawara_Lengyue_Direct54.prefab','Fix57/Onigawara_Lengyue_Direct57.prefab').replace('刘海间隙精修','后侧发缝优化')
+a=s.index(' static void Render(GameObject prefab,string version)');b=s.index(' public static void Export()',a)
+s=s[:a]+''' static void ReviewLights(float a){RenderSettings.ambientMode=AmbientMode.Flat;RenderSettings.ambientLight=new Color(.24f,.24f,.24f);MakeLight("TemporaryKey",new Vector3(25,165+a,0),.9f,true);RenderSettings.sun=Object.FindObjectsByType<Light>().First();MakeLight("TemporaryRearFill",new Vector3(25,-15+a,0),.6f,false);MakeLight("TemporarySideFill",new Vector3(35,90+a,0),.35f,false);}
+ static void MakeLight(string n,Vector3 rot,float i,bool shadows){var l=new GameObject(n,typeof(Light)).GetComponent<Light>();l.type=LightType.Directional;l.color=Color.white;l.intensity=i;l.transform.rotation=Quaternion.Euler(rot);l.shadows=shadows?LightShadows.Soft:LightShadows.None;l.shadowStrength=.38f;l.shadowNormalBias=2;l.shadowBias=.75f;}
+ static void Render(GameObject prefab,string version){foreach(float angle in new[]{0f,45f,90f}){Clean();var go=Object.Instantiate(prefab);Zero(go);Lights();var cam=EyeDirectInspect.Camera(angle);EyeDirectInspect.Shot(cam,W+"/renders/"+version+"/head_"+angle+".png",1600,1600);}foreach(float angle in new[]{120f,135f,150f,180f,225f}){Clean();var go=Object.Instantiate(prefab);Zero(go);ReviewLights(angle);var cam=EyeDirectInspect.Camera(angle);cam.orthographicSize=.16f;cam.aspect=1;var target=new Vector3(0,1.455f,-.025f);float a=angle*Mathf.Deg2Rad;cam.transform.position=target+new Vector3(Mathf.Sin(a),.05f,Mathf.Cos(a)).normalized*3;cam.transform.LookAt(target);EyeDirectInspect.Shot(cam,W+"/renders/"+version+"/hair_"+angle+".png",2400,2400);}}
+''' +s[b:]
+(D/'Direct58Build.cs').write_text(s)
+s=(U/'Fix55/Editor/Direct55Lines.cs').read_text().replace('Direct55','Direct58').replace('Fix55','Fix58');(D/'Direct58Lines.cs').write_text(s)
+print('created',D/'Direct58Build.cs',D/'Direct58Lines.cs')

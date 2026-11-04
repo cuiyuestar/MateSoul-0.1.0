@@ -1,10 +1,11 @@
 using System;
+using MateSoul.Gameplay;
 using UnityEngine;
 
 namespace MateSoul.Runtime
 {
     [DisallowMultipleComponent, RequireComponent(typeof(PhysicsBody))]
-    public sealed class CoffeeGrinderController : MonoBehaviour
+    public sealed class CoffeeGrinderController : MonoBehaviour, IRuntimeWorldFactSource
     {
         [SerializeField] private CoffeeBeanVolumeRenderer beanVolume;
         [SerializeField] private GameObject powderVisual;
@@ -31,6 +32,31 @@ namespace MateSoul.Runtime
         public bool HasPowder => groundBeanCount > 0;
         public CoffeeBeanVolumeRenderer BeanVolume => beanVolume;
         public GameObject PowderVisual => powderVisual;
+
+        public bool TryCaptureRuntimeWorldFact(
+            out RuntimeWorldFactSnapshot fact)
+        {
+            if (receivedBeanCount <= 0 && groundBeanCount <= 0 &&
+                grindingProgress <= 0)
+            {
+                fact = null;
+                return false;
+            }
+            var state = groundBeanCount > 0
+                ? "ground"
+                : grindingProgress > 0 ? "grinding" : "loaded";
+            var progress = requiredStirSeconds <= 0
+                ? 0
+                : Mathf.RoundToInt(Mathf.Clamp01(
+                    grindingProgress / requiredStirSeconds) * 100f);
+            fact = RuntimeWorldFact.Create(
+                this,
+                "coffee",
+                state,
+                $"whole_beans={receivedBeanCount};ground_units={groundBeanCount};" +
+                $"progress={progress}%");
+            return true;
+        }
 
         public void BindNotifications(SystemNotifications value)
             => notifications = value ??

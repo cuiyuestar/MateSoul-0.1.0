@@ -1,0 +1,51 @@
+{
+  "feature": "coffee-brewing",
+  "date": "2026-10-21",
+  "unity": "2022.3.38f1",
+  "runtime": {
+    "water_owner": "WaterReceiver",
+    "ground_coffee_owner": "CoffeeGrinderController",
+    "brew_owner": "CoffeeBrewReceiver",
+    "liquid_pourer": {
+      "flow_liters_per_second": 0.24,
+      "minimum_tilt_degrees": 52
+    },
+    "powder_pourer": {
+      "units_per_second": 24,
+      "minimum_tilt_degrees": 55
+    },
+    "brew_thresholds": {
+      "minimum_water_liters": 0.08,
+      "minimum_temperature_celsius": 80,
+      "ground_units_per_serving": 12
+    }
+  },
+  "behavior": {
+    "cold_water_does_not_brew": "passed",
+    "grounds_before_hot_water": "passed",
+    "hot_water_before_grounds": "passed",
+    "liquid_volume_conservation": "passed",
+    "ground_unit_conservation": "passed",
+    "empty_resets_brew_state": "passed",
+    "physical_tilt_and_raycast_flow": "passed"
+  },
+  "tests": {
+    "suites": [
+      "MateSoul.Tests.CoffeeBrewingTests",
+      "MateSoul.Tests.CoffeeGrinderTests",
+      "MateSoul.Tests.ElectricKettleTests",
+      "MateSoul.Tests.WaterDispenserTests"
+    ],
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "result_xml": ".artifacts/coffee-brewing/test-results.xml"
+  },
+  "android": {
+    "apk": "Builds/MateSoul_Framework.apk",
+    "bytes": 140676310,
+    "sha256": "3aa08a19bb696c56be05ddb8b7f79f9f6503c0a56a9fd38ff6196b4bfa9b1600",
+    "zip_integrity": "passed",
+    "signature_v2": "passed"
+  }
+}

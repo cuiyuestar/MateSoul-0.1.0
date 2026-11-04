@@ -1,0 +1,17 @@
+{
+  "pass": true,
+  "geometry_source": "Direct58",
+  "complete_prefab_source": "Direct58",
+  "changed_vertices": 79,
+  "hair_groups": [
+    84
+  ],
+  "max_displacement_mm": 29.75175594596914,
+  "central_and_all_fringe_exact": true,
+  "all_hair_height_exact": true,
+  "non_target_hair_exact": true,
+  "non_hair_untouched": true,
+  "triangle_flips": 0,
+  "new_degenerate_triangles": 0,
+  "layering": "extend existing rear strand underneath side strand; no added patch; ear untouched"
+}

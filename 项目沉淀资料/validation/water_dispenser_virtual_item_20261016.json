@@ -1,0 +1,132 @@
+{
+  "feature": "water_dispenser_virtual_item",
+  "date": "2026-10-16",
+  "asset_revision": "V003",
+  "asset": {
+    "name": "CreamFloorWaterDispenser_340x372x1400mm",
+    "dimensions_m": [0.34, 0.372, 1.4],
+    "mesh_count": 36,
+    "vertices": 10906,
+    "triangles": 21684,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "material_count": 9,
+    "embedded_glb_images": 3,
+    "external_glb_image_uris": 0,
+    "button_node": "WaterDispenser_Button_Pivot",
+    "outlet_node": "WaterDispenser_Nozzle_Outlet",
+    "blend_sha256": "487298361ae666dfc51adf4012f481547914ab670f4860e8f8ce09605a596fa1",
+    "glb_sha256": "671416b8ef4bbd75ce0e5d31349501bb48ee0af46d770fbeee249302c98595ca",
+    "fbx_sha256": "966b622d41df24f59a9d409755ab9be4245326d7f96c9e9a789ae43dec76e7fb"
+  },
+  "virtual_item": {
+    "id": "water-dispenser",
+    "display_name": "饮水机",
+    "category": "Furniture",
+    "category_display_name": "家具",
+    "catalog_visible": true,
+    "inventory_limit": 1,
+    "footprint_m": [0.34, 0.372],
+    "placement_height_m": 1.4,
+    "mass_kg": 18.0,
+    "fixed_after_placement": true,
+    "placement_preview": true,
+    "allow_surface_placement": false,
+    "definition_guid": "01b5aaa4c4eea42369de9fe45b40e1f2",
+    "prefab_guid": "89db056d3a27245f5a3549051ef12a72",
+    "definition_sha256": "878185ac30ef23332d318945354d47864f85b8c71c012ced91eb533d9f64cc12",
+    "prefab_sha256": "06eda99bc8da263905df8630609cdb2442be258e62289699e4ba57faeb8f2a3b",
+    "scene_reference_preserved": true,
+    "box_collider_count": 4,
+    "rigidbody_count": 1,
+    "navmesh_obstacle_count": 1
+  },
+  "water_runtime": {
+    "architecture": "continuous_mesh_stream_and_pooled_spill",
+    "flow_liters_per_second": 0.18,
+    "maximum_run_seconds": 8.0,
+    "maximum_drop_distance_m": 1.4,
+    "water_stream_count": 1,
+    "water_stream_rigidbody_count": 0,
+    "water_stream_collider_count": 0,
+    "puddle_pool_size": 6,
+    "puddle_lifetime_seconds": 2.4,
+    "puddle_interval_seconds": 0.36,
+    "runtime_instantiated_droplet_rigidbodies": 0,
+    "receivers": [
+      {
+        "id": "mug",
+        "capacity_liters": 0.32,
+        "opening_radius_m": 0.034,
+        "maximum_water_height_m": 0.065
+      },
+      {
+        "id": "bowl",
+        "capacity_liters": 0.55,
+        "opening_radius_m": 0.055,
+        "maximum_water_height_m": 0.039
+      },
+      {
+        "id": "bowl-medium",
+        "capacity_liters": 1.2,
+        "opening_radius_m": 0.072,
+        "maximum_water_height_m": 0.052
+      },
+      {
+        "id": "bowl-large",
+        "capacity_liters": 2.1,
+        "opening_radius_m": 0.088,
+        "maximum_water_height_m": 0.064
+      },
+      {
+        "id": "plate",
+        "capacity_liters": 0.08,
+        "opening_radius_m": 0.073,
+        "maximum_water_height_m": 0.0045
+      },
+      {
+        "id": "plate-medium",
+        "capacity_liters": 0.13,
+        "opening_radius_m": 0.092,
+        "maximum_water_height_m": 0.0055
+      },
+      {
+        "id": "plate-large",
+        "capacity_liters": 0.2,
+        "opening_radius_m": 0.111,
+        "maximum_water_height_m": 0.0065
+      }
+    ]
+  },
+  "button_interaction": {
+    "visible_button_dimensions_mm": [76.0, 44.0],
+    "hit_area_dimensions_mm": [78.0, 52.0],
+    "hit_area_centered_on_visible_renderer": true,
+    "hit_area_front_clearance_mm": 8.0,
+    "press_travel_mm": 5.0,
+    "press_duration_seconds": 0.045,
+    "release_duration_seconds": 0.11,
+    "fast_click_pulse_seconds": 0.12,
+    "dark_socket_present": true,
+    "high_contrast_drop_icon": true,
+    "drop_icon_thickness_mm": 1.2,
+    "drop_icon_button_gap_mm": 0.8,
+    "drop_icon_intersects_button": false
+  },
+  "unity": {
+    "version": "2022.3.38f1",
+    "scene_build_exit_code": 0,
+    "tests": {
+      "result": "Passed",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "cases": [
+        "MateSoul.Tests.WaterDispenserTests.ButtonFillsMugAndPooledSpillEvaporates",
+        "MateSoul.Tests.WaterDispenserTests.ProductionAssetsKeepFurnitureAndReceiverContracts"
+      ],
+      "results_file": ".artifacts/framework/unity-water-icon-tests.xml"
+    }
+  }
+}

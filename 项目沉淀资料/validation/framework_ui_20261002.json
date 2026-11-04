@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-02",
+  "status": "passed",
+  "layout": {
+    "placement": "player view bottom",
+    "navigation": ["对话", "互动", "信息", "虚拟物品", "设置"],
+    "defaultContentVisible": false,
+    "contentPlacement": "above navigation",
+    "followsPlayerView": true
+  },
+  "style": {
+    "referenceImageResolution": "1672x940",
+    "referenceSimilarity": "near-square translucent lavender function tiles",
+    "dockSize": "824x160",
+    "tileSize": "145.6x140",
+    "tileGap": 18,
+    "roundedCorners": true,
+    "cornerSprite": "48x48, 11px sliced radius",
+    "labelPlacement": "bottom",
+    "iconPlacement": "80x80 upper-center",
+    "icons": ["speech bubble", "hand", "information", "backpack", "gear"],
+    "iconReferenceResolution": "916x186",
+    "referenceExtractedIcons": ["hand", "information", "backpack"],
+    "referenceExtractionWindow": "80x80 per icon",
+    "referenceAssetResolution": "192x192 RGBA",
+    "proceduralIcons": ["speech bubble", "gear"],
+    "iconColor": "RGB(255,251,226)",
+    "measuredTileCenterColor": "RGB(192,154,187)",
+    "bottomHighlight": false,
+    "selectedMarker": false
+  },
+  "interactionPage": {
+    "layout": "vertical",
+    "activities": ["一起散步", "打招呼", "坐下聊天", "玩猜拳"],
+    "placeholderActionsClickable": true,
+    "feedback": "selected activity reports that the test button responded"
+  },
+  "visualVerification": {
+    "resolution": "2160x2158",
+    "bottomNavigationVisible": true,
+    "textFits": true,
+    "characterOccludedByNavigation": false,
+    "vstBedroomVisible": true,
+    "captureRetention": "deleted after visual inspection"
+  },
+  "automatedVerification": {
+    "test": "MateSoul.Tests.GameRuntimeTests.BottomHudExpandsVerticalInteractionActivities",
+    "eventPath": "PointerClick -> Button -> page toggle/activity feedback",
+    "navigationButtons": 5,
+    "interactionActivities": 4,
+    "verticalOrderVerified": true,
+    "expandAndCollapseVerified": true,
+    "unityTests": {
+      "total": 34,
+      "passed": 34,
+      "failed": 0,
+      "endUtc": "2026-10-02T14:32:01Z"
+    }
+  },
+  "input": {
+    "activeInputHandler": "Input System Package (New)",
+    "androidBothInputWarningRemoved": true
+  },
+  "apk": {
+    "path": "Builds/MateSoul_Framework.apk",
+    "bytes": 79907577,
+    "sha256": "a15c89e9feab53bf288a8d7e5b09b7112c4dd47ab0b9c8449c280497325528b5"
+  }
+}

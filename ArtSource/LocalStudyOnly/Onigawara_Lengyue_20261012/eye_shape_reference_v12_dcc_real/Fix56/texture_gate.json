@@ -1,0 +1,17 @@
+{
+  "pass": true,
+  "textures": [
+    {
+      "kind": "BaseColor",
+      "changed_pixels": 1416,
+      "alpha_exact": true,
+      "outside_two_thumb_regions_exact": true
+    },
+    {
+      "kind": "Shade",
+      "changed_pixels": 1330,
+      "alpha_exact": true,
+      "outside_two_thumb_regions_exact": true
+    }
+  ]
+}

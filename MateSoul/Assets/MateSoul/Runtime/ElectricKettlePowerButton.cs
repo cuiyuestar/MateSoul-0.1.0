@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace MateSoul.Runtime
 {
-    public sealed class ElectricKettlePowerButton : Button
+    public sealed class ElectricKettlePowerButton : PhysicalUiButton
     {
         [SerializeField] private ElectricKettleController kettle;
         [SerializeField] private Transform switchPivot;

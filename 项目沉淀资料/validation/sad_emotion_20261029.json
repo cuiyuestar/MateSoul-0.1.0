@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-29",
+  "unity": "2022.3.38f1",
+  "source_fbx": {
+    "path": "/Users/bytedance/MateSoul/MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Emotion/Sad/Cry_01_InPlace.fbx",
+    "sha256": "613071fce285ad581b319273861ca9d3f527f755950f81b28abf4a867a446a57",
+    "matches_author_supplied_source": true
+  },
+  "sad": {
+    "emotion": "Sad",
+    "animationSeconds": 3.2666666507720947,
+    "audioSeconds": 3.2799999713897705,
+    "frameRate": 30.0,
+    "bodyCurves": 550,
+    "bodyBones": 55,
+    "facialCurves": 61,
+    "mappedActiveFacialCurves": 9,
+    "samplesChecked": 301,
+    "continuousPlaybackFrames": 2174,
+    "continuousPlaybackSeconds": 3.2670204639434814,
+    "maximumClockError": 5.960464477539063e-08,
+    "maximumStateTimeError": 0.0,
+    "maximumBodyRotationErrorDegrees": 0.0,
+    "maximumFaceWeightError": 0.0001068115234375,
+    "maximumHorizontalHipDriftMeters": 0.001618212554603815,
+    "completionState": "Succeeded"
+  },
+  "angry_regression": {
+    "emotion": "Angry",
+    "animationSeconds": 1.6333333253860474,
+    "audioSeconds": 2.5,
+    "frameRate": 30.0,
+    "bodyCurves": 550,
+    "bodyBones": 55,
+    "facialCurves": 61,
+    "mappedActiveFacialCurves": 7,
+    "samplesChecked": 301,
+    "continuousPlaybackFrames": 1566,
+    "continuousPlaybackSeconds": 2.509904384613037,
+    "maximumClockError": 5.960464477539063e-08,
+    "maximumStateTimeError": 0.0,
+    "maximumBodyRotationErrorDegrees": 0.0,
+    "maximumFaceWeightError": 1.52587890625e-05,
+    "maximumHorizontalHipDriftMeters": 0.022416170686483383,
+    "completionState": "Succeeded"
+  },
+  "tests": {
+    "passed": 5,
+    "failed": 0,
+    "cases": [
+      {
+        "name": "MateSoul.Tests.ResponseEmotionAudioTests.CompletedRepliesPlayOnlyFromTheirEmotionPool",
+        "result": "Passed"
+      },
+      {
+        "name": "MateSoul.Tests.ResponseEmotionAudioTests.MultiClipEmotionUsesRandomizedSelection",
+        "result": "Passed"
+      },
+      {
+        "name": "MateSoul.Tests.SadEmotionIntegrationChecks.AIAngryReplyRetainsExistingSynchronizedPerformance",
+        "result": "Passed"
+      },
+      {
+        "name": "MateSoul.Tests.SadEmotionIntegrationChecks.AISadReplySamplesCompleteBodyAndFaceFromAudioClock",
+        "result": "Passed"
+      },
+      {
+        "name": "MateSoul.Tests.SadEmotionIntegrationChecks.SadWaitsForInteractionAndStopsTogetherOnPreemptionPauseAndDisable",
+        "result": "Passed"
+      }
+    ]
+  },
+  "controller_changes": {
+    "added": [
+      "4029358851607744679"
+    ],
+    "modified": [
+      "-6031451692936783158"
+    ],
+    "removed": []
+  },
+  "preserved_assets_sha256": {
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+    "Assets/MateSoul/Scenes/MateSoul.unity": "3be1025fc1eefb6b3a4a04079fda131c1f8e448fd41385427ba9c81ae2c1c4bd",
+    "Assets/MateSoul/Content/Locomotion/Lengyue_TurnLeft_BodyOnly.anim": "601703fe623c919b47db4911d60df1fb0ca3b3feb200017d6a526e926454503f",
+    "Assets/MateSoul/Content/Locomotion/Lengyue_TurnRight_BodyOnly.anim": "7ab6e3f0b216b8c5fc2d71a7a0a7a9c19441e8bc4f8d7d641fabf42c17c2ea75"
+  },
+  "audio_sha256": "b4bbd3f9eeef1184d6ee91d790e267c8554cb7cf60398092800aa218c8315d8b",
+  "hardware_acceptance": "PICO headset audiovisual acceptance remains pending",
+  "deployment": "Unity project integrated; no new APK produced or installed",
+  "validation_scope": "Real Unity Animator, AudioSource and action coordinator with an isolated room/save and controlled AI reply; 301 seeks plus continuous playback per emotion",
+  "post_cleanup_compile": {
+    "native_exit_code": 0,
+    "elapsed_seconds": 31.025,
+    "temporary_source_and_meta_removed": true
+  }
+}

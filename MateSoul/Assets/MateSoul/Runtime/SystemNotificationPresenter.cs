@@ -42,10 +42,15 @@ namespace MateSoul.Runtime
         private readonly HashSet<long> activeHintIds = new HashSet<long>();
         private readonly List<long> removalBuffer = new List<long>();
 
-        public void Bind(SystemNotifications source)
+        public void Bind(SystemNotifications source) => notifications = source;
+
+        private void Start()
         {
-            notifications = source;
+            // Bootstrap starts room I/O before presentation loads the shared font.
+            StartupTimeline.Mark("notifications_start");
+            StartupTimeline.Mark("notifications_font_load_start");
             font = AlwaysOnTopUi.TextFont;
+            StartupTimeline.Mark("notifications_font_load_end");
             overlayMaterial = AlwaysOnTopUi.CreateMaterial();
             texture = new Texture2D(64, 64, TextureFormat.RGBA32, false);
             texture.wrapMode = TextureWrapMode.Clamp;
@@ -86,6 +91,7 @@ namespace MateSoul.Runtime
             notifications.Changed += Refresh;
             Refresh();
             Follow();
+            StartupTimeline.Mark("notifications_ready");
         }
 
         private RectTransform Panel(string title, Vector2 anchor, Vector2 offset,
@@ -166,6 +172,24 @@ namespace MateSoul.Runtime
             }
 
             result.text = notifications.Result ?? "";
+#region debug-point C:notification-glyphs
+            var value = result.text;
+            for (var index = 0; index < notifications.Hints.Count; index++)
+                value += notifications.Hints[index].Text;
+            if (!string.IsNullOrEmpty(value) && font != null)
+            {
+                var covered = font.HasCharacters(value, out uint[] missingCharacters, true, true);
+                var missingCodes = missingCharacters == null
+                    ? "" : string.Join(",", missingCharacters);
+                var debugPayload = $"{{\"sessionId\":\"dialogue-font-tofu\",\"runId\":\"post-fix\"," +
+                                   $"\"hypothesisId\":\"C\",\"location\":\"SystemNotificationPresenter.Refresh\"," +
+                                   $"\"msg\":\"[DEBUG] notification glyph coverage\",\"data\":{{" +
+                                   $"\"length\":{value.Length},\"covered\":{covered.ToString().ToLowerInvariant()}," +
+                                   $"\"missingCodes\":\"{missingCodes}\"}}}}";
+                UnityWebRequest.Post("http://127.0.0.1:7785/event", debugPayload, "application/json")
+                    .SendWebRequest();
+            }
+#endregion
             resultPanel.gameObject.SetActive(!string.IsNullOrEmpty(result.text));
             if (resultPanel.gameObject.activeSelf) result.ForceMeshUpdate(true, true);
         }

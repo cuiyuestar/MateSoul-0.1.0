@@ -27,6 +27,22 @@ namespace MateSoul.Runtime
 
         private void Awake() => Initialize();
 
+        private void OnEnable()
+        {
+            Initialize();
+            if (initialized) Synchronize();
+        }
+
+        private void OnApplicationPause(bool paused)
+        {
+            if (!paused && initialized && isActiveAndEnabled) Synchronize();
+        }
+
+        private void OnApplicationFocus(bool focused)
+        {
+            if (focused && initialized && isActiveAndEnabled) Synchronize();
+        }
+
         private void Initialize()
         {
             if (initialized || hourHandPivot == null || minuteHandPivot == null) return;
@@ -38,6 +54,11 @@ namespace MateSoul.Runtime
         private void Update()
         {
             if (Time.unscaledTime < nextUpdate) return;
+            Synchronize();
+        }
+
+        private void Synchronize()
+        {
             nextUpdate = Time.unscaledTime + .25f;
             ApplyTime(DateTime.Now);
         }
@@ -50,10 +71,12 @@ namespace MateSoul.Runtime
             var minuteAngle = localTime.Minute * 6f;
             var hourAngle = (localTime.Hour % 12) * 30f +
                             Mathf.Floor(localTime.Minute / 5f) * 2.5f;
+            // FBX import reverses Blender's authored Y angles. Add the source
+            // angle to cancel the imported pose before applying dial time.
             hourHandPivot.localRotation = authoredHourRotation *
-                Quaternion.AngleAxis(hourAngle - authoredHourAngle, Vector3.up);
+                Quaternion.AngleAxis(hourAngle + authoredHourAngle, Vector3.up);
             minuteHandPivot.localRotation = authoredMinuteRotation *
-                Quaternion.AngleAxis(minuteAngle - authoredMinuteAngle, Vector3.up);
+                Quaternion.AngleAxis(minuteAngle + authoredMinuteAngle, Vector3.up);
         }
     }
 }

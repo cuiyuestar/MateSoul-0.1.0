@@ -1,0 +1,40 @@
+{
+  "feature": "television-interaction",
+  "date": "2026-10-04",
+  "scene": {
+    "path": "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity",
+    "registered_item_definitions": 4,
+    "visible_catalog_items": 3,
+    "television_definition_id": "television",
+    "television_catalog_visible": true
+  },
+  "asset": {
+    "dimensions_m": [0.48, 0.566, 0.45],
+    "prefab": "MateSoul/Assets/MateSoul/Content/Props/Television.prefab",
+    "definition": "MateSoul/Assets/MateSoul/Content/Props/Television.asset"
+  },
+  "verification": {
+    "static_compile": "passed",
+    "television_tests": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    "framework_tests": {
+      "passed": 76,
+      "failed": 0,
+      "skipped": 0
+    },
+    "device_validation": "not_run_no_connected_pico_emulator"
+  },
+  "apk": {
+    "path": "Builds/MateSoul_Framework.apk",
+    "bytes": 82378113,
+    "signature_scheme_v2": true,
+    "sha256": "f49e8841f6c691f140c5b1faf0f55e852e53a0124354a82d66dad33456b543ad"
+  },
+  "video_source": {
+    "production_asset_configured": false,
+    "temporary_h264_aac_diagnostic_removed": true
+  }
+}

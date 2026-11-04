@@ -1,0 +1,374 @@
+{
+  "date": "2026-10-28",
+  "scope": "Controlled Unity geometry replay; not headset root-cause confirmation",
+  "site_root_cause": "INCONCLUSIVE_NO_DEVICE_MESH",
+  "deployment": {
+    "apk_built": false,
+    "installed": false,
+    "adb_devices": []
+  },
+  "original_geometry_sha256": "f3966e8ceeaee8fedc9aeedb988d524c78b8a3602e974e14580e29d2f62cc686",
+  "before": {
+    "phase": "before",
+    "unity_exit": 0,
+    "elapsed_seconds": 9.73,
+    "results": {
+      "id": "2",
+      "testcasecount": "4",
+      "result": "Passed",
+      "total": "4",
+      "passed": "4",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-28 06:52:33Z",
+      "end-time": "2026-10-28 06:52:33Z",
+      "duration": "0.0321965"
+    },
+    "cases": [
+      {
+        "name": "MateSoul.Tests.BeforeChairRecognitionReplay.ReproduceOriginalRules(\"solid\",0.48f,0.44f,7,False,1)",
+        "result": "Passed",
+        "message": null,
+        "output": "REPLAY before name=solid triangles=34 detected=1\n"
+      },
+      {
+        "name": "MateSoul.Tests.BeforeChairRecognitionReplay.ReproduceOriginalRules(\"split_back_block\",0.48f,0.44f,9,False,0)",
+        "result": "Passed",
+        "message": null,
+        "output": "REPLAY before name=split_back_block triangles=34 detected=0\n"
+      },
+      {
+        "name": "MateSoul.Tests.BeforeChairRecognitionReplay.ReproduceOriginalRules(\"compact_40cm\",0.4f,0.4f,7,False,0)",
+        "result": "Passed",
+        "message": null,
+        "output": "REPLAY before name=compact_40cm triangles=34 detected=0\n"
+      },
+      {
+        "name": "MateSoul.Tests.BeforeChairRecognitionReplay.ReproduceOriginalRules(\"slatted_back\",0.48f,0.44f,7,True,0)",
+        "result": "Passed",
+        "message": null,
+        "output": "REPLAY before name=slatted_back triangles=38 detected=0\nSaving results to: /private/tmp/matesoul-chair-recognition-20261028-xbLxDN/before.xml\n"
+      }
+    ]
+  },
+  "after": {
+    "phase": "after",
+    "unity_exit": 2,
+    "elapsed_seconds": 67.03,
+    "input_sha256": {
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/SeatGeometry.cs": "0d4a6aa26b0b02c7d90ad16027972402e6473bc85b744592faf6d6dae702c047",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/RealChairScanner.cs": "e36bf18276f26d571f9f8b77e79fb558ef65ccb9a5377aeaa0fc3ffad899b5f1",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/SitOnChairAction.cs": "710d114e8bfde22ec665de00fa48d2751c55792e99bf19e258f1dcdab4b23f0a",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/AvatarSeatingRig.cs": "32371ed7bfc2c93291e8e3b3ab03dc5ee62c5c81f044dc97443d33b415b451eb",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/AvatarMotor.cs": "007f6f8b55007ea603a74b702f1128108dfe897e989b318bbc559dcfe3aec5f2",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/RealityMeshSource.cs": "489fbc13c7793a9451ab944767fb1afd047ef31e3ddcdbfb00ed29baa9867728",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Tests/Engine/SeatingTests.cs": "c441723ba5da8d02bc5dace5ddd6e4be219258f2553a7a596065ef8601d546da",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Avatar.controller": "175119629f0667255f5242a1b3fb777685fe6d4640057da8efc31222dee1dd23",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "/private/tmp/matesoul-chair-recognition-20261028-xbLxDN/ChairRecognitionReplay.cs": "83022d38f449ec0de7fdda6daa2945a63542901566a6f28a15dd83297d0f4540",
+      "/private/tmp/matesoul-chair-recognition-20261028-xbLxDN/OriginalSeatGeometry.cs": "85a9a9568f0326b529719f2f15ac22a218fd471299b248dcc5e98ae2dc966205",
+      "/private/tmp/matesoul-chair-recognition-20261028-xbLxDN/SeatingPhysicsReplay.cs": "0303e7b8a374fcf84aa2b7109cd842d3f04b5f317a14b2f2107f8254dd6d6e75"
+    },
+    "inputs_unchanged": true,
+    "results": {
+      "id": "2",
+      "testcasecount": "36",
+      "result": "Failed(Child)",
+      "total": "36",
+      "passed": "35",
+      "failed": "1",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-28 06:59:46Z",
+      "end-time": "2026-10-28 06:59:58Z",
+      "duration": "12.1883767"
+    },
+    "cases": [
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.AssociatesMixedSemanticSeatAndUnknownBack",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.JoinsSeatAcrossMeshBlockBoundary",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RecognizesSurfaceAndBackAcrossBlockAndSizeVariations(0.48f,0.44f,7,False,0.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RecognizesSurfaceAndBackAcrossBlockAndSizeVariations(0.48f,0.44f,9,False,0.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RecognizesSurfaceAndBackAcrossBlockAndSizeVariations(0.4f,0.4f,7,False,0.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RecognizesSurfaceAndBackAcrossBlockAndSizeVariations(0.48f,0.44f,7,True,0.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RecognizesSurfaceAndBackAcrossBlockAndSizeVariations(0.48f,0.44f,9,True,37.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RecognizesSurfaceAndBackAcrossBlockAndSizeVariations(0.4f,0.4f,9,False,90.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RejectsDistantWallAsBackrest",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RejectsHorizontalObjectAboveTableAsBackrest",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RejectsMissingCentralSupport",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RejectsNeighbourBackrestForAnUnbackedSurface",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.RejectsNoBackrestAndUndersizedSurface",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.ScannerDistinguishesNoMeshMissingBackAndBlockedSweep",
+        "result": "Passed",
+        "message": null,
+        "output": "MATESOUL_SEAT scan triangles=0 floorY=0.000 horizontal=0 surfaces=0 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=0 available=0 status=尚未收到房间扫描数据，请先扫描椅子附近\n"
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.ScannerPublishesCrossBlockChairAfterThreeObservations",
+        "result": "Passed",
+        "message": null,
+        "output": "MATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=0 status=正在确认椅面稳定性\n"
+      },
+      {
+        "name": "MateSoul.Tests.AfterChairRecognitionReplay.SeparatesNeighbouringChairs",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingPhysicsReplay.TargetChairSurfaceIsIgnoredButExternalObstacleStillBlocks",
+        "result": "Passed",
+        "message": null,
+        "output": "Animator is not playing an AnimatorController\nAnimator is not playing an AnimatorController\nAnimator is not playing an AnimatorController\nAnimator is not playing an AnimatorController\nAnimator is not playing an AnimatorController\nAnimator is not playing an AnimatorController\nAnimator is not playing an AnimatorController\nAnimator is not playing an AnimatorController\nAnimator is not playing an AnimatorController\nGfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.\n"
+      },
+      {
+        "name": "MateSoul.Tests.SeatingPhysicsReplay.WalkSitStandAndTargetLossReleaseBodyAndReservation",
+        "result": "Failed",
+        "message": "  Expected: 0.104999997f +/- 0.00499999989f\n  But was:  0.0997180939f\n",
+        "output": "MATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=0 status=正在确认椅面稳定性\nMATESOUL_SEAT phase=walking id=real-seat-e7ee88c0a2d148118cb45e98a8d913c6 center=(0.000, 0.450, 0.000) width=0.480 depth=0.440 planeError=0.0000\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nMATESOUL_SEAT phase=docking\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nMATESOUL_SEAT phase=sitting\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nGfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.\n"
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.ChairsSharingSemanticCategoryRemainSeparate",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.CompactSemanticPatchWithoutBackrestIsRejected",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.CompactSemanticStoolWithMissingSupportIsRejected",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.FitsActualSurfaceAndBackrestUnderYaw(0.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.FitsActualSurfaceAndBackrestUnderYaw(37.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.FitsActualSurfaceAndBackrestUnderYaw(90.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.FitsActualSurfaceAndBackrestUnderYaw(173.0f)",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.GeometryJumpInvalidatesReservationAndRequiresRestabilization",
+        "result": "Passed",
+        "message": null,
+        "output": "MATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=0 status=正在确认椅面稳定性\n"
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.MissingCenterPatchIsNotBridged",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.MissingMeshRevokesAvailabilityWithoutInventingMovement",
+        "result": "Passed",
+        "message": null,
+        "output": "MATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=0 status=正在确认椅面稳定性\n"
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.NoBackrestMeansNoAutomaticFacingGuess",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.StaticSemanticSnapshotRemainsAvailableUntilInvalidated",
+        "result": "Passed",
+        "message": null,
+        "output": "MATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=0 status=正在确认椅面稳定性\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\n"
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.StaticSemanticSnapshotStabilizesFromCachedGeometry",
+        "result": "Passed",
+        "message": null,
+        "output": "MATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=0 status=正在确认椅面稳定性\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\n"
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.TableHeightIsNotAcceptedAsASeat",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.TargetChairMeshIsNotTreatedAsAnExternalObstacle",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.UnlabeledObstacleBlocksSitSweep",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.UnlabelledChairWithCoherentUpperStructureIsDetected",
+        "result": "Passed",
+        "message": null,
+        "output": null
+      },
+      {
+        "name": "MateSoul.Tests.SeatingTests.UnlabelledTableWithoutUpperStructureIsRejected",
+        "result": "Passed",
+        "message": null,
+        "output": "Saving results to: /private/tmp/matesoul-chair-recognition-20261028-xbLxDN/after.xml\n"
+      }
+    ]
+  },
+  "test_groups": {
+    "new_recognition": {
+      "total": 16,
+      "passed": 16
+    },
+    "existing_geometry_scanner": {
+      "total": 18,
+      "passed": 18
+    },
+    "physics": {
+      "total": 2,
+      "passed": 1,
+      "failed": 1
+    }
+  },
+  "focused_full_posture_recheck": {
+    "xml_sha256": "77998a4c776093694e2c960bf798ff8f8ee4a2167bbfa026693c17dca35a0980",
+    "results": {
+      "id": "2",
+      "testcasecount": "1",
+      "result": "Failed(Child)",
+      "total": "1",
+      "passed": "0",
+      "failed": "1",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-28 07:01:44Z",
+      "end-time": "2026-10-28 07:01:56Z",
+      "duration": "11.6066817"
+    },
+    "cases": [
+      {
+        "name": "MateSoul.Tests.SeatingPhysicsReplay.WalkSitStandAndTargetLossReleaseBodyAndReservation",
+        "result": "Failed",
+        "message": "  Expected: 0.104999997f +/- 0.00499999989f\n  But was:  0.0997181833f\n",
+        "output": "MATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=0 status=正在确认椅面稳定性\nMATESOUL_SEAT phase=walking id=real-seat-5543e9a728774246bb1f476d347039a9 center=(0.000, 0.450, 0.000) width=0.480 depth=0.440 planeError=0.0000\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nMATESOUL_SEAT phase=docking\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nMATESOUL_SEAT phase=sitting\nMATESOUL_SEAT scan triangles=34 floorY=0.000 horizontal=32 surfaces=1 areaRejected=0 planeRejected=0 backRejected=0 sizeRejected=0 supportRejected=0 candidates=1 available=1 status=已识别 1 把可落座椅子\nGfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.\nSaving results to: /private/tmp/matesoul-chair-recognition-20261028-xbLxDN/physics.xml\n"
+      }
+    ]
+  },
+  "additional_lifecycle_replay": {
+    "status": "NOT_RUN_PROJECT_LOCK",
+    "unity_exit": -6,
+    "note": "Another Unity instance held this project. Existing physics.xml was unchanged and is excluded as evidence for this attempt."
+  },
+  "production_inputs_match_current": {
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/SeatGeometry.cs": true,
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/RealChairScanner.cs": true,
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/SitOnChairAction.cs": true,
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/AvatarSeatingRig.cs": true,
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/AvatarMotor.cs": true,
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/RealityMeshSource.cs": true,
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Tests/Engine/SeatingTests.cs": true,
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": true,
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Avatar.controller": true,
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": true
+  },
+  "regression_status": "35_OF_36_PASSED_ANKLE_FAILURE_UNRESOLVED",
+  "cleanup": "Removed only the three temporary replay symlinks and their metas."
+}

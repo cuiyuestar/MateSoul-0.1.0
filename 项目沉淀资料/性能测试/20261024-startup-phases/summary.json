@@ -1,0 +1,79 @@
+{
+  "formalRuns": 5,
+  "warmupRuns": 1,
+  "binaryRecordingExcluded": true,
+  "allItems": 12,
+  "allIdentitiesPreserved": true,
+  "intervalsMs": {
+    "activity_to_engine": {
+      "median": 3604.0,
+      "min": 3485.0,
+      "max": 3760.0
+    },
+    "engine_to_before_splash": {
+      "median": 293.0,
+      "min": 269.0,
+      "max": 330.0
+    },
+    "before_splash_to_xr_focused": {
+      "median": 2189.0,
+      "min": 1948.0,
+      "max": 2801.0
+    },
+    "xr_focused_to_before_scene": {
+      "median": 2356.0,
+      "min": 1749.0,
+      "max": 2601.0
+    },
+    "before_scene_to_after_scene": {
+      "median": 55.0,
+      "min": 37.0,
+      "max": 95.0
+    },
+    "after_scene_to_bootstrap": {
+      "median": 127.0,
+      "min": 122.0,
+      "max": 242.0
+    },
+    "engine_to_bootstrap": {
+      "median": 5030.0,
+      "min": 4973.0,
+      "max": 5217.0
+    },
+    "splash_observed_to_before_scene": {
+      "median": 2394.0,
+      "min": 1810.0,
+      "max": 2624.0
+    },
+    "hud_total": {
+      "median": 124.0,
+      "min": 118.0,
+      "max": 232.0
+    },
+    "hud_font_load": {
+      "median": 92.0,
+      "min": 89.0,
+      "max": 121.0
+    },
+    "avatar_enable": {
+      "median": 6.0,
+      "min": 4.0,
+      "max": 8.0
+    },
+    "room_load": {
+      "median": 4259.0,
+      "min": 1106.0,
+      "max": 6024.0
+    },
+    "bootstrap_to_ready": {
+      "median": 4504.0,
+      "min": 2062.0,
+      "max": 6290.0
+    },
+    "activity_to_ready": {
+      "median": 13064.0,
+      "min": 10852.0,
+      "max": 15140.0
+    }
+  }
+}

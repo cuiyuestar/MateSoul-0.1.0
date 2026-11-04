@@ -1,0 +1,1422 @@
+[
+  {
+    "name": "overlap-warmup",
+    "pid": "3753",
+    "readyMonotonic": 82.451,
+    "ready": "MATESOUL_READY source=PICO Emulator Spatial Mesh items=12 itemState=ready navMs=40",
+    "aliveAfterReadySeconds": 12,
+    "identitiesPreserved": true,
+    "profile": false,
+    "nativePoints": {
+      "activity_start": 67.796,
+      "engine": 72.078,
+      "xr_focused": 74.699,
+      "sdk_awake": 77.01
+    },
+    "points": {
+      "before_splash_screen": {
+        "logMonotonicSeconds": 72.438,
+        "sinceBeforeSplashMs": 0,
+        "frame": 0,
+        "splashFinished": false
+      },
+      "first_player_loop": {
+        "logMonotonicSeconds": 72.442,
+        "sinceBeforeSplashMs": 4,
+        "frame": 1,
+        "splashFinished": false
+      },
+      "first_before_render_callback": {
+        "logMonotonicSeconds": 72.615,
+        "sinceBeforeSplashMs": 177,
+        "frame": 0,
+        "splashFinished": false
+      },
+      "splash_finished_observed": {
+        "logMonotonicSeconds": 74.659,
+        "sinceBeforeSplashMs": 2221,
+        "frame": 1,
+        "splashFinished": null,
+        "lastUnfinishedMs": 178
+      },
+      "before_scene_load": {
+        "logMonotonicSeconds": 76.989,
+        "sinceBeforeSplashMs": 4550,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "bootstrap_awake": {
+        "logMonotonicSeconds": 77.0,
+        "sinceBeforeSplashMs": 4562,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "scene_loaded": {
+        "logMonotonicSeconds": 77.024,
+        "sinceBeforeSplashMs": 4586,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "after_scene_load": {
+        "logMonotonicSeconds": 77.071,
+        "sinceBeforeSplashMs": 4633,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "bootstrap_start": {
+        "logMonotonicSeconds": 77.073,
+        "sinceBeforeSplashMs": 4635,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "save_loaded": {
+        "logMonotonicSeconds": 77.081,
+        "sinceBeforeSplashMs": 4643,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "anchor_start": {
+        "logMonotonicSeconds": 77.082,
+        "sinceBeforeSplashMs": 4644,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "room_load_start": {
+        "logMonotonicSeconds": 77.095,
+        "sinceBeforeSplashMs": 4657,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "mesh_subsystem_wait_start": {
+        "logMonotonicSeconds": 77.101,
+        "sinceBeforeSplashMs": 4660,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "mesh_subsystem_available": {
+        "logMonotonicSeconds": 77.103,
+        "sinceBeforeSplashMs": 4664,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "mesh_subsystem_started": {
+        "logMonotonicSeconds": 77.124,
+        "sinceBeforeSplashMs": 4686,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "mesh_query_1_start": {
+        "logMonotonicSeconds": 77.125,
+        "sinceBeforeSplashMs": 4687,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "hud_start": {
+        "logMonotonicSeconds": 77.132,
+        "sinceBeforeSplashMs": 4694,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "hud_font_load_start": {
+        "logMonotonicSeconds": 77.133,
+        "sinceBeforeSplashMs": 4695,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "hud_font_load_end": {
+        "logMonotonicSeconds": 77.423,
+        "sinceBeforeSplashMs": 4984,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "hud_ready": {
+        "logMonotonicSeconds": 77.627,
+        "sinceBeforeSplashMs": 5188,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "notifications_start": {
+        "logMonotonicSeconds": 77.628,
+        "sinceBeforeSplashMs": 5189,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "notifications_font_load_start": {
+        "logMonotonicSeconds": 77.628,
+        "sinceBeforeSplashMs": 5190,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "notifications_font_load_end": {
+        "logMonotonicSeconds": 77.628,
+        "sinceBeforeSplashMs": 5190,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "notifications_ready": {
+        "logMonotonicSeconds": 77.63,
+        "sinceBeforeSplashMs": 5192,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "mesh_query_1_done": {
+        "logMonotonicSeconds": 77.659,
+        "sinceBeforeSplashMs": 5221,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "first_main_camera_render": {
+        "logMonotonicSeconds": 77.72,
+        "sinceBeforeSplashMs": 5276,
+        "frame": 121,
+        "splashFinished": true
+      },
+      "mesh_query_2_start": {
+        "logMonotonicSeconds": 78.24,
+        "sinceBeforeSplashMs": 5793,
+        "frame": 126,
+        "splashFinished": true
+      },
+      "mesh_query_2_done": {
+        "logMonotonicSeconds": 78.313,
+        "sinceBeforeSplashMs": 5875,
+        "frame": 127,
+        "splashFinished": true
+      },
+      "mesh_query_3_start": {
+        "logMonotonicSeconds": 78.82,
+        "sinceBeforeSplashMs": 6382,
+        "frame": 142,
+        "splashFinished": true
+      },
+      "mesh_query_3_done": {
+        "logMonotonicSeconds": 78.847,
+        "sinceBeforeSplashMs": 6409,
+        "frame": 143,
+        "splashFinished": true
+      },
+      "mesh_query_4_start": {
+        "logMonotonicSeconds": 79.429,
+        "sinceBeforeSplashMs": 6991,
+        "frame": 172,
+        "splashFinished": true
+      },
+      "mesh_query_4_done": {
+        "logMonotonicSeconds": 79.458,
+        "sinceBeforeSplashMs": 7020,
+        "frame": 173,
+        "splashFinished": true
+      },
+      "anchor_unavailable": {
+        "logMonotonicSeconds": 79.69,
+        "sinceBeforeSplashMs": 7252,
+        "frame": 181,
+        "splashFinished": true
+      },
+      "mesh_query_5_start": {
+        "logMonotonicSeconds": 79.963,
+        "sinceBeforeSplashMs": 7524,
+        "frame": 195,
+        "splashFinished": true
+      },
+      "mesh_query_5_done": {
+        "logMonotonicSeconds": 79.98,
+        "sinceBeforeSplashMs": 7541,
+        "frame": 196,
+        "splashFinished": true
+      },
+      "mesh_query_6_start": {
+        "logMonotonicSeconds": 80.49,
+        "sinceBeforeSplashMs": 8051,
+        "frame": 226,
+        "splashFinished": true
+      },
+      "mesh_query_6_done": {
+        "logMonotonicSeconds": 80.507,
+        "sinceBeforeSplashMs": 8069,
+        "frame": 227,
+        "splashFinished": true
+      },
+      "mesh_query_7_start": {
+        "logMonotonicSeconds": 81.009,
+        "sinceBeforeSplashMs": 8571,
+        "frame": 257,
+        "splashFinished": true
+      },
+      "mesh_query_7_done": {
+        "logMonotonicSeconds": 81.025,
+        "sinceBeforeSplashMs": 8587,
+        "frame": 258,
+        "splashFinished": true
+      },
+      "mesh_query_8_start": {
+        "logMonotonicSeconds": 81.54,
+        "sinceBeforeSplashMs": 9102,
+        "frame": 289,
+        "splashFinished": true
+      },
+      "mesh_query_8_done": {
+        "logMonotonicSeconds": 81.558,
+        "sinceBeforeSplashMs": 9119,
+        "frame": 290,
+        "splashFinished": true
+      },
+      "mesh_query_9_start": {
+        "logMonotonicSeconds": 82.067,
+        "sinceBeforeSplashMs": 9629,
+        "frame": 320,
+        "splashFinished": true
+      },
+      "mesh_query_9_done": {
+        "logMonotonicSeconds": 82.084,
+        "sinceBeforeSplashMs": 9645,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "mesh_snapshot_9_built": {
+        "logMonotonicSeconds": 82.095,
+        "sinceBeforeSplashMs": 9657,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "room_loaded": {
+        "logMonotonicSeconds": 82.099,
+        "sinceBeforeSplashMs": 9661,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "occlusion_applied": {
+        "logMonotonicSeconds": 82.108,
+        "sinceBeforeSplashMs": 9670,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "navmesh_built": {
+        "logMonotonicSeconds": 82.15,
+        "sinceBeforeSplashMs": 9712,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "avatar_enable_start": {
+        "logMonotonicSeconds": 82.15,
+        "sinceBeforeSplashMs": 9712,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "avatar_enable_end": {
+        "logMonotonicSeconds": 82.158,
+        "sinceBeforeSplashMs": 9720,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "avatar_bound": {
+        "logMonotonicSeconds": 82.159,
+        "sinceBeforeSplashMs": 9721,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "session_created": {
+        "logMonotonicSeconds": 82.265,
+        "sinceBeforeSplashMs": 9827,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "audio_bound": {
+        "logMonotonicSeconds": 82.266,
+        "sinceBeforeSplashMs": 9828,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "world_configured": {
+        "logMonotonicSeconds": 82.435,
+        "sinceBeforeSplashMs": 9997,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "item_restore_start": {
+        "logMonotonicSeconds": 82.436,
+        "sinceBeforeSplashMs": 9998,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "items_restored": {
+        "logMonotonicSeconds": 82.45,
+        "sinceBeforeSplashMs": 10012,
+        "frame": 321,
+        "splashFinished": true
+      },
+      "business_ready": {
+        "logMonotonicSeconds": 82.451,
+        "sinceBeforeSplashMs": 10013,
+        "frame": 321,
+        "splashFinished": true
+      }
+    },
+    "intervalsMs": {
+      "activity_to_engine": 4282.0,
+      "engine_to_before_splash": 360.0,
+      "before_splash_to_xr_focused": 2261.0,
+      "xr_focused_to_before_scene": 2290.0,
+      "before_scene_to_after_scene": 82.0,
+      "after_scene_to_bootstrap": 2.0,
+      "engine_to_bootstrap": 4995.0,
+      "splash_observed_to_before_scene": 2330.0,
+      "hud_total": 495.0,
+      "hud_font_load": 290.0,
+      "avatar_enable": 8.0,
+      "room_load": 5004.0,
+      "bootstrap_to_ready": 5378.0,
+      "activity_to_ready": 14655.0
+    },
+    "warmup": true,
+    "managedIntervalsMs": {
+      "after_scene_to_room_start": 24,
+      "hud_total": 494,
+      "hud_font_load": 289,
+      "notifications_total": 3,
+      "notifications_font_load": 0,
+      "room_load": 5004
+    },
+    "roomStartedBeforeBothPresenters": true,
+    "readyGateOrderPreserved": true,
+    "uiDuringRoomWaitMs": 497
+  },
+  {
+    "name": "overlap-1",
+    "pid": "4118",
+    "readyMonotonic": 111.963,
+    "ready": "MATESOUL_READY source=PICO Emulator Spatial Mesh items=12 itemState=ready navMs=31",
+    "aliveAfterReadySeconds": 12,
+    "identitiesPreserved": true,
+    "profile": false,
+    "nativePoints": {
+      "activity_start": 100.467,
+      "engine": 104.021,
+      "xr_focused": 106.224,
+      "sdk_awake": 108.978
+    },
+    "points": {
+      "before_splash_screen": {
+        "logMonotonicSeconds": 104.363,
+        "sinceBeforeSplashMs": 0,
+        "frame": 0,
+        "splashFinished": false
+      },
+      "first_player_loop": {
+        "logMonotonicSeconds": 104.366,
+        "sinceBeforeSplashMs": 3,
+        "frame": 1,
+        "splashFinished": false
+      },
+      "first_before_render_callback": {
+        "logMonotonicSeconds": 104.504,
+        "sinceBeforeSplashMs": 141,
+        "frame": 0,
+        "splashFinished": false
+      },
+      "splash_finished_observed": {
+        "logMonotonicSeconds": 106.194,
+        "sinceBeforeSplashMs": 1830,
+        "frame": 1,
+        "splashFinished": null,
+        "lastUnfinishedMs": 141
+      },
+      "before_scene_load": {
+        "logMonotonicSeconds": 108.921,
+        "sinceBeforeSplashMs": 4556,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "bootstrap_awake": {
+        "logMonotonicSeconds": 108.944,
+        "sinceBeforeSplashMs": 4580,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "scene_loaded": {
+        "logMonotonicSeconds": 109.007,
+        "sinceBeforeSplashMs": 4643,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "after_scene_load": {
+        "logMonotonicSeconds": 109.092,
+        "sinceBeforeSplashMs": 4728,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "bootstrap_start": {
+        "logMonotonicSeconds": 109.094,
+        "sinceBeforeSplashMs": 4731,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "save_loaded": {
+        "logMonotonicSeconds": 109.107,
+        "sinceBeforeSplashMs": 4743,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "anchor_start": {
+        "logMonotonicSeconds": 109.108,
+        "sinceBeforeSplashMs": 4745,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "room_load_start": {
+        "logMonotonicSeconds": 109.124,
+        "sinceBeforeSplashMs": 4761,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "mesh_subsystem_wait_start": {
+        "logMonotonicSeconds": 109.126,
+        "sinceBeforeSplashMs": 4763,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "mesh_subsystem_available": {
+        "logMonotonicSeconds": 109.127,
+        "sinceBeforeSplashMs": 4764,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "mesh_subsystem_started": {
+        "logMonotonicSeconds": 109.147,
+        "sinceBeforeSplashMs": 4784,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "mesh_query_1_start": {
+        "logMonotonicSeconds": 109.151,
+        "sinceBeforeSplashMs": 4785,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "hud_start": {
+        "logMonotonicSeconds": 109.163,
+        "sinceBeforeSplashMs": 4800,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "hud_font_load_start": {
+        "logMonotonicSeconds": 109.164,
+        "sinceBeforeSplashMs": 4801,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "hud_font_load_end": {
+        "logMonotonicSeconds": 109.423,
+        "sinceBeforeSplashMs": 5060,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "hud_ready": {
+        "logMonotonicSeconds": 109.497,
+        "sinceBeforeSplashMs": 5133,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "notifications_start": {
+        "logMonotonicSeconds": 109.497,
+        "sinceBeforeSplashMs": 5134,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "notifications_font_load_start": {
+        "logMonotonicSeconds": 109.498,
+        "sinceBeforeSplashMs": 5134,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "notifications_font_load_end": {
+        "logMonotonicSeconds": 109.499,
+        "sinceBeforeSplashMs": 5135,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "notifications_ready": {
+        "logMonotonicSeconds": 109.501,
+        "sinceBeforeSplashMs": 5138,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "mesh_query_1_done": {
+        "logMonotonicSeconds": 109.511,
+        "sinceBeforeSplashMs": 5148,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "first_main_camera_render": {
+        "logMonotonicSeconds": 109.525,
+        "sinceBeforeSplashMs": 5162,
+        "frame": 94,
+        "splashFinished": true
+      },
+      "mesh_query_2_start": {
+        "logMonotonicSeconds": 110.024,
+        "sinceBeforeSplashMs": 5660,
+        "frame": 117,
+        "splashFinished": true
+      },
+      "mesh_query_2_done": {
+        "logMonotonicSeconds": 110.041,
+        "sinceBeforeSplashMs": 5677,
+        "frame": 118,
+        "splashFinished": true
+      },
+      "mesh_query_3_start": {
+        "logMonotonicSeconds": 110.561,
+        "sinceBeforeSplashMs": 6198,
+        "frame": 142,
+        "splashFinished": true
+      },
+      "mesh_query_3_done": {
+        "logMonotonicSeconds": 110.598,
+        "sinceBeforeSplashMs": 6234,
+        "frame": 143,
+        "splashFinished": true
+      },
+      "mesh_query_4_start": {
+        "logMonotonicSeconds": 111.099,
+        "sinceBeforeSplashMs": 6735,
+        "frame": 170,
+        "splashFinished": true
+      },
+      "mesh_query_4_done": {
+        "logMonotonicSeconds": 111.116,
+        "sinceBeforeSplashMs": 6752,
+        "frame": 171,
+        "splashFinished": true
+      },
+      "anchor_unavailable": {
+        "logMonotonicSeconds": 111.529,
+        "sinceBeforeSplashMs": 7165,
+        "frame": 195,
+        "splashFinished": true
+      },
+      "mesh_query_5_start": {
+        "logMonotonicSeconds": 111.626,
+        "sinceBeforeSplashMs": 7263,
+        "frame": 201,
+        "splashFinished": true
+      },
+      "mesh_query_5_done": {
+        "logMonotonicSeconds": 111.663,
+        "sinceBeforeSplashMs": 7300,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "mesh_snapshot_5_built": {
+        "logMonotonicSeconds": 111.673,
+        "sinceBeforeSplashMs": 7310,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "room_loaded": {
+        "logMonotonicSeconds": 111.675,
+        "sinceBeforeSplashMs": 7312,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "occlusion_applied": {
+        "logMonotonicSeconds": 111.681,
+        "sinceBeforeSplashMs": 7318,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "navmesh_built": {
+        "logMonotonicSeconds": 111.714,
+        "sinceBeforeSplashMs": 7350,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "avatar_enable_start": {
+        "logMonotonicSeconds": 111.714,
+        "sinceBeforeSplashMs": 7351,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "avatar_enable_end": {
+        "logMonotonicSeconds": 111.72,
+        "sinceBeforeSplashMs": 7356,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "avatar_bound": {
+        "logMonotonicSeconds": 111.721,
+        "sinceBeforeSplashMs": 7358,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "session_created": {
+        "logMonotonicSeconds": 111.809,
+        "sinceBeforeSplashMs": 7446,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "audio_bound": {
+        "logMonotonicSeconds": 111.809,
+        "sinceBeforeSplashMs": 7446,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "world_configured": {
+        "logMonotonicSeconds": 111.94,
+        "sinceBeforeSplashMs": 7577,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "item_restore_start": {
+        "logMonotonicSeconds": 111.941,
+        "sinceBeforeSplashMs": 7577,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "items_restored": {
+        "logMonotonicSeconds": 111.962,
+        "sinceBeforeSplashMs": 7599,
+        "frame": 203,
+        "splashFinished": true
+      },
+      "business_ready": {
+        "logMonotonicSeconds": 111.962,
+        "sinceBeforeSplashMs": 7599,
+        "frame": 203,
+        "splashFinished": true
+      }
+    },
+    "intervalsMs": {
+      "activity_to_engine": 3554.0,
+      "engine_to_before_splash": 342.0,
+      "before_splash_to_xr_focused": 1861.0,
+      "xr_focused_to_before_scene": 2697.0,
+      "before_scene_to_after_scene": 171.0,
+      "after_scene_to_bootstrap": 2.0,
+      "engine_to_bootstrap": 5073.0,
+      "splash_observed_to_before_scene": 2727.0,
+      "hud_total": 334.0,
+      "hud_font_load": 259.0,
+      "avatar_enable": 6.0,
+      "room_load": 2551.0,
+      "bootstrap_to_ready": 2868.0,
+      "activity_to_ready": 11495.0
+    },
+    "warmup": false,
+    "managedIntervalsMs": {
+      "after_scene_to_room_start": 33,
+      "hud_total": 333,
+      "hud_font_load": 259,
+      "notifications_total": 4,
+      "notifications_font_load": 1,
+      "room_load": 2551
+    },
+    "roomStartedBeforeBothPresenters": true,
+    "readyGateOrderPreserved": true,
+    "uiDuringRoomWaitMs": 337
+  },
+  {
+    "name": "overlap-2",
+    "pid": "4449",
+    "readyMonotonic": 142.215,
+    "ready": "MATESOUL_READY source=PICO Emulator Spatial Mesh items=12 itemState=ready navMs=45",
+    "aliveAfterReadySeconds": 12,
+    "identitiesPreserved": true,
+    "profile": false,
+    "nativePoints": {
+      "activity_start": 129.588,
+      "engine": 132.866,
+      "xr_focused": 135.223,
+      "sdk_awake": 137.914
+    },
+    "points": {
+      "before_splash_screen": {
+        "logMonotonicSeconds": 133.217,
+        "sinceBeforeSplashMs": 0,
+        "frame": 0,
+        "splashFinished": false
+      },
+      "first_player_loop": {
+        "logMonotonicSeconds": 133.22,
+        "sinceBeforeSplashMs": 3,
+        "frame": 1,
+        "splashFinished": false
+      },
+      "first_before_render_callback": {
+        "logMonotonicSeconds": 133.358,
+        "sinceBeforeSplashMs": 140,
+        "frame": 0,
+        "splashFinished": false
+      },
+      "splash_finished_observed": {
+        "logMonotonicSeconds": 135.19,
+        "sinceBeforeSplashMs": 1972,
+        "frame": 1,
+        "splashFinished": null,
+        "lastUnfinishedMs": 140
+      },
+      "before_scene_load": {
+        "logMonotonicSeconds": 137.82,
+        "sinceBeforeSplashMs": 4596,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "bootstrap_awake": {
+        "logMonotonicSeconds": 137.855,
+        "sinceBeforeSplashMs": 4637,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "scene_loaded": {
+        "logMonotonicSeconds": 137.956,
+        "sinceBeforeSplashMs": 4737,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "after_scene_load": {
+        "logMonotonicSeconds": 138.058,
+        "sinceBeforeSplashMs": 4839,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "bootstrap_start": {
+        "logMonotonicSeconds": 138.062,
+        "sinceBeforeSplashMs": 4844,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "save_loaded": {
+        "logMonotonicSeconds": 138.086,
+        "sinceBeforeSplashMs": 4868,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "anchor_start": {
+        "logMonotonicSeconds": 138.089,
+        "sinceBeforeSplashMs": 4871,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "room_load_start": {
+        "logMonotonicSeconds": 138.111,
+        "sinceBeforeSplashMs": 4893,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "mesh_subsystem_wait_start": {
+        "logMonotonicSeconds": 138.114,
+        "sinceBeforeSplashMs": 4896,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "mesh_subsystem_available": {
+        "logMonotonicSeconds": 138.119,
+        "sinceBeforeSplashMs": 4900,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "mesh_subsystem_started": {
+        "logMonotonicSeconds": 138.178,
+        "sinceBeforeSplashMs": 4959,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "mesh_query_1_start": {
+        "logMonotonicSeconds": 138.187,
+        "sinceBeforeSplashMs": 4969,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "hud_start": {
+        "logMonotonicSeconds": 138.209,
+        "sinceBeforeSplashMs": 4990,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "hud_font_load_start": {
+        "logMonotonicSeconds": 138.211,
+        "sinceBeforeSplashMs": 4992,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "hud_font_load_end": {
+        "logMonotonicSeconds": 138.528,
+        "sinceBeforeSplashMs": 5310,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "hud_ready": {
+        "logMonotonicSeconds": 138.628,
+        "sinceBeforeSplashMs": 5410,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "notifications_start": {
+        "logMonotonicSeconds": 138.629,
+        "sinceBeforeSplashMs": 5411,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "notifications_font_load_start": {
+        "logMonotonicSeconds": 138.629,
+        "sinceBeforeSplashMs": 5411,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "notifications_font_load_end": {
+        "logMonotonicSeconds": 138.629,
+        "sinceBeforeSplashMs": 5412,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "notifications_ready": {
+        "logMonotonicSeconds": 138.63,
+        "sinceBeforeSplashMs": 5412,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "mesh_query_1_done": {
+        "logMonotonicSeconds": 138.647,
+        "sinceBeforeSplashMs": 5429,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "first_main_camera_render": {
+        "logMonotonicSeconds": 138.67,
+        "sinceBeforeSplashMs": 5452,
+        "frame": 99,
+        "splashFinished": true
+      },
+      "mesh_query_2_start": {
+        "logMonotonicSeconds": 139.156,
+        "sinceBeforeSplashMs": 5938,
+        "frame": 123,
+        "splashFinished": true
+      },
+      "mesh_query_2_done": {
+        "logMonotonicSeconds": 139.173,
+        "sinceBeforeSplashMs": 5955,
+        "frame": 124,
+        "splashFinished": true
+      },
+      "mesh_query_3_start": {
+        "logMonotonicSeconds": 139.688,
+        "sinceBeforeSplashMs": 6470,
+        "frame": 146,
+        "splashFinished": true
+      },
+      "mesh_query_3_done": {
+        "logMonotonicSeconds": 139.705,
+        "sinceBeforeSplashMs": 6488,
+        "frame": 147,
+        "splashFinished": true
+      },
+      "mesh_query_4_start": {
+        "logMonotonicSeconds": 140.208,
+        "sinceBeforeSplashMs": 6990,
+        "frame": 177,
+        "splashFinished": true
+      },
+      "mesh_query_4_done": {
+        "logMonotonicSeconds": 140.224,
+        "sinceBeforeSplashMs": 7006,
+        "frame": 178,
+        "splashFinished": true
+      },
+      "anchor_unavailable": {
+        "logMonotonicSeconds": 140.678,
+        "sinceBeforeSplashMs": 7460,
+        "frame": 205,
+        "splashFinished": true
+      },
+      "mesh_query_5_start": {
+        "logMonotonicSeconds": 140.746,
+        "sinceBeforeSplashMs": 7528,
+        "frame": 209,
+        "splashFinished": true
+      },
+      "mesh_query_5_done": {
+        "logMonotonicSeconds": 140.758,
+        "sinceBeforeSplashMs": 7540,
+        "frame": 210,
+        "splashFinished": true
+      },
+      "mesh_query_6_start": {
+        "logMonotonicSeconds": 141.266,
+        "sinceBeforeSplashMs": 8048,
+        "frame": 240,
+        "splashFinished": true
+      },
+      "mesh_query_6_done": {
+        "logMonotonicSeconds": 141.283,
+        "sinceBeforeSplashMs": 8065,
+        "frame": 241,
+        "splashFinished": true
+      },
+      "mesh_query_7_start": {
+        "logMonotonicSeconds": 141.792,
+        "sinceBeforeSplashMs": 8574,
+        "frame": 271,
+        "splashFinished": true
+      },
+      "mesh_query_7_done": {
+        "logMonotonicSeconds": 141.81,
+        "sinceBeforeSplashMs": 8592,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "mesh_snapshot_7_built": {
+        "logMonotonicSeconds": 141.826,
+        "sinceBeforeSplashMs": 8609,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "room_loaded": {
+        "logMonotonicSeconds": 141.832,
+        "sinceBeforeSplashMs": 8613,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "occlusion_applied": {
+        "logMonotonicSeconds": 141.839,
+        "sinceBeforeSplashMs": 8622,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "navmesh_built": {
+        "logMonotonicSeconds": 141.886,
+        "sinceBeforeSplashMs": 8668,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "avatar_enable_start": {
+        "logMonotonicSeconds": 141.886,
+        "sinceBeforeSplashMs": 8669,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "avatar_enable_end": {
+        "logMonotonicSeconds": 141.893,
+        "sinceBeforeSplashMs": 8675,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "avatar_bound": {
+        "logMonotonicSeconds": 141.894,
+        "sinceBeforeSplashMs": 8677,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "session_created": {
+        "logMonotonicSeconds": 142.016,
+        "sinceBeforeSplashMs": 8799,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "audio_bound": {
+        "logMonotonicSeconds": 142.017,
+        "sinceBeforeSplashMs": 8799,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "world_configured": {
+        "logMonotonicSeconds": 142.192,
+        "sinceBeforeSplashMs": 8974,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "item_restore_start": {
+        "logMonotonicSeconds": 142.193,
+        "sinceBeforeSplashMs": 8975,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "items_restored": {
+        "logMonotonicSeconds": 142.213,
+        "sinceBeforeSplashMs": 8995,
+        "frame": 272,
+        "splashFinished": true
+      },
+      "business_ready": {
+        "logMonotonicSeconds": 142.214,
+        "sinceBeforeSplashMs": 8996,
+        "frame": 272,
+        "splashFinished": true
+      }
+    },
+    "intervalsMs": {
+      "activity_to_engine": 3278.0,
+      "engine_to_before_splash": 351.0,
+      "before_splash_to_xr_focused": 2006.0,
+      "xr_focused_to_before_scene": 2597.0,
+      "before_scene_to_after_scene": 238.0,
+      "after_scene_to_bootstrap": 4.0,
+      "engine_to_bootstrap": 5196.0,
+      "splash_observed_to_before_scene": 2630.0,
+      "hud_total": 419.0,
+      "hud_font_load": 317.0,
+      "avatar_enable": 7.0,
+      "room_load": 3721.0,
+      "bootstrap_to_ready": 4152.0,
+      "activity_to_ready": 12626.0
+    },
+    "warmup": false,
+    "managedIntervalsMs": {
+      "after_scene_to_room_start": 54,
+      "hud_total": 420,
+      "hud_font_load": 318,
+      "notifications_total": 1,
+      "notifications_font_load": 1,
+      "room_load": 3720
+    },
+    "roomStartedBeforeBothPresenters": true,
+    "readyGateOrderPreserved": true,
+    "uiDuringRoomWaitMs": 421
+  },
+  {
+    "name": "overlap-3",
+    "pid": "4785",
+    "readyMonotonic": 172.405,
+    "ready": "MATESOUL_READY source=PICO Emulator Spatial Mesh items=12 itemState=ready navMs=29",
+    "aliveAfterReadySeconds": 12,
+    "identitiesPreserved": true,
+    "profile": false,
+    "nativePoints": {
+      "activity_start": 160.695,
+      "engine": 163.99,
+      "xr_focused": 166.292,
+      "sdk_awake": 168.891
+    },
+    "points": {
+      "before_splash_screen": {
+        "logMonotonicSeconds": 164.255,
+        "sinceBeforeSplashMs": 0,
+        "frame": 0,
+        "splashFinished": false
+      },
+      "first_player_loop": {
+        "logMonotonicSeconds": 164.258,
+        "sinceBeforeSplashMs": 2,
+        "frame": 1,
+        "splashFinished": false
+      },
+      "first_before_render_callback": {
+        "logMonotonicSeconds": 164.394,
+        "sinceBeforeSplashMs": 139,
+        "frame": 0,
+        "splashFinished": false
+      },
+      "splash_finished_observed": {
+        "logMonotonicSeconds": 166.244,
+        "sinceBeforeSplashMs": 1987,
+        "frame": 1,
+        "splashFinished": null,
+        "lastUnfinishedMs": 139
+      },
+      "before_scene_load": {
+        "logMonotonicSeconds": 168.831,
+        "sinceBeforeSplashMs": 4574,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "bootstrap_awake": {
+        "logMonotonicSeconds": 168.858,
+        "sinceBeforeSplashMs": 4602,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "scene_loaded": {
+        "logMonotonicSeconds": 168.944,
+        "sinceBeforeSplashMs": 4688,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "after_scene_load": {
+        "logMonotonicSeconds": 169.045,
+        "sinceBeforeSplashMs": 4789,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "bootstrap_start": {
+        "logMonotonicSeconds": 169.053,
+        "sinceBeforeSplashMs": 4797,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "save_loaded": {
+        "logMonotonicSeconds": 169.077,
+        "sinceBeforeSplashMs": 4822,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "anchor_start": {
+        "logMonotonicSeconds": 169.079,
+        "sinceBeforeSplashMs": 4824,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "room_load_start": {
+        "logMonotonicSeconds": 169.098,
+        "sinceBeforeSplashMs": 4842,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "mesh_subsystem_wait_start": {
+        "logMonotonicSeconds": 169.104,
+        "sinceBeforeSplashMs": 4848,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "mesh_subsystem_available": {
+        "logMonotonicSeconds": 169.105,
+        "sinceBeforeSplashMs": 4850,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "mesh_subsystem_started": {
+        "logMonotonicSeconds": 169.138,
+        "sinceBeforeSplashMs": 4882,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "mesh_query_1_start": {
+        "logMonotonicSeconds": 169.14,
+        "sinceBeforeSplashMs": 4884,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "hud_start": {
+        "logMonotonicSeconds": 169.164,
+        "sinceBeforeSplashMs": 4908,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "hud_font_load_start": {
+        "logMonotonicSeconds": 169.167,
+        "sinceBeforeSplashMs": 4911,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "hud_font_load_end": {
+        "logMonotonicSeconds": 169.435,
+        "sinceBeforeSplashMs": 5180,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "hud_ready": {
+        "logMonotonicSeconds": 169.502,
+        "sinceBeforeSplashMs": 5246,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "notifications_start": {
+        "logMonotonicSeconds": 169.502,
+        "sinceBeforeSplashMs": 5247,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "notifications_font_load_start": {
+        "logMonotonicSeconds": 169.502,
+        "sinceBeforeSplashMs": 5247,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "notifications_font_load_end": {
+        "logMonotonicSeconds": 169.503,
+        "sinceBeforeSplashMs": 5247,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "notifications_ready": {
+        "logMonotonicSeconds": 169.503,
+        "sinceBeforeSplashMs": 5248,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "mesh_query_1_done": {
+        "logMonotonicSeconds": 169.511,
+        "sinceBeforeSplashMs": 5256,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "first_main_camera_render": {
+        "logMonotonicSeconds": 169.527,
+        "sinceBeforeSplashMs": 5272,
+        "frame": 135,
+        "splashFinished": true
+      },
+      "mesh_query_2_start": {
+        "logMonotonicSeconds": 170.024,
+        "sinceBeforeSplashMs": 5769,
+        "frame": 160,
+        "splashFinished": true
+      },
+      "mesh_query_2_done": {
+        "logMonotonicSeconds": 170.04,
+        "sinceBeforeSplashMs": 5785,
+        "frame": 161,
+        "splashFinished": true
+      },
+      "mesh_query_3_start": {
+        "logMonotonicSeconds": 170.542,
+        "sinceBeforeSplashMs": 6287,
+        "frame": 191,
+        "splashFinished": true
+      },
+      "mesh_query_3_done": {
+        "logMonotonicSeconds": 170.558,
+        "sinceBeforeSplashMs": 6303,
+        "frame": 192,
+        "splashFinished": true
+      },
+      "mesh_query_4_start": {
+        "logMonotonicSeconds": 171.065,
+        "sinceBeforeSplashMs": 6810,
+        "frame": 220,
+        "splashFinished": true
+      },
+      "mesh_query_4_done": {
+        "logMonotonicSeconds": 171.103,
+        "sinceBeforeSplashMs": 6848,
+        "frame": 221,
+        "splashFinished": true
+      },
+      "anchor_unavailable": {
+        "logMonotonicSeconds": 171.544,
+        "sinceBeforeSplashMs": 7289,
+        "frame": 245,
+        "splashFinished": true
+      },
+      "mesh_query_5_start": {
+        "logMonotonicSeconds": 171.61,
+        "sinceBeforeSplashMs": 7355,
+        "frame": 249,
+        "splashFinished": true
+      },
+      "mesh_query_5_done": {
+        "logMonotonicSeconds": 171.626,
+        "sinceBeforeSplashMs": 7371,
+        "frame": 250,
+        "splashFinished": true
+      },
+      "mesh_query_6_start": {
+        "logMonotonicSeconds": 172.126,
+        "sinceBeforeSplashMs": 7871,
+        "frame": 280,
+        "splashFinished": true
+      },
+      "mesh_query_6_done": {
+        "logMonotonicSeconds": 172.143,
+        "sinceBeforeSplashMs": 7888,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "mesh_snapshot_6_built": {
+        "logMonotonicSeconds": 172.151,
+        "sinceBeforeSplashMs": 7896,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "room_loaded": {
+        "logMonotonicSeconds": 172.154,
+        "sinceBeforeSplashMs": 7899,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "occlusion_applied": {
+        "logMonotonicSeconds": 172.159,
+        "sinceBeforeSplashMs": 7904,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "navmesh_built": {
+        "logMonotonicSeconds": 172.189,
+        "sinceBeforeSplashMs": 7934,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "avatar_enable_start": {
+        "logMonotonicSeconds": 172.189,
+        "sinceBeforeSplashMs": 7934,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "avatar_enable_end": {
+        "logMonotonicSeconds": 172.194,
+        "sinceBeforeSplashMs": 7939,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "avatar_bound": {
+        "logMonotonicSeconds": 172.195,
+        "sinceBeforeSplashMs": 7940,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "session_created": {
+        "logMonotonicSeconds": 172.272,
+        "sinceBeforeSplashMs": 8017,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "audio_bound": {
+        "logMonotonicSeconds": 172.273,
+        "sinceBeforeSplashMs": 8018,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "world_configured": {
+        "logMonotonicSeconds": 172.386,
+        "sinceBeforeSplashMs": 8131,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "item_restore_start": {
+        "logMonotonicSeconds": 172.387,
+        "sinceBeforeSplashMs": 8131,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "items_restored": {
+        "logMonotonicSeconds": 172.404,
+        "sinceBeforeSplashMs": 8149,
+        "frame": 281,
+        "splashFinished": true
+      },
+      "business_ready": {
+        "logMonotonicSeconds": 172.404,
+        "sinceBeforeSplashMs": 8149,
+        "frame": 281,
+        "splashFinished": true
+      }
+    },
+    "intervalsMs": {
+      "activity_to_engine": 3295.0,
+      "engine_to_before_splash": 265.0,
+      "before_splash_to_xr_focused": 2037.0,
+      "xr_focused_to_before_scene": 2539.0,
+      "before_scene_to_after_scene": 214.0,
+      "after_scene_to_bootstrap": 8.0,
+      "engine_to_bootstrap": 5063.0,
+      "splash_observed_to_before_scene": 2587.0,
+      "hud_total": 338.0,
+      "hud_font_load": 268.0,
+      "avatar_enable": 5.0,
+      "room_load": 3056.0,
+      "bootstrap_to_ready": 3351.0,
+      "activity_to_ready": 11709.0
+    },
+    "warmup": false,
+    "managedIntervalsMs": {
+      "after_scene_to_room_start": 53,
+      "hud_total": 338,
+      "hud_font_load": 269,
+      "notifications_total": 1,
+      "notifications_font_load": 0,
+      "room_load": 3057
+    },
+    "roomStartedBeforeBothPresenters": true,
+    "readyGateOrderPreserved": true,
+    "uiDuringRoomWaitMs": 339
+  }
+]

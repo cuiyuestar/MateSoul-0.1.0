@@ -99,7 +99,8 @@ namespace MateSoul.Runtime
             if (animator.GetFloat(speedParameter) > MaximumIdleSpeed ||
                 animator.GetBool(socialAttentionParameter))
                 return false;
-            if (motor != null && motor.ContactPosture != null)
+            if (motor != null &&
+                (motor.ContactPosture != null || motor.IsTurnStepActive))
                 return false;
             for (int layer = 1; layer < animator.layerCount; layer++)
                 if (animator.GetLayerWeight(layer) > .01f)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MateSoul.Gameplay;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -9,7 +10,7 @@ namespace MateSoul.Runtime
     public enum TelevisionState { Off, NoSignal, Preparing, Playing, Paused, Ended, Error }
 
     /// <summary>Owns this television's power, decoder, audio and screen texture.</summary>
-    public sealed class TelevisionController : MonoBehaviour
+    public sealed class TelevisionController : MonoBehaviour, IRuntimeWorldFactSource
     {
         [Header("Programs")]
         [SerializeField] private VideoClip[] programs = Array.Empty<VideoClip>();
@@ -39,6 +40,23 @@ namespace MateSoul.Runtime
         public int ProgramIndex => programIndex;
         public VideoClip CurrentProgram => programIndex >= 0 && programIndex < programs.Length
             ? programs[programIndex] : null;
+
+        public bool TryCaptureRuntimeWorldFact(
+            out RuntimeWorldFactSnapshot fact)
+        {
+            if (!IsPoweredOn)
+            {
+                fact = null;
+                return false;
+            }
+            var program = CurrentProgram == null
+                ? programIndex >= 0 ? $"program-{programIndex + 1}" : "external-source"
+                : CurrentProgram.name;
+            fact = RuntimeWorldFact.Create(
+                this, "device", State.ToString().ToLowerInvariant(),
+                $"program={program}");
+            return true;
+        }
 
         public void Configure(Renderer display, Renderer powerLight, Text label,
             VideoPlayer decoder, AudioSource audio)

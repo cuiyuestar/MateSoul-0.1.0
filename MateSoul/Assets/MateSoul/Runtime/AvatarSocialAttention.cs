@@ -31,6 +31,12 @@ namespace MateSoul.Runtime
         private float lastRawPitch;
         private float currentHeadPitch;
         private float rearYawSign;
+#region debug-point A-B-C-D-E:item-attention-head-snap-state
+#if UNITY_EDITOR
+        private Quaternion debugPreviousFinalHeadRotation;
+        private bool debugHasPreviousFinalHeadRotation;
+#endif
+#endregion
 
         public bool IsConfigured =>
             characterRoot != null && neck != null && head != null &&
@@ -74,12 +80,41 @@ namespace MateSoul.Runtime
             if (lookTarget == null) throw new InvalidOperationException("玩家头部跟踪不可用。");
             if (target != lookTarget)
                 rearYawSign = 0;
+#region debug-point A-C-E:attention-begin
+#if UNITY_EDITOR
+            var debugBeginPayload =
+                $"{{\"sessionId\":\"item-attention-head-snap\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"A-C-E\",\"location\":\"AvatarSocialAttentionRig.Begin\"," +
+                $"\"msg\":\"[DEBUG] attention target enabled\",\"data\":{{" +
+                $"\"frame\":{Time.frameCount},\"targetId\":{lookTarget.GetInstanceID()}," +
+                $"\"targetPosition\":{JsonUtility.ToJson(lookTarget.position)}," +
+                $"\"rootRotation\":{JsonUtility.ToJson(characterRoot.rotation)}," +
+                $"\"weight\":{weight}}}}}";
+            var debugBeginRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                "http://127.0.0.1:7779/event", debugBeginPayload, "application/json");
+            debugBeginRequest.SendWebRequest().completed += _ => debugBeginRequest.Dispose();
+#endif
+#endregion
             target = lookTarget;
             tracking = true;
         }
 
         public void End(bool immediate)
         {
+#region debug-point C:attention-end
+#if UNITY_EDITOR
+            var debugEndPayload =
+                $"{{\"sessionId\":\"item-attention-head-snap\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"C\",\"location\":\"AvatarSocialAttentionRig.End\"," +
+                $"\"msg\":\"[DEBUG] attention target disabled\",\"data\":{{" +
+                $"\"frame\":{Time.frameCount},\"immediate\":{immediate.ToString().ToLowerInvariant()}," +
+                $"\"targetId\":{(target == null ? 0 : target.GetInstanceID())}," +
+                $"\"weight\":{weight},\"currentHeadYaw\":{CurrentHeadYaw}}}}}";
+            var debugEndRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                "http://127.0.0.1:7779/event", debugEndPayload, "application/json");
+            debugEndRequest.SendWebRequest().completed += _ => debugEndRequest.Dispose();
+#endif
+#endregion
             tracking = false;
             target = null;
             if (immediate)
@@ -95,6 +130,15 @@ namespace MateSoul.Runtime
 
         private void LateUpdate()
         {
+#region debug-point B-D-E:attention-pre-write
+#if UNITY_EDITOR
+            var debugHeadBefore = IsConfigured ? head.rotation : Quaternion.identity;
+            var debugNeckBefore = IsConfigured ? neck.rotation : Quaternion.identity;
+            var debugFinalFrameDelta = debugHasPreviousFinalHeadRotation && IsConfigured
+                ? Quaternion.Angle(debugPreviousFinalHeadRotation, debugHeadBefore)
+                : 0f;
+#endif
+#endregion
             var desiredWeight = tracking && target != null ? 1f : 0f;
             var response = desiredWeight > weight ? BlendInResponse : BlendOutResponse;
             weight = Mathf.Lerp(weight, desiredWeight,
@@ -168,6 +212,35 @@ namespace MateSoul.Runtime
                 -EyePitchLimit, EyePitchLimit) * weight;
             ApplyWorldDelta(leftEye, eyeYaw, eyePitch);
             ApplyWorldDelta(rightEye, eyeYaw, eyePitch);
+#region debug-point A-B-C-D-E:attention-post-write
+#if UNITY_EDITOR
+            var debugAnimator = GetComponent<Animator>();
+            var debugBaseState = debugAnimator != null
+                ? debugAnimator.GetCurrentAnimatorStateInfo(0) : default;
+            var debugPayload =
+                $"{{\"sessionId\":\"item-attention-head-snap\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"A-B-C-D-E\",\"location\":\"AvatarSocialAttentionRig.LateUpdate\"," +
+                $"\"msg\":\"[DEBUG] attention head frame\",\"data\":{{" +
+                $"\"frame\":{Time.frameCount},\"deltaTime\":{Time.deltaTime}," +
+                $"\"tracking\":{tracking.ToString().ToLowerInvariant()}," +
+                $"\"targetId\":{(target == null ? 0 : target.GetInstanceID())}," +
+                $"\"weight\":{weight},\"rawYaw\":{rawYaw},\"rawPitch\":{rawPitch}," +
+                $"\"headYaw\":{CurrentHeadYaw},\"headPitch\":{currentHeadPitch}," +
+                $"\"rearYawSign\":{rearYawSign}," +
+                $"\"preFromPreviousFinal\":{debugFinalFrameDelta}," +
+                $"\"attentionHeadDelta\":{Quaternion.Angle(debugHeadBefore, head.rotation)}," +
+                $"\"attentionNeckDelta\":{Quaternion.Angle(debugNeckBefore, neck.rotation)}," +
+                $"\"finalHeadRotation\":{JsonUtility.ToJson(head.rotation)}," +
+                $"\"rootRotation\":{JsonUtility.ToJson(characterRoot.rotation)}," +
+                $"\"baseState\":{debugBaseState.shortNameHash}," +
+                $"\"baseTime\":{debugBaseState.normalizedTime}}}}}";
+            var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                "http://127.0.0.1:7779/event", debugPayload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            debugPreviousFinalHeadRotation = head.rotation;
+            debugHasPreviousFinalHeadRotation = true;
+#endif
+#endregion
         }
 
         private void ApplyWorldDelta(Transform bone, float yaw, float pitch)

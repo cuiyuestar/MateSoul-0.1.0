@@ -1,0 +1,73 @@
+{
+  "recording": "phases-profile",
+  "rawBytes": 69121751,
+  "firstFrame": 0,
+  "lastFrame": 404,
+  "binaryRecordingExcludedFromFormalStatistics": true,
+  "samples": {
+    "first_frame": {
+      "index": 0,
+      "parentIndex": -1,
+      "childCount": 1,
+      "name": "Main Thread",
+      "metadata": [],
+      "startMs": 365679.45509,
+      "durationMs": 2568.106689453125
+    },
+    "main_persistent_manager_lock": {
+      "index": 67996,
+      "parentIndex": 67995,
+      "childCount": 0,
+      "name": "Loading.LockPersistentManager",
+      "metadata": [],
+      "startMs": 365861.736798,
+      "durationMs": 1526.8594970703125
+    },
+    "background_scene_preload": {
+      "index": 7,
+      "parentIndex": 0,
+      "childCount": 1,
+      "name": "Application.Preload Assets",
+      "metadata": [],
+      "startMs": 365689.688507,
+      "durationMs": 1760.31591796875
+    },
+    "watermark_gpu_program": {
+      "index": 97022,
+      "parentIndex": 97020,
+      "childCount": 1,
+      "name": "Shader.CreateGPUProgram",
+      "metadata": [],
+      "startMs": 367538.096674,
+      "durationMs": 708.1560668945312
+    },
+    "watermark_gpu_program_wait": {
+      "index": 97023,
+      "parentIndex": 97022,
+      "childCount": 0,
+      "name": "Semaphore.WaitForSignal",
+      "metadata": [],
+      "startMs": 367538.122216,
+      "durationMs": 708.1126098632812
+    },
+    "hud_start": {
+      "index": 15104,
+      "parentIndex": 15042,
+      "childCount": 2652,
+      "name": "MateSoul.Runtime.dll!MateSoul.Runtime::GameHud.Start() [Invoke]",
+      "metadata": [],
+      "startMs": 370300.57796699996,
+      "durationMs": 129.23345947265625
+    }
+  },
+  "focusToBeforeSceneWindowMs": [
+    368271.0,
+    370227.0
+  ],
+  "xrUpdateInWindow": {
+    "count": 98,
+    "clippedInclusiveSumMs": 1526.6040863990784
+  },
+  "durationsAreInclusiveNotCpuTime": true,
+  "resourceLockAndBackgroundPreloadOverlap": true
+}

@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-25",
+  "regression": {
+    "userConfirmed": true,
+    "artifactSha256": "6115c646a86f1a33f39374d684ff91d9690a18d4c53f33fe9d440892bf7b3c17",
+    "rootCause": "D40 disabled measured Spatial Mesh renderers whenever Environment Depth was available, removing the working real-world occlusion path.",
+    "nativeMeshCount": "9-10",
+    "meshDepthEnabled": false,
+    "environmentDepthAvailable": true,
+    "depthTextureWidth": 512,
+    "previousClaimCorrected": "Texture availability and passing renderer-state checks did not prove Environment Depth independently preserved world occlusion. The claimed stale-mesh cause of the original low-look mask was not established."
+  },
+  "restoration": {
+    "nativeMeasuredMeshDepthAlwaysEnabled": true,
+    "measuredSnapshotUsedBeforeNativeMeshArrival": true,
+    "coarseSemanticVolumesRendered": false,
+    "hudZTestAlwaysRetained": true,
+    "hudEnvironmentDepthSamplingAbsent": true,
+    "hudVerticalOffsetMeters": -0.1,
+    "physicsAndNavigationUnchanged": true
+  },
+  "tests": {
+    "suite": "MateSoul.Tests.RealityOcclusionTests",
+    "passed": 12,
+    "failed": 0,
+    "actualGpuRenderer": "Metal / Unity URP Camera.Render",
+    "pixelEvidence": {
+      "worldWithoutMeasuredOcclusion": [1, 0, 0, 1],
+      "worldBehindMeasuredOcclusion": [0, 0, 0, 0],
+      "hudWithMeasuredOcclusion": [0, 1, 0, 1]
+    },
+    "results": "/tmp/matesoul-occlusion-regression-20261025/tests-camera.xml",
+    "limitation": "The GPU test verifies production mesh depth and HUD rendering contracts; it does not replace PICO headset stereo and physical-furniture visual acceptance."
+  },
+  "build": {
+    "result": "Succeeded",
+    "unityExitCode": 0,
+    "duration": "00:03:13.5518547",
+    "protectedFilesChanged": [],
+    "removedOcclusionDisableMethodsAbsentFromIl2cpp": true,
+    "hudPositionMethodPresentInIl2cpp": true,
+    "log": "/tmp/matesoul-occlusion-regression-20261025/build-restored.log"
+  },
+  "artifact": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_OcclusionRestored_HudLowered_20261025.apk",
+    "bytes": 215331582,
+    "sha256": "1b0c0f2fe4fd09c452f420b407b4a19e74c6b4ba967f0726fa8b82f546e7eac7",
+    "installedSha256": "1b0c0f2fe4fd09c452f420b407b4a19e74c6b4ba967f0726fa8b82f546e7eac7",
+    "package": "com.matesoul.game",
+    "zipEntries": 1564,
+    "crcPassed": true,
+    "signatureV2Passed": true,
+    "zipalignPassed": true,
+    "abis": ["arm64-v8a"],
+    "il2cpp": true
+  },
+  "saveProtection": {
+    "beforeInstallSha256": "80017be952f12bcfdbd2e222efae2c37c934501c98efebd2a09a9dd634bd07e5",
+    "afterInstallSha256": "80017be952f12bcfdbd2e222efae2c37c934501c98efebd2a09a9dd634bd07e5",
+    "unchangedDuringInstall": true,
+    "afterStartupSha256": "80017be952f12bcfdbd2e222efae2c37c934501c98efebd2a09a9dd634bd07e5"
+  },
+  "devicePostFix": {
+    "device": "PB3A10MGL9220170B",
+    "pid": 10647,
+    "nativeMeshes": 10,
+    "meshDepthEnabled": true,
+    "environmentDepthAvailable": true,
+    "rawDepthWidth": 512,
+    "processedDepthWidth": 512,
+    "fatalSignalsObserved": [],
+    "businessReadyObservedInUnattendedRun": false,
+    "evidence": "/tmp/matesoul-occlusion-regression-20261025/post-startup-current.log"
+  },
+  "acceptance": {
+    "implementationAndGpuContracts": "passed",
+    "buildAndInstalledArtifact": "passed",
+    "measuredDepthEnabledOnHeadset": "passed",
+    "realFurnitureStereoOcclusion": "pending_headset_visual_observation",
+    "originalLowLookMask": "not_independently_diagnosed",
+    "hudHeight": "pending_headset_visual_observation"
+  },
+  "evidenceDirectory": "/tmp/matesoul-occlusion-regression-20261025"
+}

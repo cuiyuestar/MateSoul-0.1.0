@@ -1,10 +1,11 @@
 using System;
+using MateSoul.Gameplay;
 using UnityEngine;
 
 namespace MateSoul.Runtime
 {
     [DisallowMultipleComponent]
-    public sealed class ElectricKettleController : MonoBehaviour
+    public sealed class ElectricKettleController : MonoBehaviour, IRuntimeWorldFactSource
     {
         public const float BoilDurationSeconds = 60f;
         public const float BoilingTemperatureCelsius = 100f;
@@ -43,6 +44,27 @@ namespace MateSoul.Runtime
         public int ButtonSoundPlayCount { get; private set; }
         public event Action<bool> PowerChanged;
         public event Action<bool> HeatingChanged;
+
+        public bool TryCaptureRuntimeWorldFact(
+            out RuntimeWorldFactSnapshot fact)
+        {
+            if (!powered && !IsDocked &&
+                (water == null || water.CurrentLiters <= MinimumWaterLiters))
+            {
+                fact = null;
+                return false;
+            }
+            var state = heating ? "heating" : powered ? "powered" :
+                IsDocked ? "docked" : "contains-water";
+            fact = RuntimeWorldFact.Create(
+                this,
+                "appliance",
+                state,
+                $"water_ml={Mathf.RoundToInt((water?.CurrentLiters ?? 0) * 1000f)};" +
+                $"temperature_c={Mathf.RoundToInt(water?.CurrentTemperatureCelsius ?? 0)};" +
+                $"progress={Mathf.RoundToInt(HeatingProgress * 100f)}%");
+            return true;
+        }
 
         public void Configure(WaterReceiver receiver, Transform kettleContact,
             ParticleSystem steamEffect, AudioClip beep, AudioClip hum,
@@ -134,12 +156,13 @@ namespace MateSoul.Runtime
                 return;
             }
             if (!heating) return;
-            heatedSeconds = Mathf.Min(
-                BoilDurationSeconds, heatedSeconds + Mathf.Max(0, deltaSeconds));
-            water.SetTemperature(Mathf.Lerp(
-                WaterReceiver.AmbientTemperatureCelsius,
-                BoilingTemperatureCelsius,
-                HeatingProgress));
+            var temperature = Mathf.Min(BoilingTemperatureCelsius,
+                water.CurrentTemperatureCelsius + Mathf.Max(0, deltaSeconds) *
+                (BoilingTemperatureCelsius - WaterReceiver.AmbientTemperatureCelsius) /
+                BoilDurationSeconds);
+            heatedSeconds = Mathf.InverseLerp(WaterReceiver.AmbientTemperatureCelsius,
+                BoilingTemperatureCelsius, temperature) * BoilDurationSeconds;
+            water.SetTemperature(temperature);
             if (heatedSeconds < BoilDurationSeconds) return;
             water.SetTemperature(BoilingTemperatureCelsius);
             SetPower(false);

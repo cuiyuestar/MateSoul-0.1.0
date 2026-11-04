@@ -1,0 +1,8 @@
+{
+  "installedApkSha256": "08ba06dcba77c678e398da6e5fad91d4f3c0be63094a447b2c08de4d76103f69",
+  "defaultApkSha256": "08ba06dcba77c678e398da6e5fad91d4f3c0be63094a447b2c08de4d76103f69",
+  "qemuPid": 71092,
+  "qemuExited": true,
+  "unityExited": true,
+  "sourcePresenterMatchesBuild": true
+}

@@ -1,0 +1,251 @@
+{
+  "firstFrame": 0,
+  "lastFrame": 456,
+  "recordingBytes": 71639740,
+  "hudScopes": [
+    {
+      "frame": 94,
+      "thread": "/Main Thread",
+      "name": "MateSoul.Runtime.dll!MateSoul.Runtime::GameHud.Start() [Invoke]",
+      "durationMs": 134.13113403320312,
+      "descendants": [
+        {
+          "name": "Loading.ReadObject",
+          "index": 17951,
+          "parentIndex": 17822,
+          "durationMs": 93.18449401855469,
+          "metadata": []
+        },
+        {
+          "name": "Loading.LoadRemainingPreallocatedObjects",
+          "index": 18782,
+          "parentIndex": 17951,
+          "durationMs": 55.686790466308594,
+          "metadata": []
+        },
+        {
+          "name": "Loading.ReadObjectThreaded",
+          "index": 17959,
+          "parentIndex": 17951,
+          "durationMs": 36.43333053588867,
+          "metadata": []
+        },
+        {
+          "name": "ReadObjectFromSerializedFile",
+          "index": 17981,
+          "parentIndex": 17959,
+          "durationMs": 36.295040130615234,
+          "metadata": []
+        },
+        {
+          "name": "AsyncReadManager.SyncRequest",
+          "index": 17982,
+          "parentIndex": 17981,
+          "durationMs": 35.92058563232422,
+          "metadata": []
+        },
+        {
+          "name": "File.Read",
+          "index": 17983,
+          "parentIndex": 17982,
+          "durationMs": 35.91779327392578,
+          "metadata": []
+        },
+        {
+          "name": "Loading.ReadObjectThreaded",
+          "index": 18797,
+          "parentIndex": 18782,
+          "durationMs": 32.61045837402344,
+          "metadata": []
+        },
+        {
+          "name": "ReadObjectFromSerializedFile",
+          "index": 18798,
+          "parentIndex": 18797,
+          "durationMs": 32.60749816894531,
+          "metadata": []
+        },
+        {
+          "name": "AsyncReadManager.SyncRequest",
+          "index": 18800,
+          "parentIndex": 18798,
+          "durationMs": 32.570167541503906,
+          "metadata": []
+        },
+        {
+          "name": "File.Read",
+          "index": 18801,
+          "parentIndex": 18800,
+          "durationMs": 32.56862258911133,
+          "metadata": []
+        },
+        {
+          "name": "Loading.ReadObjectThreaded",
+          "index": 18788,
+          "parentIndex": 18782,
+          "durationMs": 23.004623413085938,
+          "metadata": []
+        },
+        {
+          "name": "ReadObjectFromSerializedFile",
+          "index": 18789,
+          "parentIndex": 18788,
+          "durationMs": 23.001876831054688,
+          "metadata": []
+        },
+        {
+          "name": "AsyncReadManager.SyncRequest",
+          "index": 18791,
+          "parentIndex": 18789,
+          "durationMs": 22.89520835876465,
+          "metadata": []
+        },
+        {
+          "name": "File.Read",
+          "index": 18792,
+          "parentIndex": 18791,
+          "durationMs": 22.893207550048828,
+          "metadata": []
+        },
+        {
+          "name": "TMP Parse Text",
+          "index": 26772,
+          "parentIndex": 17822,
+          "durationMs": 4.375792026519775,
+          "metadata": []
+        },
+        {
+          "name": "Loading.ReadObject",
+          "index": 18821,
+          "parentIndex": 17822,
+          "durationMs": 3.8297080993652344,
+          "metadata": []
+        },
+        {
+          "name": "GC.Collect",
+          "index": 26777,
+          "parentIndex": 26772,
+          "durationMs": 3.7801671028137207,
+          "metadata": []
+        },
+        {
+          "name": "GameObject.AddComponent",
+          "index": 19863,
+          "parentIndex": 17822,
+          "durationMs": 3.3415839672088623,
+          "metadata": []
+        },
+        {
+          "name": "UnityEngine.UI.dll!UnityEngine.UI::Image.OnEnable() [Invoke]",
+          "index": 19895,
+          "parentIndex": 19863,
+          "durationMs": 3.281874895095825,
+          "metadata": []
+        },
+        {
+          "name": "Loading.LoadRemainingPreallocatedObjects",
+          "index": 18894,
+          "parentIndex": 18821,
+          "durationMs": 2.072582960128784,
+          "metadata": []
+        },
+        {
+          "name": "GameObject.AddComponent",
+          "index": 19742,
+          "parentIndex": 17822,
+          "durationMs": 1.7991249561309814,
+          "metadata": []
+        },
+        {
+          "name": "TMP.GenerateText",
+          "index": 20557,
+          "parentIndex": 17822,
+          "durationMs": 1.7534159421920776,
+          "metadata": []
+        },
+        {
+          "name": "TMP.ReadFontAssetDefinition",
+          "index": 19247,
+          "parentIndex": 17822,
+          "durationMs": 1.6763750314712524,
+          "metadata": []
+        },
+        {
+          "name": "TMP Parse Text",
+          "index": 22119,
+          "parentIndex": 17822,
+          "durationMs": 1.6407079696655273,
+          "metadata": []
+        },
+        {
+          "name": "TMP.AddSynthesizedCharacters",
+          "index": 19270,
+          "parentIndex": 19247,
+          "durationMs": 1.6344159841537476,
+          "metadata": []
+        },
+        {
+          "name": "TMP.SetArraySizes",
+          "index": 22130,
+          "parentIndex": 22119,
+          "durationMs": 1.6244579553604126,
+          "metadata": []
+        },
+        {
+          "name": "Unity.XR.Interaction.Toolkit.dll!UnityEngine.XR.Interaction.Toolkit.UI::TrackedDeviceGraphicRaycaster.Awake() [Invoke]",
+          "index": 19756,
+          "parentIndex": 19742,
+          "durationMs": 1.6222920417785645,
+          "metadata": []
+        },
+        {
+          "name": "FontEngine.LoadFontFace",
+          "index": 19277,
+          "parentIndex": 19270,
+          "durationMs": 1.5661669969558716,
+          "metadata": []
+        },
+        {
+          "name": "FontEngine.LoadFontFace_From_Memory",
+          "index": 19278,
+          "parentIndex": 19277,
+          "durationMs": 1.4736249446868896,
+          "metadata": []
+        },
+        {
+          "name": "LogStringToConsole",
+          "index": 17838,
+          "parentIndex": 17822,
+          "durationMs": 1.4648330211639404,
+          "metadata": []
+        }
+      ]
+    }
+  ],
+  "inclusiveSamplesDoNotSum": true,
+  "fileReads": [
+    {
+      "index": 17983,
+      "startMs": 279878.346924,
+      "durationMs": 35.91779327392578
+    },
+    {
+      "index": 18792,
+      "startMs": 279914.797216,
+      "durationMs": 22.893207550048828
+    },
+    {
+      "index": 18801,
+      "startMs": 279937.73229899997,
+      "durationMs": 32.56862258911133
+    }
+  ],
+  "fileReadsNonOverlapping": true,
+  "fileReadTotalMs": 91.37962341308594,
+  "profileManagedIntervalsMs": {
+    "after_scene_to_room_start": 10,
+    "hud_total": 134,
+    "hud_font_load": 102
+  },
+  "note": "Single additional diagnostic; 269ms formal font median was not reproduced. File read wall time is not CPU time."
+}

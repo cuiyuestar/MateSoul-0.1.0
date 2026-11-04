@@ -43,6 +43,42 @@ namespace MateSoul.Runtime
             if (!scanner.IsSafe(seat)) return "椅子前方空间不足。";
             var fit = rig.Check(seat);
             if (fit != null) return fit;
+#region debug-point A-C-D-E:seat-navigation-check
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            var debugSampledOk = navigation.TrySample(
+                seat.Dock, .15f, out var debugDock);
+            Vector3[] debugCorners = null;
+            var debugPathOk = debugSampledOk &&
+                              navigation.TryPath(
+                                  motor.Position, debugDock, out debugCorners);
+            var debugCornerJson = debugCorners == null
+                ? ""
+                : string.Join(",", Array.ConvertAll(
+                    debugCorners, value => JsonUtility.ToJson(value)));
+            var debugPayload =
+                $"{{\"sessionId\":\"item-seat-navigation-fail\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"A-C-D-E\",\"location\":\"SitOnChairAction.Check\"," +
+                $"\"msg\":\"[DEBUG] seat navigation check\",\"data\":{{" +
+                $"\"frame\":{Time.frameCount},\"targetId\":\"{targetId}\"," +
+                $"\"origin\":{JsonUtility.ToJson(motor.Position)}," +
+                $"\"seatCenter\":{JsonUtility.ToJson(seat.Center)}," +
+                $"\"seatForward\":{JsonUtility.ToJson(seat.Forward)}," +
+                $"\"seatDock\":{JsonUtility.ToJson(seat.Dock)}," +
+                $"\"floorY\":{seat.FloorY},\"sourceId\":{seat.SourceId}," +
+                $"\"sampledOk\":{debugSampledOk.ToString().ToLowerInvariant()}," +
+                $"\"sampledDock\":{JsonUtility.ToJson(debugDock)}," +
+                $"\"horizontalError\":{(debugSampledOk ? Vector3.ProjectOnPlane(debugDock - seat.Dock, Vector3.up).magnitude : -1)}," +
+                $"\"verticalError\":{(debugSampledOk ? Mathf.Abs(debugDock.y - seat.FloorY) : -1)}," +
+                $"\"pathOk\":{debugPathOk.ToString().ToLowerInvariant()}," +
+                $"\"corners\":[{debugCornerJson}]}}}}";
+            var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                Application.isEditor
+                    ? "http://127.0.0.1:7780/event"
+                    : "http://127.0.0.1:7780/event",
+                debugPayload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
             if (!navigation.TrySample(seat.Dock, .15f, out dock) ||
                 Vector3.ProjectOnPlane(dock - seat.Dock, Vector3.up).magnitude > .10f ||
                 Mathf.Abs(dock.y - seat.FloorY) > .08f)

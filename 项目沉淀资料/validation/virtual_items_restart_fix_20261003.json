@@ -1,0 +1,98 @@
+{
+  "feature": "virtual_items_restart_restore",
+  "date": "2026-10-03",
+  "root_cause": {
+    "anchor_load_failure_left_items_ready_false": true,
+    "catalog_placement_was_permanently_blocked": true,
+    "legacy_save_missing_room_pose": true
+  },
+  "fix": {
+    "anchor_query": {
+      "scope": "all_persisted_anchors_then_match_uuid",
+      "attempts": 6,
+      "delay_ms": 400
+    },
+    "primary_restore": "pico_persisted_spatial_anchor",
+    "fallback_restore": "validated_saved_room_pose",
+    "fallback_checks": [
+      "main_floor_navmesh",
+      "world_position_distance",
+      "oriented_physics_overlap"
+    ],
+    "irrecoverable_legacy_save": "first_catalog_placement_transactionally_starts_new_layout",
+    "save_protection": "unrestored_items_are_not_overwritten_with_empty_list"
+  },
+  "tests": {
+    "report": "/Users/bytedance/MateSoul/.artifacts/framework/unity-tests.xml",
+    "total": 37,
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "restart_position_assertion": true,
+    "temporary_anchor_failure_fallback": true,
+    "legacy_anchor_failure_new_layout": true,
+    "result": "PASS"
+  },
+  "build": {
+    "engine": "Unity 2022.3.38f1",
+    "target": "Android ARM64 IL2CPP",
+    "result": "PASS",
+    "clean_editor_restart_after_trigger_removal": true
+  },
+  "device_runtime": {
+    "platform": "PICO Emulator 6.2.0",
+    "serial": "emulator-5554",
+    "model": "swan_arm64",
+    "avd_or_user_data_cleared": false,
+    "initial_restore": {
+      "item_count": 4,
+      "state": "ready",
+      "path": "validated_saved_room_pose",
+      "visible_items": {
+        "table": 2,
+        "chair": 2
+      },
+      "result": "PASS"
+    },
+    "placement": {
+      "entry": "GameSession.PlaceItemAsync",
+      "definition_id": "table",
+      "item_count_before": 4,
+      "item_count_after": 5,
+      "world_position": [0.096, 0.432, 0.747],
+      "result": "PASS"
+    },
+    "process_restart": {
+      "launch_type": "force_stop_then_cold_start",
+      "restored_item_count": 5,
+      "positions_match": true,
+      "save_sha256_before": "28c62ac422c0df2d536e6798eee4c4e1e4be219f2a5cfa002b2fe44058cb6e09",
+      "save_sha256_after": "28c62ac422c0df2d536e6798eee4c4e1e4be219f2a5cfa002b2fe44058cb6e09",
+      "result": "PASS"
+    },
+    "release_apk_restart": {
+      "validation_bridge_present": false,
+      "ready_item_count": 5,
+      "item_state": "ready",
+      "navmesh_build_ms": 42,
+      "visual_item_restore": true,
+      "result": "PASS"
+    },
+    "result": "PASS"
+  },
+  "emulator_tooling": {
+    "sandbox_direct_launch_error": "HVF error: HV_DENIED",
+    "working_launch": "open /Users/bytedance/MateSoul/scripts/start-pico-emulator.command",
+    "grpc_xr_hand_event": "PICO Emulator 6.2.0 host crash; do not use for regression input"
+  },
+  "compatibility": {
+    "post_fix_saves_have_validated_room_pose": true,
+    "pre_fix_save_requires_surviving_pico_anchor_for_old_item_restore": true,
+    "invalid_legacy_anchor_starts_new_layout_on_catalog_click": true
+  },
+  "apk": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+    "bytes": 79915653,
+    "sha256": "08b8a55455fdd989ef81eea60b39494ac2c29ad45b3acf323df9dbdb62ca3166"
+  }
+}

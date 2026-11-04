@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-25",
+  "failureEvidence": {
+    "device": "PB3A10MGL9220170B",
+    "pid": 12609,
+    "installedSha256": "1b0c0f2fe4fd09c452f420b407b4a19e74c6b4ba967f0726fa8b82f546e7eac7",
+    "sceneCaptureAnchors": 22,
+    "roomLoadedElapsedMs": 400,
+    "navmeshBuiltElapsedMs": 428,
+    "collisionReadyElapsedMs": 1234,
+    "nativeMeshesAtFirstReadiness": 1,
+    "nativeMeshesAfterFailure": 10,
+    "error": "房间内没有可用的角色出生点。",
+    "logReferences": {
+      "firstMesh": "pre-logcat.txt:242600",
+      "spawnSearch": "pre-logcat.txt:242638",
+      "spawnFailure": "pre-logcat.txt:242707",
+      "remainingMeshes": "pre-logcat.txt:242722-242821"
+    }
+  },
+  "rootCause": {
+    "status": "CONFIRMED",
+    "description": "The first measured mesh block completed liveCollisionReady while the remainder of the initial batch was still queued. Startup performed a single spawn search before measured floor support was installed.",
+    "completeMeshRoomSafety": "Still requires headset post-fix observation; current evidence does not prove all complete room snapshots have a valid spawn."
+  },
+  "fix": {
+    "owner": "GameBootstrap.WaitForCharacterSpawnAsync",
+    "deadlineSeconds": 8,
+    "retryIntervalMs": 50,
+    "requiresNativeMesh": true,
+    "requiresPendingBatchDrained": true,
+    "requiresExistingStrictSpawnValidation": true,
+    "firstBlockCompletionSourceRemoved": true,
+    "cancellationSupported": true,
+    "measuredFloorHeightAndNormalThresholdsUnchanged": true,
+    "roomBoundaryAndCollisionValidationUnchanged": true,
+    "measuredVisualOcclusionPreserved": true,
+    "hudDepthIsolationPreserved": true,
+    "hudVerticalOffsetMeters": -0.1
+  },
+  "tests": {
+    "total": 21,
+    "passed": 21,
+    "failed": 0,
+    "realityOcclusionSuite": 14,
+    "roomSurfaceSuite": 7,
+    "wallOnlyReplay": {
+      "candidates": 33,
+      "rejectedWithoutMeasuredFloorSupport": 33,
+      "startupContinuesWaiting": true
+    },
+    "measuredFloorReplay": {
+      "rejectedWithoutMeasuredFloorSupport": 0,
+      "spawnSucceeded": true,
+      "spawnY": 0.529
+    },
+    "timeoutAndCancellationPassed": true,
+    "gpuWorldOcclusionAndHudVisibilityPassed": true,
+    "results": "/tmp/matesoul-spawn-rejection-20261025/spawn-post-regression-3.xml"
+  },
+  "build": {
+    "result": "Succeeded",
+    "duration": "00:03:06.4911818",
+    "latestParallelHandChangesIncluded": true,
+    "protectedFilesChangedDuringFinalBuild": [],
+    "playerSourceChecksumsVerified": [
+      "GameBootstrap.cs",
+      "RealityOcclusionMeshRenderer.cs",
+      "PicoDirectHandInteractor.cs",
+      "PhysicsBody.cs",
+      "PicoHandContactVisual.cs",
+      "GameHud.cs"
+    ],
+    "newSpawnMethodPresentInIl2cpp": true,
+    "obsoleteFirstMeshWaitAbsentFromIl2cpp": true,
+    "log": "/tmp/matesoul-spawn-rejection-20261025/spawn-final-build-2.log"
+  },
+  "artifact": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_MeasuredSpawnReady_20261025.apk",
+    "bytes": 215346246,
+    "sha256": "942af4ccf99b2894a7ec31dedaad2caf60f12f2aa5913cd0802c99d0f4dd2e84",
+    "installedSha256": "942af4ccf99b2894a7ec31dedaad2caf60f12f2aa5913cd0802c99d0f4dd2e84",
+    "zipEntries": 1564,
+    "crcPassed": true,
+    "signatureV2Passed": true,
+    "zipalignPassed": true,
+    "abis": ["arm64-v8a"],
+    "il2cpp": true
+  },
+  "saveProtection": {
+    "beforeInstallSha256": "6233a5dc886f6a53dc0d3d06eaa02710dd5c44726fcdcc102be99a52e6ae6fe0",
+    "afterInstallSha256": "6233a5dc886f6a53dc0d3d06eaa02710dd5c44726fcdcc102be99a52e6ae6fe0",
+    "afterStartupSha256": "6233a5dc886f6a53dc0d3d06eaa02710dd5c44726fcdcc102be99a52e6ae6fe0"
+  },
+  "devicePostFix": {
+    "pid": 14849,
+    "nativeMeshes": 10,
+    "meshDepthEnabled": true,
+    "environmentDepthAvailable": true,
+    "rawDepthWidth": 512,
+    "processedDepthWidth": 512,
+    "roomLoaded": false,
+    "spawnSearchReached": false,
+    "businessReady": false,
+    "wakefulness": "Asleep",
+    "pauseUtc": "2026-10-25T12:09:03.907Z",
+    "limitation": "Unattended headset paused before room loading and spawn verification."
+  },
+  "acceptance": {
+    "controlledSpawnRaceReplay": "passed",
+    "buildAndInstallation": "passed",
+    "headsetSpawnAndReady": "pending_headset_worn_retest",
+    "headsetVisualOcclusion": "pending_headset_worn_retest"
+  },
+  "evidenceDirectory": "/tmp/matesoul-spawn-rejection-20261025"
+}

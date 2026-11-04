@@ -1,0 +1,48 @@
+{
+  "feature": "dining_table_virtual_item",
+  "date": "2026-10-15",
+  "asset_revision": "V002",
+  "asset": {
+    "name": "LavenderGinghamDiningTable_1200x700x755mm",
+    "wood_body_dimensions_m": [1.2, 0.7, 0.75],
+    "visual_dimensions_m": [1.2810323, 0.7711353, 0.7546436],
+    "mesh_count": 10,
+    "vertices": 26898,
+    "triangles": 53756,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "cloth_triangles": 50048,
+    "embedded_glb_images": 3,
+    "glb_sha256": "97c6ca3f53bc101915e0e429d21b13b149e3eaa6b102d098ccde9db69e4aa2be",
+    "fbx_sha256": "4eb4cb0f6ba3f089127ff630f76ff0c63402cba941e86781df9dbaddabc5efcc"
+  },
+  "virtual_item": {
+    "id": "table",
+    "display_name": "餐桌",
+    "catalog_visible": true,
+    "footprint_m": [1.2, 0.7],
+    "placement_height_m": 0.7547,
+    "mass_kg": 18.0,
+    "prefab_sha256": "2344ba44ef99141c441b9143488802a164c01331f81a2f898d55c336c725d38e",
+    "definition_sha256": "258b32b4754b3b4d66e00b10eea370f344937a5fe293dc8acd889194526904c7",
+    "scene_reference_preserved": true,
+    "collision_uses_wood_body_not_cloth": true,
+    "unity_fabric_base_map": true,
+    "unity_fabric_normal_map": true
+  },
+  "unity": {
+    "version": "2022.3.38f1",
+    "scene_build_exit_code": 0,
+    "tests": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "cases": [
+        "MateSoul.Tests.GameRuntimeTests.CatalogPlacementGrabAndFocusUseRegisteredDefinitions",
+        "MateSoul.Tests.GameRuntimeTests.RemovingSupportThenPausingRestoresTheRemainingItemUnderGravity",
+        "MateSoul.Tests.GameRuntimeTests.SurfacePlacementAndReversedSupportOrderRestoreAsOneLayout"
+      ]
+    }
+  }
+}

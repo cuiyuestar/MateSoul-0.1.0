@@ -546,6 +546,14 @@ namespace MateSoul.Editor
                 state.writeDefaultValues = false;
             }
             EditorUtility.SetDirty(controller);
+            var pickups = AssetDatabase.LoadAssetAtPath<PickupAnimationSet>(PickupAnimationBuilder.SetPath);
+            if (pickups)
+            {
+                rig.ConfigurePickups(pickups);
+                PickupAnimationBuilder.BindController(controller, pickups);
+            }
+            if (AssetDatabase.IsValidFolder(ItemUseAnimationBuilder.DirectoryPath))
+                ItemUseAnimationBuilder.BindController(controller);
             EditorUtility.SetDirty(rig);
         }
 

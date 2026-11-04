@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-24",
+  "branch": "feature/real-device-room-capture-20261024",
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RealDevice_20261024.apk",
+  "defaultApk": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+  "bytes": 183001762,
+  "sha256": "8bc2ccdaf4aa9f6fd5b2368faf300a945295673ae6dbcf0b390466ca79c3d56c",
+  "unityVersion": "2022.3.38f1",
+  "build": {
+    "pid": 27331,
+    "exitCode": 0,
+    "seconds": 489.52,
+    "timeout": false,
+    "unityExited": true,
+    "cleanBuildCache": true
+  },
+  "development": true,
+  "scriptingBackend": "IL2CPP",
+  "abis": [
+    "arm64-v8a"
+  ],
+  "zipCrcPassed": true,
+  "signatureVerified": true,
+  "capabilities": {
+    "enable_vst": 1,
+    "enable_anchor": 1,
+    "enable_spatial_anchor": 1,
+    "enable_scene_anchor": 1,
+    "enable_mesh_anchor": 1,
+    "enable_plane_detection": 1,
+    "enable_environment_depth": 1
+  },
+  "permissions": [
+    "android.permission.INTERNET",
+    "android.permission.WRITE_SETTINGS",
+    "com.picovr.permission.EYE_TRACKING",
+    "com.picovr.permission.SPATIAL_DATA",
+    "com.picovr.permission.HAND_TRACKING",
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+    "android.permission.READ_PHONE_STATE",
+    "android.permission.READ_EXTERNAL_STORAGE"
+  ],
+  "deviceIdentityClassIncluded": true,
+  "deviceIdentityLogIncluded": true,
+  "identityRegression": {
+    "passed": 8,
+    "scope": "Android identity simulation with JNI stub",
+    "realHeadsetVerified": false
+  },
+  "protectedAssetSha256": {
+    "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+    "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+    "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553"
+  },
+  "projectSettingsUnchanged": true,
+  "physicalHeadsetVerified": false,
+  "limitations": [
+    "ADB had no connected device during build preparation.",
+    "Room Capture, coordinates and anchor restoration require physical-headset acceptance.",
+    "This Development APK is for functional acceptance; Release still requires an HTTPS gateway."
+  ]
+}

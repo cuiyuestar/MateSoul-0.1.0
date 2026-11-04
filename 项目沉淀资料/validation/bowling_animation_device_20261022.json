@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "platform": "PICO Emulator, Android ARM64 IL2CPP Development",
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+  "sha256": "450b10d2772f42a9435385627fc86707f9115c86dc4893da104cd2ecd256e8e1",
+  "installedHashMatches": true,
+  "phaseSequence": [
+    "PlayerReady",
+    "PlayerRolling",
+    "PlayerResult",
+    "CompanionPlaying",
+    "CompanionRolling",
+    "Winner"
+  ],
+  "playerReleases": 1,
+  "companionScore": 10,
+  "companionFirstHitGameSeconds": 0.385,
+  "companionScoredAtGameSeconds": 5.428,
+  "pickupFailure": false,
+  "actionTimeout": false,
+  "evidence": [
+    "10-22 13:43:54.730 Unity: BOWLING_FIRST_HIT turn=CompanionRolling t=0.385",
+    "10-22 13:44:53.648 Unity: BOWLING_SCORE player=False score=10 hit=0.385 elapsed=5.428",
+    "BowlingGrabDeviceProbe state: phase=Winner, setupComplete=true, setupError='', commandError='', following=false"
+  ],
+  "alignmentValidation": "/Users/bytedance/MateSoul/项目沉淀资料/validation/bowling_animation_20261022.json",
+  "validationScope": "Device test covers complete gameplay. Millimetre alignment and all three pickup tiers are covered by 12 Animator/Physics validation runs; headset visual inspection remains separate."
+}

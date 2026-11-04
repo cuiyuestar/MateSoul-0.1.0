@@ -239,6 +239,12 @@ namespace MateSoul.Wardrobe
                     exception.Message;
                 return false;
             }
+#region debug-point A-E:wardrobe-switch
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            var debugPayload = $"{{\"sessionId\":\"outfit-context-stale\",\"runId\":\"pre-fix\",\"hypothesisId\":\"A,E\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()},\"location\":\"LengyueWardrobeController.TrySwitchOutfit\",\"msg\":\"[DEBUG] wardrobe switch committed\",\"data\":{{\"instanceId\":{GetInstanceID()},\"previous\":\"{previousId}\",\"current\":\"{currentOutfitId}\"}}}}";
+            UnityWebRequest.Post("http://127.0.0.1:7782/event", debugPayload, "application/json").SendWebRequest();
+#endif
+#endregion
             NotifyOutfitChanged();
             error = null;
             return true;

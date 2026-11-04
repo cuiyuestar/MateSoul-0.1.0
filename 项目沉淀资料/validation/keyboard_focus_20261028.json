@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-28",
+  "issue": "PICO native keyboard disappears on the first API Key keystroke",
+  "integration": {
+    "assertionsPassed": 29,
+    "checks": [
+      "Focus acquired: API Key",
+      "Baseline: outside pointer down deselects active field before text input",
+      "Fixture: tracked ray hits actual HUD save control",
+      "Fixture: HUD press is captured before field activation",
+      "Focus acquired: API Key",
+      "Opening keyboard cancels an existing HUD press without a click",
+      "Keystroke preserves focus and blocks both HUD pointers: s",
+      "Keystroke preserves focus and blocks both HUD pointers: k",
+      "Keystroke preserves focus and blocks both HUD pointers: -",
+      "Keystroke preserves focus and blocks both HUD pointers: t",
+      "Keystroke preserves focus and blocks both HUD pointers: e",
+      "Keystroke preserves focus and blocks both HUD pointers: s",
+      "Keystroke preserves focus and blocks both HUD pointers: t",
+      "Keystroke preserves focus and blocks both HUD pointers: -",
+      "Keystroke preserves focus and blocks both HUD pointers: k",
+      "Keystroke preserves focus and blocks both HUD pointers: e",
+      "Keystroke preserves focus and blocks both HUD pointers: y",
+      "First and subsequent characters are retained",
+      "Backspace edits retained text",
+      "Typing cannot hide HUD through menu gesture",
+      "Completion releases input ownership",
+      "Keyboard close cannot replay held pinch or fingertip contact",
+      "Fresh pinch after release clicks HUD once",
+      "Fingertip retreat and new contact clicks HUD once",
+      "Focus acquired: API Key",
+      "Disabling field releases ownership",
+      "Focus acquired: API Key",
+      "Cancel releases ownership",
+      "XR module stays active to drain canceled pointer releases"
+    ],
+    "processSeconds": 22.67,
+    "fixture": "Actual TMP and XRUIInputModule GUI event pipeline in Unity Editor",
+    "sourceSha256": {
+      "Assets/MateSoul/Runtime/GameHud.cs": "fc387b1edaa98826fbfae34d1bd21ac7b95b876c451920df37f1089093845827",
+      "Assets/MateSoul/Runtime/HudEyeHandInteractor.cs": "d6999f8aa163e22a961a53322d2c99ad3c0463b2fca2b6fd1bbab1a54e772df7",
+      "Assets/MateSoul/Runtime/PicoHandPoke.cs": "9139314a7c58852df865ee22b7123b36513a43dcc215ec4272294201436114c9"
+    },
+    "changedSources": []
+  },
+  "existingRegression": {
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "processSeconds": 22.03,
+    "cases": [
+      {
+        "name": "MateSoul.Tests.PlayerAIHudTests.ConfigurationRejectsUnsafeOrLegacyEndpoints(\"http://gateway.example\")",
+        "result": "Passed"
+      },
+      {
+        "name": "MateSoul.Tests.PlayerAIHudTests.ConfigurationRejectsUnsafeOrLegacyEndpoints(\"https://user:secret@gateway.example\")",
+        "result": "Passed"
+      },
+      {
+        "name": "MateSoul.Tests.PlayerAIHudTests.ConfigurationRejectsUnsafeOrLegacyEndpoints(\"https://gateway.example?key=secret\")",
+        "result": "Passed"
+      },
+      {
+        "name": "MateSoul.Tests.PlayerAIHudTests.ConfigurationRejectsUnsafeOrLegacyEndpoints(\"https://gateway.example/v1/conversations/reply\")",
+        "result": "Passed"
+      },
+      {
+        "name": "MateSoul.Tests.PlayerAIHudTests.MissingKeyConfigurationTutorialAndPlacementPreserveHudState",
+        "result": "Passed"
+      }
+    ]
+  },
+  "release": {
+    "operation": "build",
+    "launcherExit": 0,
+    "seconds": 120.76,
+    "completed": true,
+    "changedSources": [],
+    "sourceSha256": {
+      "Assets/MateSoul/Runtime/GameHud.cs": "fc387b1edaa98826fbfae34d1bd21ac7b95b876c451920df37f1089093845827",
+      "Assets/MateSoul/Runtime/HudEyeHandInteractor.cs": "d6999f8aa163e22a961a53322d2c99ad3c0463b2fca2b6fd1bbab1a54e772df7",
+      "Assets/MateSoul/Runtime/PicoHandPoke.cs": "9139314a7c58852df865ee22b7123b36513a43dcc215ec4272294201436114c9"
+    },
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_KeyboardFocusFix_20261028.apk",
+    "bytes": 165772917,
+    "sha256": "ecb71cc1cab7d8fa68d3d015561b5aeec19291858f6be256ab7e83ecb5d7eee3",
+    "sourceInputs": 1815,
+    "changedInputs": [],
+    "crc": "passed",
+    "zipalign": "passed",
+    "signature": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): false\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1\n",
+    "nativeSha256": "aae3c07478fa556b4db52fa71721041bceb81206e107218fd039b696c6032c3e",
+    "keyboardMethodInPlayer": true
+  },
+  "headset": {
+    "connected": false,
+    "installedByThisTask": false,
+    "nativeKeyboardAcceptanceCompleted": false
+  },
+  "limitations": "Actual Unity/TMP/XRI GUI event pipeline; native PICO IME requires headset acceptance.",
+  "preservedBehavior": "GameSession transient pause/focus handling does not cancel Conversation"
+}

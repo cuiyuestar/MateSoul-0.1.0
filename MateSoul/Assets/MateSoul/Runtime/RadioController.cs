@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using MateSoul.Gameplay;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace MateSoul.Runtime
 {
     /// <summary>Owns one radio instance's power, station mixing and seamless loop fades.</summary>
-    public sealed class RadioController : MonoBehaviour
+    public sealed class RadioController : MonoBehaviour, IRuntimeWorldFactSource
     {
         private enum TransitionKind
         {
@@ -63,6 +64,22 @@ namespace MateSoul.Runtime
             : Mathf.Clamp01(transitionElapsed / transitionDuration);
         public event Action<bool> PowerChanged;
         public event Action<int> StationChanged;
+
+        public bool TryCaptureRuntimeWorldFact(
+            out RuntimeWorldFactSnapshot fact)
+        {
+            if (!powered)
+            {
+                fact = null;
+                return false;
+            }
+            fact = RuntimeWorldFact.Create(
+                this,
+                "device",
+                IsTuningTransition ? "tuning" : "playing",
+                $"station={stationIndex + 1};volume={Mathf.RoundToInt(volume * 100f)}%");
+            return true;
+        }
 
         public void Configure(AudioClip[] stationClips, AudioClip staticClip,
             AudioSource first, AudioSource second, AudioSource noise,
@@ -129,6 +146,20 @@ namespace MateSoul.Runtime
                 noiseChannel.volume = 0;
             }
             PowerChanged?.Invoke(powered);
+#region debug-point D:radio-power
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload =
+                $"{{\"sessionId\":\"emulator-memory-growth\",\"runId\":\"interaction-correlation\"," +
+                $"\"hypothesisId\":\"D\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                $"\"location\":\"RadioController.SetPower\",\"msg\":\"[DEBUG] radio power changed\"," +
+                $"\"data\":{{\"powered\":{powered.ToString().ToLowerInvariant()}," +
+                $"\"station\":{stationIndex}}}}}";
+            var request = UnityWebRequest.Post(
+                "http://127.0.0.1:7791/event", payload, "application/json");
+            var operation = request.SendWebRequest();
+            operation.completed += _ => request.Dispose();
+#endif
+#endregion
         }
 
         public void SetTuning(float value)

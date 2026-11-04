@@ -1,0 +1,90 @@
+{
+  "platform": "Unity 2022.3.38f1 / PICO Unity SDK / Android ARM64 IL2CPP",
+  "acceptance": {
+    "type": "production prefab, GameSession, real PhysX, controlled input samples",
+    "passed": 26,
+    "failed": 0,
+    "avatarColliderCount": 69,
+    "fitMillisecondsEditorSingleRun": 67,
+    "headBone": "Head 1",
+    "contactOffsetMeters": 0.002,
+    "handSensorCount": 17,
+    "gentleSpineAngleDegrees": 1.455861,
+    "gentleRootDeltaMeters": 0.0000003617536,
+    "strongStepDeltaMeters": 0.02474829,
+    "leftFootLiftMeters": 0.02496773,
+    "rightFootLiftMeters": 0.02496642,
+    "gentleItemSpeedMetersPerSecond": 0.0479808,
+    "extremeItemSpeedMetersPerSecond": 0.54978,
+    "aggregatedSingleImpulseSpeedMetersPerSecond": 0.04998,
+    "originalHandholdSocketsRestored": true,
+    "productionIKActionStarts": true,
+    "heldArmOwnershipPreserved": true,
+    "ambientAttentionYields": true,
+    "relaxedNearGripAcquires": true,
+    "relaxedHoldSurvives": true,
+    "briefTrackingLossSurvives": true,
+    "longTrackingLossReleases": true,
+    "openFlickerSurvives": true,
+    "clearOpenReleases": true,
+    "farClenchDoesNotVacuum": true,
+    "immovableBodyRemainsFixed": true,
+    "contactsAggregateOnce": true,
+    "userSaveTouched": false,
+    "sourceEvidence": "/tmp/matesoul-hand-comfort-20261024/validation.txt"
+  },
+  "regression": {
+    "total": 25,
+    "passed": 25,
+    "failed": 0,
+    "skipped": 0,
+    "suites": [
+      "HandHoldTests",
+      "GripGrabTests",
+      "PhysicsRuntimeTests",
+      "RealityOcclusionTests",
+      "RoomNavigationSurfaceMeshTests"
+    ],
+    "sourceEvidence": "/tmp/matesoul-hand-comfort-20261024/regression-tests.xml"
+  },
+  "apk": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_HandComfort_20261024.apk",
+    "bytes": 215490357,
+    "sha256": "a7dd75abf3b34a63e1c04f12816cffb3b492f930f4aa911deb2d72c37c85f5de",
+    "buildDuration": "00:05:03.4377980",
+    "signatureV2Verified": true,
+    "zipCRC": true,
+    "zipEntries": 1564,
+    "arm64": true,
+    "il2cppMetadata": true,
+    "il2cppBinaryMatchesBuild": true,
+    "mrSafeguard": 1,
+    "taskSourcesVerified": 8,
+    "taskSourcesMatchBuildStart": true,
+    "protectedAssetsUnchanged": true,
+    "protectedAssetsCount": 25,
+    "concurrentRoomGeometryWorkNewerThanThisBuild": [
+      "GameSession.cs",
+      "RealityMeshSource.cs",
+      "RuntimeRoomNavigation.cs"
+    ]
+  },
+  "deviceInstalled": true,
+  "installation": {
+    "date": "2026-10-25",
+    "device": "PB3A10MGL9220170B",
+    "package": "com.matesoul.game",
+    "installedSha256": "a7dd75abf3b34a63e1c04f12816cffb3b492f930f4aa911deb2d72c37c85f5de",
+    "saveBefore": "b956344702cc90fbd79e1678045d3dce4c60d60cb722dffe05ece88f042f21fa",
+    "saveAfter": "b956344702cc90fbd79e1678045d3dce4c60d60cb722dffe05ece88f042f21fa",
+    "saveUnchanged": true,
+    "launched": false
+  },
+  "humanFeelAcceptance": false,
+  "limits": [
+    "No final headset input and feel acceptance yet",
+    "Collider fit is an inset approximation, not exact animated skin collision",
+    "Constrained springs and procedural feet are not a complete human biomechanics simulation",
+    "Moving clothes, animator composition and headset performance require device acceptance"
+  ]
+}

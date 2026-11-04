@@ -1,0 +1,447 @@
+{
+  "method": "Subtract adjacent actual timing markers in each run, then aggregate the durations. Native milestones delimit wall-clock intervals, not exclusive CPU costs.",
+  "runs": [
+    {
+      "run_id": "optimized-1",
+      "ready_total_ms": 12102,
+      "android_to_engine_ms": 601,
+      "engine_to_bootstrap_ms": 5127,
+      "bootstrap_to_room_load_start_ms": 27,
+      "room_load_ms": 5988,
+      "mesh_query_count": 12,
+      "mesh_api_calls_total_ms": 343,
+      "mesh_between_queries_total_ms": 5597,
+      "mesh_nominal_delay_ms": 5500,
+      "mesh_snapshot_build_validate_ms": 14,
+      "anchor_total_ms": 2095,
+      "restore_anchor_wait_ms": 0,
+      "startup_setup_ms": 16,
+      "occlusion_apply_ms": 13,
+      "navmesh_build_ms": 34,
+      "avatar_bind_ms": 9,
+      "session_assembly_ms": 99,
+      "audio_bind_ms": 2,
+      "world_configuration_ms": 181,
+      "pause_setup_ms": 2,
+      "restore_total_ms": 18,
+      "restore_processing_ms": 18,
+      "engine_to_xr_focused_ms": 2357,
+      "xr_focused_to_manager_awake_ms": 2513,
+      "manager_awake_to_bootstrap_ms": 257
+    },
+    {
+      "run_id": "optimized-2",
+      "ready_total_ms": 10231,
+      "android_to_engine_ms": 2971,
+      "engine_to_bootstrap_ms": 4853,
+      "bootstrap_to_room_load_start_ms": 8,
+      "room_load_ms": 2155,
+      "mesh_query_count": 5,
+      "mesh_api_calls_total_ms": 75,
+      "mesh_between_queries_total_ms": 2059,
+      "mesh_nominal_delay_ms": 2000,
+      "mesh_snapshot_build_validate_ms": 10,
+      "anchor_total_ms": 2048,
+      "restore_anchor_wait_ms": 0,
+      "startup_setup_ms": 4,
+      "occlusion_apply_ms": 6,
+      "navmesh_build_ms": 28,
+      "avatar_bind_ms": 5,
+      "session_assembly_ms": 76,
+      "audio_bind_ms": 0,
+      "world_configuration_ms": 119,
+      "pause_setup_ms": 0,
+      "restore_total_ms": 9,
+      "restore_processing_ms": 9,
+      "engine_to_xr_focused_ms": 2375,
+      "xr_focused_to_manager_awake_ms": 2310,
+      "manager_awake_to_bootstrap_ms": 168
+    },
+    {
+      "run_id": "optimized-3",
+      "ready_total_ms": 10260,
+      "android_to_engine_ms": 3276,
+      "engine_to_bootstrap_ms": 4917,
+      "bootstrap_to_room_load_start_ms": 14,
+      "room_load_ms": 1085,
+      "mesh_query_count": 3,
+      "mesh_api_calls_total_ms": 39,
+      "mesh_between_queries_total_ms": 1018,
+      "mesh_nominal_delay_ms": 1000,
+      "mesh_snapshot_build_validate_ms": 9,
+      "anchor_total_ms": 2048,
+      "restore_anchor_wait_ms": 710,
+      "startup_setup_ms": 6,
+      "occlusion_apply_ms": 5,
+      "navmesh_build_ms": 31,
+      "avatar_bind_ms": 5,
+      "session_assembly_ms": 80,
+      "audio_bind_ms": 1,
+      "world_configuration_ms": 123,
+      "pause_setup_ms": 1,
+      "restore_total_ms": 721,
+      "restore_processing_ms": 11,
+      "engine_to_xr_focused_ms": 2621,
+      "xr_focused_to_manager_awake_ms": 2082,
+      "manager_awake_to_bootstrap_ms": 214
+    },
+    {
+      "run_id": "optimized-4",
+      "ready_total_ms": 10296,
+      "android_to_engine_ms": 1923,
+      "engine_to_bootstrap_ms": 4853,
+      "bootstrap_to_room_load_start_ms": 12,
+      "room_load_ms": 3203,
+      "mesh_query_count": 7,
+      "mesh_api_calls_total_ms": 109,
+      "mesh_between_queries_total_ms": 3068,
+      "mesh_nominal_delay_ms": 3000,
+      "mesh_snapshot_build_validate_ms": 12,
+      "anchor_total_ms": 2046,
+      "restore_anchor_wait_ms": 0,
+      "startup_setup_ms": 7,
+      "occlusion_apply_ms": 7,
+      "navmesh_build_ms": 35,
+      "avatar_bind_ms": 6,
+      "session_assembly_ms": 92,
+      "audio_bind_ms": 0,
+      "world_configuration_ms": 149,
+      "pause_setup_ms": 1,
+      "restore_total_ms": 13,
+      "restore_processing_ms": 13,
+      "engine_to_xr_focused_ms": 2171,
+      "xr_focused_to_manager_awake_ms": 2507,
+      "manager_awake_to_bootstrap_ms": 175
+    },
+    {
+      "run_id": "optimized-5",
+      "ready_total_ms": 12277,
+      "android_to_engine_ms": 2909,
+      "engine_to_bootstrap_ms": 4859,
+      "bootstrap_to_room_load_start_ms": 11,
+      "room_load_ms": 4247,
+      "mesh_query_count": 9,
+      "mesh_api_calls_total_ms": 140,
+      "mesh_between_queries_total_ms": 4089,
+      "mesh_nominal_delay_ms": 4000,
+      "mesh_snapshot_build_validate_ms": 9,
+      "anchor_total_ms": 2044,
+      "restore_anchor_wait_ms": 0,
+      "startup_setup_ms": 5,
+      "occlusion_apply_ms": 5,
+      "navmesh_build_ms": 31,
+      "avatar_bind_ms": 7,
+      "session_assembly_ms": 80,
+      "audio_bind_ms": 1,
+      "world_configuration_ms": 117,
+      "pause_setup_ms": 0,
+      "restore_total_ms": 9,
+      "restore_processing_ms": 9,
+      "engine_to_xr_focused_ms": 2299,
+      "xr_focused_to_manager_awake_ms": 2372,
+      "manager_awake_to_bootstrap_ms": 188
+    }
+  ],
+  "summary": {
+    "ready_total_ms": {
+      "median": 10296,
+      "min": 10231,
+      "max": 12277,
+      "values": [
+        12102,
+        10231,
+        10260,
+        10296,
+        12277
+      ]
+    },
+    "android_to_engine_ms": {
+      "median": 2909,
+      "min": 601,
+      "max": 3276,
+      "values": [
+        601,
+        2971,
+        3276,
+        1923,
+        2909
+      ]
+    },
+    "engine_to_bootstrap_ms": {
+      "median": 4859,
+      "min": 4853,
+      "max": 5127,
+      "values": [
+        5127,
+        4853,
+        4917,
+        4853,
+        4859
+      ]
+    },
+    "bootstrap_to_room_load_start_ms": {
+      "median": 12,
+      "min": 8,
+      "max": 27,
+      "values": [
+        27,
+        8,
+        14,
+        12,
+        11
+      ]
+    },
+    "room_load_ms": {
+      "median": 3203,
+      "min": 1085,
+      "max": 5988,
+      "values": [
+        5988,
+        2155,
+        1085,
+        3203,
+        4247
+      ]
+    },
+    "mesh_query_count": {
+      "median": 7,
+      "min": 3,
+      "max": 12,
+      "values": [
+        12,
+        5,
+        3,
+        7,
+        9
+      ]
+    },
+    "mesh_api_calls_total_ms": {
+      "median": 109,
+      "min": 39,
+      "max": 343,
+      "values": [
+        343,
+        75,
+        39,
+        109,
+        140
+      ]
+    },
+    "mesh_between_queries_total_ms": {
+      "median": 3068,
+      "min": 1018,
+      "max": 5597,
+      "values": [
+        5597,
+        2059,
+        1018,
+        3068,
+        4089
+      ]
+    },
+    "mesh_nominal_delay_ms": {
+      "median": 3000,
+      "min": 1000,
+      "max": 5500,
+      "values": [
+        5500,
+        2000,
+        1000,
+        3000,
+        4000
+      ]
+    },
+    "mesh_snapshot_build_validate_ms": {
+      "median": 10,
+      "min": 9,
+      "max": 14,
+      "values": [
+        14,
+        10,
+        9,
+        12,
+        9
+      ]
+    },
+    "anchor_total_ms": {
+      "median": 2048,
+      "min": 2044,
+      "max": 2095,
+      "values": [
+        2095,
+        2048,
+        2048,
+        2046,
+        2044
+      ]
+    },
+    "restore_anchor_wait_ms": {
+      "median": 0,
+      "min": 0,
+      "max": 710,
+      "values": [
+        0,
+        0,
+        710,
+        0,
+        0
+      ]
+    },
+    "startup_setup_ms": {
+      "median": 6,
+      "min": 4,
+      "max": 16,
+      "values": [
+        16,
+        4,
+        6,
+        7,
+        5
+      ]
+    },
+    "occlusion_apply_ms": {
+      "median": 6,
+      "min": 5,
+      "max": 13,
+      "values": [
+        13,
+        6,
+        5,
+        7,
+        5
+      ]
+    },
+    "navmesh_build_ms": {
+      "median": 31,
+      "min": 28,
+      "max": 35,
+      "values": [
+        34,
+        28,
+        31,
+        35,
+        31
+      ]
+    },
+    "avatar_bind_ms": {
+      "median": 6,
+      "min": 5,
+      "max": 9,
+      "values": [
+        9,
+        5,
+        5,
+        6,
+        7
+      ]
+    },
+    "session_assembly_ms": {
+      "median": 80,
+      "min": 76,
+      "max": 99,
+      "values": [
+        99,
+        76,
+        80,
+        92,
+        80
+      ]
+    },
+    "audio_bind_ms": {
+      "median": 1,
+      "min": 0,
+      "max": 2,
+      "values": [
+        2,
+        0,
+        1,
+        0,
+        1
+      ]
+    },
+    "world_configuration_ms": {
+      "median": 123,
+      "min": 117,
+      "max": 181,
+      "values": [
+        181,
+        119,
+        123,
+        149,
+        117
+      ]
+    },
+    "pause_setup_ms": {
+      "median": 1,
+      "min": 0,
+      "max": 2,
+      "values": [
+        2,
+        0,
+        1,
+        1,
+        0
+      ]
+    },
+    "restore_total_ms": {
+      "median": 13,
+      "min": 9,
+      "max": 721,
+      "values": [
+        18,
+        9,
+        721,
+        13,
+        9
+      ]
+    },
+    "restore_processing_ms": {
+      "median": 11,
+      "min": 9,
+      "max": 18,
+      "values": [
+        18,
+        9,
+        11,
+        13,
+        9
+      ]
+    },
+    "engine_to_xr_focused_ms": {
+      "median": 2357,
+      "min": 2171,
+      "max": 2621,
+      "values": [
+        2357,
+        2375,
+        2621,
+        2171,
+        2299
+      ]
+    },
+    "xr_focused_to_manager_awake_ms": {
+      "median": 2372,
+      "min": 2082,
+      "max": 2513,
+      "values": [
+        2513,
+        2310,
+        2082,
+        2507,
+        2372
+      ]
+    },
+    "manager_awake_to_bootstrap_ms": {
+      "median": 188,
+      "min": 168,
+      "max": 257,
+      "values": [
+        257,
+        168,
+        214,
+        175,
+        188
+      ]
+    }
+  }
+}

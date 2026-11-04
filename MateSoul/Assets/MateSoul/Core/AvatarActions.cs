@@ -19,7 +19,7 @@ namespace MateSoul.Core
         FullBody = Body | LeftArm | RightArm
     }
 
-    public enum IntentSource { Ambient, Autonomous, AI, UI, Player, System }
+    public enum IntentSource { Ambient, Autonomous, AI, UI, Player, System, Contact }
     public enum ActionState { Queued, Running, Cancelling, Succeeded, Cancelled, Failed, Rejected }
     public enum ActionProgress { Running, Succeeded }
     public enum ActionStopReason { None, Requested, Preempted, Timeout, TargetLost, Paused, SessionEnded }

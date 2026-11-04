@@ -16,6 +16,8 @@ namespace MateSoul.Runtime
         private ItemDefinition definition;
         private ItemInteractionFocusTarget[] focusTargets =
             Array.Empty<ItemInteractionFocusTarget>();
+        private IRuntimeWorldFactSource[] worldFactSources =
+            Array.Empty<IRuntimeWorldFactSource>();
         private readonly Dictionary<Renderer, Material[]> recycleBaseMaterials =
             new Dictionary<Renderer, Material[]>();
         private Material recycleFocusMaterial;
@@ -66,6 +68,24 @@ namespace MateSoul.Runtime
             if (lease == null || !lease.IsValid || lease.InteractionId != Instance.InteractionId ||
                 !IsReserved) throw new InvalidOperationException("物品预约已失效。");
             var id = lease.InteractionId;
+#region debug-point C-D-E:stabilize-before
+#if UNITY_EDITOR
+            var debugBeforePayload =
+                $"{{\"sessionId\":\"low-reach-table-fall\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"C-D-E\",\"location\":\"GameItem.Stabilize.Before\"," +
+                $"\"msg\":\"[DEBUG] item before stabilize\",\"data\":{{" +
+                $"\"item\":\"{definition.Id}\",\"pose\":{JsonUtility.ToJson(Body.Pose.position)}," +
+                $"\"stablePose\":{JsonUtility.ToJson(stablePose.position)}," +
+                $"\"kinematic\":{Body.Rigidbody.isKinematic.ToString().ToLowerInvariant()}," +
+                $"\"gravity\":{Body.Rigidbody.useGravity.ToString().ToLowerInvariant()}," +
+                $"\"detectCollisions\":{Body.Rigidbody.detectCollisions.ToString().ToLowerInvariant()}," +
+                $"\"support\":{Body.HasSupport().ToString().ToLowerInvariant()}," +
+                $"\"control\":\"{Instance.ControlState}\"}}}}";
+            var debugBeforeRequest = UnityWebRequest.Post(
+                "http://127.0.0.1:7777/event", debugBeforePayload, "application/json");
+            debugBeforeRequest.SendWebRequest().completed += _ => debugBeforeRequest.Dispose();
+#endif
+#endregion
             if (interactionReleaseOwner != id)
             {
                 interactionReleaseOwner = id;
@@ -82,6 +102,23 @@ namespace MateSoul.Runtime
             LastInteractionReleaseRotationDelta = 0;
             Body.BeginInteraction(id);
             if (obstacle != null && !fixedAfterPlacement) obstacle.enabled = false;
+#region debug-point C-E:stabilize-after
+#if UNITY_EDITOR
+            var debugAfterPayload =
+                $"{{\"sessionId\":\"low-reach-table-fall\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"C-E\",\"location\":\"GameItem.Stabilize.After\"," +
+                $"\"msg\":\"[DEBUG] item after stabilize\",\"data\":{{" +
+                $"\"item\":\"{definition.Id}\",\"pose\":{JsonUtility.ToJson(Body.Pose.position)}," +
+                $"\"kinematic\":{Body.Rigidbody.isKinematic.ToString().ToLowerInvariant()}," +
+                $"\"gravity\":{Body.Rigidbody.useGravity.ToString().ToLowerInvariant()}," +
+                $"\"detectCollisions\":{Body.Rigidbody.detectCollisions.ToString().ToLowerInvariant()}," +
+                $"\"support\":{Body.HasSupport().ToString().ToLowerInvariant()}," +
+                $"\"controlled\":{Body.IsInteractionControlled.ToString().ToLowerInvariant()}}}}}";
+            var debugAfterRequest = UnityWebRequest.Post(
+                "http://127.0.0.1:7777/event", debugAfterPayload, "application/json");
+            debugAfterRequest.SendWebRequest().completed += _ => debugAfterRequest.Dispose();
+#endif
+#endregion
         }
 
         public void CheckpointInteraction()
@@ -134,6 +171,7 @@ namespace MateSoul.Runtime
             stablePose = new Pose(transform.position, transform.rotation);
             obstacle = GetComponent<NavMeshObstacle>();
 
+            RuntimeColliderRefiner.Ensure(gameObject);
             Body = GetComponent<PhysicsBody>() ?? gameObject.AddComponent<PhysicsBody>();
             Body.Configure(content.Physics);
             if (cuttable != null)
@@ -142,8 +180,16 @@ namespace MateSoul.Runtime
             Body.Rigidbody.useGravity =
                 content.PlacementSurface != ItemPlacementSurface.Wall;
             Body.Place(new Pose(transform.position, transform.rotation));
+            if (!fixedAfterPlacement && ItemGripAnchor.Supports(content.Interaction))
+            {
+                var grip = GetComponent<ItemGripAnchor>() ?? gameObject.AddComponent<ItemGripAnchor>();
+                grip.Configure(content.Interaction);
+            }
             grab = GetComponent<PhysicsGrabInteractable>() ?? gameObject.AddComponent<PhysicsGrabInteractable>();
+            var enableGrab = grab.enabled;
+            grab.enabled = false;
             grab.useDynamicAttach = true;
+            grab.selectMode = InteractableSelectMode.Multiple;
             grab.throwOnDetach = false;
             grab.colliders.Clear();
             foreach (var itemCollider in Body.Shapes) grab.colliders.Add(itemCollider);
@@ -152,6 +198,7 @@ namespace MateSoul.Runtime
             grab.selectEntered.AddListener(OnSelected);
             grab.selectExited.AddListener(OnReleased);
             grab.PlayerGrabbable = !fixedAfterPlacement;
+            grab.enabled = enableGrab;
             if (content.ImmovableAfterPlacement)
                 Body.SetContact(true);
             if (fixedAfterPlacement && obstacle != null) obstacle.enabled = true;
@@ -182,13 +229,70 @@ namespace MateSoul.Runtime
             }
 
             ResolveFocusTargets();
+            worldFactSources = GetComponentsInChildren<MonoBehaviour>(true)
+                .OfType<IRuntimeWorldFactSource>().ToArray();
+#region debug-point C:grab-bind
+#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var bindPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
+                              $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                              $"\"location\":\"GameItem.Bind\",\"msg\":\"[DEBUG] grab interactable bound\"," +
+                              $"\"data\":{{\"id\":\"{Instance.Id}\",\"definition\":\"{definition.Id}\"," +
+                              $"\"grabEnabled\":{grab.isActiveAndEnabled.ToString().ToLowerInvariant()}," +
+                              $"\"manager\":{(grab.interactionManager != null).ToString().ToLowerInvariant()}," +
+                              $"\"colliders\":{GetComponentsInChildren<Collider>(true).Length}," +
+                              $"\"focusTargets\":{focusTargets.Length}" + "}}";
+            UnityWebRequest.Post("http://127.0.0.1:7782/event", bindPayload, "application/json")
+                .SendWebRequest();
+#endif
+#endregion
+        }
+
+        internal void CaptureRuntimeWorldFacts(
+            List<RuntimeWorldFactSnapshot> facts, int limit)
+        {
+            if (facts == null) throw new ArgumentNullException(nameof(facts));
+            foreach (var source in worldFactSources)
+            {
+                if (facts.Count >= limit) return;
+                if (source != null &&
+                    source.TryCaptureRuntimeWorldFact(out var fact) &&
+                    fact != null)
+                    facts.Add(fact);
+            }
         }
 
         public void SetFocused(bool value)
         {
             if (IsHeld || IsReserved) value = false;
+#region debug-point B:focus-material
+#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var focusPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
+                               $"\"hypothesisId\":\"B\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                               $"\"location\":\"GameItem.SetFocused\",\"msg\":\"[DEBUG] interaction focus apply\"," +
+                               $"\"data\":{{\"id\":\"{Instance?.Id ?? "none"}\"," +
+                               $"\"requested\":{value.ToString().ToLowerInvariant()}," +
+                               $"\"held\":{IsHeld.ToString().ToLowerInvariant()}," +
+                               $"\"targets\":{focusTargets.Length}" + "}}";
+            UnityWebRequest.Post("http://127.0.0.1:7782/event", focusPayload, "application/json")
+                .SendWebRequest();
+#endif
+#endregion
             foreach (var target in focusTargets)
                 if (target != null) target.SetFocused(value);
+#region debug-point B:item-focus
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload =
+                $"{{\"sessionId\":\"emulator-memory-growth\",\"runId\":\"interaction-correlation\"," +
+                $"\"hypothesisId\":\"B\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                $"\"location\":\"GameItem.SetFocused\",\"msg\":\"[DEBUG] item focus changed\"," +
+                $"\"data\":{{\"definition\":\"{definition?.Id ?? "none"}\",\"focused\":" +
+                $"{value.ToString().ToLowerInvariant()},\"targets\":{focusTargets.Length}}}}}";
+            var request = UnityWebRequest.Post(
+                "http://127.0.0.1:7791/event", payload, "application/json");
+            var operation = request.SendWebRequest();
+            operation.completed += _ => request.Dispose();
+#endif
+#endregion
         }
 
         public void SetRecycleFocused(bool value)
@@ -261,20 +365,95 @@ namespace MateSoul.Runtime
 
         private void OnHoverEntered(HoverEnterEventArgs args)
         {
+#region debug-point C:grab-hover-enter
+#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var hoverPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
+                               $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                               $"\"location\":\"GameItem.OnHoverEntered\",\"msg\":\"[DEBUG] grab hover entered\"," +
+                               $"\"data\":{{\"id\":\"{Instance.Id}\"," +
+                               $"\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"" + "}}";
+            UnityWebRequest.Post("http://127.0.0.1:7782/event", hoverPayload, "application/json")
+                .SendWebRequest();
+#endif
+#endregion
         }
 
         private void OnHoverExited(HoverExitEventArgs args)
         {
+#region debug-point C:grab-hover-exit
+#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var hoverPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
+                               $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                               $"\"location\":\"GameItem.OnHoverExited\",\"msg\":\"[DEBUG] grab hover exited\"," +
+                               $"\"data\":{{\"id\":\"{Instance.Id}\"," +
+                               $"\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"" + "}}";
+            UnityWebRequest.Post("http://127.0.0.1:7782/event", hoverPayload, "application/json")
+                .SendWebRequest();
+#endif
+#endregion
         }
 
         private void OnSelected(SelectEnterEventArgs args)
         {
+#region debug-point C:grab-select
+#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var rayInteractor = args.interactorObject as XRRayInteractor;
+            var cameraTransform = Camera.main == null ? null : Camera.main.transform;
+            var selectPayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
+                                $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                                $"\"location\":\"GameItem.OnSelected\",\"msg\":\"[DEBUG] grab select entered\"," +
+                                $"\"data\":{{\"id\":\"{Instance.Id}\"," +
+                                $"\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"," +
+                                $"\"forceGrab\":{(rayInteractor != null && rayInteractor.useForceGrab).ToString().ToLowerInvariant()}," +
+                                $"\"cameraDistance\":{(cameraTransform == null ? -1f : Vector3.Distance(transform.position, cameraTransform.position))}" +
+                                "}}";
+            UnityWebRequest.Post("http://127.0.0.1:7782/event", selectPayload, "application/json")
+                .SendWebRequest();
+#endif
+#endregion
             SetFocused(false);
             if (obstacle != null) obstacle.enabled = false;
+#region debug-point B:item-grab
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload =
+                $"{{\"sessionId\":\"emulator-memory-growth\",\"runId\":\"interaction-correlation\"," +
+                $"\"hypothesisId\":\"B\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                $"\"location\":\"GameItem.OnSelected\",\"msg\":\"[DEBUG] item grabbed\"," +
+                $"\"data\":{{\"definition\":\"{definition.Id}\"}}}}";
+            var request = UnityWebRequest.Post(
+                "http://127.0.0.1:7791/event", payload, "application/json");
+            var operation = request.SendWebRequest();
+            operation.completed += _ => request.Dispose();
+#endif
+#endregion
         }
 
         private void OnReleased(SelectExitEventArgs args)
         {
+#region debug-point C:grab-release
+#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var releasePayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
+                                 $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                                 $"\"location\":\"GameItem.OnReleased\",\"msg\":\"[DEBUG] grab select exited\"," +
+                                 $"\"data\":{{\"id\":\"{Instance.Id}\"," +
+                                 $"\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"" + "}}";
+            UnityWebRequest.Post("http://127.0.0.1:7782/event", releasePayload, "application/json")
+                .SendWebRequest();
+#endif
+#endregion
+#region debug-point B:item-release
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload =
+                $"{{\"sessionId\":\"emulator-memory-growth\",\"runId\":\"interaction-correlation\"," +
+                $"\"hypothesisId\":\"B\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                $"\"location\":\"GameItem.OnReleased\",\"msg\":\"[DEBUG] item released\"," +
+                $"\"data\":{{\"definition\":\"{definition.Id}\"}}}}";
+            var request = UnityWebRequest.Post(
+                "http://127.0.0.1:7791/event", payload, "application/json");
+            var operation = request.SendWebRequest();
+            operation.completed += _ => request.Dispose();
+#endif
+#endregion
         }
 
         private void Update()

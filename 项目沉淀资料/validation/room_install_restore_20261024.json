@@ -1,0 +1,73 @@
+{
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RoomAnchorAndFloor_20261024.apk",
+  "sha256": "c4b3ba300acaf243ae4fbcdf01b087d6817bdd70571c3c14f672aa5ccc007096",
+  "installedHash": "c4b3ba300acaf243ae4fbcdf01b087d6817bdd70571c3c14f672aa5ccc007096",
+  "saveBefore": "b956344702cc90fbd79e1678045d3dce4c60d60cb722dffe05ece88f042f21fa",
+  "saveAfter": "b956344702cc90fbd79e1678045d3dce4c60d60cb722dffe05ece88f042f21fa",
+  "crcVerified": true,
+  "mrSafeguard": 1,
+  "protectedAssetsUnchanged": true,
+  "currentSourcesVerified": true,
+  "supportReplay": {
+    "passed": true,
+    "invisibleFloorColliders": 1,
+    "sourceSavedItems": 10,
+    "restoredItems": 3,
+    "recoveredUnits": 7,
+    "runtimeFallenRecycle": true,
+    "inventoryConserved": true,
+    "userSaveTouched": false
+  },
+  "anchorRequeryReplay": {
+    "passed": true,
+    "invisibleFloorColliders": 1,
+    "sourceSavedItems": 10,
+    "restoredItems": 3,
+    "recoveredUnits": 7,
+    "runtimeFallenRecycle": true,
+    "inventoryConserved": true,
+    "failedPrefetchRequeried": true,
+    "historicalWorldPoseRejected": true,
+    "userSaveTouched": false
+  },
+  "regression": {
+    "total": 13,
+    "passed": 12,
+    "failed": 1,
+    "knownPreexistingFailure": "missing定义构造失败"
+  },
+  "finalDeviceCapture": [
+    {
+      "seconds": 10,
+      "wake": "Asleep",
+      "ready": null
+    },
+    {
+      "seconds": 20,
+      "wake": "Asleep",
+      "ready": null
+    },
+    {
+      "seconds": 30,
+      "wake": "Asleep",
+      "ready": null
+    },
+    {
+      "seconds": 40,
+      "wake": "Asleep",
+      "ready": null
+    },
+    {
+      "seconds": 50,
+      "wake": "Asleep",
+      "ready": null
+    },
+    {
+      "seconds": 60,
+      "wake": "Asleep",
+      "ready": null
+    }
+  ],
+  "fullDeviceAcceptance": false,
+  "finalInstalledHash": "c4b3ba300acaf243ae4fbcdf01b087d6817bdd70571c3c14f672aa5ccc007096"
+}

@@ -15,6 +15,15 @@ namespace MateSoul.Runtime
         private const float MaximumForearmRoll = 75f;
         private const float MaximumWristCorrection = 55f;
         [SerializeField] private Animator animator;
+        [SerializeField] private PickupAnimationSet pickupAnimations;
+        private PickupPerformance authoredPickup;
+        private ItemUseAnimation authoredUse;
+        private bool pickupPlacement;
+        private Vector3 pickupContactCorrection;
+        private float pickupLiftCorrectionWeight;
+        [SerializeField] private float pickupLeftAnkleHeight = .1f;
+        [SerializeField] private float pickupRightAnkleHeight = .1f;
+        public PickupAnimationSet PickupAnimations => pickupAnimations;
         [SerializeField] private Transform upper, elbow, hand, index, middle, pinky;
         [SerializeField] private Transform leftUpper, leftElbow, leftHand;
         [SerializeField] private Transform leftIndex, leftMiddle, leftPinky;
@@ -50,6 +59,26 @@ namespace MateSoul.Runtime
         private ItemMotion debugMotion;
         private float debugProgress = -1;
         private int debugPoseReports;
+#region debug-point A-B-D:wrist-kinematics
+#if UNITY_EDITOR
+        private float debugNextWristReport;
+        private float debugNextFingerGeometryReport;
+        private float debugNextPostureReport;
+        private float debugNextLowReachReport;
+        private float debugNextHandleGripReport;
+#endif
+#endregion
+#region debug-point A-E:item-action-jitter-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private float debugNextActionJitterReport;
+        private float debugNextActionStateReport;
+#endif
+#endregion
+#region debug-point A-B-C-D-E:held-item-hand-gap
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private float debugNextHandGapReport;
+#endif
+#endregion
         public bool IsConfigured => animator != null && upper && elbow && hand && index && middle && pinky &&
             hips && spine && neck && head &&
             leftLeg && leftKnee && leftFoot && rightLeg && rightKnee && rightFoot &&
@@ -80,6 +109,83 @@ namespace MateSoul.Runtime
         public Pose LeftHandGrip => new Pose(
             leftHand.TransformPoint(localLeftGrip),
             leftHand.rotation * localLeftGripRotation);
+
+        public void ConfigurePickups(PickupAnimationSet value)
+        {
+            pickupAnimations = value;
+            pickupLeftAnkleHeight = transform.InverseTransformPoint(leftFoot.position).y;
+            pickupRightAnkleHeight = transform.InverseTransformPoint(rightFoot.position).y;
+        }
+
+        public void PickupMotion(PickupPerformance animation, float seconds)
+        {
+            if (owner == Guid.Empty) throw new InvalidOperationException("No item motion owner.");
+            pickupPlacement = false;
+            authoredPickup = animation;
+            pickupLiftCorrectionWeight = 1 - Mathf.SmoothStep(0, 1,
+                (seconds - animation.contactTime) / .3f);
+            var pickupLayer = animator.GetLayerIndex(PickupAnimationSet.LayerName);
+            animator.SetLayerWeight(layer, 0);
+            animator.SetLayerWeight(pickupLayer, Mathf.SmoothStep(0, 1, seconds / .18f));
+            animator.SetFloat(PickupAnimationSet.HeightParameter, animation.contactGrip.y);
+            animator.Play(PickupAnimationSet.LayerName + "." + PickupAnimationSet.StateName,
+                pickupLayer, Mathf.Clamp01(seconds / animation.Duration) * .999f);
+        }
+
+        public void PickupPlaceMotion(PickupPerformance animation, float seconds,
+            Pose grip, float contactBlend, float entryBlend)
+        {
+            Motion(ItemMotion.Carry, 1);
+            PickupMotion(animation, seconds);
+            pickupPlacement = true;
+            animator.SetLayerWeight(layer, 1);
+            animator.SetLayerWeight(animator.GetLayerIndex(PickupAnimationSet.LayerName),
+                Mathf.SmoothStep(0, 1, entryBlend));
+            Reach(grip, contactBlend);
+        }
+
+        public void BlendPickupToCarry(float progress)
+        {
+            Motion(ItemMotion.Carry, 1);
+            animator.SetLayerWeight(animator.GetLayerIndex(PickupAnimationSet.LayerName),
+                1 - Mathf.SmoothStep(0, 1, progress));
+        }
+
+        public void ClearPickup()
+        {
+            authoredPickup = null;
+            pickupPlacement = false;
+            pickupContactCorrection = Vector3.zero;
+            var pickupLayer = animator != null
+                ? animator.GetLayerIndex(PickupAnimationSet.LayerName) : -1;
+            if (pickupLayer >= 0) animator.SetLayerWeight(pickupLayer, 0);
+        }
+
+        public bool CanPlayUse(ItemUseAnimation animation)
+        {
+            var useLayer = animator != null ? animator.GetLayerIndex(ItemUseAnimation.LayerName) : -1;
+            return animation != null && animation.clip != null && useLayer >= 0 &&
+                animator.HasState(useLayer, Animator.StringToHash(animation.StateName));
+        }
+
+        public void UseMotion(ItemUseAnimation animation, float seconds, float weight)
+        {
+            if (owner == Guid.Empty || heldBody == null)
+                throw new InvalidOperationException("物品使用动作需要有效的持物控制权。");
+            Motion(ItemMotion.Carry, 1);
+            authoredUse = animation;
+            var useLayer = animator.GetLayerIndex(ItemUseAnimation.LayerName);
+            animator.SetLayerWeight(useLayer, weight);
+            animator.Play(animation.StateName, useLayer,
+                Mathf.Clamp01(seconds / animation.clip.length) * .999f);
+        }
+
+        public void ClearUse()
+        {
+            authoredUse = null;
+            var useLayer = animator != null ? animator.GetLayerIndex(ItemUseAnimation.LayerName) : -1;
+            if (useLayer >= 0) animator.SetLayerWeight(useLayer, 0);
+        }
 
         public void Configure(Animator value, Transform[] rightBones,
             Transform[] leftBones = null, Transform[] postureBones = null)
@@ -158,16 +264,39 @@ namespace MateSoul.Runtime
                 localLeftGripRotation = Quaternion.LookRotation(
                     leftForward, Vector3.Cross(leftForward, leftAcross));
             }
+#region debug-point B:rig-binding
+#if UNITY_EDITOR
+            var bindPayload = "{\"sessionId\":\"item-reach-layer\",\"runId\":\"post-fix\",\"hypothesisId\":\"B\",\"location\":\"AvatarItemRig.Begin\",\"msg\":\"[DEBUG] rig binding\",\"data\":{\"animator\":\"" + animator.name + "\",\"root\":\"" + transform.name + "\",\"scale\":" + JsonUtility.ToJson(animator.transform.lossyScale) + ",\"layer\":" + layer + "}}";
+            var bindRequest = UnityEngine.Networking.UnityWebRequest.Post("http://127.0.0.1:7793/event", bindPayload, "application/json");
+            bindRequest.SendWebRequest().completed += _ => bindRequest.Dispose();
+#endif
+#endregion
         }
 
         public void Motion(ItemMotion motion, float progress, float weight = 1)
         {
             if (owner == Guid.Empty) throw new InvalidOperationException("No item motion owner.");
+            authoredPickup = null;
+            var pickupLayer = animator.GetLayerIndex(PickupAnimationSet.LayerName);
+            if (pickupLayer >= 0) animator.SetLayerWeight(pickupLayer, 0);
             activeMotion = motion;
             motionProgress = Mathf.Clamp01(progress);
             motionWeight = Mathf.Clamp01(weight);
             animator.SetLayerWeight(layer, motionWeight);
             animator.Play("ItemInteraction." + motion, layer, motionProgress * .999f);
+#region debug-point A:requested-motion
+#if UNITY_EDITOR
+            if (motion != debugMotion || progress >= .99f && debugProgress < .99f)
+            {
+                debugMotion = motion;
+                debugProgress = progress;
+                var state = animator.GetCurrentAnimatorStateInfo(layer);
+                var payload = FormattableString.Invariant($"{{\"sessionId\":\"item-reach-layer\",\"runId\":\"post-fix\",\"hypothesisId\":\"A\",\"location\":\"AvatarItemRig.Motion\",\"msg\":\"[DEBUG] requested motion\",\"data\":{{\"motion\":\"{motion}\",\"requestedTime\":{progress},\"weight\":{animator.GetLayerWeight(layer)},\"state\":{state.shortNameHash},\"expectedState\":{Animator.StringToHash(motion.ToString())},\"sampleTime\":{state.normalizedTime},\"animatorEnabled\":{animator.enabled.ToString().ToLowerInvariant()},\"culling\":\"{animator.cullingMode}\"}}}}");
+                var request = UnityEngine.Networking.UnityWebRequest.Post("http://127.0.0.1:7793/event", payload, "application/json");
+                request.SendWebRequest().completed += _ => request.Dispose();
+            }
+#endif
+#endregion
         }
 
         public void Reach(Pose grip, float weight = 1, bool matchRotation = false)
@@ -221,6 +350,56 @@ namespace MateSoul.Runtime
             }
             heldBody = body;
             SyncHeldBody();
+#region debug-point A-C:attach-transform
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            var debugAttachedGrip = profile.WorldGrip(body.Pose);
+            var debugRoundTrip = profile.ItemFromGrip(debugAttachedGrip);
+            var debugAttachPayload =
+                $"{{\"sessionId\":\"held-item-hand-gap\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"A-C\",\"location\":\"AvatarItemRig.AttachHeld\"," +
+                $"\"msg\":\"[DEBUG] held item attached\",\"data\":{{" +
+                $"\"item\":\"{body.name}\",\"profile\":\"{profile.name}\"," +
+                $"\"handGrip\":{JsonUtility.ToJson(HandGrip.position)}," +
+                $"\"itemPosition\":{JsonUtility.ToJson(body.Pose.position)}," +
+                $"\"profileGrip\":{JsonUtility.ToJson(debugAttachedGrip.position)}," +
+                $"\"gripToHand\":{Vector3.Distance(debugAttachedGrip.position, HandGrip.position)}," +
+                $"\"gripAngleToHand\":{Quaternion.Angle(debugAttachedGrip.rotation, HandGrip.rotation)}," +
+                $"\"roundTripPositionError\":{Vector3.Distance(debugRoundTrip.position, body.Pose.position)}," +
+                $"\"roundTripRotationError\":{Quaternion.Angle(debugRoundTrip.rotation, body.Pose.rotation)}," +
+                $"\"itemFromGripPosition\":{JsonUtility.ToJson(itemFromGrip.position)}," +
+                $"\"itemFromGripRotation\":{JsonUtility.ToJson(itemFromGrip.rotation)}}}}}";
+            var debugAttachRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                Application.isEditor
+                    ? "http://127.0.0.1:7782/event"
+                    : "http://127.0.0.1:7782/event",
+                debugAttachPayload, "application/json");
+            debugAttachRequest.SendWebRequest().completed += _ => debugAttachRequest.Dispose();
+#endif
+#endregion
+#region debug-point A-D-E:handle-attachment
+#if UNITY_EDITOR
+            if (profile.gripKind == ItemGripKind.Handle)
+            {
+                var debugGrip = profile.WorldGrip(body.Pose);
+                var debugPayload =
+                    $"{{\"sessionId\":\"knife-handle-grip\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A-D-E\",\"location\":\"AvatarItemRig.AttachHeld\"," +
+                    $"\"msg\":\"[DEBUG] handle attachment geometry\",\"data\":{{" +
+                    $"\"item\":\"{body.name}\",\"profile\":\"{profile.name}\"," +
+                    $"\"gripPosition\":{JsonUtility.ToJson(debugGrip.position)}," +
+                    $"\"gripForward\":{JsonUtility.ToJson(debugGrip.rotation * Vector3.forward)}," +
+                    $"\"gripUp\":{JsonUtility.ToJson(debugGrip.rotation * Vector3.up)}," +
+                    $"\"gripSize\":{JsonUtility.ToJson(profile.gripSize)}," +
+                    $"\"shapeOffset\":{JsonUtility.ToJson(profile.gripShapeOffset)}," +
+                    $"\"shapeCenter\":{JsonUtility.ToJson(profile.WorldGripShapeCenter(debugGrip))}," +
+                    $"\"handGripPosition\":{JsonUtility.ToJson(HandGrip.position)}," +
+                    $"\"handGripForward\":{JsonUtility.ToJson(HandGrip.rotation * Vector3.forward)}}}}}";
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    "http://127.0.0.1:7779/event", debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
         }
 
         public Pose GripForHeldPosition(Vector3 itemPosition)
@@ -270,14 +449,99 @@ namespace MateSoul.Runtime
 
         private void LateUpdate()
         {
+            if (owner != Guid.Empty && authoredUse != null)
+            {
+                ApplyFingerPose();
+                SyncHeldBody();
+                return;
+            }
+            if (owner != Guid.Empty && pickupAnimations &&
+                animator.GetLayerWeight(animator.GetLayerIndex(PickupAnimationSet.LayerName)) > 0)
+            {
+                GroundPickupFoot(leftLeg, leftKnee, leftFoot, pickupLeftAnkleHeight);
+                GroundPickupFoot(rightLeg, rightKnee, rightFoot, pickupRightAnkleHeight);
+            }
+            if (owner != Guid.Empty && authoredPickup != null)
+            {
+                ApplyAuthoredPickupContact();
+                ApplyFingerPose();
+                SyncHeldBody();
+                return;
+            }
             if (owner == Guid.Empty || !hasTarget) return;
+#region debug-point E:action-idle-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextActionStateReport)
+            {
+                debugNextActionStateReport = Time.unscaledTime + .2f;
+                var debugBaseState = animator.GetCurrentAnimatorStateInfo(0);
+                var debugLayerState = layer >= 0
+                    ? animator.GetCurrentAnimatorStateInfo(layer) : default;
+                var debugStatePayload =
+                    $"{{\"sessionId\":\"item-action-jitter\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"E\",\"location\":\"AvatarItemRig.LateUpdate.State\"," +
+                    $"\"msg\":\"[DEBUG] action animator state\",\"data\":{{" +
+                    $"\"motion\":\"{activeMotion}\",\"motionProgress\":{motionProgress}," +
+                    $"\"motionWeight\":{motionWeight},\"baseState\":{debugBaseState.shortNameHash}," +
+                    $"\"baseTime\":{debugBaseState.normalizedTime}," +
+                    $"\"interactionState\":{debugLayerState.shortNameHash}," +
+                    $"\"interactionTime\":{debugLayerState.normalizedTime}," +
+                    $"\"target\":{JsonUtility.ToJson(target.position)}," +
+                    $"\"held\":\"{(heldBody == null ? "none" : heldBody.name)}\"}}}}";
+                var debugStateRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    Application.isEditor
+                        ? "http://127.0.0.1:7781/event"
+                        : "http://127.0.0.1:7781/event",
+                    debugStatePayload, "application/json");
+                debugStateRequest.SendWebRequest().completed += _ => debugStateRequest.Dispose();
+            }
+#endif
+#endregion
+#region debug-point B-D:item-rig-pre-write
+#if UNITY_EDITOR
+            var debugAttentionHeadBeforePosture = head.rotation;
+            var debugAttentionNeckBeforePosture = neck.rotation;
+#endif
+#endregion
             ApplyFullBodyPosture();
+#region debug-point B-D:item-rig-post-write
+#if UNITY_EDITOR
+            var debugAttentionPayload =
+                $"{{\"sessionId\":\"item-attention-head-snap\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"B-D\",\"location\":\"AvatarItemRig.LateUpdate\"," +
+                $"\"msg\":\"[DEBUG] item posture head write\",\"data\":{{" +
+                $"\"frame\":{Time.frameCount},\"motion\":\"{activeMotion}\"," +
+                $"\"motionProgress\":{motionProgress},\"motionWeight\":{motionWeight}," +
+                $"\"target\":{JsonUtility.ToJson(target.position)}," +
+                $"\"postureLean\":{PostureLeanDegrees}," +
+                $"\"postureHeadPitch\":{PostureHeadPitch}," +
+                $"\"headDelta\":{Quaternion.Angle(debugAttentionHeadBeforePosture, head.rotation)}," +
+                $"\"neckDelta\":{Quaternion.Angle(debugAttentionNeckBeforePosture, neck.rotation)}," +
+                $"\"headRotation\":{JsonUtility.ToJson(head.rotation)}}}}}";
+            var debugAttentionRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                "http://127.0.0.1:7779/event", debugAttentionPayload, "application/json");
+            debugAttentionRequest.SendWebRequest().completed += _ => debugAttentionRequest.Dispose();
+#endif
+#endregion
             var rotation = target.rotation * Quaternion.Inverse(localGripRotation);
             var wrist = target.position - rotation * localGrip;
             var upperLength = Vector3.Distance(upper.position, elbow.position);
             var forearmLength = Vector3.Distance(elbow.position, hand.position);
             var reach = upperLength + forearmLength;
             var delta = wrist - upper.position;
+#region debug-point B-C-D:evaluated-pose
+#if UNITY_EDITOR
+            if (debugPoseReports < 3)
+            {
+                debugPoseReports++;
+                Transform hips = upper;
+                while (hips != null && hips.name != "Hips") hips = hips.parent;
+                var payload = FormattableString.Invariant($"{{\"sessionId\":\"item-reach-layer\",\"runId\":\"post-fix\",\"hypothesisId\":\"B-C-D\",\"location\":\"AvatarItemRig.LateUpdate\",\"msg\":\"[DEBUG] evaluated pose\",\"data\":{{\"hips\":{JsonUtility.ToJson(hips.position)},\"shoulder\":{JsonUtility.ToJson(upper.position)},\"root\":{JsonUtility.ToJson(transform.position)},\"wrist\":{JsonUtility.ToJson(wrist)},\"handBefore\":{JsonUtility.ToJson(hand.position)},\"reach\":{reach},\"demand\":{delta.magnitude},\"sampleTime\":{animator.GetCurrentAnimatorStateInfo(layer).normalizedTime}}}}}");
+                var request = UnityEngine.Networking.UnityWebRequest.Post("http://127.0.0.1:7793/event", payload, "application/json");
+                request.SendWebRequest().completed += _ => request.Dispose();
+            }
+#endif
+#endregion
             var minimumReach = ReachForElbowAngle(
                 upperLength, forearmLength, MinimumElbowAngle);
             var maximumReach = ReachForElbowAngle(
@@ -288,6 +552,16 @@ namespace MateSoul.Runtime
                               ? delta.normalized * distance
                               : transform.forward * minimumReach);
             var requested = Vector3.Lerp(hand.position, bounded, contactWeight);
+#region debug-point A-B-D:wrist-kinematics
+#if UNITY_EDITOR
+            var debugHandPositionBefore = hand.position;
+            var debugHandRotationBefore = hand.rotation;
+            var debugHandLocalBefore = hand.localRotation;
+            var debugElbowAngleBefore = Vector3.Angle(
+                upper.position - elbow.position,
+                hand.position - elbow.position);
+#endif
+#endregion
             AvatarSeatingRig.Solve(upper, elbow, hand, requested,
                 transform.right * .8f - transform.forward * .2f);
             ElbowAngle = Vector3.Angle(
@@ -319,11 +593,331 @@ namespace MateSoul.Runtime
             }
             SolveSecondaryArm();
             ApplyFingerPose();
+#region debug-point A-E:item-action-jitter-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (heldBody != null && heldProfile != null &&
+                (heldProfile.gripKind == ItemGripKind.Handle ||
+                 heldProfile.gripKind == ItemGripKind.ThinEdge) &&
+                Time.unscaledTime >= debugNextActionJitterReport)
+            {
+                debugNextActionJitterReport = Time.unscaledTime + .1f;
+                var debugGrip = HandGrip;
+                var debugCenter = heldProfile.WorldGripShapeCenter(debugGrip);
+                var debugInverse = Quaternion.Inverse(debugGrip.rotation);
+                var debugFingers = "";
+                var debugCount = heldProfile.handPose == CharacterHandPose.Pinch
+                    ? 2 : rightFingerChains.Length;
+                var debugPinchIndexSide = 1f;
+                var debugPinchContact = Vector2.zero;
+                if (heldProfile.handPose == CharacterHandPose.Pinch)
+                {
+                    debugPinchIndexSide = Mathf.Sign(Vector3.Dot(
+                        FingerTip(rightFingerChains[1]) - debugGrip.position,
+                        debugGrip.rotation * Vector3.up));
+                    if (Mathf.Abs(debugPinchIndexSide) < .5f)
+                        debugPinchIndexSide = 1f;
+                    debugPinchContact = PinchContactLocal(
+                        debugGrip, rightFingerChains);
+                }
+                for (var debugFinger = 0; debugFinger < debugCount; debugFinger++)
+                {
+                    var debugChain = rightFingerChains[debugFinger];
+                    var debugSide = debugFinger == 1
+                        ? debugPinchIndexSide : -debugPinchIndexSide;
+                    var debugTarget = heldProfile.handPose == CharacterHandPose.Pinch
+                        ? PinchTarget(
+                            debugGrip, debugPinchContact, debugSide)
+                        : FingerTarget(debugGrip, debugFinger, false);
+                    debugFingers += (debugFinger == 0 ? "" : ",") +
+                        $"{{\"finger\":{debugFinger}," +
+                        $"\"targetLocal\":{JsonUtility.ToJson(debugInverse * (debugTarget - debugCenter))}," +
+                        $"\"tipLocal\":{JsonUtility.ToJson(debugInverse * (FingerTip(debugChain) - debugCenter))}," +
+                        $"\"j0\":{JsonUtility.ToJson(debugChain[0].localEulerAngles)}," +
+                        $"\"j1\":{JsonUtility.ToJson(debugChain[1].localEulerAngles)}," +
+                        $"\"j2\":{JsonUtility.ToJson(debugChain[2].localEulerAngles)}}}";
+                }
+                var debugBaseState = animator.GetCurrentAnimatorStateInfo(0);
+                var debugItemPose = heldBody.Pose;
+                var debugPayload =
+                    $"{{\"sessionId\":\"item-action-jitter\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A-E\",\"location\":\"AvatarItemRig.LateUpdate\"," +
+                    $"\"msg\":\"[DEBUG] held finger and animator sample\",\"data\":{{" +
+                    $"\"item\":\"{heldBody.name}\",\"kind\":\"{heldProfile.gripKind}\"," +
+                    $"\"handPose\":\"{heldProfile.handPose}\",\"motion\":\"{activeMotion}\"," +
+                    $"\"motionWeight\":{motionWeight},\"itemPosition\":{JsonUtility.ToJson(debugItemPose.position)}," +
+                    $"\"itemRotation\":{JsonUtility.ToJson(debugItemPose.rotation)}," +
+                    $"\"handPosition\":{JsonUtility.ToJson(debugGrip.position)}," +
+                    $"\"baseState\":{debugBaseState.shortNameHash}," +
+                    $"\"baseNormalizedTime\":{debugBaseState.normalizedTime}," +
+                    $"\"fingerPoseError\":{FingerPoseError},\"fingers\":[{debugFingers}]}}}}";
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    Application.isEditor
+                        ? "http://127.0.0.1:7781/event"
+                        : "http://127.0.0.1:7781/event",
+                    debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
+#region debug-point A-B-C-E:handle-finger-wrap
+#if UNITY_EDITOR
+            if (heldBody != null && heldProfile != null &&
+                heldProfile.gripKind == ItemGripKind.Handle &&
+                Time.unscaledTime >= debugNextHandleGripReport)
+            {
+                debugNextHandleGripReport = Time.unscaledTime + .25f;
+                var debugGrip = HandGrip;
+                var debugCenter = heldProfile.WorldGripShapeCenter(debugGrip);
+                var debugInverse = Quaternion.Inverse(debugGrip.rotation);
+                var debugPalmAxis = (middle.position - hand.position).normalized;
+                var debugPalmNormal = debugGrip.rotation * Vector3.up;
+                var debugHandleAxis = debugGrip.rotation * Vector3.forward;
+                var debugFingerData = "";
+                for (var debugFinger = 0;
+                     debugFinger < rightFingerChains.Length;
+                     debugFinger++)
+                {
+                    var debugTarget = FingerTarget(
+                        debugGrip, debugFinger, false);
+                    var debugTargetLocal =
+                        debugInverse * (debugTarget - debugCenter);
+                    var debugTipLocal = debugInverse *
+                        (FingerTip(rightFingerChains[debugFinger]) -
+                         debugCenter);
+                    var debugBase = rightFingerBaseRotations[debugFinger];
+                    var debugMcpDelta = Quaternion.Inverse(debugBase[0]) *
+                                        rightFingerChains[debugFinger][0]
+                                            .localRotation;
+                    var debugCurl = FingerCurlForTarget(
+                        rightFingerChains[debugFinger],
+                        debugTarget, debugFinger == 0);
+                    debugFingerData +=
+                        (debugFinger == 0 ? "" : ",") +
+                        $"{{\"finger\":{debugFinger}," +
+                        $"\"targetLocal\":{JsonUtility.ToJson(debugTargetLocal)}," +
+                        $"\"targetAngle\":{Mathf.Atan2(debugTargetLocal.y, debugTargetLocal.x) * Mathf.Rad2Deg}," +
+                        $"\"tipLocal\":{JsonUtility.ToJson(debugTipLocal)}," +
+                        $"\"mcpDelta\":{JsonUtility.ToJson(debugMcpDelta.eulerAngles)}," +
+                        $"\"curl\":{debugCurl}," +
+                        $"\"clearance\":{FingerClearance(debugGrip, FingerTip(rightFingerChains[debugFinger]))}}}";
+                }
+                var debugPayload =
+                    $"{{\"sessionId\":\"knife-handle-grip\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A-B-C-E\",\"location\":\"AvatarItemRig.LateUpdate\"," +
+                    $"\"msg\":\"[DEBUG] handle finger wrap\",\"data\":{{" +
+                    $"\"item\":\"{heldBody.name}\",\"profile\":\"{heldProfile.name}\"," +
+                    $"\"handleAxis\":{JsonUtility.ToJson(debugHandleAxis)}," +
+                    $"\"palmAxis\":{JsonUtility.ToJson(debugPalmAxis)}," +
+                    $"\"palmNormal\":{JsonUtility.ToJson(debugPalmNormal)}," +
+                    $"\"axisAlignment\":{Vector3.Dot(debugHandleAxis, debugPalmAxis)}," +
+                    $"\"palmClearance\":{PalmClearance}," +
+                    $"\"minimumFingerClearance\":{MinimumFingerClearance}," +
+                    $"\"maximumFingerClearance\":{MaximumFingerClearance}," +
+                    $"\"fingerPoseError\":{FingerPoseError}," +
+                    $"\"fingers\":[{debugFingerData}]}}}}";
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    "http://127.0.0.1:7779/event", debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
             ContactError = Vector3.Distance(HandGrip.position, target.position);
             LeftContactError = hasLeftTarget && leftHand != null
                 ? Vector3.Distance(LeftHandGrip.position, leftTarget.position)
                 : 0;
             SyncHeldBody();
+#region debug-point B-C-D:full-body-posture
+#if UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextPostureReport)
+            {
+                debugNextPostureReport = Time.unscaledTime + .25f;
+                var debugBones = animator.GetComponentsInChildren<Transform>(true);
+                var debugHips = debugBones.Single(value => value.name == "Hips");
+                var debugSpine = debugBones.Single(value => value.name == "Spine");
+                var debugHead = debugBones.Single(value => value.name == "Head 1");
+                var debugLeftLeg = debugBones.Single(value => value.name == "Leg_L");
+                var debugLeftKnee = debugBones.Single(value => value.name == "Knee_L");
+                var debugLeftFoot = debugBones.Single(value => value.name == "Foot_L");
+                var debugRightLeg = debugBones.Single(value => value.name == "Leg_R");
+                var debugRightKnee = debugBones.Single(value => value.name == "Knee_R");
+                var debugRightFoot = debugBones.Single(value => value.name == "Foot_R");
+                var debugLeftKneeAngle = Vector3.Angle(
+                    debugLeftLeg.position - debugLeftKnee.position,
+                    debugLeftFoot.position - debugLeftKnee.position);
+                var debugRightKneeAngle = Vector3.Angle(
+                    debugRightLeg.position - debugRightKnee.position,
+                    debugRightFoot.position - debugRightKnee.position);
+                var debugPayload =
+                    $"{{\"sessionId\":\"item-posture-cut\",\"runId\":\"posture-post-fix\"," +
+                    $"\"hypothesisId\":\"B-C-D\",\"location\":\"AvatarItemRig.LateUpdate\"," +
+                    $"\"msg\":\"[DEBUG] full body reach posture\",\"data\":{{" +
+                    $"\"motion\":\"{debugMotion}\",\"progress\":{debugProgress}," +
+                    $"\"targetHeight\":{target.position.y - transform.position.y}," +
+                    $"\"shoulderDemand\":{Vector3.Distance(upper.position, target.position)}," +
+                    $"\"hips\":{JsonUtility.ToJson(debugHips.position)}," +
+                    $"\"hipsLocal\":{JsonUtility.ToJson(debugHips.localPosition)}," +
+                    $"\"spineLocalEuler\":{JsonUtility.ToJson(debugSpine.localEulerAngles)}," +
+                    $"\"head\":{JsonUtility.ToJson(debugHead.position)}," +
+                    $"\"headLocalEuler\":{JsonUtility.ToJson(debugHead.localEulerAngles)}," +
+                    $"\"leanDegrees\":{PostureLeanDegrees}," +
+                    $"\"crouchDepth\":{PostureCrouchDepth}," +
+                    $"\"headPitch\":{PostureHeadPitch}," +
+                    $"\"footPlantError\":{MaximumFootPlantError}," +
+                    $"\"leftKneeAngle\":{debugLeftKneeAngle}," +
+                    $"\"rightKneeAngle\":{debugRightKneeAngle}," +
+                    $"\"leftFoot\":{JsonUtility.ToJson(debugLeftFoot.position)}," +
+                    $"\"rightFoot\":{JsonUtility.ToJson(debugRightFoot.position)}," +
+                    $"\"shoulder\":{JsonUtility.ToJson(upper.position)}," +
+                    $"\"elbow\":{JsonUtility.ToJson(elbow.position)}," +
+                    $"\"hand\":{JsonUtility.ToJson(hand.position)}," +
+                    $"\"contactError\":{ContactError}}}}}";
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    "http://127.0.0.1:7787/event", debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
+#region debug-point G-H-I-J-K:finger-geometry
+#if UNITY_EDITOR
+            if (heldBody != null && heldProfile != null &&
+                Time.unscaledTime >= debugNextFingerGeometryReport)
+            {
+                debugNextFingerGeometryReport = Time.unscaledTime + .25f;
+                var debugItemPose = heldBody.Pose;
+                var debugGrip = heldProfile.WorldGrip(debugItemPose);
+                var debugShapeCenter =
+                    heldProfile.WorldGripShapeCenter(debugGrip);
+                var debugPalm = middle.position - hand.position;
+                var debugPalmLength = debugPalm.magnitude;
+                var debugPalmAxis = debugPalmLength > .0001f
+                    ? debugPalm / debugPalmLength : hand.forward;
+                var debugCenterOffset =
+                    debugShapeCenter - hand.position;
+                var debugCenterAlongPalm = Vector3.Dot(
+                    debugCenterOffset, debugPalmAxis);
+                var debugCenterFromPalmAxis = Vector3.ProjectOnPlane(
+                    debugCenterOffset, debugPalmAxis).magnitude;
+                var debugVolumeRadius = Mathf.Min(
+                    heldProfile.gripSize.x,
+                    Mathf.Min(heldProfile.gripSize.y,
+                        heldProfile.gripSize.z)) * .5f;
+                var debugPalmOverlap = Mathf.Max(
+                    0, -PalmClearance);
+                var debugFingerData = "";
+                for (var debugFinger = 0;
+                     debugFinger < rightFingerChains.Length;
+                     debugFinger++)
+                {
+                    var debugChain = rightFingerChains[debugFinger];
+                    var debugTip = FingerTip(debugChain);
+                    debugFingerData +=
+                        (debugFinger == 0 ? "" : ",") +
+                        $"{{\"tip\":{JsonUtility.ToJson(debugTip)}," +
+                        $"\"clearance\":{FingerClearance(HandGrip, debugTip)}," +
+                        $"\"j0\":{JsonUtility.ToJson(debugChain[0].localEulerAngles)}," +
+                        $"\"j1\":{JsonUtility.ToJson(debugChain[1].localEulerAngles)}," +
+                        $"\"j2\":{JsonUtility.ToJson(debugChain[2].localEulerAngles)}}}";
+                }
+                var debugPayload =
+                    $"{{\"sessionId\":\"wrist-grip-follow\",\"runId\":\"finger-post-fix\"," +
+                    $"\"hypothesisId\":\"G-H-I-J-K\",\"location\":\"AvatarItemRig.LateUpdate\"," +
+                    $"\"msg\":\"[DEBUG] grip volume and finger joints\",\"data\":{{" +
+                    $"\"item\":\"{heldBody.name}\",\"profile\":\"{heldProfile.name}\"," +
+                    $"\"kind\":\"{heldProfile.gripKind}\",\"handPose\":\"{heldProfile.handPose}\"," +
+                    $"\"gripSize\":{JsonUtility.ToJson(heldProfile.gripSize)}," +
+                    $"\"fingerClearance\":{heldProfile.fingerClearance}," +
+                    $"\"fingerCurl\":{heldProfile.fingerCurl}," +
+                    $"\"effectiveJointLimit\":{FingerJointLimit(heldProfile.handPose)}," +
+                    $"\"solver\":\"constrained-analytic\",\"profileCurlApplied\":true," +
+                    $"\"maximumJointOperationsPerHand\":50," +
+                    $"\"itemPosition\":{JsonUtility.ToJson(debugItemPose.position)}," +
+                    $"\"gripPosition\":{JsonUtility.ToJson(debugGrip.position)}," +
+                    $"\"shapeCenter\":{JsonUtility.ToJson(debugShapeCenter)}," +
+                    $"\"shapeOffset\":{JsonUtility.ToJson(heldProfile.gripShapeOffset)}," +
+                    $"\"handRoot\":{JsonUtility.ToJson(hand.position)}," +
+                    $"\"middleBase\":{JsonUtility.ToJson(middle.position)}," +
+                    $"\"palmLength\":{debugPalmLength}," +
+                    $"\"centerAlongPalm\":{debugCenterAlongPalm}," +
+                    $"\"centerFromPalmAxis\":{debugCenterFromPalmAxis}," +
+                    $"\"gripVolumeRadius\":{debugVolumeRadius}," +
+                    $"\"estimatedPalmOverlap\":{debugPalmOverlap}," +
+                    $"\"palmClearance\":{PalmClearance}," +
+                    $"\"minimumFingerClearance\":{MinimumFingerClearance}," +
+                    $"\"fingerPoseError\":{FingerPoseError}," +
+                    $"\"fingers\":[{debugFingerData}]}}}}";
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    "http://127.0.0.1:7786/event", debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
+#region debug-point A-B-D:wrist-kinematics
+#if UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextWristReport)
+            {
+                debugNextWristReport = Time.unscaledTime + .1f;
+                var debugElbowAngleAfter = Vector3.Angle(
+                    upper.position - elbow.position,
+                    hand.position - elbow.position);
+                var debugPayload =
+                    $"{{\"sessionId\":\"wrist-grip-follow\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A-B-D\",\"location\":\"AvatarItemRig.LateUpdate\"," +
+                    $"\"msg\":\"[DEBUG] wrist IK kinematics\",\"data\":{{" +
+                    $"\"motion\":\"{debugMotion}\",\"progress\":{debugProgress}," +
+                    $"\"weight\":{contactWeight},\"targetPosition\":{JsonUtility.ToJson(target.position)}," +
+                    $"\"targetRotation\":{JsonUtility.ToJson(target.rotation)}," +
+                    $"\"handPositionBefore\":{JsonUtility.ToJson(debugHandPositionBefore)}," +
+                    $"\"handPositionAfter\":{JsonUtility.ToJson(hand.position)}," +
+                    $"\"handLocalBefore\":{JsonUtility.ToJson(debugHandLocalBefore.eulerAngles)}," +
+                    $"\"handLocalAfter\":{JsonUtility.ToJson(hand.localEulerAngles)}," +
+                    $"\"wristRotationApplied\":{Quaternion.Angle(debugHandRotationBefore, hand.rotation)}," +
+                    $"\"forearmRoll\":{ForearmRoll},\"wristCorrection\":{WristCorrection}," +
+                    $"\"targetRotationError\":{Quaternion.Angle(HandGrip.rotation, target.rotation)}," +
+                    $"\"positionError\":{ContactError},\"elbowAngleBefore\":{debugElbowAngleBefore}," +
+                    $"\"elbowAngleAfter\":{debugElbowAngleAfter}," +
+                    $"\"heldAlignmentError\":{HeldAlignmentError}," +
+                    $"\"upper\":{JsonUtility.ToJson(upper.position)}," +
+                    $"\"elbow\":{JsonUtility.ToJson(elbow.position)}," +
+                    $"\"hand\":{JsonUtility.ToJson(hand.position)}}}}}";
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    "http://127.0.0.1:7786/event", debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
+        }
+
+        private void GroundPickupFoot(Transform thigh, Transform knee, Transform foot, float ankleHeight)
+        {
+            var floor = transform.position.y + ankleHeight * transform.lossyScale.y;
+            if (foot.position.y >= floor) return;
+            var goal = foot.position;
+            goal.y = floor;
+            var rotation = foot.rotation;
+            AvatarSeatingRig.Solve(thigh, knee, foot, goal, knee.position - thigh.position);
+            foot.rotation = rotation;
+        }
+
+        private void ApplyAuthoredPickupContact()
+        {
+            if (heldBody == null && (!hasTarget || contactWeight <= 0)) return;
+            if (heldBody == null || pickupPlacement)
+                pickupContactCorrection = Vector3.ClampMagnitude(
+                    target.position - HandGrip.position, PickupAnimationSet.MaximumCorrection) * contactWeight;
+            var correction = pickupContactCorrection *
+                (heldBody != null && !pickupPlacement ? pickupLiftCorrectionWeight : 1);
+            if (correction.sqrMagnitude < .00000001f)
+            {
+                if (heldBody == null || pickupPlacement)
+                    ContactError = Vector3.Distance(HandGrip.position, target.position);
+                return;
+            }
+            var wristRotation = hand.rotation;
+            var bend = elbow.position - upper.position;
+            AvatarSeatingRig.Solve(upper, elbow, hand, hand.position + correction, bend);
+            hand.rotation = wristRotation;
+            if (heldBody == null || pickupPlacement)
+                ContactError = Vector3.Distance(HandGrip.position, target.position);
         }
 
         private void ApplyFullBodyPosture()
@@ -348,6 +942,14 @@ namespace MateSoul.Runtime
             var targetHeight = target.position.y - transform.position.y;
             var horizontalDistance = Vector3.ProjectOnPlane(
                 target.position - transform.position, Vector3.up).magnitude;
+#region debug-point A:low-reach-before
+#if UNITY_EDITOR
+            var debugSpineBefore = spine.rotation;
+            var debugHipsBefore = hips.position;
+            var debugTorsoBefore = Vector3.Angle(
+                head.position - hips.position, transform.up);
+#endif
+#endregion
 
             float lean;
             float crouch;
@@ -434,6 +1036,30 @@ namespace MateSoul.Runtime
                 Vector3.Distance(rightFoot.position, rightFootPosition));
             PostureTorsoLeanDegrees = Vector3.Angle(
                 head.position - hips.position, transform.up);
+#region debug-point A:low-reach-after
+#if UNITY_EDITOR
+            if (targetHeight <= .25f &&
+                Time.unscaledTime >= debugNextLowReachReport)
+            {
+                debugNextLowReachReport = Time.unscaledTime + .25f;
+                var debugPayload =
+                    $"{{\"sessionId\":\"low-reach-table-fall\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A\",\"location\":\"AvatarItemRig.ApplyFullBodyPosture\"," +
+                    $"\"msg\":\"[DEBUG] low reach posture application\",\"data\":{{" +
+                    $"\"targetHeight\":{targetHeight},\"horizontalDistance\":{horizontalDistance}," +
+                    $"\"requestedLean\":{PostureLeanDegrees},\"crouchDepth\":{PostureCrouchDepth}," +
+                    $"\"spineApplied\":{Quaternion.Angle(debugSpineBefore, spine.rotation)}," +
+                    $"\"hipsDisplacement\":{JsonUtility.ToJson(hips.position - debugHipsBefore)}," +
+                    $"\"torsoAngleBefore\":{debugTorsoBefore}," +
+                    $"\"torsoAngleAfter\":{Vector3.Angle(head.position - hips.position, transform.up)}," +
+                    $"\"headPitch\":{PostureHeadPitch},\"leftKnee\":{LeftKneeAngle}," +
+                    $"\"rightKnee\":{RightKneeAngle},\"footError\":{MaximumFootPlantError}}}}}";
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    "http://127.0.0.1:7777/event", debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
         }
 
         private void SolveSecondaryArm()
@@ -470,11 +1096,16 @@ namespace MateSoul.Runtime
                 MinimumPowerGripMcpFlexion = float.PositiveInfinity;
                 MaximumPowerGripMcpSpread = 0;
             }
+            var grip = HandGrip;
+            if (!twoHandAttachment)
+                grip = heldProfile.WorldGrip(new Pose(
+                    grip.position + grip.rotation * itemFromGrip.position,
+                    grip.rotation * itemFromGrip.rotation));
             PalmClearance = PalmClearanceForGrip(
-                HandGrip, hand.position, middle.position);
+                grip, hand.position, middle.position);
             PoseFingerChains(
                 rightFingerChains, rightFingerBaseRotations,
-                HandGrip, false);
+                grip, false);
             if (twoHandAttachment)
             {
                 PalmClearance = Mathf.Min(PalmClearance,
@@ -1096,12 +1727,47 @@ namespace MateSoul.Runtime
             HeldAlignmentError = Vector3.Distance(heldBody.Pose.position, item.position) +
                                  Quaternion.Angle(heldBody.Pose.rotation, item.rotation) *
                                  Mathf.Deg2Rad;
+#region debug-point A-B-C-D-E:held-follow
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextHandGapReport)
+            {
+                debugNextHandGapReport = Time.unscaledTime + .05f;
+                var debugActualGrip = heldProfile.WorldGrip(heldBody.Pose);
+                var debugExpectedGrip = heldProfile.WorldGrip(item);
+                var debugFollowPayload =
+                    $"{{\"sessionId\":\"held-item-hand-gap\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A-B-C-D-E\",\"location\":\"AvatarItemRig.SyncHeldBody\"," +
+                    $"\"msg\":\"[DEBUG] held item follow sample\",\"data\":{{" +
+                    $"\"item\":\"{heldBody.name}\"," +
+                    $"\"override\":false," +
+                    $"\"beforePosition\":{JsonUtility.ToJson(actualBefore.position)}," +
+                    $"\"expectedPosition\":{JsonUtility.ToJson(item.position)}," +
+                    $"\"actualPosition\":{JsonUtility.ToJson(heldBody.Pose.position)}," +
+                    $"\"handGrip\":{JsonUtility.ToJson(HandGrip.position)}," +
+                    $"\"actualGrip\":{JsonUtility.ToJson(debugActualGrip.position)}," +
+                    $"\"expectedGrip\":{JsonUtility.ToJson(debugExpectedGrip.position)}," +
+                    $"\"actualGripToHand\":{Vector3.Distance(debugActualGrip.position, HandGrip.position)}," +
+                    $"\"expectedGripToHand\":{Vector3.Distance(debugExpectedGrip.position, HandGrip.position)}," +
+                    $"\"bodyToExpected\":{Vector3.Distance(heldBody.Pose.position, item.position)}," +
+                    $"\"rigidbodyToTransform\":{Vector3.Distance(heldBody.Rigidbody.position, heldBody.transform.position)}," +
+                    $"\"heldAlignmentError\":{HeldAlignmentError}}}}}";
+                var debugFollowRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    Application.isEditor
+                        ? "http://127.0.0.1:7782/event"
+                        : "http://127.0.0.1:7782/event",
+                    debugFollowPayload, "application/json");
+                debugFollowRequest.SendWebRequest().completed += _ => debugFollowRequest.Dispose();
+            }
+#endif
+#endregion
         }
 
         public void End(Guid run)
         {
             if (owner != run) return;
             if (layer >= 0 && animator != null) animator.SetLayerWeight(layer, 0);
+            ClearUse();
+            ClearPickup();
             DetachHeld(run);
             owner = Guid.Empty;
             ClearReach();

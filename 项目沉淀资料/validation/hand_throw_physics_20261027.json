@@ -1,0 +1,860 @@
+{
+  "date": "2026-10-27",
+  "platform": "Unity 2022.3.38f1 / PICO Unity SDK / XRI / PhysX",
+  "status": "runtime_replay_passed_apk_verified_device_unavailable",
+  "engineTests": {
+    "total": 30,
+    "passed": 30,
+    "failed": 0,
+    "cases": [
+      {
+        "fullname": "MateSoul.Tests.GripGrabTests.ControllerGripDrivesSelectionFollowAndReleaseThroughRealRay",
+        "result": "Passed",
+        "duration": "8.037348"
+      },
+      {
+        "fullname": "MateSoul.Tests.GripGrabTests.DigitalGripWithNoAnalogValueStillGrabsAndReleases",
+        "result": "Passed",
+        "duration": "6.691482"
+      },
+      {
+        "fullname": "MateSoul.Tests.HandThrowContactReplay.ReplayReleaseDropAndContact",
+        "result": "Passed",
+        "duration": "4.353982"
+      },
+      {
+        "fullname": "MateSoul.Tests.PhysicsRuntimeTests.CompoundCollidersShareOneMaterialAndRejectNestedBodies",
+        "result": "Passed",
+        "duration": "4.165564"
+      },
+      {
+        "fullname": "MateSoul.Tests.PhysicsRuntimeTests.FrictionStopsSlidingAndFastObjectDoesNotTunnelThroughFloor",
+        "result": "Passed",
+        "duration": "6.517098"
+      },
+      {
+        "fullname": "MateSoul.Tests.PhysicsRuntimeTests.GravityImpulseAndSleepUseRealMassAndRejectInvalidInput",
+        "result": "Passed",
+        "duration": "9.192992"
+      },
+      {
+        "fullname": "MateSoul.Tests.PhysicsRuntimeTests.HeldBodyCannotCrossThinWallAndReleaseKeepsResolvedMomentum",
+        "result": "Passed",
+        "duration": "5.253958"
+      },
+      {
+        "fullname": "MateSoul.Tests.PhysicsRuntimeTests.PauseFreezesFallingBodyAndRestoresVelocityWithoutCatchup",
+        "result": "Passed",
+        "duration": "3.686994"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.CapturedFloorMismatchRequiresRebuildingFromMeasuredRoom",
+        "result": "Passed",
+        "duration": "8.251018"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.CapturedSurfaceMeshTakesPriorityOverCoarseRoomVolumes",
+        "result": "Passed",
+        "duration": "0.004875"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.CharacterSpawnWaitsForMeasuredFloorAfterFirstWallMesh",
+        "result": "Passed",
+        "duration": "0.079228"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker(\"swan_arm64\",False)",
+        "result": "Passed",
+        "duration": "0.003772"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker(\"Pico-emulator\",True)",
+        "result": "Passed",
+        "duration": "0.000258"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker(\"Pico/swan/pico_spaceos_emulator_arm64:16/build\",True)",
+        "result": "Passed",
+        "duration": "0.000232"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.EveryQualityRendererContainsEnvironmentOcclusionFeature",
+        "result": "Passed",
+        "duration": "0.007844"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.HudShaderAlwaysRendersWithoutRealityOcclusion(\"Assets/MateSoul/Runtime/Shaders/UiAlwaysOnTop.shader\")",
+        "result": "Passed",
+        "duration": "0.002641"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.HudShaderAlwaysRendersWithoutRealityOcclusion(\"Assets/MateSoul/Runtime/Shaders/SpatialUiSdf.shader\")",
+        "result": "Passed",
+        "duration": "0.001239"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.HudVisibleCenterIncludesTwentyCentimeterDownwardOffset",
+        "result": "Passed",
+        "duration": "0.001686"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.MeasuredDepthHidesVirtualObjectButHudStillDraws",
+        "result": "Passed",
+        "duration": "0.233147"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.MeasuredMeshRendersWhenEnvironmentDepthIsUnavailable",
+        "result": "Passed",
+        "duration": "0.001462"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.MeasuredOcclusionRemainsEnabledWithAvailableEnvironmentDepth",
+        "result": "Passed",
+        "duration": "0.001663"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.MissingMeasuredMeshTimesOutAndCancellationStopsSpawnWait",
+        "result": "Passed",
+        "duration": "0.209100"
+      },
+      {
+        "fullname": "MateSoul.Tests.RealityOcclusionTests.SnapshotWithoutMeasuredSurfaceBuildsNoRealityCollisionProxy",
+        "result": "Passed",
+        "duration": "0.001505"
+      },
+      {
+        "fullname": "MateSoul.Tests.RoomNavigationSurfaceMeshTests.FurnitureSurfaceMeshDoesNotReplaceWalkableFloor",
+        "result": "Passed",
+        "duration": "5.246847"
+      },
+      {
+        "fullname": "MateSoul.Tests.RoomNavigationSurfaceMeshTests.SpatialMeshFloorKeepsMeasuredConcavity",
+        "result": "Passed",
+        "duration": "0.026151"
+      },
+      {
+        "fullname": "MateSoul.Tests.RoomNavigationSurfaceMeshTests.SpatialMeshUsesGroundedFurnitureAsNavigationObstacle",
+        "result": "Passed",
+        "duration": "3.733519"
+      },
+      {
+        "fullname": "MateSoul.Tests.RoomNavigationSurfaceMeshTests.SpawnProbeDoesNotIgnoreSiblingRoomGeometry",
+        "result": "Passed",
+        "duration": "3.593965"
+      },
+      {
+        "fullname": "MateSoul.Tests.RoomNavigationSurfaceMeshTests.SpawnRequiresMeasuredFloorSupportWhenLiveMeshExists",
+        "result": "Passed",
+        "duration": "3.536436"
+      },
+      {
+        "fullname": "MateSoul.Tests.RoomNavigationSurfaceMeshTests.UnknownHorizontalGeometryAboveTrackingFloorIsNotWalkableFloor",
+        "result": "Passed",
+        "duration": "0.013451"
+      },
+      {
+        "fullname": "MateSoul.Tests.RoomNavigationSurfaceMeshTests.UnknownHorizontalGeometryAtTrackingFloorCanSeedMeasuredFloor",
+        "result": "Passed",
+        "duration": "0.010305"
+      }
+    ]
+  },
+  "comparison": {
+    "preFix": [
+      {
+        "scenario": "TwoFingersOpen",
+        "remainingCurl": 0.7,
+        "openFingers": 2,
+        "selectActive": true,
+        "intentional": false
+      },
+      {
+        "scenario": "FinalPacketThrow",
+        "handSpeed": 3.5,
+        "releasedSpeed": 0.1,
+        "poseChange": 0.0,
+        "following": false,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 0.0,
+        "speed": 0.0119999992,
+        "angular": 0.143859252
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 0.1,
+        "speed": 0.038,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 0.3,
+        "speed": 0.049999997,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 1.0,
+        "speed": 0.049999997,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 3.0,
+        "speed": 0.049999997,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 0.0,
+        "speed": 0.0119999992,
+        "angular": 0.143859267
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 0.1,
+        "speed": 0.038,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 0.3,
+        "speed": 0.049999997,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 1.0,
+        "speed": 0.049999997,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 3.0,
+        "speed": 0.049999997,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 0.0,
+        "speed": 0.0119999992,
+        "angular": 0.143859267
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 0.1,
+        "speed": 0.038,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 0.3,
+        "speed": 0.049999997,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 1.0,
+        "speed": 0.049999997,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 3.0,
+        "speed": 0.049999997,
+        "angular": 0.419579953
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 0.0,
+        "convex": false,
+        "hasFloorRay": true,
+        "finalY": 0.05,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 1.0,
+        "convex": false,
+        "hasFloorRay": false,
+        "finalY": -10.9809237,
+        "collisions": true,
+        "mode": "ContinuousDynamic"
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 0.0,
+        "convex": true,
+        "hasFloorRay": true,
+        "finalY": 0.05,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 1.0,
+        "convex": true,
+        "hasFloorRay": false,
+        "finalY": -10.9809237,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "Complete",
+        "complete": true,
+        "run": "pre-fix"
+      }
+    ],
+    "trackingBeforeFix": [
+      {
+        "scenario": "TwoFingersOpen",
+        "remainingCurl": 0.7,
+        "openFingers": 2,
+        "selectActive": false,
+        "intentional": true
+      },
+      {
+        "scenario": "FinalPacketThrow",
+        "handSpeed": 3.5,
+        "releasedSpeed": 3.5,
+        "poseChange": 0.0,
+        "following": false,
+        "collisions": true,
+        "mode": "ContinuousDynamic"
+      },
+      {
+        "scenario": "FastMotionRelease",
+        "distance": 0.13333334,
+        "seconds": 0.0333333351,
+        "angle": 0.0,
+        "expectedContinuous": true,
+        "intentional": false,
+        "releasedSpeed": 0.0
+      },
+      {
+        "scenario": "FastMotionRelease",
+        "distance": 0.0,
+        "seconds": 0.06,
+        "angle": 55.0,
+        "expectedContinuous": true,
+        "intentional": false,
+        "releasedSpeed": 0.0
+      },
+      {
+        "scenario": "FastMotionRelease",
+        "distance": 1.0,
+        "seconds": 0.013888889,
+        "angle": 0.0,
+        "expectedContinuous": false,
+        "intentional": false,
+        "releasedSpeed": 0.0
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 0.0,
+        "speed": 0.0,
+        "angular": 0.0
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 0.1,
+        "speed": 0.0455,
+        "angular": 0.5454664
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 0.3,
+        "speed": 0.185500011,
+        "angular": 2.22382474
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 1.0,
+        "speed": 0.6755,
+        "angular": 8.098078
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 3.0,
+        "speed": 2.07549977,
+        "angular": 24.8816566
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 0.0,
+        "speed": 0.0,
+        "angular": 0.0
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 0.1,
+        "speed": 0.0168518517,
+        "angular": 0.2020246
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 0.3,
+        "speed": 0.0687037,
+        "angular": 0.8236388
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 1.0,
+        "speed": 0.250185162,
+        "angular": 2.99928832
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 3.0,
+        "speed": 0.7687037,
+        "angular": 9.215429
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 0.0,
+        "speed": 0.0,
+        "angular": 0.0
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 0.1,
+        "speed": 0.00522988476,
+        "angular": 0.06269729
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 0.3,
+        "speed": 0.02132184,
+        "angular": 0.255612075
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 1.0,
+        "speed": 0.07764368,
+        "angular": 0.93081367
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 3.0,
+        "speed": 0.23856321,
+        "angular": 2.859961
+      },
+      {
+        "scenario": "RecedingObject",
+        "handSpeed": 0.2,
+        "speed": 1.0
+      },
+      {
+        "scenario": "BlockedThrow",
+        "z": 0.0,
+        "velocity": 0.0
+      },
+      {
+        "scenario": "SameRoomWithoutBaseSupport",
+        "finalY": -10.9809237
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 0.0,
+        "convex": false,
+        "hasFloorRay": true,
+        "finalY": 0.05,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 1.0,
+        "convex": false,
+        "hasFloorRay": true,
+        "finalY": 0.049999997,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 0.0,
+        "convex": true,
+        "hasFloorRay": true,
+        "finalY": 0.0499999262,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 1.0,
+        "convex": true,
+        "hasFloorRay": true,
+        "finalY": 0.05000004,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "Complete",
+        "complete": true,
+        "run": "tracking-pre-fix"
+      }
+    ],
+    "final": [
+      {
+        "scenario": "TwoFingersOpen",
+        "remainingCurl": 0.7,
+        "openFingers": 2,
+        "selectActive": false,
+        "intentional": true
+      },
+      {
+        "scenario": "FinalPacketThrow",
+        "handSpeed": 3.5,
+        "releasedSpeed": 3.5,
+        "poseChange": 0.0,
+        "following": false,
+        "collisions": true,
+        "mode": "ContinuousDynamic"
+      },
+      {
+        "scenario": "FastMotionRelease",
+        "distance": 0.13333334,
+        "seconds": 0.0333333351,
+        "angle": 0.0,
+        "expectedContinuous": true,
+        "intentional": true,
+        "motionValid": true,
+        "releasedSpeed": 4.0,
+        "releasedAngular": 0.0
+      },
+      {
+        "scenario": "FastMotionRelease",
+        "distance": 0.0,
+        "seconds": 0.06,
+        "angle": 55.0,
+        "expectedContinuous": true,
+        "intentional": true,
+        "motionValid": true,
+        "releasedSpeed": 0.0,
+        "releasedAngular": 12.0
+      },
+      {
+        "scenario": "FastMotionRelease",
+        "distance": 1.0,
+        "seconds": 0.013888889,
+        "angle": 0.0,
+        "expectedContinuous": false,
+        "intentional": false,
+        "motionValid": false,
+        "releasedSpeed": 0.0,
+        "releasedAngular": 0.0
+      },
+      {
+        "scenario": "TwoHandTransfer",
+        "handoffContinuous": true,
+        "handoffDisplacement": 0.0,
+        "receivingHandReleaseSpeed": 3.5
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 0.0,
+        "speed": 0.0,
+        "angular": 0.0
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 0.1,
+        "speed": 0.0455,
+        "angular": 0.5454664
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 0.3,
+        "speed": 0.185500011,
+        "angular": 2.22382474
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 1.0,
+        "speed": 0.6755,
+        "angular": 8.098078
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 0.15,
+        "approach": 3.0,
+        "speed": 2.07549977,
+        "angular": 24.8816566
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 0.0,
+        "speed": 0.0,
+        "angular": 0.0
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 0.1,
+        "speed": 0.0168518517,
+        "angular": 0.2020246
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 0.3,
+        "speed": 0.0687037,
+        "angular": 0.8236388
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 1.0,
+        "speed": 0.250185162,
+        "angular": 2.99928832
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 1.0,
+        "approach": 3.0,
+        "speed": 0.7687037,
+        "angular": 9.215429
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 0.0,
+        "speed": 0.0,
+        "angular": 0.0
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 0.1,
+        "speed": 0.00522988476,
+        "angular": 0.06269729
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 0.3,
+        "speed": 0.02132184,
+        "angular": 0.255612075
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 1.0,
+        "speed": 0.07764368,
+        "angular": 0.93081367
+      },
+      {
+        "scenario": "OneContactStep",
+        "mass": 4.0,
+        "approach": 3.0,
+        "speed": 0.23856321,
+        "angular": 2.859961
+      },
+      {
+        "scenario": "RecedingObject",
+        "handSpeed": 0.2,
+        "speed": 1.0
+      },
+      {
+        "scenario": "WithdrawingHand",
+        "handForwardSpeed": 2.0,
+        "initialObjectSpeed": 1.0,
+        "finalObjectSpeed": 1.0
+      },
+      {
+        "scenario": "BlockedThrow",
+        "z": 0.0,
+        "velocity": 0.0
+      },
+      {
+        "scenario": "SameRoomWithoutBaseSupport",
+        "finalY": -10.9809237
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 0.0,
+        "convex": false,
+        "hasFloorRay": true,
+        "finalY": 0.05,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 1.0,
+        "convex": false,
+        "hasFloorRay": true,
+        "finalY": 0.049999997,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 0.0,
+        "convex": true,
+        "hasFloorRay": true,
+        "finalY": 0.0499999262,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "MeasuredBoundaryDrop",
+        "x": 1.0,
+        "convex": true,
+        "hasFloorRay": true,
+        "finalY": 0.05000004,
+        "collisions": true,
+        "mode": "ContinuousSpeculative"
+      },
+      {
+        "scenario": "LiveGroundCoverage",
+        "x": 2.6,
+        "extendedY": 0.049999997,
+        "navigationExpanded": false,
+        "retainedAcrossBlockRemoval": true,
+        "resetAfterRoomRebuild": true,
+        "rendererCount": 0
+      },
+      {
+        "scenario": "Complete",
+        "complete": true,
+        "run": "post-fix-final"
+      }
+    ]
+  },
+  "replay": {
+    "run": "post-fix-final",
+    "exitCode": 0,
+    "timeout": false,
+    "seconds": 154.9,
+    "protectedAssetsUnchanged": true,
+    "protectedAssetSha256": {
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "822c9bfccf779137a4d33b6335457124b4d18be69b53bb96a8cef40c2b03bb6c",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/Resources/MateSoulHands/TrackedHand.shader": "a4ac23e85baef7482ddca60158d1e039b6fb29965ed1df12a28e34fe0ef75ad9"
+    }
+  },
+  "build": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_HandThrowPhysics_20261027.apk",
+    "bytes": 218783588,
+    "sha256": "ca248b58a522f10259177cb8d4176866a459bd1691bec3aea3d783d13f302481",
+    "unityExitCode": 0,
+    "buildSucceeded": true,
+    "unityReportedDuration": "00:01:08.7830341",
+    "zipCrcPass": true,
+    "signaturePass": true,
+    "zipalignPass": true,
+    "arm64Only": true,
+    "il2cppSha256": "48d9c7034e0e8dc9f57cd94e19ac417490fc88e227e5cc5c2f382f2cc69597d6",
+    "il2cppMatchesBuild": true,
+    "protectedAssetsUnchanged": true,
+    "protectedAssetSha256": {
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "822c9bfccf779137a4d33b6335457124b4d18be69b53bb96a8cef40c2b03bb6c",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/Resources/MateSoulHands/TrackedHand.shader": "a4ac23e85baef7482ddca60158d1e039b6fb29965ed1df12a28e34fe0ef75ad9"
+    },
+    "direct55SourceFilesUnchanged": true,
+    "direct55ProtectedFileCount": 14,
+    "sourceSha256": {
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PicoTrackedHand.cs": "075c07f3996a6eb560539588524b7453f02b9d3f031cc1be3c953ed17a97631b",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PicoDirectHandInteractor.cs": "55480fd334508d1e8ec95c623bf0a55ed100dafc9c5fba6dae7b571638e2c8db",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PhysicsGrabInteractable.cs": "865c62c0792670fddfe56e90d6ee1d3296a3e9ba8c7d3c3c6fd136be04ff63a4",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PhysicsBody.cs": "000a8fd462a20d6cacf2bf6a21195eaa4ca9d43f2ee139e43faf0e61b92b2451",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/TrackedHandPhysics.cs": "4188eb3ee852af7310a2fdc6d1aafa876422990f8e04240a8bf597f7ba826550",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/GameHud.cs": "d42fa27560b0aed82f025057401d0e691030725472dbb28b78d3488883d20fbe",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RuntimeRoomNavigation.cs": "fc205c6c4ecd89d89d46188205fbdfd5fc6a910ac7d2f2f901d36e58f7598ed7"
+    },
+    "playerAndStrippedSourceProofCount": 14,
+    "apkContainsNoTemporaryReplay": true
+  },
+  "installed": false,
+  "runtimeReady": null,
+  "deviceConnectionProbe": [
+    {
+      "command": [
+        "devices",
+        "-l"
+      ],
+      "exitCode": 0,
+      "stdout": "List of devices attached\n\n",
+      "stderr": "* daemon not running; starting now at tcp:5037\n* daemon started successfully\n"
+    },
+    {
+      "command": [
+        "mdns",
+        "services"
+      ],
+      "exitCode": 0,
+      "stdout": "List of discovered mdns services\n\n",
+      "stderr": ""
+    }
+  ],
+  "limits": [
+    "Unity replay verifies production selection and physics; real PICO hand tracking latency and subjective force feel require headset acceptance.",
+    "Ground support stays finite and uses measured main-floor height and retained room bounds; stairs or multiple floor levels are not covered by this replay."
+  ],
+  "cleanup": {
+    "ownProductionHttpProbeCount": 0,
+    "temporaryReplayRemovedFromProject": true,
+    "ownDebugServerStopped": true,
+    "diagnosticRecordRemoved": true,
+    "ndjsonRemoved": true,
+    "envRemoved": true
+  },
+  "packedContent": {
+    "referenceApk": "/Users/bytedance/MateSoul/Builds/MateSoul_UIPanels_20261027.apk",
+    "referenceSha256": "0b990d84cbaf00ed742d32f38546a26a2cdcf20316a0fa031b5936f37d6c5d5e",
+    "sharedAssetEntriesCompared": 1184,
+    "changedEntries": [],
+    "allSharedAssetsEqual": true
+  },
+  "installation": {
+    "serial": "PB3A10MGL9220170B",
+    "installed": false,
+    "runtimeReady": null,
+    "deviceList": "List of devices attached\n\n",
+    "deviceConnected": false
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "feature": "electric-kettle",
+  "date": "2026-10-17",
+  "unity": "2022.3.38f1",
+  "asset_build": {
+    "result": "passed",
+    "kettle_prefab": "Assets/MateSoul/Content/Props/ElectricKettleBody.prefab",
+    "base_prefab": "Assets/MateSoul/Content/Props/ElectricKettleBase.prefab",
+    "catalog_definition": "Assets/MateSoul/Content/Props/ElectricKettle.asset",
+    "inventory_limit": 1
+  },
+  "behavior": {
+    "capacity_liters": 1.7,
+    "boil_duration_seconds": 60,
+    "boiling_temperature_celsius": 100,
+    "empty_prompt": "请先给壶里加水",
+    "complete_prompt": "水已烧开",
+    "button_audio_resource": "CookingEffects/ButtonBeep",
+    "operating_audio_resource": "CookingEffects/InductionHum"
+  },
+  "tests": {
+    "suite": "MateSoul.Tests.ElectricKettleTests",
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "result_xml": ".artifacts/electric-kettle/test-results.xml"
+  },
+  "scene_registration": {
+    "scene": "Assets/MateSoul/Scenes/MateSoul.unity",
+    "definitions": [
+      "electric-kettle-body",
+      "electric-kettle-base",
+      "electric-kettle"
+    ]
+  }
+}

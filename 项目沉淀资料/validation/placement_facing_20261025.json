@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-25",
+  "status": "implemented_and_installed",
+  "cause": "Vertical palm placement ray has no horizontal facing; old code fell back to world +Z.",
+  "fix": "Use horizontal vector from support hit to viewer before footprint and collision validation; apply ItemDefinition placementFacingYaw.",
+  "sources": [
+    "MateSoul/Assets/MateSoul/Runtime/GameSession.cs",
+    "MateSoul/Assets/MateSoul/Runtime/ItemPlacementPreviewController.cs",
+    "MateSoul/Assets/MateSoul/Editor/WaterDispenserBuilder.cs"
+  ],
+  "validation": {
+    "cases": 32,
+    "assets": ["Television", "WaterDispenser"],
+    "supportHeightsMeters": [0, 0.8],
+    "viewerYawDegrees": [0, 45, 90, 135, 180, 225, 270, 315],
+    "minimumFrontDot": 0.9999999,
+    "upright": true,
+    "headRayAndPalmRayAgree": true,
+    "placementClearanceMeters": 0.006,
+    "actualDeviceVisualAcceptance": "pending"
+  },
+  "build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_PlacementFacing_20261025.apk",
+    "sha256": "ae4731c2fcbc8e39483eadb286fb66af695b6499eaca23bedb726d0396b237fa",
+    "bytes": 215392670,
+    "unityExitCode": 0,
+    "elapsedSeconds": 198.9,
+    "signatureVerified": true,
+    "crcEntries": 1566,
+    "abi": ["arm64-v8a"],
+    "il2cppMatchesBuild": true,
+    "runtimeSourcePdbMatches": true,
+    "sceneCharacterAnimatorUnchanged": true,
+    "sourcesUnchangedDuringBuild": true
+  },
+  "deployment": {
+    "installedApkMatches": true,
+    "saveUnchangedByInstall": true,
+    "saveSha256": "ea6aad38001a4e54046e096b723c39a81ce4912c2518078c22fadf4b7b2d13be"
+  }
+}

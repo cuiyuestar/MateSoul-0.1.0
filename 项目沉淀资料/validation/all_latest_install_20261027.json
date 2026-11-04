@@ -1,0 +1,38 @@
+{
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_AllLatest_20261026.apk",
+  "sha256": "b4ba021b5380813bdd0fc41cd4ad49bf4416ab5ee221d9086c8ef6a0984b0611",
+  "bytes": 218746517,
+  "installed": true,
+  "serial": "PB3A10MGL9220170B",
+  "model": "B3110",
+  "installedApkHashMatches": true,
+  "saveUnchangedByInstall": true,
+  "saveExisted": true,
+  "saveSha256": "1d70e575b16e72be4ba512e2484f4a0ef38d868e296ec10dcc05f1257456eb0c",
+  "installSeconds": 10.44,
+  "currentProductionSourcesUnchanged": 273,
+  "characterResourcesUnchanged": true,
+  "buildWasReusedFromVerifiedCurrentProductionBuild": true,
+  "launch": {
+    "activityStarted": true,
+    "pid": "11936",
+    "businessReady": false,
+    "avatarBound": false,
+    "meshDepthEnabled": true,
+    "depth512": true,
+    "managedExceptions": true,
+    "wakefulness": "Awake",
+    "observedSeconds": 16.0,
+    "humanGestureAcceptance": "pending"
+  },
+  "startupFailure": {
+    "message": "房间内没有可用的角色出生点",
+    "candidateCount": 13,
+    "noMeasuredSupport": 13,
+    "outsideFloor": 0,
+    "collisionOverlap": 0,
+    "measuredMeshBlocks": 8,
+    "capturedFloorY": 0.64,
+    "businessReady": false
+  }
+}

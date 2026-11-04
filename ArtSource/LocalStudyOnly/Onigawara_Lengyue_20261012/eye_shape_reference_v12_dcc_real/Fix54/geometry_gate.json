@@ -1,0 +1,29 @@
+{
+  "Body": {
+    "changed": 1945,
+    "max_mm": 2.6605986994813553,
+    "triangle_flips": 0,
+    "new_degenerate": 0,
+    "keys": 0
+  },
+  "Hair": {
+    "changed": 402,
+    "max_mm": 3.311239715879405,
+    "triangle_flips": 0,
+    "new_degenerate": 0,
+    "keys": 0
+  },
+  "Face": {
+    "changed": 508,
+    "max_mm": 4.5070280520544035,
+    "triangle_flips": 0,
+    "new_degenerate": 0,
+    "keys": 58
+  },
+  "pass": true,
+  "central_gap_exact": true,
+  "face_outside_ears_exact": true,
+  "body_radial_scale": 0.96,
+  "ear_root_pairs_snapped": 18,
+  "ear_explanation": "Existing 540-vertex nonplanar ear shells. Recessed concha and raised helix; root position aligned, UV islands preserved. No topological weld or forced draw-on-top."
+}

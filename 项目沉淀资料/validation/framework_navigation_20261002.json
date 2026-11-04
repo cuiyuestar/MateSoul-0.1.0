@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "source": "PICO Emulator Spatial Mesh",
+  "error": "",
+  "meshBlocks": 48,
+  "frames": 1096,
+  "movementStarts": 5,
+  "outsideFloorFrames": 0,
+  "offNavMeshFrames": 0,
+  "roomPenetrationFrames": 0,
+  "navMeshBuildMs": 37,
+  "floorAreaM2": 55.89120101928711,
+  "gameSeconds": 30.004255294799806,
+  "distanceM": 15.384299278259278,
+  "maxAnimatorSpeed": 1.1000256538391114,
+  "start": {
+    "x": 0.0,
+    "y": 0.8961220979690552,
+    "z": 2.200000047683716
+  },
+  "end": {
+    "x": -0.6751670837402344,
+    "y": 0.41873884201049807,
+    "z": 0.8864849805831909
+  },
+  "device": "emulator-5554",
+  "package": "com.UnityTechnologies.com.unity.template.urpblank",
+  "observedAtDeviceLocal": "2026-10-02 22:37",
+  "apkSha256": "a15c89e9feab53bf288a8d7e5b09b7112c4dd47ab0b9c8449c280497325528b5"
+}

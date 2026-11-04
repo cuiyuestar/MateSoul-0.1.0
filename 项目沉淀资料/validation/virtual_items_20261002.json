@@ -1,0 +1,55 @@
+{
+  "feature": "virtual_items",
+  "date": "2026-10-02",
+  "platform": {
+    "engine": "Unity 2022.3.38f1",
+    "device": "PICO Emulator 6.2.0",
+    "model": "swan_arm64",
+    "room_source": "PICO Emulator Spatial Mesh"
+  },
+  "catalog": [
+    {
+      "id": "table",
+      "display_name": "桌子",
+      "dimensions_m": [0.6, 0.75, 0.4]
+    },
+    {
+      "id": "chair",
+      "display_name": "椅子",
+      "dimensions_m": [0.36, 0.68, 0.38]
+    }
+  ],
+  "interaction": {
+    "controller_pickup": "left_or_right_grip",
+    "hand_pickup": "view_center_aim_and_right_index_thumb_pinch",
+    "release": "release_grip_or_pinch",
+    "focus": "center_sphere_cast_with_urp_fresnel_material"
+  },
+  "placement": {
+    "surface": "main_room_floor",
+    "search_step_m": 0.25,
+    "search_radius_m": 2.0,
+    "directions_per_ring": 16,
+    "checks": ["navmesh_sample", "oriented_physics_overlap"]
+  },
+  "tests": {
+    "total": 35,
+    "passed": 35,
+    "failed": 0,
+    "skipped": 0,
+    "result": "PASS"
+  },
+  "runtime": {
+    "ready": true,
+    "clean_start_items": 0,
+    "navmesh_build_ms": 45,
+    "fatal_exceptions": 0,
+    "temporary_validation_bridge_present": false,
+    "result": "PASS"
+  },
+  "apk": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+    "bytes": 79914170,
+    "sha256": "d39a33160ff7d5e7ca2bcac22b1ae6f24be110c5b707bddf1f23c15b4c88fa17"
+  }
+}

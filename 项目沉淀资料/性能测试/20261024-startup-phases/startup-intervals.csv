@@ -1,0 +1,7 @@
+run,warmup,activity_to_engine,engine_to_before_splash,before_splash_to_xr_focused,xr_focused_to_before_scene,before_scene_to_after_scene,after_scene_to_bootstrap,engine_to_bootstrap,splash_observed_to_before_scene,hud_total,hud_font_load,avatar_enable,room_load,bootstrap_to_ready,activity_to_ready
+phases-warmup,True,486.0,202.0,2799.0,1752.0,52.0,128.0,4933.0,1788.0,124.0,95.0,10.0,6391.0,6722.0,12141.0
+phases-1,False,3633.0,330.0,2801.0,1749.0,95.0,242.0,5217.0,1810.0,232.0,115.0,7.0,6024.0,6290.0,15140.0
+phases-2,False,3760.0,293.0,2395.0,2165.0,55.0,122.0,5030.0,2204.0,118.0,92.0,8.0,1106.0,2062.0,10852.0
+phases-3,False,3604.0,290.0,2189.0,2356.0,50.0,124.0,5009.0,2394.0,121.0,89.0,6.0,3217.0,3474.0,12087.0
+phases-4,False,3587.0,269.0,1979.0,2561.0,37.0,127.0,4973.0,2590.0,124.0,92.0,4.0,4261.0,4504.0,13064.0
+phases-5,False,3485.0,307.0,1948.0,2601.0,58.0,154.0,5068.0,2624.0,150.0,121.0,5.0,4259.0,4666.0,13219.0

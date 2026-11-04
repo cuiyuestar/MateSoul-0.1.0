@@ -304,6 +304,161 @@ namespace MateSoul.Gameplay
     }
 
     [Serializable]
+    public sealed class RuntimeWorldItemSnapshot
+    {
+        public string id;
+        public string name;
+        public string state;
+        public string control;
+        public string distance;
+    }
+
+    [Serializable]
+    public sealed class RuntimePlayerSnapshot
+    {
+        public bool nearby;
+        public string proximity;
+        public float distance_m;
+        public bool dialogue_open;
+        public string interaction_mode;
+        public RuntimeWorldItemSnapshot focused_item;
+    }
+
+    [Serializable]
+    public sealed class RuntimeHeldItemSnapshot
+    {
+        public string id;
+        public string name;
+        public string state;
+        public string holder;
+    }
+
+    [Serializable]
+    public sealed class RuntimeActivitySnapshot
+    {
+        public string id;
+        public string name;
+        public string state;
+        public string phase;
+        public int player_score;
+        public int companion_score;
+    }
+
+    [Serializable]
+    public sealed class RuntimeWorldFactSnapshot
+    {
+        public string subject_id;
+        public string subject_name;
+        public string category;
+        public string state;
+        public string value;
+    }
+
+    [Serializable]
+    public sealed class RuntimeInventoryAlertSnapshot
+    {
+        public string definition_id;
+        public string name;
+        public int remaining;
+        public int limit;
+        public string severity;
+    }
+
+    [Serializable]
+    public sealed class RuntimeEnvironmentCountSnapshot
+    {
+        public string id;
+        public string name;
+        public int count;
+        public bool estimated;
+    }
+
+    [Serializable]
+    public sealed class RuntimeEnvironmentZoneSnapshot
+    {
+        public string id;
+        public string description;
+    }
+
+    [Serializable]
+    public sealed class RuntimeEnvironmentRelationSnapshot
+    {
+        public string subject;
+        public string relation;
+        public string target;
+    }
+
+    [Serializable]
+    public sealed class RuntimeEnvironmentSnapshot
+    {
+        public long revision;
+        public string source;
+        public string confidence;
+        public string count_quality;
+        public float floor_area_m2;
+        public float width_m;
+        public float length_m;
+        public float height_m;
+        public string shape;
+        public string open_space;
+        public int floor_count;
+        public RuntimeEnvironmentCountSnapshot[] semantic_counts =
+            Array.Empty<RuntimeEnvironmentCountSnapshot>();
+        public RuntimeEnvironmentZoneSnapshot[] zones =
+            Array.Empty<RuntimeEnvironmentZoneSnapshot>();
+        public RuntimeEnvironmentRelationSnapshot[] relations =
+            Array.Empty<RuntimeEnvironmentRelationSnapshot>();
+    }
+
+    [Serializable]
+    public sealed class RuntimeVirtualItemGroupSnapshot
+    {
+        public string definition_id;
+        public string name;
+        public string state;
+        public string control;
+        public int count;
+    }
+
+    [Serializable]
+    public sealed class RuntimeControlCountSnapshot
+    {
+        public string control;
+        public int count;
+    }
+
+    [Serializable]
+    public sealed class RuntimeVirtualWorldSnapshot
+    {
+        public long revision;
+        public int total_count;
+        public int omitted_group_count;
+        public RuntimeVirtualItemGroupSnapshot[] item_groups =
+            Array.Empty<RuntimeVirtualItemGroupSnapshot>();
+        public RuntimeControlCountSnapshot[] control_counts =
+            Array.Empty<RuntimeControlCountSnapshot>();
+        public RuntimeWorldItemSnapshot[] salient_items =
+            Array.Empty<RuntimeWorldItemSnapshot>();
+    }
+
+    [Serializable]
+    public sealed class RuntimeWorldSnapshot
+    {
+        public int schema_version = 1;
+        public long revision;
+        public RuntimePlayerSnapshot player;
+        public RuntimeHeldItemSnapshot[] held_items =
+            Array.Empty<RuntimeHeldItemSnapshot>();
+        public RuntimeActivitySnapshot activity;
+        public RuntimeWorldFactSnapshot[] active_facts =
+            Array.Empty<RuntimeWorldFactSnapshot>();
+        public RuntimeInventoryAlertSnapshot[] inventory_alerts =
+            Array.Empty<RuntimeInventoryAlertSnapshot>();
+        public RuntimeEnvironmentSnapshot environment;
+        public RuntimeVirtualWorldSnapshot virtual_world;
+    }
+
+    [Serializable]
     public sealed class CharacterRuntimeSnapshot
     {
         public int schema_version = 1;
@@ -313,6 +468,7 @@ namespace MateSoul.Gameplay
         public string posture;
         public RuntimeActionSnapshot[] actions = Array.Empty<RuntimeActionSnapshot>();
         public RuntimeEventSnapshot[] recent_events = Array.Empty<RuntimeEventSnapshot>();
+        public RuntimeWorldSnapshot world;
     }
 
     [Serializable]

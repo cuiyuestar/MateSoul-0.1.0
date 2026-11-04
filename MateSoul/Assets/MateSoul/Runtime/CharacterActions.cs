@@ -13,14 +13,23 @@ namespace MateSoul.Runtime
         private readonly IAvatarMotor motor;
         private readonly INavigationService navigation;
         private readonly Func<Vector3> destination;
+        private readonly float arrivalDistance;
         private Vector3[] path;
         private bool started, cancelled;
         private float blockedSeconds;
         private float bestRemainingDistance;
         private Vector3 progressDestination;
-        public MoveAction(IAvatarMotor motor, INavigationService navigation, Func<Vector3> destination)
+#region debug-point A-B-D:movement-progress
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private float debugNextMovementReport;
+        private float debugNextBedStallProgressReport;
+#endif
+#endregion
+        public MoveAction(IAvatarMotor motor, INavigationService navigation, Func<Vector3> destination,
+            float arrivalDistance = 0)
         {
             this.motor = motor; this.navigation = navigation; this.destination = destination;
+            this.arrivalDistance = arrivalDistance;
         }
         public string PhaseId => "moving";
         public string PostureId => "standing";
@@ -33,6 +42,25 @@ namespace MateSoul.Runtime
             progressDestination = destination();
             bestRemainingDistance = Vector3.ProjectOnPlane(
                 progressDestination - motor.Position, Vector3.up).magnitude;
+#region debug-point A-D:initial-path
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            var debugCorners = path == null ? "" :
+                string.Join(",", Array.ConvertAll(path, value => JsonUtility.ToJson(value)));
+            var debugPayload = $"{{\"sessionId\":\"movement-blocked\",\"runId\":\"post-fix-2\"," +
+                $"\"hypothesisId\":\"A-D\",\"location\":\"MoveAction.Start\"," +
+                $"\"msg\":\"[DEBUG] initial action path\",\"data\":{{\"origin\":" +
+                $"{JsonUtility.ToJson(motor.Position)},\"destination\":" +
+                $"{JsonUtility.ToJson(destination())},\"corners\":[{debugCorners}]}}}}";
+#if UNITY_EDITOR
+            const string debugEndpoint = "http://127.0.0.1:7794/event";
+#else
+            const string debugEndpoint = "http://127.0.0.1:7794/event";
+#endif
+            var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                debugEndpoint, debugPayload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
             motor.Begin(path);
         }
         public ActionProgress Tick(float dt)
@@ -44,17 +72,98 @@ namespace MateSoul.Runtime
             {
                 if (!navigation.TryPath(motor.Position, currentDestination, out path))
                     throw new InvalidOperationException("The route is no longer reachable.");
+#region debug-point A-D:repath
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                var debugCorners = path == null ? "" :
+                    string.Join(",", Array.ConvertAll(path, value => JsonUtility.ToJson(value)));
+                var debugPayload = $"{{\"sessionId\":\"movement-blocked\",\"runId\":\"post-fix-2\"," +
+                    $"\"hypothesisId\":\"A-D\",\"location\":\"MoveAction.Tick.repath\"," +
+                    $"\"msg\":\"[DEBUG] moved destination repath\",\"data\":{{\"origin\":" +
+                    $"{JsonUtility.ToJson(motor.Position)},\"destination\":" +
+                    $"{JsonUtility.ToJson(currentDestination)},\"corners\":[{debugCorners}]}}}}";
+#if UNITY_EDITOR
+                const string debugEndpoint = "http://127.0.0.1:7794/event";
+#else
+                const string debugEndpoint = "http://127.0.0.1:7794/event";
+#endif
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    debugEndpoint, debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
                 motor.Begin(path);
                 progressDestination = currentDestination;
                 bestRemainingDistance = Vector3.ProjectOnPlane(
                     currentDestination - motor.Position, Vector3.up).magnitude;
                 blockedSeconds = 0;
             }
-            if (motor.Tick(dt)) return ActionProgress.Succeeded;
-
             var remainingDistance = Vector3.ProjectOnPlane(
                 currentDestination - motor.Position, Vector3.up).magnitude;
+            if (arrivalDistance > 0 && remainingDistance <= arrivalDistance)
+            {
+                motor.Stop();
+                return ActionProgress.Succeeded;
+            }
+            if (motor.Tick(dt)) return ActionProgress.Succeeded;
+
             var progress = bestRemainingDistance - remainingDistance;
+#region debug-point D-E:bed-stall-progress
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextBedStallProgressReport)
+            {
+                debugNextBedStallProgressReport = Time.unscaledTime + .25f;
+                var debugMotor = motor as AvatarMotor;
+                var debugVelocity = debugMotor != null
+                    ? debugMotor.Body.Rigidbody.velocity : Vector3.zero;
+                var debugPayload =
+                    $"{{\"sessionId\":\"avatar-bed-corner-stall\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"D-E\",\"location\":\"MoveAction.Tick\"," +
+                    $"\"msg\":\"[DEBUG] movement progress sample\",\"data\":{{" +
+                    $"\"position\":{JsonUtility.ToJson(motor.Position)}," +
+                    $"\"destination\":{JsonUtility.ToJson(currentDestination)}," +
+                    $"\"velocity\":{JsonUtility.ToJson(debugVelocity)}," +
+                    $"\"remainingDistance\":{remainingDistance}," +
+                    $"\"bestRemainingDistance\":{bestRemainingDistance}," +
+                    $"\"progress\":{progress},\"blockedSeconds\":{blockedSeconds}," +
+                    $"\"physicalAvoidanceFailed\":{(debugMotor != null && debugMotor.PhysicalAvoidanceFailed).ToString().ToLowerInvariant()}}}}}";
+#if UNITY_EDITOR
+                const string debugEndpoint = "http://127.0.0.1:7778/event";
+#else
+                const string debugEndpoint = "http://127.0.0.1:7778/event";
+#endif
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    debugEndpoint, debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
+#region debug-point B-D:stall-window
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextMovementReport)
+            {
+                debugNextMovementReport = Time.unscaledTime + .5f;
+                var avatar = motor as AvatarMotor;
+                var velocity = avatar != null
+                    ? avatar.Body.Rigidbody.velocity : Vector3.zero;
+                var debugPayload =
+                    $"{{\"sessionId\":\"movement-blocked\",\"runId\":\"post-fix-2\"," +
+                    $"\"hypothesisId\":\"B-D\",\"location\":\"MoveAction.Tick\"," +
+                    $"\"msg\":\"[DEBUG] movement progress window\",\"data\":{{\"dt\":{dt}," +
+                    $"\"progress\":{progress},\"blockedSeconds\":{blockedSeconds}," +
+                    $"\"position\":{JsonUtility.ToJson(motor.Position)}," +
+                    $"\"destination\":{JsonUtility.ToJson(destination())}," +
+                    $"\"velocity\":{JsonUtility.ToJson(velocity)}}}}}";
+#if UNITY_EDITOR
+                const string debugEndpoint = "http://127.0.0.1:7794/event";
+#else
+                const string debugEndpoint = "http://127.0.0.1:7794/event";
+#endif
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    debugEndpoint, debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
             if (progress >= MinimumProgressDistance)
             {
                 bestRemainingDistance = remainingDistance;
@@ -69,6 +178,29 @@ namespace MateSoul.Runtime
                 blockedSeconds = BlockedDuration;
             if (blockedSeconds >= BlockedDuration)
             {
+#region debug-point B-C-D:blocked-admission
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                var avatar = motor as AvatarMotor;
+                var velocity = avatar != null
+                    ? avatar.Body.Rigidbody.velocity : Vector3.zero;
+                var debugPayload =
+                    $"{{\"sessionId\":\"movement-blocked\",\"runId\":\"post-fix-2\"," +
+                    $"\"hypothesisId\":\"B-C-D\",\"location\":\"MoveAction.Tick.blocked\"," +
+                    $"\"msg\":\"[DEBUG] movement blocked admission\",\"data\":{{" +
+                    $"\"progress\":{progress},\"blockedSeconds\":{blockedSeconds}," +
+                    $"\"position\":{JsonUtility.ToJson(motor.Position)}," +
+                    $"\"destination\":{JsonUtility.ToJson(destination())}," +
+                    $"\"velocity\":{JsonUtility.ToJson(velocity)}}}}}";
+#if UNITY_EDITOR
+                const string debugEndpoint = "http://127.0.0.1:7794/event";
+#else
+                const string debugEndpoint = "http://127.0.0.1:7794/event";
+#endif
+                var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    debugEndpoint, debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
                 motor.Stop();
                 throw new InvalidOperationException(
                     "Movement is blocked by an obstacle.");

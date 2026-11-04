@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,10 +11,14 @@ namespace MateSoul.Runtime
         Volume
     }
 
-    /// <summary>Maps a world-space pointer drag around a knob to its authored 270-degree range.</summary>
+    /// <summary>Owns pointer dragging and captured hand rotation over the authored knob range.</summary>
     public sealed class RadioKnobControl : Selectable, IPointerDownHandler, IDragHandler,
-        IScrollHandler
+        IScrollHandler, IInitializePotentialDragHandler
     {
+        private const float HandCaptureDistance = .045f;
+        private const float HandRotationGain = 1.5f;
+        private static readonly List<RadioKnobControl> activeControls =
+            new List<RadioKnobControl>();
         [SerializeField] private RadioController radio;
         [SerializeField] private RadioKnobKind kind;
         [SerializeField] private Transform knobPivot;
@@ -33,6 +38,10 @@ namespace MateSoul.Runtime
         private Vector2 volumePointerAxis;
         private float previousVolumePointerPosition;
         private float volumePointerSpan;
+        private PicoHandPoke handOwner;
+        private Quaternion previousHandRotation;
+        private int dragPointerId;
+        private bool pointerAngleValid;
         private bool dragging;
         private bool initialized;
 
@@ -43,6 +52,66 @@ namespace MateSoul.Runtime
         public Transform LinkedIndicator => linkedIndicator;
         public Vector3 IndicatorMinimumLocal => indicatorMinimumLocal;
         public Vector3 IndicatorMaximumLocal => indicatorMaximumLocal;
+        internal bool IsHandTurning => handOwner != null;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            if (!activeControls.Contains(this)) activeControls.Add(this);
+        }
+
+        internal static RadioKnobControl FindNearby(Vector3 position, int pointerId)
+        {
+            RadioKnobControl nearest = null;
+            var bestDistance = HandCaptureDistance * HandCaptureDistance;
+            foreach (var control in activeControls)
+            {
+                if (!control.gameObject.scene.IsValid() || !control.IsActive() ||
+                    !control.IsInteractable() || control.handOwner != null ||
+                    control.dragging && control.dragPointerId != pointerId)
+                    continue;
+                var offset = position - control.knobPivot.position;
+                var distance = offset.sqrMagnitude;
+                if (distance > bestDistance ||
+                    Vector3.Dot(offset, control.transform.forward) < -.01f)
+                    continue;
+                if (Physics.Linecast(position, control.knobPivot.position, out var hit,
+                        InteractionPhysicsLayers.DirectSelectionMask, QueryTriggerInteraction.Ignore) &&
+                    !hit.collider.transform.IsChildOf(control.radio.transform))
+                    continue;
+                nearest = control;
+                bestDistance = distance;
+            }
+            return nearest;
+        }
+
+        internal bool BeginHandTurn(PicoHandPoke owner, Quaternion rotation)
+        {
+            if (handOwner != null || !IsActive() || !IsInteractable()) return false;
+            handOwner = owner;
+            previousHandRotation = rotation;
+            dragging = false;
+            return true;
+        }
+
+        internal void UpdateHandTurn(PicoHandPoke owner, Quaternion rotation)
+        {
+            if (handOwner != owner) return;
+            var turn = rotation * Quaternion.Inverse(previousHandRotation);
+            previousHandRotation = rotation;
+            // Extract twist about the physical shaft; wrist swing does not turn the knob.
+            var axis = transform.forward;
+            var projected = turn.x * axis.x + turn.y * axis.y + turn.z * axis.z;
+            if (Mathf.Abs(projected) + Mathf.Abs(turn.w) < .0001f) return;
+            var degrees = Mathf.DeltaAngle(0,
+                2f * Mathf.Atan2(projected, turn.w) * Mathf.Rad2Deg);
+            SetNormalizedValue(value + degrees * HandRotationGain / 270f);
+        }
+
+        internal void EndHandTurn(PicoHandPoke owner)
+        {
+            if (handOwner == owner) handOwner = null;
+        }
 
         public void Configure(RadioController owner, RadioKnobKind controlKind,
             Transform visual, Transform indicator, Vector3 indicatorMinimum,
@@ -104,26 +173,39 @@ namespace MateSoul.Runtime
 
         public override void OnPointerDown(PointerEventData eventData)
         {
+            if (handOwner != null || dragging && dragPointerId != eventData.pointerId) return;
             base.OnPointerDown(eventData);
             if (eventData.button != PointerEventData.InputButton.Left || !IsInteractable()) return;
             if (kind == RadioKnobKind.Volume)
             {
                 if (!TryBeginVolumeDrag(eventData)) return;
             }
-            else if (!TryGetPointerAngle(eventData, out previousPointerAngle)) return;
+            else pointerAngleValid = TryGetPointerAngle(eventData, out previousPointerAngle);
+            dragPointerId = eventData.pointerId;
             dragging = true;
+#region debug-point D:radio-knob
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            ReportMemoryInteraction("begin");
+#endif
+#endregion
             eventData.Use();
         }
 
         public override void OnPointerUp(PointerEventData eventData)
         {
+            if (dragging && dragPointerId != eventData.pointerId) return;
             base.OnPointerUp(eventData);
+#region debug-point D:radio-knob
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            if (dragging) ReportMemoryInteraction("end");
+#endif
+#endregion
             dragging = false;
         }
 
         public void OnDrag(PointerEventData eventData)
         {
-            if (!dragging || !IsInteractable()) return;
+            if (!dragging || dragPointerId != eventData.pointerId || !IsInteractable()) return;
             if (kind == RadioKnobKind.Volume)
             {
                 var pointerPosition = GetVolumePointerPosition(eventData);
@@ -134,16 +216,32 @@ namespace MateSoul.Runtime
                 eventData.Use();
                 return;
             }
-            if (!TryGetPointerAngle(eventData, out var pointerAngle)) return;
+            if (!TryGetPointerAngle(eventData, out var pointerAngle))
+            {
+                pointerAngleValid = false;
+                return;
+            }
+            if (!pointerAngleValid)
+            {
+                previousPointerAngle = pointerAngle;
+                pointerAngleValid = true;
+            }
             var angularDelta = Mathf.DeltaAngle(previousPointerAngle, pointerAngle);
             previousPointerAngle = pointerAngle;
             ApplyAngularDelta(angularDelta);
             eventData.Use();
         }
 
+        public void OnInitializePotentialDrag(PointerEventData eventData)
+        {
+            if (eventData is UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceEventData tracked &&
+                tracked.interactor is PicoHandPoke)
+                eventData.useDragThreshold = false;
+        }
+
         public void OnScroll(PointerEventData eventData)
         {
-            if (!IsInteractable()) return;
+            if (handOwner != null || dragging || !IsInteractable()) return;
             SetNormalizedValue(value + Mathf.Sign(eventData.scrollDelta.y) * .04f);
             eventData.Use();
         }
@@ -210,12 +308,30 @@ namespace MateSoul.Runtime
                     Vector3.Lerp(indicatorMinimumLocal, indicatorMaximumLocal, value);
         }
 
+#region debug-point D:radio-knob
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+        private void ReportMemoryInteraction(string state)
+        {
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            var payload =
+                $"{{\"sessionId\":\"emulator-memory-growth\",\"runId\":\"interaction-correlation\"," +
+                $"\"hypothesisId\":\"D\",\"ts\":{System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                $"\"location\":\"RadioKnobControl\",\"msg\":\"[DEBUG] radio knob interaction\"," +
+                $"\"data\":{{\"state\":\"{state}\",\"kind\":\"{kind}\"," +
+                $"\"value\":{value.ToString("R", culture)}}}}}";
+            var request = UnityEngine.Networking.UnityWebRequest.Post(
+                "http://127.0.0.1:7791/event", payload, "application/json");
+            var operation = request.SendWebRequest();
+            operation.completed += _ => request.Dispose();
+        }
+#endif
+#endregion
 
         private void Update()
         {
             if (!initialized) return;
             highlight = Mathf.MoveTowards(highlight,
-                IsInteractable() && (IsHighlighted() || IsPressed()) ? 1f : 0f,
+                IsInteractable() && (IsHighlighted() || IsPressed() || IsHandTurning) ? 1f : 0f,
                 Time.unscaledDeltaTime / .12f);
             if (knobRenderer == null) return;
             properties.SetColor("_EmissionColor",
@@ -226,6 +342,8 @@ namespace MateSoul.Runtime
         protected override void OnDisable()
         {
             base.OnDisable();
+            activeControls.Remove(this);
+            handOwner = null;
             highlight = 0;
             dragging = false;
             volumePointerSpan = 0;

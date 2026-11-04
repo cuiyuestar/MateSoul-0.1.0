@@ -1,0 +1,66 @@
+{
+  "feature": "carrot_runtime_cutting",
+  "date": "2026-10-21",
+  "platform": {
+    "unity": "2022.3.38f1",
+    "render_pipeline": "URP 14.0.11",
+    "target": "Android ARM64 IL2CPP"
+  },
+  "content": {
+    "definition_id": "carrot",
+    "mass_kg": 0.12,
+    "daily_inventory": 5,
+    "maximum_cut_depth": 3,
+    "minimum_piece_volume_ratio": 0.03,
+    "visual_mesh": "32 segments x 12 rings",
+    "collision_proxy": "12 segments x 6 rings, convex",
+    "runtime_texture_size": "512x512",
+    "texture_source_size": "360x360",
+    "texture_note": "The runtime textures are resized source images and do not contain native 512 or 1024 detail."
+  },
+  "tests": {
+    "carrot_cutting_edit_mode": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "runtime_cut_integration": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "name": "MateSoul.Tests.GameRuntimeTests.RuntimeCarrotCutCommitsTwoPhysicalSavedPieces"
+    },
+    "game_runtime_suite": {
+      "total": 44,
+      "passed": 37,
+      "failed": 7,
+      "carrot_test_passed": true,
+      "pre_existing_unrelated_failures": [
+        "BottomHudExpandsVerticalInteractionActivities",
+        "CharacterCannotWalkThroughAnUnmappedWall",
+        "CharacterClimbsShallowSlopeUnderGravity",
+        "DailyInventoryRefreshesAtLocalMidnight",
+        "FragileItemsIgnoreHeldImpactAndCreateSeveritySpecificDebris",
+        "InvalidLayoutsRollBackEveryBodyAndPreserveOriginalSave",
+        "TwoItemsSaveIndependentlyAndRemovingAITargetReleasesControl"
+      ]
+    }
+  },
+  "android_build": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+    "development_build": true,
+    "clean_build_cache": true,
+    "duration": "00:05:05.3086879",
+    "il2cpp_build_graph_items": 1848,
+    "file_size_bytes": 141227418,
+    "sha256": "3fb315c7da2d511bdbf25fba8f48ed2dcee38bfba5a9c8e1e0f9e6d84cb99ce6",
+    "zip_integrity": "passed",
+    "apk_signature_v2": "passed"
+  },
+  "pending_device_validation": [
+    "PICO 6DoF blade stroke threshold and collider hit tolerance",
+    "Repeated cut-piece grabbing and physics stability",
+    "Interior material appearance under headset URP lighting",
+    "Close-range clarity of textures resized from 360x360 sources"
+  ]
+}

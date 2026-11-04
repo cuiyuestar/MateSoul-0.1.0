@@ -1,0 +1,7 @@
+﻿
+run_id,ready_total_ms,android_to_engine_ms,engine_to_bootstrap_ms,bootstrap_to_room_load_start_ms,room_load_ms,mesh_query_count,mesh_api_calls_total_ms,mesh_between_queries_total_ms,mesh_nominal_delay_ms,mesh_snapshot_build_validate_ms,anchor_total_ms,restore_anchor_wait_ms,startup_setup_ms,occlusion_apply_ms,navmesh_build_ms,avatar_bind_ms,session_assembly_ms,audio_bind_ms,world_configuration_ms,pause_setup_ms,restore_total_ms,restore_processing_ms,engine_to_xr_focused_ms,xr_focused_to_manager_awake_ms,manager_awake_to_bootstrap_ms
+optimized-1,12102,601,5127,27,5988,12,343,5597,5500,14,2095,0,16,13,34,9,99,2,181,2,18,18,2357,2513,257
+optimized-2,10231,2971,4853,8,2155,5,75,2059,2000,10,2048,0,4,6,28,5,76,0,119,0,9,9,2375,2310,168
+optimized-3,10260,3276,4917,14,1085,3,39,1018,1000,9,2048,710,6,5,31,5,80,1,123,1,721,11,2621,2082,214
+optimized-4,10296,1923,4853,12,3203,7,109,3068,3000,12,2046,0,7,7,35,6,92,0,149,1,13,13,2171,2507,175
+optimized-5,12277,2909,4859,11,4247,9,140,4089,4000,9,2044,0,5,5,31,7,80,1,117,0,9,9,2299,2372,188

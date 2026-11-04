@@ -1,0 +1,143 @@
+{
+  "date": "2026-10-28",
+  "platform": "Unity 2022.3.38f1 / URP / PICO Unity Integration SDK",
+  "source": {
+    "path": "/Users/bytedance/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files/wxid_0x464dim3jo722_81dc/msg/file/2026-10/Drink_01_InPlace.fbx",
+    "sha256": "36472de7eb40a8feb8bf94bc1ec26c04bf9b2b98ded21b987ec529c26c065e7f",
+    "copyMatches": true,
+    "fps": 30,
+    "durationSeconds": 3.3
+  },
+  "autonomousWhitelist": [
+    "mug"
+  ],
+  "scope": "Only autonomous visit admission is gated; explicit action item reservations remain unrestricted.",
+  "pickupSnapLayersMeters": [
+    0.025,
+    0.25,
+    0.65
+  ],
+  "animationBodyBindings": 53,
+  "authoredMeasurements": {
+    "maximumGripError": 2.50787024924648e-07,
+    "minimumAnkleHeight": 0.10070353746414185,
+    "rootDrift": 0.0,
+    "maximumRimError": 2.3075863282429054e-05
+  },
+  "cycles": [
+    {
+      "surface": "floor",
+      "source": "UI",
+      "gameSeconds": 10.64989,
+      "finalPositionErrorMeters": 4.097819e-08,
+      "maximumDrinkingGripErrorMeters": 3.653064e-07,
+      "phases": [
+        "拿起马克杯",
+        "喝水",
+        "放回马克杯",
+        "done"
+      ]
+    },
+    {
+      "surface": "table",
+      "source": "Autonomous",
+      "gameSeconds": 12.15655,
+      "finalPositionErrorMeters": 9.999999994736442e-08,
+      "maximumDrinkingGripErrorMeters": 4.339284e-07,
+      "phases": [
+        "拿起马克杯",
+        "喝水",
+        "放回马克杯",
+        "done"
+      ]
+    }
+  ],
+  "validation": {
+    "exit": 0,
+    "seconds": 89.91,
+    "summary": {
+      "id": "2",
+      "testcasecount": "11",
+      "result": "Passed",
+      "total": "11",
+      "passed": "11",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-28 09:26:04Z",
+      "end-time": "2026-10-28 09:26:07Z",
+      "duration": "2.6778823"
+    },
+    "tests": [
+      {
+        "name": "MateSoul.Tests.BowlingTests.ProductionRayInputSnapsBowlingBallToHandAndReleasesIt",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.AuthoredMotionKeepsCupOnHandAndFeetPlanted",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.AutonomySelectsOnlyWhitelistedAvailableItemsAndCannotBypassGate",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.CancellationDuringDrinkRestoresPhysicsAndAnimationLayers",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.FloorAndTableUseCompleteAndReturnToOriginalPose",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.PauseDuringDrinkRestoresPhysicsAndAnimationLayers",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.PlayerPreemptionDuringDrinkReleasesItemBeforeNextAction",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.ProductionWhitelistIsMugOnlyAndDrinkPreservesSourceTimingAndBodyBindings",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.RemovedMugFailsActionAndClearsEveryAvatarLayer",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.ItemActionRuntimeTests.CutActionAnnouncesOnceAndPassiveFocusStaysSilent",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.ItemActionRuntimeTests.StartingCutActionKeepsFixedWorkspaceCollisionEnabled",
+        "result": "Passed",
+        "failure": null
+      }
+    ]
+  },
+  "validationMode": "Unity EditMode runner entering PlayMode; final regression uses -nographics with real Animator, physics, navigation and XRI.",
+  "productionIdentities": {
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+    "Assets/MateSoul/Scenes/MateSoul.unity": "7c9d47dea406e90354682be59f329f6d52b7fa0d24e9fc039acae7b8ea3464f7",
+    "Assets/MateSoul/Content/ItemActions/Pickup/Pickup_Floor.anim": "c01c463401fecb9b6ffc471368bb7bd540913d147657080a2fa5e6c618c37639",
+    "Assets/MateSoul/Content/ItemActions/Pickup/Pickup_High.anim": "6f5b455a7662bb9e5c5fcb097c9a728bee6cba91260f5057516b95653f74cb25",
+    "Assets/MateSoul/Content/ItemActions/Pickup/Pickup_Low.anim": "1931f11e32ac58132299351b0089aa058d0fe8c5a94894c47120c01dbe09e88a",
+    "Assets/MateSoul/Content/ItemActions/Pickup/Pickup_Table.anim": "dbad2dcad82747bbff713cdd0ab99ce4ce3f6b32035c449ac81006fcc6c20a7d"
+  },
+  "androidBuild": "Not requested or generated for this change.",
+  "headsetValidation": "Not performed."
+}

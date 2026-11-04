@@ -1,11 +1,12 @@
 using System;
+using MateSoul.Gameplay;
 using TMPro;
 using UnityEngine;
 
 namespace MateSoul.Runtime
 {
     [DisallowMultipleComponent]
-    public sealed class HeatingBaseController : MonoBehaviour
+    public sealed class HeatingBaseController : MonoBehaviour, IRuntimeWorldFactSource
     {
         public const string ButtonBeepResource = "CookingEffects/ButtonBeep";
         public const string OperatingHumResource = "CookingEffects/InductionHum";
@@ -13,7 +14,7 @@ namespace MateSoul.Runtime
         public const int MaximumTemperature = 100;
         public const int TemperatureStep = 10;
         public const int DefaultTemperature = 60;
-        private const int MaximumOverlaps = 24;
+        private const int MaximumOverlaps = 128;
 
         [SerializeField] private Transform heatingSurface;
         [SerializeField] private TMP_Text temperatureDisplay;
@@ -49,6 +50,23 @@ namespace MateSoul.Runtime
         public int ButtonSoundPlayCount { get; private set; }
         public event Action<bool> PowerChanged;
         public event Action<int> TemperatureChanged;
+
+        public bool TryCaptureRuntimeWorldFact(
+            out RuntimeWorldFactSnapshot fact)
+        {
+            if (!powered)
+            {
+                fact = null;
+                return false;
+            }
+            fact = RuntimeWorldFact.Create(
+                this,
+                "appliance",
+                IsOperating ? "heating" : "powered",
+                $"temperature_c={temperature};contact=" +
+                $"{Mathf.RoundToInt(currentContactRatio * 100f)}%");
+            return true;
+        }
 
         public void Configure(Transform surface, float radius, TMP_Text display,
             Renderer screen)

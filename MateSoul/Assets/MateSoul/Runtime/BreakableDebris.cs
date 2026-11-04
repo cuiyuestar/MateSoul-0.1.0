@@ -56,6 +56,21 @@ namespace MateSoul.Runtime
                 Debug.Log($"BREAK_SOUND_TIMING item={itemName} severity={severity} " +
                           $"leadMs={(debris.FragmentsReadyAt - debris.BreakSoundRequestedAt) * 1000:F1}");
                 owner.RegisterDebris(debris);
+#region debug-point C:item-break
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+                var payload =
+                    $"{{\"sessionId\":\"emulator-memory-growth\",\"runId\":\"interaction-correlation\"," +
+                    $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                    $"\"location\":\"BreakableDebris.Create\",\"msg\":\"[DEBUG] item debris created\"," +
+                    $"\"data\":{{\"item\":\"{itemName}\",\"severity\":\"{severity}\"," +
+                    $"\"fragments\":{debris.bodies.Length},\"authored\":" +
+                    $"{(template != null).ToString().ToLowerInvariant()}}}}}";
+                var request = UnityWebRequest.Post(
+                    "http://127.0.0.1:7791/event", payload, "application/json");
+                var operation = request.SendWebRequest();
+                operation.completed += _ => request.Dispose();
+#endif
+#endregion
                 return debris;
             }
             catch

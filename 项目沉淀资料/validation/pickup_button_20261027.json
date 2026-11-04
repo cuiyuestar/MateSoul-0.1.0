@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-27",
+  "tests": {
+    "MateSoul.Tests.ItemActionRuntimeTests.CancellationAndPauseReleaseEveryItemAndRestorePhysics": {
+      "result": "Passed",
+      "durationSeconds": "9.792023"
+    },
+    "MateSoul.Tests.ItemActionRuntimeTests.MissingItemsOnlyReportSystemHintAndAcquireNoControl": {
+      "result": "Passed",
+      "durationSeconds": "3.942089"
+    },
+    "MateSoul.Tests.PickupPanelAcceptance.ButtonPanelTargetsNearestAvailableItemAndRestoresPhysics": {
+      "result": "Passed",
+      "durationSeconds": "13.306081"
+    },
+    "MateSoul.Tests.PickupPanelAcceptance.GroundLowAndTableObjectsUseAuthoredPickupAndPauseReleases": {
+      "result": "Passed",
+      "durationSeconds": "19.570379"
+    },
+    "MateSoul.Tests.PickupPanelAcceptance.MissingBusyFixedAndTooHighTargetsDoNotAcquireOrInterruptControl": {
+      "result": "Passed",
+      "durationSeconds": "9.643204"
+    },
+    "MateSoul.Tests.PickupPanelAcceptance.NamesPageAndBusyCountsRefreshWithoutSpawningInventory": {
+      "result": "Passed",
+      "durationSeconds": "8.188007"
+    },
+    "MateSoul.Tests.PlayerAIHudTests.MissingKeyConfigurationTutorialAndPlacementPreserveHudState": {
+      "result": "Passed",
+      "durationSeconds": "9.197154"
+    }
+  },
+  "passed": 7,
+  "heights": [
+    {
+      "supportHeight": "0",
+      "targetGripHeight": "0.124",
+      "pickupSeconds": "8.756317",
+      "alignmentError": "2.149076E-07"
+    },
+    {
+      "supportHeight": "0.35",
+      "targetGripHeight": "0.474",
+      "pickupSeconds": "5.421582",
+      "alignmentError": "1.685874E-07"
+    },
+    {
+      "supportHeight": "0.78",
+      "targetGripHeight": "0.904",
+      "pickupSeconds": "7.760175",
+      "alignmentError": "1.228781E-07"
+    }
+  ],
+  "verification": "Production Unity play-mode GameSession and actual button callbacks",
+  "headsetValidation": "not performed",
+  "sourceSha256": {
+    "GameHud.cs": "ac5b3465031c8b7e9bacb95ce12e4364df3cb78cf11f7af02bf370f7b14b3d89",
+    "GameSession.cs": "de1a91c183c3d8dfeb0a4f14d8119df719877ae2306047f894dac7631b64aa51",
+    "GameSession.ItemActions.cs": "e86c8a0da0f7d680dfe7f829e648784276816c0a87b4acd863eb680c939d4c4a",
+    "ItemActionRun.cs": "d9fc9de0c25be0b23f4d94abdfe7327618327b802113ac5a855e14b17c498a71",
+    "ItemTransferStep.cs": "02c6a03ebead5b327691cb8d5660b1a3773fb6c4fd27192842f4c25149ec7dbf",
+    "PickupItemAction.cs": "3f635b1e80d8243813af5c9ea48f0f26b9ee6424b62d12ccf8bb098d71e53431"
+  },
+  "build": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_PickupButton_20261027.apk",
+    "bytes": 165610361,
+    "sha256": "9146d3f4fb7519c0cf445230ea27fcbf0d96033edb85ab683b40226e012685ef",
+    "sourceCount": 272,
+    "sourceChanged": [],
+    "crc": "passed",
+    "arm64Libraries": 18,
+    "pickupActionInPlayer": true,
+    "mode": "Release ARM64 IL2CPP",
+    "signature": "APK v2 verified",
+    "package": "com.matesoul.game",
+    "durationSeconds": 145.4908433
+  }
+}

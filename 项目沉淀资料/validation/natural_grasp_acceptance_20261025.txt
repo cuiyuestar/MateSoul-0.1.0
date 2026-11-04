@@ -1,0 +1,33 @@
+PASS near relaxed grip acquires 
+PASS grasp preserves item pose and begins PhysicsBody follow 
+PASS attachment lands on actual surface 
+PASS relaxed held grip remains selected 
+PASS clear palm release in one input update 
+PASS release ends actual PhysicsBody follow 
+PASS ambiguous one-frame dip keeps grip 
+PASS ambiguous open releases within 52ms 
+PASS pinch can acquire at fingertips 
+PASS selection remembers pinch mode 
+PASS pinch release ignores other curled fingers 
+PASS repeat pinch rearms without opening other fingers 
+PASS brief tracking gap retains selection 
+PASS 110ms tracking loss safely releases 
+PASS tracking loss drops without stale velocity 
+PASS far clench still cannot vacuum an item 
+PASS velocity feedforward reduces constant-motion lag old=0.02126253 new=0.009987473
+PASS feedforward preserves collision stop x=0.61
+PASS throw uses bounded recent body velocity 
+PASS fixed contact object stays fixed 
+PASS left official hand binds bounded held pose wristShift=0.025
+PASS visual constraints never overwrite tracked input 
+PASS all official fingers have finite constrained rotations 
+PASS palm visibly stops at contact within bounded correction shift=0.0025 penetration=True depth=0.0015 normal=(0.00, -1.00, 0.00) nearby=1
+PASS finger arc begins outside obstacle 
+PASS finger closing stops at first physical contact preventedDegrees=43.38542
+PASS right official hand binds bounded held pose wristShift=0.025
+PASS visual constraints never overwrite tracked input 
+PASS all official fingers have finite constrained rotations 
+PASS palm visibly stops at contact within bounded correction shift=0.0025 penetration=True depth=0.0015 normal=(0.00, -1.00, 0.00) nearby=1
+PASS finger arc begins outside obstacle 
+PASS finger closing stops at first physical contact preventedDegrees=43.38542
+PASS total=32

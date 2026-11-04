@@ -31,6 +31,9 @@ namespace UniGLTF
         private static void OpenMeshProcessingWindow() => MeshUtility.MeshUtilityDialog.OpenWindow();
 
 #if VRM_DEVELOP
+        [MenuItem(DevelopmentMenuPrefix + "/Run EditMode Tests", priority = 51)]
+        private static void RunEditModeTests() => TestRunner.RunEditModeTests();
+
         [MenuItem(DevelopmentMenuPrefix + "/Generate Serialization Code", priority = 61)]
         private static void GenerateSerializationCode()
         {

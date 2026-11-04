@@ -1,0 +1,80 @@
+{
+  "pass": true,
+  "checks": {
+    "Body": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "dao": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "daoqiao": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Face": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Garments_Optimized_LOD0": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Hair": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Lash_Direct25": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Lengyue_AdaptedGarments": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "pCube1": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "pCube5": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "pCylinder1": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "polySurface393": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "polySurface412": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "ShirtInnerFacing_Adaptation": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "SupplementalArms_SourceCoverageGap": {
+      "protected": true,
+      "uv_topology_weights_materials": true,
+      "morph_delta_error": 0
+    }
+  }
+}

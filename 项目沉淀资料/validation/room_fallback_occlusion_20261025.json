@@ -1,0 +1,99 @@
+{
+  "artifact": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_RoomFallbackOcclusion_Final_20261025.apk",
+    "bytes": 202884057,
+    "sha256": "4f24c35e3b287c4ce9abd2713d0e07ac2935384db2a8ae65a34e0d683d154f8f",
+    "installedSha256": "4f24c35e3b287c4ce9abd2713d0e07ac2935384db2a8ae65a34e0d683d154f8f",
+    "package": "com.matesoul.game",
+    "versionName": "0.1.0",
+    "versionCode": 1,
+    "zipEntries": 1563,
+    "crcPass": true,
+    "signatureV2Pass": true,
+    "signerCertificateSha256": "0799ed95a5c84fcc7d5eb21dfa5e587dbc8650b1ac54dc50201de4540711ea97",
+    "abis": [
+      "arm64-v8a"
+    ],
+    "il2cpp": true,
+    "spatialDataPermissionDeclared": true,
+    "preserveFramebufferAlpha": true
+  },
+  "build": {
+    "exitCode": 0,
+    "seconds": 100.07028395900001,
+    "protectedFilesChanged": [],
+    "playerPdbTimestamp": "2026-10-25 17:02",
+    "sourceNamesVerified": [
+      "GameBootstrap.cs",
+      "RoomMapProviders.cs",
+      "RuntimeRoomNavigation.cs",
+      "RealityOcclusionMeshRenderer.cs",
+      "RealityEnvironmentOcclusionFeature.cs",
+      "DeviceStartupLog.cs",
+      "PicoTrackedHand.cs",
+      "TrackedHandPhysics.cs"
+    ],
+    "compiledMetadataMarkers": [
+      "scene_fallback_spatial_mesh"
+    ]
+  },
+  "tests": {
+    "focused": {
+      "total": 12,
+      "passed": 12,
+      "failed": 0
+    },
+    "combined": {
+      "total": 35,
+      "passed": 33,
+      "failed": 2,
+      "newRoomAndOcclusionTestsPassed": true,
+      "preExistingFailures": [
+        "SeatingTests.TargetChairSurfaceIsIgnoredButExternalObstacleStillBlocks",
+        "SeatingTests.WalkSitStandAndTargetLossReleaseBodyAndReservation"
+      ]
+    }
+  },
+  "saveProtection": {
+    "path": "/storage/emulated/0/Android/data/com.matesoul.game/files/matesoul-v1.json",
+    "beforeInstallSha256": "d583d595759ecedaf70b2cdd68700a07113d99577a486df3ebfde99c98463540",
+    "afterInstallSha256": "d583d595759ecedaf70b2cdd68700a07113d99577a486df3ebfde99c98463540",
+    "afterStartupSha256": "d583d595759ecedaf70b2cdd68700a07113d99577a486df3ebfde99c98463540"
+  },
+  "sourceChecksums": {
+    "Assets/MateSoul/Runtime/GameBootstrap.cs": "e65849849556b65e30c78589f92e51d39c9d6c4d495eb8ed9f43c7c16d928e50",
+    "Assets/MateSoul/RoomNavigation/Runtime/RoomMapProviders.cs": "d2b8e16e76447109f693a96734c87c341374621a933bdc616bff11f9199674de",
+    "Assets/MateSoul/RoomNavigation/Runtime/RuntimeRoomNavigation.cs": "58d355d1cd2c74d0d352c4eece939ee155dba7290a0aa0359c5be350217d1d55",
+    "Assets/MateSoul/Runtime/RealityOcclusionMeshRenderer.cs": "597f906ab70d80ead2bd3759050dd757de0f1f3a529a908a2a8e375a612ff2c0",
+    "Assets/MateSoul/Runtime/RealityEnvironmentOcclusionFeature.cs": "afe7a024d2421f2a7359ed03e5ebebe2e50ffced1ad421846b344316cfc2805b",
+    "Assets/MateSoul/Runtime/DeviceStartupLog.cs": "41ceaa34af6ec71ea5e8ae66c13352bb4a8c8a08d84cfbe6c5eafaedaad9cbf4",
+    "Assets/MateSoul/Editor/GameSceneBuilder.cs": "3cdf7ad2c148a6aadcb01aa90e9dc960716ed28771559f842a6e9aca9291da92",
+    "ProjectSettings/ProjectSettings.asset": "fe9ef46054f0de009f58446f83374180848e0a609a3497ebd2b7833fa3bf9177"
+  },
+  "devicePostFix": {
+    "device": "PB3A10MGL9220170B",
+    "model": "B3110",
+    "pid": 16900,
+    "coldStartActivityTotalMs": 161,
+    "occlusionPass": {
+      "frame": 1,
+      "alphaPreserved": true,
+      "format": "R8G8B8A8_SRGB"
+    },
+    "applicationPausedAfterSeconds": 3,
+    "wakefulnessAtCollection": "Asleep",
+    "crashObserved": false,
+    "bootstrapReached": false,
+    "roomFallbackObserved": false,
+    "businessReadyObserved": false,
+    "evidence": "/tmp/matesoul-live-room-geometry-20261025/fix-20261025/final-device-evidence"
+  },
+  "acceptance": {
+    "implementationAndPackage": "passed",
+    "installedArtifact": "passed",
+    "awakeRoomFallback": "pending_headset_worn",
+    "spawnInsideMeasuredRoom": "pending_headset_worn",
+    "visualOcclusion": "pending_headset_worn",
+    "savedItemsVisible": "pending_headset_worn"
+  }
+}

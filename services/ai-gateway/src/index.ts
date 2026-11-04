@@ -8,12 +8,12 @@ import { createConversationRequestSchema } from "./contracts.js";
 import { DeepSeekClient } from "./deepseek-client.js";
 import { McpToolRuntime } from "./mcp-runtime.js";
 import { SpontaneousReplyService } from "./spontaneous-reply-service.js";
+import { AIConnectionError, type PlayerCredentials } from "./player-credentials.js";
 
 async function main(): Promise<void> {
   dotenv.config({ path: resolve(".env.local"), quiet: true });
   const loaded = await loadConfig(readConfigArgument(process.argv.slice(2)));
   const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) throw new Error("DEEPSEEK_API_KEY is required.");
 
   const tokenEnvironmentVariable = loaded.gateway.server.clientTokenEnvironmentVariable;
   const clientToken = tokenEnvironmentVariable === null
@@ -34,22 +34,33 @@ async function main(): Promise<void> {
       ...fields,
     })}\n`);
   };
-  const model = new DeepSeekClient(apiKey, loaded.gateway.deepseek);
-  const conversations = new ConversationService(
-    model,
-    mcp,
-    loaded.character,
-    loaded.gateway,
-    log,
-  );
-  const spontaneousReplies = new SpontaneousReplyService(
-    model,
-    loaded.character,
-    loaded.gateway,
-  );
+  // A client and its credentials belong to one HTTP request, never a shared singleton.
+  const modelFor = (credentials?: PlayerCredentials): DeepSeekClient => {
+    const key = credentials?.apiKey ?? apiKey;
+    if (!key)
+      throw new AIConnectionError(401, "AI_CONFIGURATION_REQUIRED", "先配置ai才能激活对话功能");
+    return new DeepSeekClient(key, {
+      ...loaded.gateway.deepseek,
+      model: credentials?.model ?? loaded.gateway.deepseek.model,
+    });
+  };
   const app = createApp({
-    handler: conversations,
-    spontaneousReplyHandler: spontaneousReplies,
+    handler: {
+      complete: (request, signal, credentials) => new ConversationService(
+        modelFor(credentials), mcp, loaded.character, loaded.gateway, log,
+      ).complete(request, signal),
+    },
+    spontaneousReplyHandler: {
+      complete: (request, signal, credentials) => new SpontaneousReplyService(
+        modelFor(credentials), loaded.character, loaded.gateway,
+      ).complete(request, signal),
+    },
+    checkConfiguration: async (credentials, signal) => {
+      await modelFor(credentials).complete(
+        [{ role: "user", content: '仅返回 JSON：{"status":"ok"}' }],
+        [], AbortSignal.any([signal, AbortSignal.timeout(15000)]),
+      );
+    },
     requestSchema: createConversationRequestSchema(
       loaded.gateway.conversation.maxHistoryMessages,
     ),

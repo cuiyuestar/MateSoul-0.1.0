@@ -1,0 +1,24 @@
+{
+  "startup_original_save_sha256": "3663b55afeeb2613ce38e27413a908b7ac2a8662b2e5c2464e7a3648f7d4f3c5",
+  "restored_save_sha256_before_final_launch": "3663b55afeeb2613ce38e27413a908b7ac2a8662b2e5c2464e7a3648f7d4f3c5",
+  "expected_items": 12,
+  "completed": true,
+  "installed_variant": "optimized",
+  "preferences_restored": [
+    "com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml",
+    "pico-ipc-sp.xml"
+  ],
+  "initial_adb_uid": "2000",
+  "final_save_sha256": "3663b55afeeb2613ce38e27413a908b7ac2a8662b2e5c2464e7a3648f7d4f3c5",
+  "final_saved_items": 12,
+  "installed_apk_sha256": "86a9d240f933d60f7df47aa548eed310692663d11f09fe4def3e3471b56a9892",
+  "protected_assets_unchanged": {
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab": true,
+    "Assets/MateSoul/Content/Avatar.controller": true,
+    "Assets/MateSoul/Scenes/MateSoul.unity": true
+  },
+  "helper_files_removed": true,
+  "final_adb_uid": "2000",
+  "emulator_shutdown_requested": true,
+  "emulator_process_exited": true
+}

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { GatewayConfig } from "./config.js";
+import { AIConnectionError } from "./player-credentials.js";
 
 const ToolCallSchema = z.object({
   id: z.string().min(1),
@@ -100,8 +101,16 @@ export class DeepSeekClient implements ModelClient {
     });
 
     if (!response.ok) {
-      const text = (await response.text()).replace(/\s+/g, " ").slice(0, 500);
-      throw new Error(`DeepSeek request failed with HTTP ${response.status}: ${text}`);
+      await response.body?.cancel();
+      if (response.status === 401 || response.status === 403)
+        throw new AIConnectionError(401, "INVALID_API_KEY", "API Key 无效或无权访问该模型。");
+      if (response.status === 402)
+        throw new AIConnectionError(402, "AI_BALANCE_REQUIRED", "AI 账户余额不足，请先充值。");
+      if (response.status === 400 || response.status === 404)
+        throw new AIConnectionError(400, "INVALID_AI_MODEL", "模型不可用，请检查模型名称。");
+      if (response.status === 429)
+        throw new AIConnectionError(429, "AI_RATE_LIMITED", "AI 请求过于频繁，请稍后重试。");
+      throw new Error(`DeepSeek request failed with HTTP ${response.status}.`);
     }
 
     const parsed = ChatResponseSchema.parse(await response.json());

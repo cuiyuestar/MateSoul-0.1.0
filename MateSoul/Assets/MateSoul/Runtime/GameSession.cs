@@ -19,6 +19,11 @@ namespace MateSoul.Runtime
         private readonly Dictionary<string, int> inventory = new Dictionary<string, int>();
         private readonly Dictionary<string, string> inventoryOwners =
             new Dictionary<string, string>(StringComparer.Ordinal);
+#region debug-point B:action-ownership
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+        private float debugNextMovementHandholdActions;
+#endif
+#endregion
         private readonly HashSet<BreakableDebris> debris = new HashSet<BreakableDebris>();
         private readonly IGameSaveStore store;
         private readonly ISpatialAnchorService anchors;
@@ -30,10 +35,15 @@ namespace MateSoul.Runtime
         private CancellationTokenSource itemOperation;
         private GameSaveData saved;
         private readonly GameSaveData loadedSave;
+        private Task<Pose> preparedRoomAnchor;
         private bool itemsRestored, itemRestoreFailed, disposed;
         private float physicsSaveDelay = -1;
         private readonly Collider[] placementOverlaps = new Collider[64];
+        private readonly Collider[] placementUpperOverlaps = new Collider[64];
         private readonly RaycastHit[] placementHits = new RaycastHit[32];
+        private readonly List<string> fallenItemIds = new List<string>();
+        private const float ImmovableMeshHeightTolerance = .20f;
+        private const float FallenItemRecoveryDepth = 1f;
         private const float SocialAttentionEnterDistance = .8f;
         private const float SocialAttentionExitDistance = 1.05f;
         private const float SocialAttentionCandidateSeconds = .7f;
@@ -180,7 +190,8 @@ namespace MateSoul.Runtime
             IEnumerable<ItemDefinition> definitions, Transform itemRoot, IGameSaveStore store,
             ISpatialAnchorService anchors, ILLMProvider llm, CharacterPersonaDefinition personaDefinition,
             SystemNotifications notifications = null, Func<DateTime> localNow = null,
-            ISpontaneousReplyProvider spontaneousReplyProvider = null)
+            ISpontaneousReplyProvider spontaneousReplyProvider = null,
+            GameSaveData initialSave = null, Task<Pose> preparedRoomAnchor = null)
         {
             Notifications = notifications ?? new SystemNotifications();
             Items.CleanupFailed += Debug.LogException;
@@ -193,17 +204,21 @@ namespace MateSoul.Runtime
                             (d.InventoryLimit > 0 || d.UnlimitedInventory)).ToArray();
             ConfigureInventoryOwners();
             this.itemRoot = itemRoot; this.store = store; this.anchors = anchors;
-            saved = store.Load();
+            saved = initialSave ?? store.Load();
             loadedSave = Clone(saved);
+            this.preparedRoomAnchor = preparedRoomAnchor;
             InitializeInventory();
             Mood.Restore(saved.mood);
             Persona = new CharacterPersonaState(personaDefinition, saved.personality);
             Subtitles = saved.subtitles;
             RegisterActions();
             Avatar = new AvatarActionCoordinator(Catalog);
-            Autonomy = new AutonomousBehaviour(Avatar, navigation, motor, Items);
+            Autonomy = new AutonomousBehaviour(Avatar, navigation, motor, Items,
+                item => views.TryGetValue(item.Id, out var view) &&
+                    view.Definition.AllowAutonomousUse && UseHeldItemAction.Supports(view));
             characterContext = new CharacterRuntimeContextProvider(
-                Persona, wardrobe, Mood, Avatar, Catalog, Items, Motor as AvatarMotor);
+                Persona, wardrobe, Mood, Avatar, Catalog, Items, Motor as AvatarMotor,
+                CaptureAIWorldContext);
             // Pay one-time snapshot/generic setup during session assembly,
             // not on the player's first conversation turn.
             characterContext.Capture();
@@ -400,16 +415,36 @@ namespace MateSoul.Runtime
                 intent => new MoveAction(Motor, Navigation, () => (Vector3)intent.Payload), exposeToAI: false));
             Catalog.Register(new ActionDefinition("stay", "Stay here briefly", body,
                 _ => new StayAction(Motor)));
-            Catalog.Register(new ActionDefinition("visit", "Walk to an item and look at it", body,
-                intent => new VisitItemAction(Items, intent.TargetId,
-                    () => views.TryGetValue(intent.TargetId, out var view) ? view : null, Motor, Navigation),
-                targetCapability: "visit"));
+            Catalog.Register(new ActionDefinition("visit",
+                "Approach an item and perform its authored use animation when available",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                CreateVisitAction, timeoutSeconds: 150, targetCapability: "visit",
+                exitTimeoutSeconds: 1));
             Catalog.Register(new ActionDefinition("outfit", "Change outfit", ControlChannels.Appearance,
                 intent => new ChangeOutfitAction(wardrobe, (string)intent.Payload), exposeToAI: false));
             Catalog.Register(new ActionDefinition(CutFruitAction.Id,
                 "Collect fruit, knife and plate, cut fruit at the dining table and serve it",
                 body | ControlChannels.LeftArm | ControlChannels.RightArm,
                 _ => new CutFruitAction(this), timeoutSeconds: 240, exitTimeoutSeconds: 1));
+            Catalog.Register(new ActionDefinition(PickupItemAction.Id,
+                "Walk to a placed item, pick it up and hold it until released",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                intent => new PickupItemAction(this, intent.TargetId),
+                timeoutSeconds: 3600, exposeToAI: false, exitTimeoutSeconds: 1));
+        }
+
+        private IAvatarAction CreateVisitAction(AvatarIntent intent)
+        {
+            views.TryGetValue(intent.TargetId, out var view);
+            if (intent.Source == IntentSource.Autonomous &&
+                (view == null || !view.Definition.AllowAutonomousUse ||
+                 !UseHeldItemAction.Supports(view)))
+                throw new InvalidOperationException("这个物品不在自主使用白名单中。");
+            if (view != null && view.Definition.UseAnimation != null)
+                return new UseHeldItemAction(this, intent.TargetId);
+            return new VisitItemAction(Items, intent.TargetId,
+                () => views.TryGetValue(intent.TargetId, out var target) ? target : null,
+                Motor, Navigation);
         }
 
         public ActionHandle Submit(AvatarIntent intent)
@@ -417,7 +452,11 @@ namespace MateSoul.Runtime
             if (Paused || disposed) throw new InvalidOperationException("会话未运行。");
             var action = Avatar.Submit(intent);
             if (action.State == ActionState.Rejected) Notice = action.Error;
-            if (intent.ActionId == CutFruitAction.Id) observedItemAction = action;
+            if (!action.IsFinished &&
+                (intent.ActionId == CutFruitAction.Id || intent.ActionId == PickupItemAction.Id ||
+                 intent.ActionId == "visit" && views.TryGetValue(intent.TargetId, out var view) &&
+                 view.Definition.UseAnimation != null))
+                observedItemAction = action;
             return action;
         }
 
@@ -441,8 +480,31 @@ namespace MateSoul.Runtime
                 _ = RestoreItemsAsync();
                 return;
             }
+            RealityMesh?.Tick(Time.unscaledTime);
             Chairs?.Tick(Time.unscaledTime);
             Beds?.Tick(Time.unscaledTime);
+#region debug-point B:action-ownership
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextMovementHandholdActions)
+            {
+                debugNextMovementHandholdActions = Time.unscaledTime + 1f;
+                var actions = string.Join(",", Avatar.Capture().Select(value =>
+                    $"{{\"id\":\"{value.action_id}\",\"source\":\"{value.source}\"," +
+                    $"\"state\":\"{value.state}\",\"phase\":\"{value.phase}\"}}"));
+                var payload = $"{{\"sessionId\":\"movement-handhold-stall\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"B\",\"location\":\"GameSession.Tick\"," +
+                    $"\"msg\":\"[DEBUG] action ownership\",\"data\":{{" +
+                    $"\"actions\":[{actions}],\"autonomy\":{Autonomy.Enabled.ToString().ToLowerInvariant()}," +
+                    $"\"socialCandidate\":{socialAttentionCandidate.ToString().ToLowerInvariant()}," +
+                    $"\"dialogueAttention\":{dialogueAttentionRequested.ToString().ToLowerInvariant()}," +
+                    $"\"itemsReady\":{itemsRestored.ToString().ToLowerInvariant()}," +
+                    $"\"paused\":{Paused.ToString().ToLowerInvariant()}}}}}";
+                var request = UnityWebRequest.Post(
+                    "http://127.0.0.1:7781/event", payload, "application/json");
+                request.SendWebRequest().completed += _ => request.Dispose();
+            }
+#endif
+#endregion
             Avatar.Tick(seconds);
             UpdateSocialAttention(seconds);
             ReportItemAction();
@@ -450,6 +512,7 @@ namespace MateSoul.Runtime
             Mood.Tick(seconds, Avatar.Leases.IsOccupied(ControlChannels.Body));
             if (!socialAttentionCandidate && !dialogueAttentionRequested)
                 Autonomy.Tick(seconds);
+            RecycleFallenItems();
             if (physicsSaveDelay >= 0)
             {
                 physicsSaveDelay -= seconds;
@@ -604,6 +667,9 @@ namespace MateSoul.Runtime
 
         private void OnConversationChanged()
         {
+#region debug-point A-D:conversation-state
+            ReportDialogueCancellation("GameSession.OnConversationChanged", "state-changed");
+#endregion
             if (Conversation.State == ConversationState.Failed || Conversation.State == ConversationState.Cancelled)
                 Notifications.ShowHint(Conversation.Text);
             if (!string.IsNullOrEmpty(Conversation.ActionError))
@@ -613,6 +679,44 @@ namespace MateSoul.Runtime
         public void RequestPhysicsSave()
         {
             if (!disposed && physicsSaveDelay < 0) physicsSaveDelay = .5f;
+        }
+
+        private void RecycleFallenItems()
+        {
+            fallenItemIds.Clear();
+            foreach (var view in views.Values)
+                if (!view.IsReserved && !view.Body.IsFollowing &&
+                    view.Body.Pose.position.y < Navigation.FloorHeight - FallenItemRecoveryDepth)
+                    fallenItemIds.Add(view.Instance.Id);
+            foreach (var id in fallenItemIds) RecycleItem(id);
+        }
+
+        private async Task<Pose> LoadRoomAnchorAsync(CancellationToken token)
+        {
+            var prepared = preparedRoomAnchor;
+            if (prepared == null) return await anchors.LoadAsync(saved.roomAnchorId, token);
+            if (prepared.IsFaulted || prepared.IsCanceled)
+            {
+                // Startup prefetch can finish before PICO localizes the room. Restore
+                // runs after room readiness, so query again in the active map frame.
+                preparedRoomAnchor = null;
+                return await anchors.LoadAsync(saved.roomAnchorId, token);
+            }
+            try
+            {
+                // A paused restore must stop promptly without discarding an in-flight startup lookup.
+                var canceled = new TaskCompletionSource<bool>();
+                using (token.Register(() => canceled.TrySetResult(true)))
+                {
+                    await Task.WhenAny(prepared, canceled.Task);
+                    token.ThrowIfCancellationRequested();
+                    return await prepared;
+                }
+            }
+            finally
+            {
+                if (prepared.IsCompleted) preparedRoomAnchor = null;
+            }
         }
 
         public async Task RestoreItemsAsync()
@@ -630,6 +734,22 @@ namespace MateSoul.Runtime
                 var recoveredItems = new List<ItemSaveData>();
                 try
                 {
+#region debug-point A-D-E:restore-start
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+                    var debugInventory = string.Join(",", inventory.Select(entry =>
+                        $"{entry.Key}:{entry.Value}/{CountSavedInventoryUnits(entry.Key)}"));
+                    var debugStartPayload =
+                        $"{{\"sessionId\":\"saved-items-restore-loss\",\"runId\":\"post-fix\"," +
+                        $"\"hypothesisId\":\"A-D-E\",\"location\":\"GameSession.RestoreItemsAsync:start\"," +
+                        $"\"msg\":\"[DEBUG] saved item restore started\",\"data\":{{" +
+                        $"\"savedCount\":{saved.items.Length},\"viewCount\":{views.Count}," +
+                        $"\"anchorId\":\"{saved.roomAnchorId}\",\"inventory\":\"{debugInventory}\"," +
+                        $"\"previousRoot\":{JsonUtility.ToJson(previousRoot.position)}}}}}";
+                    var debugStartRequest = UnityWebRequest.Post(
+                        "http://127.0.0.1:7781/event", debugStartPayload, "application/json");
+                    debugStartRequest.SendWebRequest().completed += _ => debugStartRequest.Dispose();
+#endif
+#endregion
                     itemRestoreFailed = false;
                     var ids = new HashSet<string>(StringComparer.Ordinal);
                     foreach (var item in saved.items)
@@ -649,7 +769,7 @@ namespace MateSoul.Runtime
                     {
                         try
                         {
-                            roomPose = await anchors.LoadAsync(saved.roomAnchorId, operation.Token);
+                            roomPose = await LoadRoomAnchorAsync(operation.Token);
                             operation.Token.ThrowIfCancellationRequested();
                         }
                         catch (OperationCanceledException) { throw; }
@@ -663,6 +783,20 @@ namespace MateSoul.Runtime
                     }
                     PhysicsBody.ValidatePose(roomPose);
                     itemRoot.SetPositionAndRotation(roomPose.position, roomPose.rotation.normalized);
+#region debug-point D:resolved-room-pose
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+                    var debugPosePayload =
+                        $"{{\"sessionId\":\"saved-items-restore-loss\",\"runId\":\"post-fix\"," +
+                        $"\"hypothesisId\":\"D\",\"location\":\"GameSession.RestoreItemsAsync:room-pose\"," +
+                        $"\"msg\":\"[DEBUG] saved room pose resolved\",\"data\":{{" +
+                        $"\"usedFallback\":{usedFallbackPose.ToString().ToLowerInvariant()}," +
+                        $"\"position\":{JsonUtility.ToJson(roomPose.position)}," +
+                        $"\"rotation\":{JsonUtility.ToJson(roomPose.rotation)}}}}}";
+                    var debugPoseRequest = UnityWebRequest.Post(
+                        "http://127.0.0.1:7781/event", debugPosePayload, "application/json");
+                    debugPoseRequest.SendWebRequest().completed += _ => debugPoseRequest.Dispose();
+#endif
+#endregion
                     foreach (var item in saved.items)
                     {
                         var view = Spawn(definitions[item.definitionId], item.instanceId,
@@ -683,6 +817,14 @@ namespace MateSoul.Runtime
                     for (var index = 0; index < spawned.Count; index++)
                     {
                         var view = spawned[index];
+                        var position = view.Body.Pose.position;
+                        if (position.y < Navigation.FloorHeight - FallenItemRecoveryDepth ||
+                            Navigation is RoomNavigationService room &&
+                            !room.ContainsFloorPoint(position) && !view.Body.HasSupport())
+                        {
+                            rejectedUnits.Add(InventoryUnitKey(activeSavedItems[index]));
+                            continue;
+                        }
                         Collider placementSupport = null;
                         if (view.Definition.PlacementSurface == ItemPlacementSurface.Wall &&
                             !TryGetWallSupport(
@@ -694,11 +836,33 @@ namespace MateSoul.Runtime
                                 view.Definition, view.Body.Pose, view,
                                 out placementSupport, out _);
                         Collider blockingCollider = null;
-                        var canOccupy = view.Body.CanOccupy(view.Body.Pose,
+                        var canOccupy = view.Definition.ImmovableAfterPlacement &&
+                                        view.Definition.PlacementSurface != ItemPlacementSurface.Wall
+                            ? IsPlacementFree(view.Definition, position, view.Body.Pose.rotation,
+                                view, avatarMotor?.transform, placementSupport,
+                                collider => blockingCollider = collider)
+                            : view.Body.CanOccupy(view.Body.Pose,
                             ignoredRoot: avatarMotor?.transform,
                             ignoredCollider: placementSupport,
                             ignoredColliderRoot: GetVirtualSupportRoot(placementSupport),
                             blocked: (collider, _) => blockingCollider = collider);
+#region debug-point A-B-C-D:restore-item-occupancy
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+                        var debugItemPayload =
+                            $"{{\"sessionId\":\"saved-items-restore-loss\",\"runId\":\"post-fix\"," +
+                            $"\"hypothesisId\":\"A-B-C-D\",\"location\":\"GameSession.RestoreItemsAsync:occupancy\"," +
+                            $"\"msg\":\"[DEBUG] restored item occupancy checked\",\"data\":{{" +
+                            $"\"definition\":\"{view.Definition.Id}\",\"instance\":\"{view.Instance.Id}\"," +
+                            $"\"canOccupy\":{canOccupy.ToString().ToLowerInvariant()}," +
+                            $"\"pose\":{JsonUtility.ToJson(view.Body.Pose.position)}," +
+                            $"\"support\":\"{(placementSupport == null ? "none" : placementSupport.name)}\"," +
+                            $"\"supportRoot\":\"{(placementSupport == null ? "none" : placementSupport.transform.root.name)}\"" +
+                            $"}}}}";
+                        var debugItemRequest = UnityWebRequest.Post(
+                            "http://127.0.0.1:7781/event", debugItemPayload, "application/json");
+                        debugItemRequest.SendWebRequest().completed += _ => debugItemRequest.Dispose();
+#endif
+#endregion
                         if (!canOccupy)
                         {
                             if (blockingCollider == null ||
@@ -741,6 +905,20 @@ namespace MateSoul.Runtime
                                 accepted.Add(body);
                                 continue;
                             }
+                            // Fixed items use the same tolerant support footprint as
+                            // their placement preview, while still requiring a chain
+                            // to the static room rather than another unsupported item.
+                            if (spawned[index].Definition.ImmovableAfterPlacement &&
+                                TryGetHorizontalSupport(spawned[index].Definition,
+                                    body.Pose, spawned[index], out var fixedSupport, out _))
+                            {
+                                var supportBody = fixedSupport.GetComponentInParent<PhysicsBody>();
+                                if (supportBody == null || accepted.Contains(supportBody))
+                                {
+                                    accepted.Add(body);
+                                    continue;
+                                }
+                            }
                             // Interrupted falls may resume above known support; legacy
                             // unsupported poses still fail closed.
                             var distance = activeSavedItems[index].needsGravitySettling
@@ -748,8 +926,58 @@ namespace MateSoul.Runtime
                                 : .13f;
                             if (body.HasSupport(accepted, distance)) accepted.Add(body);
                         }
+#region debug-point R6-R8:room-item-support
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+                    foreach (var view in spawned)
+                    {
+                        var supportBounds = view.Body.Shapes[0].bounds;
+                        foreach (var shape in view.Body.Shapes)
+                            supportBounds.Encapsulate(shape.bounds);
+                        var origin = new Vector3(supportBounds.center.x,
+                            supportBounds.min.y + .045f, supportBounds.center.z);
+                        var diagnosticHits = Physics.RaycastAll(origin, Vector3.down, 3f,
+                            Physics.AllLayers, QueryTriggerInteraction.Ignore)
+                            .Where(hit => hit.rigidbody != view.Body.Rigidbody)
+                            .OrderBy(hit => hit.distance).Take(6);
+                        var hitDetails = string.Join(";", diagnosticHits.Select(hit =>
+                            $"{hit.collider.name.Replace("\"", "'")}:" +
+                            $"{hit.distance.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}:" +
+                            $"{hit.normal.y.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}:" +
+                            $"{(hit.rigidbody == null ? "static" : hit.rigidbody.name.Replace("\"", "'"))}"));
+                        var payload =
+                        $"{{\"sessionId\":\"room-map-activation\",\"runId\":\"support-post-fix\"," +
+                            $"\"hypothesisId\":\"R6-R8\",\"location\":\"GameSession.RestoreItemsAsync\"," +
+                            $"\"msg\":\"[DEBUG] current saved item support\",\"data\":{{" +
+                            $"\"item\":\"{view.Definition.Id}\",\"accepted\":{(accepted.Contains(view.Body) ? 1 : 0)}," +
+                            $"\"shapes\":{view.Body.Shapes.Count},\"root\":{JsonUtility.ToJson(itemRoot.position)}," +
+                            $"\"pose\":{JsonUtility.ToJson(view.Body.Pose.position)}," +
+                            $"\"bottom\":{supportBounds.min.y.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}," +
+                            $"\"hits\":\"{hitDetails}\"}}}}";
+                        Debug.Log("MATESOUL_RESTORE_TRACE " + payload);
+                        var supportRequest = UnityWebRequest.Post(
+                            "http://127.0.0.1:7792/event", payload, "application/json");
+                        supportRequest.timeout = 2;
+                        supportRequest.SendWebRequest().completed += _ => supportRequest.Dispose();
+                    }
+#endif
+#endregion
                     if (accepted.Count != spawned.Count)
                         throw new InvalidOperationException("旧物品缺少可靠支撑，已保留原存档。");
+#region debug-point C:support-graph
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+                    var debugAccepted = string.Join(",", spawned.Select(view =>
+                        $"{view.Definition.Id}:{accepted.Contains(view.Body)}"));
+                    var debugSupportPayload =
+                        $"{{\"sessionId\":\"saved-items-restore-loss\",\"runId\":\"post-fix\"," +
+                        $"\"hypothesisId\":\"C\",\"location\":\"GameSession.RestoreItemsAsync:support\"," +
+                        $"\"msg\":\"[DEBUG] restored item support graph checked\",\"data\":{{" +
+                        $"\"accepted\":{accepted.Count},\"spawned\":{spawned.Count}," +
+                        $"\"items\":\"{debugAccepted}\"}}}}";
+                    var debugSupportRequest = UnityWebRequest.Post(
+                        "http://127.0.0.1:7781/event", debugSupportPayload, "application/json");
+                    debugSupportRequest.SendWebRequest().completed += _ => debugSupportRequest.Dispose();
+#endif
+#endregion
                     if (spawned.Count > 0 && avatarMotor != null && !avatarMotor.TryPlaceAfterRestore(Navigation))
                         throw new InvalidOperationException("恢复布局后没有安全的角色出生点，已保留原存档。");
                     foreach (var view in spawned) view.SetPaused(false);
@@ -761,7 +989,7 @@ namespace MateSoul.Runtime
                         store.Save(saved);
                     }
                     Notice = recoveredItems.Count > 0
-                        ? $"有{rejectedUnits.Count}件旧物品与当前房间相交，已回收到背包；其余物品已恢复。"
+                        ? $"有{rejectedUnits.Count}件旧物品已掉出房间或与当前房间相交，已回收到背包；其余物品已恢复。"
                         : usedFallbackPose
                             ? "空间锚点暂不可用，已按当前房间恢复物品。"
                             : null;
@@ -781,6 +1009,22 @@ namespace MateSoul.Runtime
                         inventory.Add(entry.Key, entry.Value);
                     itemsRestored = false;
                     itemRestoreFailed = true;
+#region debug-point A-D-E:restore-failed
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+                    var debugFailureInventory = string.Join(",", inventory.Select(entry =>
+                        $"{entry.Key}:{entry.Value}/{CountSavedInventoryUnits(entry.Key)}"));
+                    var debugFailurePayload =
+                        $"{{\"sessionId\":\"saved-items-restore-loss\",\"runId\":\"post-fix\"," +
+                        $"\"hypothesisId\":\"A-D-E\",\"location\":\"GameSession.RestoreItemsAsync:catch\"," +
+                        $"\"msg\":\"[DEBUG] saved item restore failed\",\"data\":{{" +
+                        $"\"error\":\"{error.Message.Replace("\"", "'")}\"," +
+                        $"\"spawned\":{spawned.Count},\"saved\":{saved.items.Length}," +
+                        $"\"views\":{views.Count},\"inventory\":\"{debugFailureInventory}\"}}}}";
+                    var debugFailureRequest = UnityWebRequest.Post(
+                        "http://127.0.0.1:7781/event", debugFailurePayload, "application/json");
+                    debugFailureRequest.SendWebRequest().completed += _ => debugFailureRequest.Dispose();
+#endif
+#endregion
                     Notice = error.Message;
                     Debug.LogWarning($"[GameSession] {Notice}");
                 }
@@ -796,6 +1040,19 @@ namespace MateSoul.Runtime
                             UnityEngine.Object.Destroy(view.gameObject);
                         }
                         itemRoot.SetPositionAndRotation(previousRoot.position, previousRoot.rotation);
+#region debug-point A-E:restore-rollback
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+                        var debugRollbackPayload =
+                            $"{{\"sessionId\":\"saved-items-restore-loss\",\"runId\":\"post-fix\"," +
+                            $"\"hypothesisId\":\"A-E\",\"location\":\"GameSession.RestoreItemsAsync:rollback\"," +
+                            $"\"msg\":\"[DEBUG] saved item restore rolled back\",\"data\":{{" +
+                            $"\"destroyed\":{spawned.Count},\"remainingViews\":{views.Count}," +
+                            $"\"savedCount\":{saved.items.Length}}}}}";
+                        var debugRollbackRequest = UnityWebRequest.Post(
+                            "http://127.0.0.1:7781/event", debugRollbackPayload, "application/json");
+                        debugRollbackRequest.SendWebRequest().completed += _ => debugRollbackRequest.Dispose();
+#endif
+#endregion
                     }
                     itemOperation = null;
                     if (!disposed) UpdateAvatarAvailability();
@@ -813,7 +1070,8 @@ namespace MateSoul.Runtime
             return owner + "\n" + unit;
         }
 
-        public async Task PlaceItemAsync(string definitionId, Pose pose, bool searchNearby = true)
+        public async Task PlaceItemAsync(string definitionId, Pose pose, bool searchNearby = true,
+            bool validatedNearSurface = false)
         {
             if (Paused || disposed) return;
             if (itemOperation != null) { Notice = "物品定位处理中，请稍候。"; return; }
@@ -848,10 +1106,11 @@ namespace MateSoul.Runtime
                 try
                 {
                     var definition = requestedDefinition;
-                    Pose placement;
-                    var resolved = searchNearby
+                    Pose placement = pose;
+                    var resolved = validatedNearSurface ? true : searchNearby
                         ? TryResolvePlacement(definition, pose, null, out placement)
                         : TryResolveExactPlacement(definition, pose, null, out placement);
+                    if (validatedNearSurface) placement = pose;
                     if (!resolved)
                     {
                         Notice = searchNearby
@@ -886,7 +1145,12 @@ namespace MateSoul.Runtime
                     if (definition.PlacementSurface == ItemPlacementSurface.Wall &&
                         !TryGetWallSupport(definition, placement, null, out placementSupport))
                         throw new InvalidOperationException("墙面已不可用，请重新选择位置。");
-                    if (SupportsHorizontalPlacement(definition))
+                    if (validatedNearSurface)
+                    {
+                        if (!TryGetNearPlacementSupport(definition, placement, out placementSupport))
+                            throw new InvalidOperationException("附近表面已不可用，请重新放置。");
+                    }
+                    else if (SupportsHorizontalPlacement(definition))
                         TryGetHorizontalSupport(
                             definition, placement, null, out placementSupport, out _);
                     if (!IsPlacementFree(definition, placement.position,
@@ -966,9 +1230,10 @@ namespace MateSoul.Runtime
             }
             Physics.SyncTransforms();
             var rotation = Quaternion.Euler(0, desired.rotation.eulerAngles.y, 0);
-            const float step = .25f;
+            var movable = !definition.ImmovableAfterPlacement;
+            var step = movable ? .10f : .25f;
             const int directions = 16;
-            for (var ring = 0; ring <= 8; ring++)
+            for (var ring = 0; ring <= (movable ? 2 : 8); ring++)
             {
                 var count = ring == 0 ? 1 : directions;
                 for (var index = 0; index < count; index++)
@@ -979,12 +1244,27 @@ namespace MateSoul.Runtime
                     var candidate = desired.position + offset;
                     if (definition.AllowSurfacePlacement &&
                         TrySurface(candidate, ignoredItem, out var surface) &&
-                        IsPlacementFree(definition, surface, rotation, ignoredItem))
+                        TryGetHorizontalSupport(definition, new Pose(surface, rotation),
+                            ignoredItem, out var support, out _) &&
+                        IsPlacementFree(definition, surface + Vector3.up * .006f,
+                            rotation, ignoredItem, null, support))
                     {
-                        placement = new Pose(surface, rotation);
+                        placement = new Pose(surface + Vector3.up * .006f, rotation);
                         return true;
                     }
                     candidate.y = Navigation.FloorHeight;
+                    if (movable)
+                    {
+                        if (!TryGetHorizontalSupport(definition, new Pose(candidate, rotation),
+                                ignoredItem, out var floorSupport, out var floorPoint) ||
+                            Mathf.Abs(floorPoint.y - Navigation.FloorHeight) > .10f)
+                            continue;
+                        candidate.y = floorPoint.y + .006f;
+                        if (!IsPlacementFree(definition, candidate, rotation, ignoredItem,
+                                null, floorSupport)) continue;
+                        placement = new Pose(candidate, rotation);
+                        return true;
+                    }
                     if (!Navigation.TrySample(candidate, .3f, out var floor)) continue;
                     if (Mathf.Abs(floor.y - Navigation.FloorHeight) > .1f ||
                         Vector3.Distance(candidate, floor) > .3f) continue;
@@ -995,6 +1275,98 @@ namespace MateSoul.Runtime
                 }
             }
             placement = default;
+            return false;
+        }
+
+        public bool TryResolveNearPlayerPlacement(ItemDefinition definition, Pose player,
+            out Pose placement)
+        {
+            placement = default;
+            PhysicsBody.ValidatePose(player);
+            Physics.SyncTransforms();
+            var forward = Vector3.ProjectOnPlane(player.rotation * Vector3.forward, Vector3.up).normalized;
+            if (forward.sqrMagnitude < .01f) forward = Vector3.forward;
+            var best = float.PositiveInfinity;
+            for (var distanceIndex = 0; distanceIndex < 5; distanceIndex++)
+                for (var angleIndex = -2; angleIndex <= 2; angleIndex++)
+                {
+                    var distance = .25f + distanceIndex * .13f;
+                    var direction = Quaternion.Euler(0, angleIndex * 15f, 0) * forward;
+                    var origin = player.position + direction * distance + Vector3.up * .08f;
+                    var count = Physics.RaycastNonAlloc(origin, Vector3.down, placementHits,
+                        Mathf.Max(.2f, origin.y - Navigation.FloorHeight + .1f),
+                        Physics.AllLayers, QueryTriggerInteraction.Ignore);
+                    if (count == placementHits.Length) continue;
+                    // Copy before coverage checks reuse the shared raycast buffer.
+                    var candidates = new RaycastHit[count];
+                    Array.Copy(placementHits, candidates, count);
+                    foreach (var hit in candidates)
+                    {
+                        if (hit.normal.y < .5f || hit.collider.GetComponentInParent<AvatarMotor>() != null ||
+                            hit.collider.gameObject.layer == InteractionPhysicsLayers.DirectHand)
+                            continue;
+                        var rotation = definition.ResolvePlacementRotation(forward);
+                        var point = hit.point + Vector3.up * .009f;
+                        var heightGap = Mathf.Abs(player.position.y - hit.point.y);
+                        var floorPenalty = hit.point.y <= Navigation.FloorHeight + .15f ? 2f : 0f;
+                        var score = heightGap * 2f + distance + Mathf.Abs(angleIndex) * .07f + floorPenalty;
+                        if (score >= best || !NearSurfaceSupports(definition, hit, rotation) ||
+                            !IsPlacementFree(definition, point, rotation, null, null, hit.collider))
+                            continue;
+                        var view = point + Vector3.up * Mathf.Min(definition.PlacementHeight, .10f);
+                        if (Physics.Linecast(player.position, view, out var obstruction,
+                                InteractionPhysicsLayers.DirectSelectionMask, QueryTriggerInteraction.Ignore) &&
+                            !BelongsToSupport(obstruction.collider, hit.collider))
+                            continue;
+                        best = score;
+                        placement = new Pose(point, rotation);
+                    }
+                }
+            return !float.IsPositiveInfinity(best);
+        }
+
+        private bool NearSurfaceSupports(ItemDefinition definition, RaycastHit support, Quaternion rotation)
+        {
+            var half = definition.Footprint * (definition.MinimumSurfaceSupportRatio * .45f);
+            for (var corner = 0; corner < 4; corner++)
+            {
+                var offset = rotation * new Vector3((corner & 1) == 0 ? -half.x : half.x,
+                    0, (corner & 2) == 0 ? -half.y : half.y);
+                var expectedY = support.point.y -
+                    (support.normal.x * offset.x + support.normal.z * offset.z) / support.normal.y;
+                var origin = support.point + offset;
+                origin.y = expectedY + .12f;
+                var count = Physics.RaycastNonAlloc(origin, Vector3.down, placementHits, .24f,
+                    Physics.AllLayers, QueryTriggerInteraction.Ignore);
+                if (count == placementHits.Length) return false;
+                var found = false;
+                for (var i = 0; i < count; i++)
+                    if (BelongsToSupport(placementHits[i].collider, support.collider) &&
+                        placementHits[i].normal.y >= .5f &&
+                        Mathf.Abs(placementHits[i].point.y - expectedY) < .06f) { found = true; break; }
+                if (!found) return false;
+            }
+            return true;
+        }
+
+        private bool TryGetNearPlacementSupport(ItemDefinition definition, Pose pose,
+            out Collider surface)
+        {
+            surface = null;
+            var count = Physics.RaycastNonAlloc(pose.position + Vector3.up * .12f,
+                Vector3.down, placementHits, .25f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+            if (count == placementHits.Length) return false;
+            var candidates = new RaycastHit[count];
+            Array.Copy(placementHits, candidates, count);
+            foreach (var hit in candidates)
+                if (hit.normal.y >= .5f && Mathf.Abs(hit.point.y - pose.position.y) < .04f &&
+                    hit.collider.GetComponentInParent<AvatarMotor>() == null &&
+                    hit.collider.gameObject.layer != InteractionPhysicsLayers.DirectHand &&
+                    NearSurfaceSupports(definition, hit, pose.rotation))
+                {
+                    surface = hit.collider;
+                    return true;
+                }
             return false;
         }
 
@@ -1030,6 +1402,15 @@ namespace MateSoul.Runtime
                     placement = new Pose(surfacePosition, surfaceRotation);
                     return true;
                 }
+                placement = default;
+                return false;
+            }
+            // An exact elevated preview must not silently become a floor placement
+            // after its support or occupancy check fails.
+            if (desired.position.y > Navigation.FloorHeight + .24f)
+            {
+                placement = default;
+                return false;
             }
             var candidate = new Vector3(
                 desired.position.x, Navigation.FloorHeight, desired.position.z);
@@ -1076,7 +1457,7 @@ namespace MateSoul.Runtime
             {
                 var hit = placementHits[index];
                 if (hit.collider == null || hit.distance >= closest ||
-                    Mathf.Abs(hit.normal.y) > .25f ||
+                    Mathf.Abs(hit.normal.y) > (definition.ImmovableAfterPlacement ? .5f : .25f) ||
                     hit.collider.GetComponentInParent<AvatarMotor>() != null ||
                     hit.collider.GetComponentInParent<GameItem>() != null)
                     continue;
@@ -1105,7 +1486,7 @@ namespace MateSoul.Runtime
         }
 
         public bool TryResolveSurfacePlacement(ItemDefinition definition, Ray aim,
-            GameItem ignoredItem, out Pose placement)
+            GameItem ignoredItem, out Pose placement, Vector3? viewerPosition = null)
         {
             if (definition == null) throw new ArgumentNullException(nameof(definition));
             if (!SupportsHorizontalPlacement(definition))
@@ -1115,6 +1496,8 @@ namespace MateSoul.Runtime
             if (!PhysicsBody.IsFinite(aim.origin) || !PhysicsBody.IsFinite(aim.direction) ||
                 aim.direction.sqrMagnitude < .001f)
                 throw new ArgumentException("Placement aim must contain a finite direction.", nameof(aim));
+            if (viewerPosition.HasValue && !PhysicsBody.IsFinite(viewerPosition.Value))
+                throw new ArgumentException("Viewer position must be finite.", nameof(viewerPosition));
             Physics.SyncTransforms();
             var count = Physics.RaycastNonAlloc(aim.origin, aim.direction.normalized,
                 placementHits, 8f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
@@ -1129,7 +1512,7 @@ namespace MateSoul.Runtime
             {
                 var hit = placementHits[index];
                 if (hit.collider == null || hit.distance >= closest ||
-                    hit.normal.y < .6f ||
+                    hit.normal.y < MinimumPlacementNormal(definition, hit.collider) ||
                     hit.collider.GetComponentInParent<AvatarMotor>() != null ||
                     ignoredItem != null &&
                     hit.collider.transform.IsChildOf(ignoredItem.transform))
@@ -1142,9 +1525,10 @@ namespace MateSoul.Runtime
                 placement = default;
                 return false;
             }
-            var facing = Vector3.ProjectOnPlane(-aim.direction, Vector3.up).normalized;
-            if (facing.sqrMagnitude < .01f) facing = Vector3.forward;
-            var rotation = definition.ResolvePlacementRotation(facing);
+            // A vertical palm ray locates the support but carries no horizontal facing.
+            // Orient toward the viewer before checking the rotated footprint.
+            var rotation = definition.ResolvePlacementRotation(
+                (viewerPosition ?? aim.origin) - surface.point);
             var position = surface.point + Vector3.up * .006f;
             if (!HasRequiredSurfaceCoverage(definition, position, rotation,
                     ignoredItem, surface.collider, surface.point.y) ||
@@ -1166,8 +1550,10 @@ namespace MateSoul.Runtime
             GameItem ignoredItem,
             out Collider support, out Vector3 point)
         {
-            var count = Physics.RaycastNonAlloc(pose.position + Vector3.up * .18f,
-                Vector3.down, placementHits, .42f, Physics.AllLayers,
+            var reach = definition.ImmovableAfterPlacement ? .28f : .18f;
+            var count = Physics.RaycastNonAlloc(pose.position + Vector3.up * reach,
+                Vector3.down, placementHits, definition.ImmovableAfterPlacement ? .56f : .42f,
+                Physics.AllLayers,
                 QueryTriggerInteraction.Ignore);
             support = null;
             point = default;
@@ -1177,7 +1563,7 @@ namespace MateSoul.Runtime
             {
                 var hit = placementHits[index];
                 if (hit.collider == null || hit.distance >= closest ||
-                    hit.normal.y < .6f ||
+                    hit.normal.y < MinimumPlacementNormal(definition, hit.collider) ||
                     hit.collider.GetComponentInParent<AvatarMotor>() != null ||
                     ignoredItem != null &&
                     hit.collider.transform.IsChildOf(ignoredItem.transform))
@@ -1195,7 +1581,9 @@ namespace MateSoul.Runtime
             Vector3 position, Quaternion rotation, GameItem ignoredItem,
             Collider support, float supportHeight)
         {
-            var ratio = definition.MinimumSurfaceSupportRatio;
+            var fixedItem = definition.ImmovableAfterPlacement;
+            var ratio = fixedItem ? Mathf.Min(.65f, definition.MinimumSurfaceSupportRatio) :
+                definition.MinimumSurfaceSupportRatio;
             const float edgeInset = .006f;
             var halfWidth = Mathf.Max(0,
                 definition.Footprint.x * .5f * ratio - edgeInset);
@@ -1203,41 +1591,60 @@ namespace MateSoul.Runtime
                 definition.Footprint.y * .5f * ratio - edgeInset);
             var right = rotation * Vector3.right;
             var forward = rotation * Vector3.forward;
+            var measured = IsMeasuredPlacementSurface(definition, support);
+            var heightTolerance = measured ? ImmovableMeshHeightTolerance : fixedItem ? .08f : .035f;
             var strictCorners = ratio >= .999f;
-            var sampleCount = strictCorners ? 4 : 8;
+            var sampleCount = fixedItem || !strictCorners ? 8 : 4;
+            var supportedSamples = 0;
             for (var index = 0; index < sampleCount; index++)
             {
                 var angle = index * Mathf.PI * 2f / sampleCount;
-                var x = strictCorners
+                var corners = fixedItem ? index < 4 : strictCorners;
+                if (fixedItem) angle = (index - 4) * Mathf.PI * .5f;
+                var x = corners
                     ? (index & 1) == 0 ? -halfWidth : halfWidth
                     : Mathf.Cos(angle) * halfWidth;
-                var z = strictCorners
+                var z = corners
                     ? (index & 2) == 0 ? -halfDepth : halfDepth
                     : Mathf.Sin(angle) * halfDepth;
                 var sample = position + right * x + forward * z;
-                sample.y = supportHeight + .08f;
+                var rayHalfLength = measured ? .24f : fixedItem ? .12f : .08f;
+                sample.y = supportHeight + rayHalfLength;
                 var count = Physics.RaycastNonAlloc(sample, Vector3.down,
-                    placementHits, .16f, Physics.AllLayers,
+                    placementHits, rayHalfLength * 2f, Physics.AllLayers,
                     QueryTriggerInteraction.Ignore);
                 if (count == placementHits.Length) return false;
                 var found = false;
                 for (var hitIndex = 0; hitIndex < count; hitIndex++)
                 {
                     var hit = placementHits[hitIndex];
-                    if (hit.collider == null || hit.normal.y < .6f ||
-                        Mathf.Abs(hit.point.y - supportHeight) > .035f ||
+                    if (hit.collider == null ||
+                        hit.normal.y < MinimumPlacementNormal(definition, hit.collider) ||
+                        Mathf.Abs(hit.point.y - supportHeight) > heightTolerance ||
                         hit.collider.GetComponentInParent<AvatarMotor>() != null ||
                         ignoredItem != null &&
                         hit.collider.transform.IsChildOf(ignoredItem.transform) ||
-                        !BelongsToSupport(hit.collider, support))
+                        !(BelongsToSupport(hit.collider, support) ||
+                          measured && IsMeasuredPlacementSurface(definition, hit.collider)))
                         continue;
                     found = true;
                     break;
                 }
-                if (!found) return false;
+                if (found) supportedSamples++;
+                else if (!fixedItem) return false;
             }
-            return true;
+            // Fixed items tolerate incomplete scans and support smaller than their
+            // outer enclosure. The center and three perimeter samples must remain.
+            return supportedSamples >= (fixedItem ? 3 : sampleCount);
         }
+
+        private static bool IsMeasuredPlacementSurface(ItemDefinition definition, Collider collider)
+            => definition.ImmovableAfterPlacement && collider != null &&
+               collider.GetComponent<RoomSurfaceCollider>() != null;
+
+        private static float MinimumPlacementNormal(ItemDefinition definition, Collider collider)
+            => IsMeasuredPlacementSurface(definition, collider) ? .35f :
+                definition.ImmovableAfterPlacement ? .5f : .6f;
 
         private static bool BelongsToSupport(Collider candidate, Collider support)
         {
@@ -1259,9 +1666,10 @@ namespace MateSoul.Runtime
         {
             var outward = pose.rotation * Vector3.forward;
             var center = pose.position + Vector3.up * (definition.PlacementHeight * .5f);
-            var origin = center + outward * (definition.Footprint.y * .5f + .04f);
+            var reach = definition.ImmovableAfterPlacement ? .16f : .06f;
+            var origin = center + outward * (definition.Footprint.y * .5f + reach);
             var count = Physics.RaycastNonAlloc(origin, -outward, placementHits,
-                definition.Footprint.y + .12f, Physics.AllLayers,
+                definition.Footprint.y + reach * 2f, Physics.AllLayers,
                 QueryTriggerInteraction.Ignore);
             support = null;
             var closest = float.PositiveInfinity;
@@ -1270,8 +1678,8 @@ namespace MateSoul.Runtime
             {
                 var hit = placementHits[index];
                 if (hit.collider == null || hit.distance >= closest ||
-                    Mathf.Abs(hit.normal.y) > .25f ||
-                    Vector3.Dot(hit.normal, outward) < .85f ||
+                    Mathf.Abs(hit.normal.y) > (definition.ImmovableAfterPlacement ? .5f : .25f) ||
+                    Vector3.Dot(hit.normal, outward) < (definition.ImmovableAfterPlacement ? .7f : .85f) ||
                     hit.collider.GetComponentInParent<AvatarMotor>() != null ||
                     hit.collider.GetComponentInParent<GameItem>() != null ||
                     ignoredItem != null &&
@@ -1306,9 +1714,10 @@ namespace MateSoul.Runtime
 
         private bool IsPlacementFree(ItemDefinition definition, Vector3 floor,
             Quaternion rotation, GameItem ignoredItem, Transform ignoredRoot = null,
-            Collider ignoredSurface = null)
+            Collider ignoredSurface = null, Action<Collider> blocked = null)
         {
-            var clearance = definition.AllowSurfacePlacement || ignoredSurface != null
+            var clearance = definition.ImmovableAfterPlacement ||
+                            definition.AllowSurfacePlacement || ignoredSurface != null
                 ? .005f
                 : .03f;
             var halfHeight = Mathf.Max(.05f, definition.PlacementHeight * .5f - clearance);
@@ -1318,12 +1727,45 @@ namespace MateSoul.Runtime
             var count = Physics.OverlapBoxNonAlloc(center, halfExtents, placementOverlaps, rotation,
                 Physics.AllLayers, QueryTriggerInteraction.Ignore);
             if (count == placementOverlaps.Length) return false;
+            var upperCount = -1;
             for (var index = 0; index < count; index++)
             {
                 var collider = placementOverlaps[index];
+                if (IsMeasuredPlacementSurface(definition, collider))
+                {
+                    // Ignore only the noisy bottom band, even when this mesh block
+                    // also contains a wall or furniture above the support.
+                    if (upperCount < 0)
+                    {
+                        var bottom = Mathf.Max(clearance, ImmovableMeshHeightTolerance);
+                        var top = halfHeight * 2f + clearance;
+                        if (top <= bottom) continue;
+                        var upperExtents = halfExtents;
+                        upperExtents.y = (top - bottom) * .5f;
+                        upperCount = Physics.OverlapBoxNonAlloc(
+                            floor + Vector3.up * ((top + bottom) * .5f), upperExtents,
+                            placementUpperOverlaps, rotation, Physics.AllLayers,
+                            QueryTriggerInteraction.Ignore);
+                        if (upperCount == placementUpperOverlaps.Length) return false;
+                    }
+                    var blocksUpperSpace = false;
+                    for (var upperIndex = 0; upperIndex < upperCount; upperIndex++)
+                        if (placementUpperOverlaps[upperIndex] == collider)
+                        {
+                            blocksUpperSpace = true;
+                            break;
+                        }
+                    if (blocksUpperSpace)
+                    {
+                        blocked?.Invoke(collider);
+                        return false;
+                    }
+                    continue;
+                }
                 if (BelongsToSupport(collider, ignoredSurface)) continue;
                 if (ignoredItem != null && collider.transform.IsChildOf(ignoredItem.transform)) continue;
                 if (ignoredRoot != null && collider.transform.IsChildOf(ignoredRoot)) continue;
+                blocked?.Invoke(collider);
                 return false;
             }
             return true;
@@ -1373,6 +1815,27 @@ namespace MateSoul.Runtime
                 view.Bind(definition, Items, this, id, stateId,
                     inventoryDefinitionId, inventoryUnitId);
                 views.Add(id, view);
+#region debug-point A:item-spawn
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+                var vertexCount = 0;
+                foreach (var filter in root.GetComponentsInChildren<MeshFilter>(true))
+                    if (filter.sharedMesh != null) vertexCount += filter.sharedMesh.vertexCount;
+                foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                    if (renderer.sharedMesh != null) vertexCount += renderer.sharedMesh.vertexCount;
+                var payload =
+                    $"{{\"sessionId\":\"emulator-memory-growth\",\"runId\":\"interaction-correlation\"," +
+                    $"\"hypothesisId\":\"A\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                    $"\"location\":\"GameSession.Spawn\",\"msg\":\"[DEBUG] virtual item spawned\"," +
+                    $"\"data\":{{\"definition\":\"{definition.Id}\",\"items\":{views.Count}," +
+                    $"\"renderers\":{root.GetComponentsInChildren<Renderer>(true).Length}," +
+                    $"\"colliders\":{root.GetComponentsInChildren<Collider>(true).Length}," +
+                    $"\"vertices\":{vertexCount}}}}}";
+                var request = UnityWebRequest.Post(
+                    "http://127.0.0.1:7791/event", payload, "application/json");
+                var operation = request.SendWebRequest();
+                operation.completed += _ => request.Dispose();
+#endif
+#endregion
                 return view;
             }
             catch
@@ -1390,6 +1853,17 @@ namespace MateSoul.Runtime
             Notice = view.Definition.ConsumedProduct
                 ? $"{view.Definition.DisplayName}已清理。"
                 : $"{definitions[view.InventoryDefinitionId].DisplayName}已回收到背包。";
+#region debug-point E:delete-persist
+#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var deletePayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
+                                $"\"hypothesisId\":\"E\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                                $"\"location\":\"GameSession.RecycleItem\",\"msg\":\"[DEBUG] item recycled and saved\"," +
+                                $"\"data\":{{\"id\":\"{id}\",\"registryCount\":{Items.Count}," +
+                                $"\"viewCount\":{views.Count},\"savedCount\":{saved.items.Length}" + "}}";
+            UnityWebRequest.Post("http://127.0.0.1:7782/event", deletePayload, "application/json")
+                .SendWebRequest();
+#endif
+#endregion
             return true;
         }
 
@@ -1451,6 +1925,10 @@ namespace MateSoul.Runtime
 
         public void SetPaused(bool paused)
         {
+#region debug-point B:set-paused
+            ReportDialogueCancellation("GameSession.SetPaused",
+                paused ? "pause-requested" : "resume-requested");
+#endregion
             if (Paused == paused || disposed) return;
             Paused = paused;
             if (paused)
@@ -1503,6 +1981,9 @@ namespace MateSoul.Runtime
 
         public void Dispose()
         {
+#region debug-point C:session-dispose
+            ReportDialogueCancellation("GameSession.Dispose", "session-dispose");
+#endregion
             if (disposed) return;
             disposed = true;
             lifetime.Cancel();
@@ -1532,5 +2013,24 @@ namespace MateSoul.Runtime
             lifetime.Dispose();
         }
 
+#region debug-point A-D:dialogue-cancellation-report
+        private void ReportDialogueCancellation(string location, string reason)
+        {
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload =
+                $"{{\"sessionId\":\"dialogue-font-tofu\",\"runId\":\"pre-fix-iteration-3\"," +
+                $"\"hypothesisId\":\"A-D\",\"location\":\"{location}\"," +
+                $"\"msg\":\"[DEBUG] dialogue cancellation source\",\"data\":{{" +
+                $"\"reason\":\"{reason}\",\"conversationState\":\"{Conversation.State}\"," +
+                $"\"sessionPaused\":{Paused.ToString().ToLowerInvariant()}," +
+                $"\"disposed\":{disposed.ToString().ToLowerInvariant()}," +
+                $"\"frame\":{Time.frameCount}}}}}";
+            var request = UnityWebRequest.Post(
+                "http://127.0.0.1:7785/event", payload, "application/json");
+            var operation = request.SendWebRequest();
+            operation.completed += _ => request.Dispose();
+#endif
+        }
+#endregion
     }
 }

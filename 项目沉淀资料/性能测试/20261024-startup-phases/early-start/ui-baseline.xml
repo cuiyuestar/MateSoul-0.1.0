@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-23 17:59:45Z" end-time="2026-10-23 17:59:48Z" duration="2.8195133">
+  <test-suite type="TestSuite" id="1000" name="MateSoul" fullname="MateSoul" runstate="Runnable" testcasecount="236" result="Failed" site="Child" start-time="2026-10-23 17:59:45Z" end-time="2026-10-23 17:59:48Z" duration="2.819513" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1284" name="MateSoul.Tests.Engine.dll" fullname="/Users/bytedance/MateSoul/MateSoul/Library/ScriptAssemblies/MateSoul.Tests.Engine.dll" runstate="Runnable" testcasecount="184" result="Failed" site="Child" start-time="2026-10-23 17:59:46Z" end-time="2026-10-23 17:59:48Z" duration="2.467976" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="70436" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1285" name="MateSoul" fullname="MateSoul" runstate="Runnable" testcasecount="184" result="Failed" site="Child" start-time="2026-10-23 17:59:46Z" end-time="2026-10-23 17:59:48Z" duration="2.466505" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1286" name="Tests" fullname="MateSoul.Tests" runstate="Runnable" testcasecount="184" result="Failed" site="Child" start-time="2026-10-23 17:59:46Z" end-time="2026-10-23 17:59:48Z" duration="2.465298" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1117" name="GameRuntimeTests" fullname="MateSoul.Tests.GameRuntimeTests" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" testcasecount="45" result="Failed" site="Child" start-time="2026-10-23 17:59:46Z" end-time="2026-10-23 17:59:48Z" duration="2.462323" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1161" name="BottomHudExpandsVerticalInteractionActivities" fullname="MateSoul.Tests.GameRuntimeTests.BottomHudExpandsVerticalInteractionActivities" methodname="BottomHudExpandsVerticalInteractionActivities" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" seed="324377480" result="Failed" start-time="2026-10-23 17:59:43Z" end-time="2026-10-23 17:59:48Z" duration="4.829878" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Expected: True
+  But was:  False
+]]></message>
+                <stack-trace><![CDATA[at MateSoul.Tests.GameRuntimeTests+<ExerciseHud>d__94.MoveNext () [0x00996] in /Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Tests/Engine/GameRuntimeTests.cs:2435
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in ./Library/PackageCache/com.unity.test-framework@1.4.6/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:44
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[Main Object Name 'MateSoul UI SDF' does not match filename 'NotoSansCJKsc-SDF'
+Saving results to: /tmp/matesoul-startup-phases-20261024/early-start-final/ui-baseline.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

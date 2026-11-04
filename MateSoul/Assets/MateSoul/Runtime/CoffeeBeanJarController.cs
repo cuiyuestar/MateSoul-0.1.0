@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using MateSoul.Gameplay;
 using UnityEngine;
 
 namespace MateSoul.Runtime
 {
     [DisallowMultipleComponent, RequireComponent(typeof(PhysicsBody))]
-    public sealed class CoffeeBeanJarController : MonoBehaviour
+    public sealed class CoffeeBeanJarController : MonoBehaviour, IRuntimeWorldFactSource
     {
         [SerializeField] private CoffeeBeanJarLid lid;
         [SerializeField] private CoffeeBeanVolumeRenderer beanFill;
@@ -38,6 +39,26 @@ namespace MateSoul.Runtime
             : RemainingBeanCount / (float)beanCapacity;
         public CoffeeBeanVolumeRenderer BeanFill => beanFill;
         public IReadOnlyList<CoffeeBean> ReleasedBeans => released;
+
+        public bool TryCaptureRuntimeWorldFact(
+            out RuntimeWorldFactSnapshot fact)
+        {
+            if ((lid == null || !lid.IsOpen) &&
+                RemainingBeanCount == beanCapacity)
+            {
+                fact = null;
+                return false;
+            }
+            var state = RemainingBeanCount <= 0
+                ? "empty"
+                : lid != null && lid.IsOpen ? "open" : "used";
+            fact = RuntimeWorldFact.Create(
+                this,
+                "coffee",
+                state,
+                $"beans_remaining={RemainingBeanCount};capacity={beanCapacity}");
+            return true;
+        }
 
         public void Configure(CoffeeBeanJarLid lidControl,
             CoffeeBeanVolumeRenderer fillRenderer,

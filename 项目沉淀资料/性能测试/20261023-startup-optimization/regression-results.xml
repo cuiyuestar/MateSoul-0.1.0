@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="9" result="Passed" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-22 17:56:22Z" end-time="2026-10-22 17:56:23Z" duration="0.9520543">
+  <test-suite type="TestSuite" id="1000" name="MateSoul" fullname="MateSoul" runstate="Runnable" testcasecount="236" result="Passed" start-time="2026-10-22 17:56:22Z" end-time="2026-10-22 17:56:23Z" duration="0.952054" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1284" name="MateSoul.Tests.Engine.dll" fullname="/Users/bytedance/MateSoul/MateSoul/Library/ScriptAssemblies/MateSoul.Tests.Engine.dll" runstate="Runnable" testcasecount="184" result="Passed" start-time="2026-10-22 17:56:22Z" end-time="2026-10-22 17:56:23Z" duration="0.536538" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="45501" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1285" name="MateSoul" fullname="MateSoul" runstate="Runnable" testcasecount="184" result="Passed" start-time="2026-10-22 17:56:22Z" end-time="2026-10-22 17:56:23Z" duration="0.534238" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1286" name="Tests" fullname="MateSoul.Tests" runstate="Runnable" testcasecount="184" result="Passed" start-time="2026-10-22 17:56:22Z" end-time="2026-10-22 17:56:23Z" duration="0.532302" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1117" name="GameRuntimeTests" fullname="MateSoul.Tests.GameRuntimeTests" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-10-22 17:56:22Z" end-time="2026-10-22 17:56:22Z" duration="0.016821" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1150" name="LateAnchorCompletionAndStorageFailureDoNotLeaveGhostItems" fullname="MateSoul.Tests.GameRuntimeTests.LateAnchorCompletionAndStorageFailureDoNotLeaveGhostItems" methodname="LateAnchorCompletionAndStorageFailureDoNotLeaveGhostItems" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" seed="1115700870" result="Passed" start-time="2026-10-22 17:55:50Z" end-time="2026-10-22 17:55:54Z" duration="3.967821" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1137" name="LegacyUnavailableAnchorStartsNewLayoutOnCatalogClick" fullname="MateSoul.Tests.GameRuntimeTests.LegacyUnavailableAnchorStartsNewLayoutOnCatalogClick" methodname="LegacyUnavailableAnchorStartsNewLayoutOnCatalogClick" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" seed="348185604" result="Passed" start-time="2026-10-22 17:55:54Z" end-time="2026-10-22 17:55:58Z" duration="3.638900" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[[GameSession] 旧物品定位失败：Anchor is unavailable.
+GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1151" name="PausedRestoreRetriesRegardlessOfLateAnchorCompletionOrder" fullname="MateSoul.Tests.GameRuntimeTests.PausedRestoreRetriesRegardlessOfLateAnchorCompletionOrder" methodname="PausedRestoreRetriesRegardlessOfLateAnchorCompletionOrder" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" seed="862185247" result="Passed" start-time="2026-10-22 17:55:58Z" end-time="2026-10-22 17:56:01Z" duration="3.378574" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1153" name="PendingRestoreRejectsDirectAndConversationCoordinatorActions" fullname="MateSoul.Tests.GameRuntimeTests.PendingRestoreRejectsDirectAndConversationCoordinatorActions" methodname="PendingRestoreRejectsDirectAndConversationCoordinatorActions" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" seed="861042973" result="Passed" start-time="2026-10-22 17:56:01Z" end-time="2026-10-22 17:56:05Z" duration="3.499814" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1133" name="SaveRestoresOutfitMoodAndItemsWithNoOfflineDecay" fullname="MateSoul.Tests.GameRuntimeTests.SaveRestoresOutfitMoodAndItemsWithNoOfflineDecay" methodname="SaveRestoresOutfitMoodAndItemsWithNoOfflineDecay" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" seed="939750253" result="Passed" start-time="2026-10-22 17:56:05Z" end-time="2026-10-22 17:56:08Z" duration="3.457328" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1144" name="SurfacePlacementAndReversedSupportOrderRestoreAsOneLayout" fullname="MateSoul.Tests.GameRuntimeTests.SurfacePlacementAndReversedSupportOrderRestoreAsOneLayout" methodname="SurfacePlacementAndReversedSupportOrderRestoreAsOneLayout" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" seed="757934428" result="Passed" start-time="2026-10-22 17:56:08Z" end-time="2026-10-22 17:56:14Z" duration="5.720432" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1136" name="ValidatedRoomPoseRestoresItemsWhenAnchorIsTemporarilyUnavailable" fullname="MateSoul.Tests.GameRuntimeTests.ValidatedRoomPoseRestoresItemsWhenAnchorIsTemporarilyUnavailable" methodname="ValidatedRoomPoseRestoresItemsWhenAnchorIsTemporarilyUnavailable" classname="MateSoul.Tests.GameRuntimeTests" runstate="Runnable" seed="1452776978" result="Passed" start-time="2026-10-22 17:56:14Z" end-time="2026-10-22 17:56:17Z" duration="3.536140" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1223" name="ResponseEmotionAudioTests" fullname="MateSoul.Tests.ResponseEmotionAudioTests" classname="MateSoul.Tests.ResponseEmotionAudioTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-22 17:56:22Z" end-time="2026-10-22 17:56:23Z" duration="0.494709" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1224" name="CompletedRepliesPlayOnlyFromTheirEmotionPool" fullname="MateSoul.Tests.ResponseEmotionAudioTests.CompletedRepliesPlayOnlyFromTheirEmotionPool" methodname="CompletedRepliesPlayOnlyFromTheirEmotionPool" classname="MateSoul.Tests.ResponseEmotionAudioTests" runstate="Runnable" seed="1473234874" result="Passed" start-time="2026-10-22 17:56:17Z" end-time="2026-10-22 17:56:20Z" duration="2.419146" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1225" name="MultiClipEmotionUsesRandomizedSelection" fullname="MateSoul.Tests.ResponseEmotionAudioTests.MultiClipEmotionUsesRandomizedSelection" methodname="MultiClipEmotionUsesRandomizedSelection" classname="MateSoul.Tests.ResponseEmotionAudioTests" runstate="Runnable" seed="1842993185" result="Passed" start-time="2026-10-22 17:56:20Z" end-time="2026-10-22 17:56:23Z" duration="2.915410" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+Saving results to: /tmp/matesoul-startup-20261023/regression.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

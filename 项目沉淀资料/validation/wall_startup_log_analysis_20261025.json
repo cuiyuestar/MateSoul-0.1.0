@@ -1,0 +1,676 @@
+{
+  "installedSha256": "5dfdefee9577bd43a82079a542e847d85c0306ca334687e71e1d424d9deaeb05",
+  "currentPid": "17599",
+  "capturedPowerState": "Asleep",
+  "userReportedWallSpawn": "unresolved_first_spawn_logs_overwritten",
+  "startup-previous.log": {
+    "bytes": 131164,
+    "firstLine": "MATESOUL_START utc=2026-10-24T16:54:53.2002660Z version=0.1.0",
+    "lastLineTimestamp": "2026-10-24T16:55:32.9286690Z",
+    "queries": [
+      {
+        "line": 63,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 1,
+        "updates": 2,
+        "elapsedMs": 3339,
+        "focused": 1
+      },
+      {
+        "line": 89,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 2,
+        "updates": 2,
+        "elapsedMs": 6361,
+        "focused": 1
+      },
+      {
+        "line": 125,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 3,
+        "updates": 2,
+        "elapsedMs": 11384,
+        "focused": 1
+      },
+      {
+        "line": 164,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 4,
+        "updates": 2,
+        "elapsedMs": 16408,
+        "focused": 1
+      },
+      {
+        "line": 216,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 5,
+        "updates": 2,
+        "elapsedMs": 21436,
+        "focused": 1
+      },
+      {
+        "line": 262,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 6,
+        "updates": 2,
+        "elapsedMs": 26453,
+        "focused": 1
+      },
+      {
+        "line": 309,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 7,
+        "updates": 2,
+        "elapsedMs": 31477,
+        "focused": 1
+      }
+    ],
+    "lastStage": {
+      "line": 310,
+      "stage": "scene_localization_wait"
+    },
+    "businessReady": false,
+    "exceptions": false,
+    "firstValidDepthState": {
+      "line": 55,
+      "nativeMeshes": 11,
+      "snapshotMeshes": 0,
+      "meshDepth": false,
+      "depthAvailable": true,
+      "depthSwitch": 1,
+      "rawWidth": 512,
+      "processedWidth": 512,
+      "floorColliders": 0
+    }
+  },
+  "startup-current.log": {
+    "bytes": 131430,
+    "firstLine": "MATESOUL_START utc=2026-10-24T16:55:43.8076860Z version=0.1.0",
+    "lastLineTimestamp": "2026-10-24T16:56:20.9584730Z",
+    "queries": [
+      {
+        "line": 68,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 1,
+        "updates": 2,
+        "elapsedMs": 3316,
+        "focused": 1
+      },
+      {
+        "line": 106,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 2,
+        "updates": 2,
+        "elapsedMs": 6326,
+        "focused": 1
+      },
+      {
+        "line": 150,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 3,
+        "updates": 2,
+        "elapsedMs": 11349,
+        "focused": 1
+      },
+      {
+        "line": 190,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 4,
+        "updates": 2,
+        "elapsedMs": 16370,
+        "focused": 1
+      },
+      {
+        "line": 233,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 5,
+        "updates": 2,
+        "elapsedMs": 21394,
+        "focused": 1
+      },
+      {
+        "line": 294,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 6,
+        "updates": 2,
+        "elapsedMs": 26416,
+        "focused": 1
+      },
+      {
+        "line": 345,
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 7,
+        "updates": 2,
+        "elapsedMs": 31427,
+        "focused": 1
+      }
+    ],
+    "lastStage": {
+      "line": 346,
+      "stage": "scene_localization_wait"
+    },
+    "businessReady": false,
+    "exceptions": false,
+    "firstValidDepthState": {
+      "line": 60,
+      "nativeMeshes": 11,
+      "snapshotMeshes": 0,
+      "meshDepth": false,
+      "depthAvailable": true,
+      "depthSwitch": 1,
+      "rawWidth": 512,
+      "processedWidth": 512,
+      "floorColliders": 0
+    }
+  },
+  "firstRunTailNav": {
+    "updates": [
+      {
+        "line": 646337,
+        "timestamp": "10-25 00:52:46.627",
+        "revision": 10,
+        "cells": 139,
+        "retired": 3,
+        "asyncMs": 28.1
+      },
+      {
+        "line": 666409,
+        "timestamp": "10-25 00:52:52.207",
+        "revision": 11,
+        "cells": 139,
+        "retired": 3,
+        "asyncMs": 10.7
+      },
+      {
+        "line": 667521,
+        "timestamp": "10-25 00:52:54.667",
+        "revision": 12,
+        "cells": 139,
+        "retired": 3,
+        "asyncMs": 14.49
+      },
+      {
+        "line": 667672,
+        "timestamp": "10-25 00:52:55.005",
+        "revision": 13,
+        "cells": 139,
+        "retired": 3,
+        "asyncMs": 12.9
+      },
+      {
+        "line": 667857,
+        "timestamp": "10-25 00:52:55.424",
+        "revision": 14,
+        "cells": 148,
+        "retired": 3,
+        "asyncMs": 17.67
+      },
+      {
+        "line": 667968,
+        "timestamp": "10-25 00:52:55.613",
+        "revision": 15,
+        "cells": 151,
+        "retired": 3,
+        "asyncMs": 11.58
+      },
+      {
+        "line": 668101,
+        "timestamp": "10-25 00:52:55.900",
+        "revision": 16,
+        "cells": 153,
+        "retired": 3,
+        "asyncMs": 25.79
+      },
+      {
+        "line": 668246,
+        "timestamp": "10-25 00:52:56.235",
+        "revision": 17,
+        "cells": 153,
+        "retired": 3,
+        "asyncMs": 12.32
+      },
+      {
+        "line": 668328,
+        "timestamp": "10-25 00:52:56.425",
+        "revision": 18,
+        "cells": 152,
+        "retired": 3,
+        "asyncMs": 10.74
+      },
+      {
+        "line": 682562,
+        "timestamp": "10-25 00:53:28.225",
+        "revision": 19,
+        "cells": 158,
+        "retired": 3,
+        "asyncMs": 14.19
+      },
+      {
+        "line": 682652,
+        "timestamp": "10-25 00:53:28.409",
+        "revision": 20,
+        "cells": 158,
+        "retired": 3,
+        "asyncMs": 10.91
+      },
+      {
+        "line": 683506,
+        "timestamp": "10-25 00:53:30.210",
+        "revision": 21,
+        "cells": 155,
+        "retired": 3,
+        "asyncMs": 14.52
+      },
+      {
+        "line": 685279,
+        "timestamp": "10-25 00:53:34.204",
+        "revision": 22,
+        "cells": 157,
+        "retired": 3,
+        "asyncMs": 18.22
+      },
+      {
+        "line": 694601,
+        "timestamp": "10-25 00:53:54.228",
+        "revision": 23,
+        "cells": 158,
+        "retired": 3,
+        "asyncMs": 19.43
+      },
+      {
+        "line": 698951,
+        "timestamp": "10-25 00:54:04.220",
+        "revision": 24,
+        "cells": 158,
+        "retired": 3,
+        "asyncMs": 14.79
+      },
+      {
+        "line": 705116,
+        "timestamp": "10-25 00:54:16.347",
+        "revision": 25,
+        "cells": 158,
+        "retired": 3,
+        "asyncMs": 24.44
+      }
+    ],
+    "asyncMedianMs": 14.504999999999999
+  },
+  "mapEvidence": [
+    {
+      "line": 734630,
+      "message": "10-25 00:55:01.306  6305  6322 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 734634,
+      "message": "10-25 00:55:01.306  6305  6322 E PxrSenseServer: [SceneCaptureObserver.cpp][getAnchorMapInfo] exist map: 0"
+    },
+    {
+      "line": 737275,
+      "message": "10-25 00:55:06.336  6305 10491 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 737279,
+      "message": "10-25 00:55:06.338  6305 10491 E PxrSenseServer: [SceneCaptureObserver.cpp][getAnchorMapInfo] exist map: 0"
+    },
+    {
+      "line": 739575,
+      "message": "10-25 00:55:11.359  6305 10491 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 739579,
+      "message": "10-25 00:55:11.359  6305 10491 E PxrSenseServer: [SceneCaptureObserver.cpp][getAnchorMapInfo] exist map: 0"
+    },
+    {
+      "line": 741697,
+      "message": "10-25 00:55:16.386  6305  6322 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 741701,
+      "message": "10-25 00:55:16.386  6305  6322 E PxrSenseServer: [SceneCaptureObserver.cpp][getAnchorMapInfo] exist map: 0"
+    },
+    {
+      "line": 744558,
+      "message": "10-25 00:55:21.405  6305  6322 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 744562,
+      "message": "10-25 00:55:21.405  6305  6322 E PxrSenseServer: [SceneCaptureObserver.cpp][getAnchorMapInfo] exist map: 0"
+    },
+    {
+      "line": 746843,
+      "message": "10-25 00:55:26.430  6305  6322 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 746852,
+      "message": "10-25 00:55:26.432  6305  6322 E PxrSenseServer: [SceneCaptureObserver.cpp][getAnchorMapInfo] exist map: 0"
+    },
+    {
+      "line": 749116,
+      "message": "10-25 00:55:31.450  6305 10491 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 749120,
+      "message": "10-25 00:55:31.450  6305 10491 E PxrSenseServer: [SceneCaptureObserver.cpp][getAnchorMapInfo] exist map: 0"
+    },
+    {
+      "line": 752872,
+      "message": "10-25 00:55:36.484  6305  6322 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 752876,
+      "message": "10-25 00:55:36.484  6305  6322 E PxrSenseServer: [SceneCaptureObserver.cpp][getAnchorMapInfo] exist map: 0"
+    },
+    {
+      "line": 764045,
+      "message": "10-25 00:55:48.530  6305 17693 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 764279,
+      "message": "10-25 00:55:48.568  6305 17693 E PxrSenseServer: GetMapStatus from alg = 7, current map uuid ="
+    },
+    {
+      "line": 764309,
+      "message": "10-25 00:55:48.569  6305 17693 E PxrSenseServer: LoadSceneAnchors SceneCaptureObserver.cpp load scene anchor from map : 00000000-0000-0000-0000-000000000000"
+    },
+    {
+      "line": 765321,
+      "message": "10-25 00:55:48.871  6305 10492 E PxrSenseServer: [SceneCaptureObserver.cpp][getAnchorMapInfo] exist map: 0"
+    }
+  ],
+  "snapshotTimeouts": [
+    {
+      "line": 734499,
+      "message": "10-25 00:55:01.286 17225 17453 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 736466,
+      "message": "10-25 00:55:04.306 17225 17459 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 738693,
+      "message": "10-25 00:55:09.338 17225 17477 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 740813,
+      "message": "10-25 00:55:14.359 17225 17486 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 743454,
+      "message": "10-25 00:55:19.386 17225 17492 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 745748,
+      "message": "10-25 00:55:24.405 17225 17504 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 748173,
+      "message": "10-25 00:55:29.432 17225 17510 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 750455,
+      "message": "10-25 00:55:34.450 17225 17517 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 756002,
+      "message": "10-25 00:55:39.484 17225 17532 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 767189,
+      "message": "10-25 00:55:51.871 17599 17749 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 768593,
+      "message": "10-25 00:55:54.884 17599 17763 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 770718,
+      "message": "10-25 00:55:59.905 17599 17778 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 772871,
+      "message": "10-25 00:56:04.930 17599 17784 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 774844,
+      "message": "10-25 00:56:09.951 17599 17791 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    },
+    {
+      "line": 777841,
+      "message": "10-25 00:56:14.968 17599 17802 E PxrSenseClient: [SceneCaptureProvider.cpp][SnapshotRequestFilter] wait 3 seconds timeout."
+    }
+  ],
+  "anchorEvidence": [
+    {
+      "line": 734648,
+      "message": "10-25 00:55:01.308 17225 17295 I Unity   : MATESOUL_ANCHOR query=1 elapsedMs=3376 result=SUCCESS located=True updates=0"
+    },
+    {
+      "line": 767332,
+      "message": "10-25 00:55:51.886 17599 17623 I Unity   : MATESOUL_ANCHOR query=1 elapsedMs=3358 result=SUCCESS located=True updates=0"
+    }
+  ],
+  "save": {
+    "sha256": "d583d595759ecedaf70b2cdd68700a07113d99577a486df3ebfde99c98463540",
+    "itemCount": 4
+  },
+  "nativeRoomQueries": {
+    "17225": [
+      {
+        "line": 734574,
+        "localTime": "10-25 00:55:01.304",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 1,
+        "updates": 2,
+        "elapsedMs": 3339,
+        "focused": 1
+      },
+      {
+        "line": 736509,
+        "localTime": "10-25 00:55:04.326",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 2,
+        "updates": 2,
+        "elapsedMs": 6361,
+        "focused": 1
+      },
+      {
+        "line": 738735,
+        "localTime": "10-25 00:55:09.348",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 3,
+        "updates": 2,
+        "elapsedMs": 11384,
+        "focused": 1
+      },
+      {
+        "line": 740855,
+        "localTime": "10-25 00:55:14.373",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 4,
+        "updates": 2,
+        "elapsedMs": 16408,
+        "focused": 1
+      },
+      {
+        "line": 743512,
+        "localTime": "10-25 00:55:19.400",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 5,
+        "updates": 2,
+        "elapsedMs": 21436,
+        "focused": 1
+      },
+      {
+        "line": 745790,
+        "localTime": "10-25 00:55:24.417",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 6,
+        "updates": 2,
+        "elapsedMs": 26453,
+        "focused": 1
+      },
+      {
+        "line": 748214,
+        "localTime": "10-25 00:55:29.442",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 7,
+        "updates": 2,
+        "elapsedMs": 31477,
+        "focused": 1
+      },
+      {
+        "line": 750508,
+        "localTime": "10-25 00:55:34.471",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 8,
+        "updates": 2,
+        "elapsedMs": 36506,
+        "focused": 1
+      }
+    ],
+    "17599": [
+      {
+        "line": 767257,
+        "localTime": "10-25 00:55:51.881",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 1,
+        "updates": 2,
+        "elapsedMs": 3316,
+        "focused": 1
+      },
+      {
+        "line": 768634,
+        "localTime": "10-25 00:55:54.892",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 2,
+        "updates": 2,
+        "elapsedMs": 6326,
+        "focused": 1
+      },
+      {
+        "line": 770759,
+        "localTime": "10-25 00:55:59.915",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 3,
+        "updates": 2,
+        "elapsedMs": 11349,
+        "focused": 1
+      },
+      {
+        "line": 772911,
+        "localTime": "10-25 00:56:04.936",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 4,
+        "updates": 2,
+        "elapsedMs": 16370,
+        "focused": 1
+      },
+      {
+        "line": 774886,
+        "localTime": "10-25 00:56:09.960",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 5,
+        "updates": 2,
+        "elapsedMs": 21394,
+        "focused": 1
+      },
+      {
+        "line": 777884,
+        "localTime": "10-25 00:56:14.982",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 6,
+        "updates": 2,
+        "elapsedMs": 26416,
+        "focused": 1
+      },
+      {
+        "line": 779981,
+        "localTime": "10-25 00:56:19.993",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 7,
+        "updates": 2,
+        "elapsedMs": 31427,
+        "focused": 1
+      },
+      {
+        "line": 783049,
+        "localTime": "10-25 00:56:25.018",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 8,
+        "updates": 2,
+        "elapsedMs": 36452,
+        "focused": 1
+      },
+      {
+        "line": 785053,
+        "localTime": "10-25 00:56:30.042",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 9,
+        "updates": 2,
+        "elapsedMs": 41476,
+        "focused": 1
+      },
+      {
+        "line": 787972,
+        "localTime": "10-25 00:56:35.060",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 10,
+        "updates": 2,
+        "elapsedMs": 46494,
+        "focused": 1
+      },
+      {
+        "line": 791288,
+        "localTime": "10-25 00:56:40.086",
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 11,
+        "updates": 2,
+        "elapsedMs": 51520,
+        "focused": 1
+      }
+    ]
+  },
+  "hypotheses": {
+    "wrong_apk": "REJECTED",
+    "sleep_only_explains_active_query_failures": "REJECTED",
+    "resources_fail_before_room_loaded": "REJECTED",
+    "active_scene_capture_map_empty_blocks_business": "CONFIRMED",
+    "first_wall_pose_or_rendering_root_cause": "INCONCLUSIVE"
+  },
+  "progress_status": "logs_recovered_analyzed_runtime_changes_not_performed",
+  "rawEvidenceDirectory": "/tmp/matesoul-live-room-geometry-20261025/user-wall-startup-20261025"
+}

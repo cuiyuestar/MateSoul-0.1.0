@@ -1,0 +1,473 @@
+{
+  "date": "2026-10-27",
+  "status": "implementation-editor-validation-and-release-package-complete",
+  "runtime": "2022.3.38f1 Mac Editor, no rendering",
+  "performance": [
+    {
+      "scene": "empty",
+      "distanceM": 0.019999999552965164,
+      "angleDeg": 5.0,
+      "samplesPerVersion": 180,
+      "before": {
+        "scene": "empty",
+        "distance": 0.019999999552965164,
+        "angle": 5.0,
+        "samples": 180,
+        "meanMs": 0.020063888888888853,
+        "medianMs": 0.019,
+        "p95Ms": 0.0273,
+        "maxMs": 0.0317
+      },
+      "after": {
+        "scene": "empty",
+        "distance": 0.019999999552965164,
+        "angle": 5.0,
+        "samples": 180,
+        "meanMs": 0.00943722222222224,
+        "medianMs": 0.0092,
+        "p95Ms": 0.01,
+        "maxMs": 0.0308
+      },
+      "meanReductionPercent": 52.96414232313427
+    },
+    {
+      "scene": "empty",
+      "distanceM": 0.07999999821186066,
+      "angleDeg": 15.0,
+      "samplesPerVersion": 180,
+      "before": {
+        "scene": "empty",
+        "distance": 0.07999999821186066,
+        "angle": 15.0,
+        "samples": 180,
+        "meanMs": 0.06609277777777775,
+        "medianMs": 0.0647,
+        "p95Ms": 0.0763,
+        "maxMs": 0.1485
+      },
+      "after": {
+        "scene": "empty",
+        "distance": 0.07999999821186066,
+        "angle": 15.0,
+        "samples": 180,
+        "meanMs": 0.014989999999999965,
+        "medianMs": 0.0149,
+        "p95Ms": 0.0155,
+        "maxMs": 0.0262
+      },
+      "meanReductionPercent": 77.31976094211004
+    },
+    {
+      "scene": "empty",
+      "distanceM": 0.30000001192092896,
+      "angleDeg": 45.0,
+      "samplesPerVersion": 180,
+      "before": {
+        "scene": "empty",
+        "distance": 0.30000001192092896,
+        "angle": 45.0,
+        "samples": 180,
+        "meanMs": 0.18451666666666663,
+        "medianMs": 0.1832,
+        "p95Ms": 0.1927,
+        "maxMs": 0.3034
+      },
+      "after": {
+        "scene": "empty",
+        "distance": 0.30000001192092896,
+        "angle": 45.0,
+        "samples": 180,
+        "meanMs": 0.03000333333333332,
+        "medianMs": 0.0299,
+        "p95Ms": 0.0308,
+        "maxMs": 0.0345
+      },
+      "meanReductionPercent": 83.73949959353266
+    },
+    {
+      "scene": "empty",
+      "distanceM": 1.2000000476837158,
+      "angleDeg": 90.0,
+      "samplesPerVersion": 180,
+      "before": {
+        "scene": "empty",
+        "distance": 1.2000000476837158,
+        "angle": 90.0,
+        "samples": 180,
+        "meanMs": 0.742191111111111,
+        "medianMs": 0.7306,
+        "p95Ms": 0.8744,
+        "maxMs": 0.8982
+      },
+      "after": {
+        "scene": "empty",
+        "distance": 1.2000000476837158,
+        "angle": 90.0,
+        "samples": 180,
+        "meanMs": 0.09590777777777774,
+        "medianMs": 0.0969,
+        "p95Ms": 0.1028,
+        "maxMs": 0.1138
+      },
+      "meanReductionPercent": 87.0777517620499
+    },
+    {
+      "scene": "12 nearby meshes",
+      "distanceM": 0.019999999552965164,
+      "angleDeg": 5.0,
+      "samplesPerVersion": 180,
+      "before": {
+        "scene": "12 nearby meshes",
+        "distance": 0.019999999552965164,
+        "angle": 5.0,
+        "samples": 180,
+        "meanMs": 0.11602500000000002,
+        "medianMs": 0.1153,
+        "p95Ms": 0.1219,
+        "maxMs": 0.1327
+      },
+      "after": {
+        "scene": "12 nearby meshes",
+        "distance": 0.019999999552965164,
+        "angle": 5.0,
+        "samples": 180,
+        "meanMs": 0.01809500000000004,
+        "medianMs": 0.018,
+        "p95Ms": 0.0188,
+        "maxMs": 0.0251
+      },
+      "meanReductionPercent": 84.40422322775261
+    },
+    {
+      "scene": "12 nearby meshes",
+      "distanceM": 0.07999999821186066,
+      "angleDeg": 15.0,
+      "samplesPerVersion": 180,
+      "before": {
+        "scene": "12 nearby meshes",
+        "distance": 0.07999999821186066,
+        "angle": 15.0,
+        "samples": 180,
+        "meanMs": 0.45169333333333317,
+        "medianMs": 0.4496,
+        "p95Ms": 0.4698,
+        "maxMs": 0.5836
+      },
+      "after": {
+        "scene": "12 nearby meshes",
+        "distance": 0.07999999821186066,
+        "angle": 15.0,
+        "samples": 180,
+        "meanMs": 0.029399999999999978,
+        "medianMs": 0.0294,
+        "p95Ms": 0.0301,
+        "maxMs": 0.0358
+      },
+      "meanReductionPercent": 93.49115919355316
+    },
+    {
+      "scene": "12 nearby meshes",
+      "distanceM": 0.30000001192092896,
+      "angleDeg": 45.0,
+      "samplesPerVersion": 180,
+      "before": {
+        "scene": "12 nearby meshes",
+        "distance": 0.30000001192092896,
+        "angle": 45.0,
+        "samples": 180,
+        "meanMs": 1.6192561111111103,
+        "medianMs": 1.3792,
+        "p95Ms": 2.8529,
+        "maxMs": 13.1804
+      },
+      "after": {
+        "scene": "12 nearby meshes",
+        "distance": 0.30000001192092896,
+        "angle": 45.0,
+        "samples": 180,
+        "meanMs": 0.060117777777777784,
+        "medianMs": 0.0598,
+        "p95Ms": 0.0626,
+        "maxMs": 0.0838
+      },
+      "meanReductionPercent": 96.28732123564284
+    },
+    {
+      "scene": "12 nearby meshes",
+      "distanceM": 1.2000000476837158,
+      "angleDeg": 90.0,
+      "samplesPerVersion": 180,
+      "before": {
+        "scene": "12 nearby meshes",
+        "distance": 1.2000000476837158,
+        "angle": 90.0,
+        "samples": 180,
+        "meanMs": 4.699052222222222,
+        "medianMs": 4.3394,
+        "p95Ms": 5.4797,
+        "maxMs": 17.3573
+      },
+      "after": {
+        "scene": "12 nearby meshes",
+        "distance": 1.2000000476837158,
+        "angle": 90.0,
+        "samples": 180,
+        "meanMs": 0.19693777777777782,
+        "medianMs": 0.1957,
+        "p95Ms": 0.2043,
+        "maxMs": 0.217
+      },
+      "meanReductionPercent": 95.80898937776341
+    }
+  ],
+  "finalUniqueTestCount": 29,
+  "finalTests": [
+    {
+      "name": "MateSoul.Tests.CarrotCuttingTests.CutHistoryReplaysTheSameCollisionVolume",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CarrotCuttingTests.HorizontalCutPreservesVolumeAndClosesBothHalves",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CarrotCuttingTests.LegacyEmptyCutStateRemainsAValidUncutItem",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CarrotCuttingTests.ObliqueCutStoresDirectionalMaterialAlignment",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CarrotCuttingTests.ProductionCarrotHasValidatedCuttableAssets",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CarrotCuttingTests.RepeatedCutsStopAtTheAuthoredDepth",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CarrotCuttingTests.SaveValidationRejectsInvalidCutPlane",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CollisionAcceptance.CuttableExceptionIsLimitedToStableCuttingFollow",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CollisionAcceptance.OffsetCompoundAndNonuniformScaleMatchLegacyAcross240Targets(False)",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CollisionAcceptance.OffsetCompoundAndNonuniformScaleMatchLegacyAcross240Targets(True)",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CollisionAcceptance.ProductionKnifeUsesRealXriStableSelectionFreshReleaseAndTrackingCancel",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CollisionAcceptance.PureRotationStopsBeforeOffsetBladeEntersThinWall",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CollisionAcceptance.RefreshDisabledShapesTriggersAndPairFiltersStayCurrent",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CollisionAcceptance.SweptCandidateOverflowHoldsPositionAndReleaseClearsScratch",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CollisionAcceptance.ThinMeshFloorBlocksLargeTranslation",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CutAcceptance.AirStrokeDoesNotConsumeCooldownAndSupportedCutStillCommits",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CutAcceptance.CutOutsideBoundsRejectsWithoutPreparingMeshesOrChangingInventory",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.CutAcceptance.FailedStrokeConsumesCooldownAndDoesNotRetryOrLeaveReservations",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.GameRuntimeTests.RuntimeCarrotCutCommitsTwoPhysicalSavedPieces",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.GripGrabTests.ControllerGripDrivesSelectionFollowAndReleaseThroughRealRay",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.GripGrabTests.DigitalGripWithNoAnalogValueStillGrabsAndReleases",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.InterpolatedOccupancyAcceptance.MovingInterpolatedObstacleOccupancyMatchesPublicSolver",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.InterpolatedOccupancyAcceptance.RotatingOffsetInterpolatedObstacleOccupancyMatchesPublicSolver",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.MotionAcceptance.RepeatedProductionFollowTiming",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.CompoundCollidersShareOneMaterialAndRejectNestedBodies",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.FrictionStopsSlidingAndFastObjectDoesNotTunnelThroughFloor",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.GravityImpulseAndSleepUseRealMassAndRejectInvalidInput",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.HeldBodyCannotCrossThinWallAndReleaseKeepsResolvedMomentum",
+      "result": "Passed",
+      "run": "corrected"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.PauseFreezesFallingBodyAndRestoresVelocityWithoutCatchup",
+      "result": "Passed",
+      "run": "corrected"
+    }
+  ],
+  "testRuns": [
+    {
+      "name": "corrected",
+      "total": 29,
+      "passed": 29,
+      "failed": 0,
+      "unityProcess": {
+        "exitCode": 0,
+        "seconds": 78.504546125
+      }
+    }
+  ],
+  "interpolationRegressionResolved": {
+    "problem": "Physics bounds and Rigidbody interpolated Transform poses differed; tight candidate queries and bounds pruning missed a collision reported by the public solver.",
+    "fix": "Enumerate a single union of original sphere-query bounds; candidate pruning includes bounds rebased to the visible Rigidbody pose.",
+    "verifiedBy": "InterpolatedOccupancyAcceptance",
+    "outputs": [
+      "INTERPOLATED_OCCUPANCY_MATCH maximumBoundsTransformDeltaM=0.01951775 blockedSamples=40",
+      "INTERPOLATED_ROTATION_MATCH maximumRotationDeltaDeg=4.425156 blockedSamples=40"
+    ]
+  },
+  "collisionEquivalenceTargetCount": 480,
+  "sourceAndProtectedAssetHashes": {
+    "Assets/MateSoul/Runtime/PhysicsBody.cs": "72bfcc884ee967fdcb5b888275470966dff1f0516d12d7a9ea12fc88649a59a0",
+    "Assets/MateSoul/Runtime/PhysicsBody.StableFollow.cs": "4e44768a7c73f1ec49f1fb6b3c1ed1a26b05a2fbfb7404f12954b25e3777a582",
+    "Assets/MateSoul/Runtime/RuntimeCuttingTool.cs": "819b8af1ff2f685185d2538dd70a825598cde3e7936f739bc5f72ab31ba086f0",
+    "Assets/MateSoul/Runtime/GameSession.RuntimeCutting.cs": "9cdddba93d0a74911b99adddcc2488f15e7f7c6f93981e549b3687901bcb8276",
+    "Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+    "Assets/MateSoul/Content/Avatar.controller": "f16e6f513f56c2b5e81e8abf7e405bb27e5465b2079309fc107378e4a0e8e0e0"
+  },
+  "baselineSourceHashes": {
+    "PhysicsBody.cs": "9dbf037602879bc15e28743164f2028df779540dc1440b51f32c307d5953d23a",
+    "RuntimeCuttingTool.cs": "767cf7c8e7a771a17ce7789410bcc9308e369ab1e295f386014718e33c657090",
+    "GameSession.RuntimeCutting.cs": "696d77ac9736fcc00bbe0c6740627947dcbb045d96b4e4159ca0dded2797db6c",
+    "RuntimeCuttable.cs": "7a935b53897cd9e0fba7f020c7d90b3bd2728adf307b44e7bf612b41d93d6c9a",
+    "MeshPlaneSlicer.cs": "e73855ce30aeb9c6fd76d005e4de52e7a701f8ad452375d4affcefc53769a534"
+  },
+  "timingHarnessSha256": "bd38143b1a8a12463b66a4763c46de9f7d7659f45362ebb284da8d3cdadd11cc",
+  "mechanisms": {
+    "overlapQueriesPerUpdate": 1,
+    "candidateCapacity": 256,
+    "sampleTranslationM": 0.025,
+    "sampleRotationDeg": 10,
+    "maximumPoseSamples": 60,
+    "penetrationToleranceM": 0.001,
+    "translationSweepClearanceM": 0.002,
+    "cutAttemptCooldownSeconds": 0.14,
+    "maximumCandidatesAttemptedPerStroke": 1,
+    "airStrokesConsumeCooldown": false
+  },
+  "build": {
+    "exitCode": 0,
+    "seconds": 219.90549492835999,
+    "inputCount": 654,
+    "inputsChanged": [],
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_KnifeMotion_20261027.apk",
+    "bytes": 165580237,
+    "sha256": "7b3be55f3ee2a32a4f783f833850c78b8be19d35d29d8c46dcf2f7811b66944d",
+    "crcPassed": true,
+    "arm64Il2cpp": true,
+    "installed": false,
+    "signaturePassed": true,
+    "alignmentPassed": true,
+    "nativeReleaseStagingMatches": true,
+    "nativeIl2cppSha256": "ee33fe7363c9bdc456f569e947dc7ee0c34d59f4ce385386bf2b180d59de8f0b",
+    "checkedArm64LibraryCount": 17,
+    "generatedAndroidMethods": {
+      "PhysicsBody_PrepareFollowCandidates_": "MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__7.cpp",
+      "PhysicsBody_CanOccupyFollowSample_": "MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__7.cpp",
+      "PhysicsBody_ClearFollowScratch_": "MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__7.cpp",
+      "PhysicsBody_FollowCandidateBounds_": "MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__7.cpp"
+    },
+    "validatedSourceMatches": true,
+    "buildProtectedAssetsMatchCurrent": true,
+    "accepted": true,
+    "buildProtectedAssetHashes": {
+      "Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+      "Assets/MateSoul/Content/Avatar.controller": "f16e6f513f56c2b5e81e8abf7e405bb27e5465b2079309fc107378e4a0e8e0e0"
+    }
+  },
+  "priorBuildFailure": {
+    "exitCode": 1,
+    "seconds": 71.67785406112671,
+    "inputCount": 316,
+    "inputsChanged": [
+      "Assets/MateSoul/Runtime/AvatarItemRig.cs",
+      "Assets/MateSoul/Editor/PickupValidation.cs",
+      "ProjectSettings/ProjectSettings.asset"
+    ]
+  },
+  "executionEnvelope": "Unity metrics writes were denied by the outer sandbox; NUnit XML and Unity exit receipts are checked separately.",
+  "limits": [
+    "Mac Editor CPU timings are not PICO headset timings",
+    "1.2m/90deg is an extreme single-update target change",
+    "successful cut preparation and saving remain synchronous",
+    "single failed cut may still prepare meshes before post-cut occupancy rejects it",
+    "SweepTestAll remains; no zero-allocation or GC-pause claim",
+    "headset gestures and stutter causality remain unverified"
+  ],
+  "temporaryWorkspaceEntriesRemoved": true
+}

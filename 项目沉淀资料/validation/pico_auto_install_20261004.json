@@ -1,0 +1,37 @@
+{
+  "feature": "pico-emulator-auto-install",
+  "date": "2026-10-04",
+  "script": "scripts/start-pico-emulator.command",
+  "device_id": "emulator-5554",
+  "avd": "MateSoul_PICO_0_13",
+  "apk": {
+    "path": "Builds/MateSoul_Framework.apk",
+    "package": "com.UnityTechnologies.com.unity.template.urpblank",
+    "activity": "com.unity3d.player.UnityPlayerActivity",
+    "host_sha256": "f49e8841f6c691f140c5b1faf0f55e852e53a0124354a82d66dad33456b543ad",
+    "device_sha256": "f49e8841f6c691f140c5b1faf0f55e852e53a0124354a82d66dad33456b543ad"
+  },
+  "first_run": {
+    "previous_device_sha256": "756b265ddfdcc92f55f1098b52c510a534d28311c5548cc7bfbef132e2bb8f84",
+    "install_required": true,
+    "install_result": "Success",
+    "launch_status": "ok"
+  },
+  "repeat_runs": {
+    "count": 2,
+    "install_required": false,
+    "cold_launch_status": "ok"
+  },
+  "runtime": {
+    "top_resumed_activity": "com.UnityTechnologies.com.unity.template.urpblank/com.unity3d.player.UnityPlayerActivity",
+    "gateway_reverse": "tcp:8787 tcp:8787",
+    "app_running": true
+  },
+  "checks": {
+    "bash_syntax": "passed",
+    "post_install_hash_match": true,
+    "idempotent_skip_install": true,
+    "force_stop_before_launch": true,
+    "missing_apk_exit_nonzero": true
+  }
+}

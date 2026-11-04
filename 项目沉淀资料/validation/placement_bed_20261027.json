@@ -1,0 +1,123 @@
+{
+  "date": "2026-10-27",
+  "platform": "Unity 2022.3.38f1 / PICO Unity SDK / Android ARM64 IL2CPP",
+  "placement": {
+    "scope": "ImmovableAfterPlacement and RoomSurfaceCollider",
+    "height_tolerance_m": 0.08,
+    "minimum_normal_y": 0.5,
+    "center_required": true,
+    "perimeter_sample_count": 8,
+    "minimum_valid_perimeter_samples": 6,
+    "cross_scan_blocks": true,
+    "upper_obstacles_block": true,
+    "unmarked_entities_block": true,
+    "fixed_item_restore_uses_same_rules": true
+  },
+  "bed": {
+    "head_cue_priority": ["Pillow", "Structure", "Default"],
+    "unknown_head_does_not_block": true,
+    "uncertain_scan_keeps_prior_direction": true,
+    "near_square_axis_noise_stabilized": true,
+    "pillow_maximum_top_height_m": 0.2,
+    "pillow_minimum_center_height_m": 0.025,
+    "pillow_connected_top_area_m2": [0.04, 0.6],
+    "pillow_minimum_width_m": 0.18,
+    "pillow_maximum_width": "max(0.85m, bed.width * 0.9)",
+    "pillow_length_m": [0.12, 0.6],
+    "pillow_dominance_ratio": 1.5,
+    "lying_capsule_height_m": 1.4,
+    "lying_capsule_center_m": [0, 0.725, 0.145],
+    "lying_capsule_radius_m": 0.14,
+    "standing_shape_restored": true
+  },
+  "tests": {
+    "total": 19,
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "unity_exit": 0,
+    "process_seconds": 100.077042542,
+    "capture_delta_time_seconds": 0.02,
+    "source_unchanged": true,
+    "tracked_input_count": 136,
+    "xml_path": "/tmp/matesoul-placement-bed-20261027/tests.xml",
+    "xml_sha256": "46253fcd9a8c06207b83d263acf304ce30a7fa3e5820385c2555bf041175dc47",
+    "passed_cases": [
+      "BedWithoutAnUnambiguousHeadEndUsesDefaultDirection",
+      "ExternalObjectAboveBodyLaneBlocksLying",
+      "ExtractsOneBedFromOverlappingFrameAndBlanket",
+      "MountCandidatesFollowObservedBedHeightAndFrameExtents(0.42f,0.95f,2.0f)",
+      "MountCandidatesFollowObservedBedHeightAndFrameExtents(0.84f,1.9f,2.3f)",
+      "PlannerUsesReachableSideAndFacesTowardBed",
+      "ScannerPublishesOneLieCapabilityAfterStableGeometry",
+      "SideTransfersClearHeadboardAndRejectBlockedRoute",
+      "FixedSurfacePreviewAcceptsSmallTablesShelvesAndBeds",
+      "SurfacePlacementAndReversedSupportOrderRestoreAsOneLayout",
+      "ConnectedDoublePillowPatchStillIdentifiesHead",
+      "NoHeadCuePublishesLieAndExternalObstacleStillBlocks",
+      "NoHeadCueRunsFullLieActionAndCancellationReleasesOwnership",
+      "PillowChoosesHeadWithoutHeadboard(-1.0f)",
+      "PillowChoosesHeadWithoutHeadboard(1.0f)",
+      "PillowOverridesOppositeRaisedFrameAndUncertainScanKeepsDirection",
+      "ScanCoverageAllowsTwoMissingSamplesButRejectsLedgesAndLargeSteps",
+      "ScannedBlocksAndSixCentimeterBumpsAllowFixedItems",
+      "SquareBedUsesStableAxisAcrossDimensionNoise"
+    ],
+    "full_action_scenarios": ["no_pillow", "pillow_positive_z", "pillow_negative_z"],
+    "temporary_project_test_entry_removed": true,
+    "scope": "final targeted 19 cases, not the complete project test suite"
+  },
+  "validated_production_source_sha256": {
+    "Assets/MateSoul/Runtime/GameSession.cs": "de1a91c183c3d8dfeb0a4f14d8119df719877ae2306047f894dac7631b64aa51",
+    "Assets/MateSoul/Runtime/BedGeometry.cs": "5b0a439712c78b606322a2be815e61ebe25be967cac7297bdbd2f0d766e5e8e7",
+    "Assets/MateSoul/Runtime/RealBedScanner.cs": "386a03c842317a34d77ae8070972ac82ae59c6ef64535f44fe188bf792c4aec4",
+    "Assets/MateSoul/Runtime/LieOnBedAction.cs": "1960e9642e280abf7d9aee68f3a78f139b77995f490dc75c6369eb5aea0831c1",
+    "Assets/MateSoul/Runtime/GameHud.cs": "ac5b3465031c8b7e9bacb95ce12e4364df3cb78cf11f7af02bf370f7b14b3d89",
+    "Assets/MateSoul/Runtime/AvatarMotor.cs": "90c18fc7a7a5e7903d5490ab566fbb13996fdd2838dc3834cdc4fbd90b214c6e"
+  },
+  "earlier_expanded_run_unverified_assertions": [
+    {
+      "description": "Immediate transform residual after walk, lie and rise",
+      "observed_m": 0.017278973,
+      "limit_m": 0.01,
+      "established_as_preexisting": false,
+      "rerun_in_final_scope": false
+    },
+    {
+      "description": "Compound virtual item support height discrepancy",
+      "observed_extra_height_m": 0.006,
+      "established_as_preexisting": false,
+      "rerun_in_final_scope": false
+    }
+  ],
+  "build": {
+    "status": "failed",
+    "entry": "MateSoul.Editor.GameSceneBuilder.BuildCurrentSceneAndroidRelease",
+    "unity_exit": -6,
+    "last_heartbeat_seconds": 40,
+    "error": "Shader compiler initialization error: Failed to get ipc connection from UnityShaderCompiler shader compiler! Error code 0x80000006 (Not listening).",
+    "sandbox_denied_paths": [
+      "/Users/bytedance/Library/Application Support/Unity/CoreBusinessMetrics.db",
+      "/Users/bytedance/Library/Application Support/Unity/CoreBusinessMetrics.db-wal",
+      "/Users/bytedance/Library/Application Support/Unity/CoreBusinessMetrics.db-shm",
+      "/Users/bytedance/Library/Application Support/DefaultCompany/MateSoul/../../Unity/Editor/186877764/config",
+      "/Applications/Unity/Hub/Editor/2022.3.38f1/PlaybackEngines/AndroidPlayer/SDK/.knownPackages"
+    ],
+    "shader_error_causality_independently_established": false,
+    "log": "/tmp/matesoul-placement-bed-20261027/build.log",
+    "retry_script": "/tmp/matesoul-placement-bed-20261027/build.py",
+    "owned_pid": 93628,
+    "owned_process_exit_confirmed": true,
+    "project_lock_released": true,
+    "production_sources_still_match_tests": true,
+    "requested_apk": "/Users/bytedance/MateSoul/Builds/MateSoul_PlacementBed_20261027.apk",
+    "requested_apk_generated": false,
+    "apk_crc_verified": false,
+    "apk_signature_verified": false,
+    "apk_alignment_verified": false
+  },
+  "device_acceptance": "pending",
+  "installed": false,
+  "committed": false,
+  "pushed": false
+}

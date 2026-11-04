@@ -1,0 +1,1400 @@
+{
+  "source_directories": [
+    "/Users/bytedance/MateSoul/项目沉淀资料/性能测试/20261022-233914",
+    "/Users/bytedance/MateSoul/项目沉淀资料/性能测试/20261022-234408"
+  ],
+  "environments": [
+    {
+      "date": "2026-10-22T23:39:14.641661",
+      "device": "emulator-5554",
+      "package": "com.UnityTechnologies.com.unity.template.urpblank",
+      "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+      "apk_sha256": "146a7fcf7d765412b702f74aa34bfb12c72286b42d0a35b3f8e3c3385dea7501",
+      "host_pids": [
+        10210
+      ],
+      "build_type": "Development",
+      "fingerprint": "Pico/swan/pico_spaceos_emulator_arm64:16/BQ2A.260122.002-BP2A.250705.008/20260910070110:userdebug/test-keys",
+      "model": "swan_arm64",
+      "android": "16",
+      "build": "userdebug",
+      "host_memory": {
+        "host_footprint_bytes": 15919788368,
+        "host_rss_bytes": 1399668736
+      },
+      "host_os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83\n",
+      "host_hw": "hw.memsize: 17179869184\nvm.swapusage: total = 13312.00M  used = 12554.75M  free = 757.25M  (encrypted)\n",
+      "save_summary": {
+        "bytes": 12621,
+        "sha256": "5fb5e89e29f70e16784db0a453e2550c17be8974b9f49c81a7f14e5f0ce44f01",
+        "items": 12,
+        "definitions": {
+          "knife": 1,
+          "radio": 1,
+          "plate": 1,
+          "table": 1,
+          "frying-pan-body": 1,
+          "spatula": 1,
+          "cupcake": 1,
+          "apple-quarter": 4,
+          "apple": 1
+        }
+      }
+    },
+    {
+      "date": "2026-10-22T23:44:08.530876",
+      "device": "emulator-5554",
+      "package": "com.UnityTechnologies.com.unity.template.urpblank",
+      "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+      "apk_sha256": "146a7fcf7d765412b702f74aa34bfb12c72286b42d0a35b3f8e3c3385dea7501",
+      "host_pids": [
+        10210
+      ],
+      "build_type": "Development",
+      "fingerprint": "Pico/swan/pico_spaceos_emulator_arm64:16/BQ2A.260122.002-BP2A.250705.008/20260910070110:userdebug/test-keys",
+      "model": "swan_arm64",
+      "android": "16",
+      "build": "userdebug",
+      "host_memory": {
+        "host_footprint_bytes": 8431415656,
+        "host_rss_bytes": 2070462464
+      },
+      "host_os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83\n",
+      "host_hw": "hw.memsize: 17179869184\nvm.swapusage: total = 13312.00M  used = 12160.38M  free = 1151.62M  (encrypted)\n",
+      "collector_identity": "uid=0(root) gid=0(root) groups=0(root),1004(input),1007(log),1011(adb),1015(sdcard_rw),1028(sdcard_r),1078(ext_data_rw),1079(ext_obb_rw),3001(net_bt_admin),3002(net_bt),3003(inet),3006(net_bw_stats),3009(readproc),3011(uhid),3012(readtracefs) context=u:r:su:s0",
+      "save_summary": {
+        "bytes": 12621,
+        "sha256": "5fb5e89e29f70e16784db0a453e2550c17be8974b9f49c81a7f14e5f0ce44f01",
+        "items": 12,
+        "definitions": {
+          "knife": 1,
+          "radio": 1,
+          "plate": 1,
+          "table": 1,
+          "frying-pan-body": 1,
+          "spatula": 1,
+          "cupcake": 1,
+          "apple-quarter": 4,
+          "apple": 1
+        }
+      }
+    }
+  ],
+  "startup_runs": [
+    {
+      "run_id": "A-existing12-1",
+      "pid": 7251,
+      "expected_items": 12,
+      "items": 12,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 1122,
+      "WaitTime_ms": 1131,
+      "ready_elapsed_s": 13.970000000000027,
+      "engine_init_elapsed_s": 3.2940000000000964,
+      "nav_ms": 25,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-233914",
+      "mesh_ready_elapsed_s": 11.3599999999999,
+      "mesh_to_ready_s": 2.6100000000001273,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 8.065999999999804,
+      "empty_anchor_query_count": 6,
+      "pss_sampled_peak_mib": 1465.029296875,
+      "pss_late_settle_median_mib": 1016.0439453125,
+      "rss_sampled_peak_mib": 1619.8671875,
+      "rss_late_settle_median_mib": 1180.80859375,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1465.08984375,
+      "pss_plus_swap_late_settle_median_mib": 1016.0439453125,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 72.70703125,
+      "dumpsys_unknown_pss_mib": 811.8271484375,
+      "dumpsys_dalvik_heap_pss_mib": 1.267578125,
+      "end_snapshot_pss_mib": 1016.5546875,
+      "end_snapshot_rss_mib": 1181.609375,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1016.5546875
+    },
+    {
+      "run_id": "A-existing12-2",
+      "pid": 7715,
+      "expected_items": 12,
+      "items": 12,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 570,
+      "WaitTime_ms": 572,
+      "ready_elapsed_s": 11.464999999999918,
+      "engine_init_elapsed_s": 1.7669999999998254,
+      "nav_ms": 24,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-233914",
+      "mesh_ready_elapsed_s": 8.752999999999929,
+      "mesh_to_ready_s": 2.711999999999989,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 6.986000000000104,
+      "empty_anchor_query_count": 6,
+      "pss_sampled_peak_mib": 1155.6162109375,
+      "rss_sampled_peak_mib": 1310.50390625,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "pss_plus_swap_sampled_peak_mib": 1155.6767578125,
+      "survived_settle": false
+    },
+    {
+      "run_id": "A-existing12-3",
+      "pid": 8099,
+      "expected_items": 12,
+      "items": 12,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 1484,
+      "WaitTime_ms": 1507,
+      "ready_elapsed_s": 17.363000000000056,
+      "engine_init_elapsed_s": 4.257000000000062,
+      "nav_ms": 27,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-233914",
+      "mesh_ready_elapsed_s": 14.619000000000142,
+      "mesh_to_ready_s": 2.7439999999999145,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 10.36200000000008,
+      "empty_anchor_query_count": 6,
+      "pss_sampled_peak_mib": 1464.2578125,
+      "pss_late_settle_median_mib": 1016.3798828125,
+      "rss_sampled_peak_mib": 1619.18359375,
+      "rss_late_settle_median_mib": 1180.953125,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1464.318359375,
+      "pss_plus_swap_late_settle_median_mib": 1016.3798828125,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 71.6796875,
+      "dumpsys_unknown_pss_mib": 813.5888671875,
+      "dumpsys_dalvik_heap_pss_mib": 1.423828125,
+      "end_snapshot_pss_mib": 1016.7333984375,
+      "end_snapshot_rss_mib": 1181.625,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1016.7333984375
+    },
+    {
+      "run_id": "A-existing12-4",
+      "pid": 8605,
+      "expected_items": 12,
+      "items": 12,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 1097,
+      "WaitTime_ms": 1098,
+      "ready_elapsed_s": 11.430000000000064,
+      "engine_init_elapsed_s": 3.2789999999999964,
+      "nav_ms": 30,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-233914",
+      "mesh_ready_elapsed_s": 8.700000000000045,
+      "mesh_to_ready_s": 2.730000000000018,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 5.421000000000049,
+      "empty_anchor_query_count": 6,
+      "pss_sampled_peak_mib": 1230.6806640625,
+      "pss_late_settle_median_mib": 1017.4169921875,
+      "rss_sampled_peak_mib": 1385.578125,
+      "rss_late_settle_median_mib": 1182.1484375,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1230.7412109375,
+      "pss_plus_swap_late_settle_median_mib": 1017.4169921875,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 71.71875,
+      "dumpsys_unknown_pss_mib": 814.2177734375,
+      "dumpsys_dalvik_heap_pss_mib": 1.181640625,
+      "end_snapshot_pss_mib": 1018.025390625,
+      "end_snapshot_rss_mib": 1183.07421875,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1018.025390625
+    },
+    {
+      "run_id": "A-existing12-5",
+      "pid": 9014,
+      "expected_items": 12,
+      "items": 12,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 1105,
+      "WaitTime_ms": 1108,
+      "ready_elapsed_s": 11.401000000000067,
+      "engine_init_elapsed_s": 2.30600000000004,
+      "nav_ms": 25,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-233914",
+      "mesh_ready_elapsed_s": 8.751999999999953,
+      "mesh_to_ready_s": 2.6490000000001146,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 6.445999999999913,
+      "empty_anchor_query_count": 6,
+      "pss_sampled_peak_mib": 1070.1943359375,
+      "pss_late_settle_median_mib": 1017.255859375,
+      "rss_sampled_peak_mib": 1224.921875,
+      "rss_late_settle_median_mib": 1182.03515625,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1070.2548828125,
+      "pss_plus_swap_late_settle_median_mib": 1017.255859375,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 72.12109375,
+      "dumpsys_unknown_pss_mib": 813.7294921875,
+      "dumpsys_dalvik_heap_pss_mib": 1.498046875,
+      "end_snapshot_pss_mib": 1017.2822265625,
+      "end_snapshot_rss_mib": 1182.359375,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1017.2822265625
+    },
+    {
+      "run_id": "B-filecold12-1",
+      "pid": 9463,
+      "expected_items": 12,
+      "items": 12,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 617,
+      "WaitTime_ms": 622,
+      "ready_elapsed_s": 10.961000000000013,
+      "engine_init_elapsed_s": 2.83400000000006,
+      "nav_ms": 25,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-233914",
+      "mesh_ready_elapsed_s": 8.270999999999958,
+      "mesh_to_ready_s": 2.6900000000000546,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 5.436999999999898,
+      "empty_anchor_query_count": 6,
+      "pss_sampled_peak_mib": 1460.91796875,
+      "pss_late_settle_median_mib": 1018.126953125,
+      "rss_sampled_peak_mib": 1615.6015625,
+      "rss_late_settle_median_mib": 1182.76953125,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1460.978515625,
+      "pss_plus_swap_late_settle_median_mib": 1018.126953125,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 72.47265625,
+      "dumpsys_unknown_pss_mib": 770.9912109375,
+      "dumpsys_dalvik_heap_pss_mib": 1.591796875,
+      "end_snapshot_pss_mib": 1028.455078125,
+      "end_snapshot_rss_mib": 1194.4296875,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1028.455078125
+    },
+    {
+      "run_id": "B-filecold12-2",
+      "pid": 9919,
+      "expected_items": 12,
+      "items": 12,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 995,
+      "WaitTime_ms": 1003,
+      "ready_elapsed_s": 14.532999999999902,
+      "engine_init_elapsed_s": 3.1949999999999363,
+      "nav_ms": 28,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-233914",
+      "mesh_ready_elapsed_s": 11.672000000000025,
+      "mesh_to_ready_s": 2.8609999999998763,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 8.47700000000009,
+      "empty_anchor_query_count": 6,
+      "pss_sampled_peak_mib": 1029.4013671875,
+      "pss_late_settle_median_mib": 1018.1005859375,
+      "rss_sampled_peak_mib": 1195.5625,
+      "rss_late_settle_median_mib": 1182.91015625,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1029.4013671875,
+      "pss_plus_swap_late_settle_median_mib": 1018.1005859375,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 71.63671875,
+      "dumpsys_unknown_pss_mib": 672.5185546875,
+      "dumpsys_dalvik_heap_pss_mib": 1.130859375,
+      "end_snapshot_pss_mib": 1029.3671875,
+      "end_snapshot_rss_mib": 1195.52734375,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1029.3671875
+    },
+    {
+      "run_id": "B-filecold12-3",
+      "pid": 10422,
+      "expected_items": 12,
+      "items": 12,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 378,
+      "WaitTime_ms": 392,
+      "ready_elapsed_s": 14.089999999999918,
+      "engine_init_elapsed_s": 1.280999999999949,
+      "nav_ms": 33,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-233914",
+      "mesh_ready_elapsed_s": 11.238999999999805,
+      "mesh_to_ready_s": 2.8510000000001128,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 9.957999999999856,
+      "empty_anchor_query_count": 6,
+      "pss_sampled_peak_mib": 1468.5830078125,
+      "pss_late_settle_median_mib": 1021.9345703125,
+      "rss_sampled_peak_mib": 1623.45703125,
+      "rss_late_settle_median_mib": 1186.0234375,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1468.6435546875,
+      "pss_plus_swap_late_settle_median_mib": 1021.9345703125,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 68.5078125,
+      "dumpsys_unknown_pss_mib": 821.7646484375,
+      "dumpsys_dalvik_heap_pss_mib": 1.185546875,
+      "end_snapshot_pss_mib": 1033.267578125,
+      "end_snapshot_rss_mib": 1198.69921875,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1033.267578125
+    },
+    {
+      "run_id": "C-fresh0-1",
+      "pid": 11222,
+      "expected_items": 0,
+      "items": 0,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 1337,
+      "WaitTime_ms": 1376,
+      "ready_elapsed_s": 10.575000000000045,
+      "engine_init_elapsed_s": 4.54099999999994,
+      "nav_ms": 27,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-234408",
+      "mesh_ready_elapsed_s": 10.211999999999989,
+      "mesh_to_ready_s": 0.3630000000000564,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 5.671000000000049,
+      "empty_anchor_query_count": 0,
+      "pss_sampled_peak_mib": 1341.0087890625,
+      "pss_late_settle_median_mib": 1017.626953125,
+      "rss_sampled_peak_mib": 1495.90625,
+      "rss_late_settle_median_mib": 1180.91796875,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1341.0693359375,
+      "pss_plus_swap_late_settle_median_mib": 1017.626953125,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 71.94921875,
+      "dumpsys_unknown_pss_mib": 813.2421875,
+      "dumpsys_dalvik_heap_pss_mib": 1.583984375,
+      "end_snapshot_pss_mib": 1017.4970703125,
+      "end_snapshot_rss_mib": 1181.07421875,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1017.4970703125
+    },
+    {
+      "run_id": "C-fresh0-2",
+      "pid": 11644,
+      "expected_items": 0,
+      "items": 0,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 849,
+      "WaitTime_ms": 853,
+      "ready_elapsed_s": 8.456000000000131,
+      "engine_init_elapsed_s": 2.0550000000000637,
+      "nav_ms": 29,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-234408",
+      "mesh_ready_elapsed_s": 8.022000000000162,
+      "mesh_to_ready_s": 0.4339999999999691,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 5.967000000000098,
+      "empty_anchor_query_count": 0,
+      "pss_sampled_peak_mib": 1048.98046875,
+      "pss_late_settle_median_mib": 1014.6806640625,
+      "rss_sampled_peak_mib": 1203.91015625,
+      "rss_late_settle_median_mib": 1178.07421875,
+      "swap_pss_sampled_peak_mib": 0.060546875,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1049.041015625,
+      "pss_plus_swap_late_settle_median_mib": 1014.6806640625,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 71.37890625,
+      "dumpsys_unknown_pss_mib": 810.73828125,
+      "dumpsys_dalvik_heap_pss_mib": 1.486328125,
+      "end_snapshot_pss_mib": 1014.9951171875,
+      "end_snapshot_rss_mib": 1178.6875,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1014.9951171875
+    },
+    {
+      "run_id": "C-fresh0-3",
+      "pid": 12050,
+      "expected_items": 0,
+      "items": 0,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 1498,
+      "WaitTime_ms": 1501,
+      "ready_elapsed_s": 13.791999999999916,
+      "engine_init_elapsed_s": 3.6769999999999072,
+      "nav_ms": 26,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-234408",
+      "mesh_ready_elapsed_s": 13.356999999999971,
+      "mesh_to_ready_s": 0.43499999999994543,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 9.680000000000064,
+      "empty_anchor_query_count": 0,
+      "pss_sampled_peak_mib": 1003.6728515625,
+      "pss_late_settle_median_mib": 154.8994140625,
+      "rss_sampled_peak_mib": 1166.02734375,
+      "rss_late_settle_median_mib": 318.296875,
+      "swap_pss_sampled_peak_mib": 890.90625,
+      "swap_pss_late_settle_median_mib": 827.84375,
+      "pss_plus_swap_sampled_peak_mib": 1003.6728515625,
+      "pss_plus_swap_late_settle_median_mib": 982.7431640625,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 26.5,
+      "dumpsys_unknown_pss_mib": 43.9609375,
+      "dumpsys_dalvik_heap_pss_mib": 0.458984375,
+      "end_snapshot_pss_mib": 160.4453125,
+      "end_snapshot_rss_mib": 324.14453125,
+      "end_snapshot_swappss_mib": 822.59375,
+      "end_snapshot_pss_plus_swap_mib": 983.0390625
+    },
+    {
+      "run_id": "D-idle12-start",
+      "pid": 12556,
+      "expected_items": 12,
+      "items": 12,
+      "ThisTime_ms": null,
+      "TotalTime_ms": 1524,
+      "WaitTime_ms": 1526,
+      "ready_elapsed_s": 18.523999999999887,
+      "engine_init_elapsed_s": 2.74799999999982,
+      "nav_ms": 27,
+      "ready": true,
+      "item_state": "ready",
+      "content_mismatch": null,
+      "source_directory": "20261022-234408",
+      "mesh_ready_elapsed_s": 13.552999999999884,
+      "mesh_to_ready_s": 4.971000000000004,
+      "mesh_blocks": 48,
+      "floor_area_m2": 55.89,
+      "engine_to_mesh_s": 10.805000000000064,
+      "empty_anchor_query_count": 6,
+      "pss_sampled_peak_mib": 1038.0859375,
+      "pss_late_settle_median_mib": 1026.0625,
+      "rss_sampled_peak_mib": 1204.078125,
+      "rss_late_settle_median_mib": 1192.05859375,
+      "swap_pss_sampled_peak_mib": 0.0625,
+      "swap_pss_late_settle_median_mib": 0.0,
+      "pss_plus_swap_sampled_peak_mib": 1038.0859375,
+      "pss_plus_swap_late_settle_median_mib": 1026.0625,
+      "survived_settle": true,
+      "dumpsys_native_heap_pss_mib": 70.83984375,
+      "dumpsys_unknown_pss_mib": 811.75,
+      "dumpsys_dalvik_heap_pss_mib": 1.263671875,
+      "end_snapshot_pss_mib": 1026.0625,
+      "end_snapshot_rss_mib": 1192.05859375,
+      "end_snapshot_swappss_mib": 0.0,
+      "end_snapshot_pss_plus_swap_mib": 1026.0625
+    }
+  ],
+  "groups": {
+    "A_existing12": {
+      "ready_s": {
+        "n": 5,
+        "min": 11.401000000000067,
+        "p50": 11.464999999999918,
+        "p95_observed": 16.68440000000005,
+        "max": 17.363000000000056,
+        "mean": 13.125800000000027
+      },
+      "android_first_frame_ms": {
+        "n": 5,
+        "min": 570,
+        "p50": 1105,
+        "p95_observed": 1411.6,
+        "max": 1484,
+        "mean": 1075.6
+      },
+      "late_settle_pss_mib": {
+        "n": 4,
+        "min": 1016.0439453125,
+        "p50": 1016.81787109375,
+        "p95_observed": 1017.392822265625,
+        "max": 1017.4169921875,
+        "mean": 1016.774169921875
+      },
+      "late_settle_pss_plus_swap_mib": {
+        "n": 4,
+        "min": 1016.0439453125,
+        "p50": 1016.81787109375,
+        "p95_observed": 1017.392822265625,
+        "max": 1017.4169921875,
+        "mean": 1016.774169921875
+      }
+    },
+    "B_filecold12_first": {
+      "ready_s": {
+        "n": 1,
+        "min": 10.961000000000013,
+        "p50": 10.961000000000013,
+        "p95_observed": 10.961000000000013,
+        "max": 10.961000000000013,
+        "mean": 10.961000000000013
+      },
+      "android_first_frame_ms": {
+        "n": 1,
+        "min": 617,
+        "p50": 617,
+        "p95_observed": 617.0,
+        "max": 617,
+        "mean": 617
+      },
+      "late_settle_pss_mib": {
+        "n": 1,
+        "min": 1018.126953125,
+        "p50": 1018.126953125,
+        "p95_observed": 1018.126953125,
+        "max": 1018.126953125,
+        "mean": 1018.126953125
+      },
+      "late_settle_pss_plus_swap_mib": {
+        "n": 1,
+        "min": 1018.126953125,
+        "p50": 1018.126953125,
+        "p95_observed": 1018.126953125,
+        "max": 1018.126953125,
+        "mean": 1018.126953125
+      }
+    },
+    "B_filecold12_cached": {
+      "ready_s": {
+        "n": 2,
+        "min": 14.089999999999918,
+        "p50": 14.31149999999991,
+        "p95_observed": 14.510849999999902,
+        "max": 14.532999999999902,
+        "mean": 14.31149999999991
+      },
+      "android_first_frame_ms": {
+        "n": 2,
+        "min": 378,
+        "p50": 686.5,
+        "p95_observed": 964.15,
+        "max": 995,
+        "mean": 686.5
+      },
+      "late_settle_pss_mib": {
+        "n": 2,
+        "min": 1018.1005859375,
+        "p50": 1020.017578125,
+        "p95_observed": 1021.74287109375,
+        "max": 1021.9345703125,
+        "mean": 1020.017578125
+      },
+      "late_settle_pss_plus_swap_mib": {
+        "n": 2,
+        "min": 1018.1005859375,
+        "p50": 1020.017578125,
+        "p95_observed": 1021.74287109375,
+        "max": 1021.9345703125,
+        "mean": 1020.017578125
+      }
+    },
+    "C_fresh0_first": {
+      "ready_s": {
+        "n": 1,
+        "min": 10.575000000000045,
+        "p50": 10.575000000000045,
+        "p95_observed": 10.575000000000045,
+        "max": 10.575000000000045,
+        "mean": 10.575000000000045
+      },
+      "android_first_frame_ms": {
+        "n": 1,
+        "min": 1337,
+        "p50": 1337,
+        "p95_observed": 1337.0,
+        "max": 1337,
+        "mean": 1337
+      },
+      "late_settle_pss_mib": {
+        "n": 1,
+        "min": 1017.626953125,
+        "p50": 1017.626953125,
+        "p95_observed": 1017.626953125,
+        "max": 1017.626953125,
+        "mean": 1017.626953125
+      },
+      "late_settle_pss_plus_swap_mib": {
+        "n": 1,
+        "min": 1017.626953125,
+        "p50": 1017.626953125,
+        "p95_observed": 1017.626953125,
+        "max": 1017.626953125,
+        "mean": 1017.626953125
+      }
+    },
+    "C_fresh0_cached": {
+      "ready_s": {
+        "n": 2,
+        "min": 8.456000000000131,
+        "p50": 11.124000000000024,
+        "p95_observed": 13.525199999999927,
+        "max": 13.791999999999916,
+        "mean": 11.124000000000024
+      },
+      "android_first_frame_ms": {
+        "n": 2,
+        "min": 849,
+        "p50": 1173.5,
+        "p95_observed": 1465.55,
+        "max": 1498,
+        "mean": 1173.5
+      },
+      "late_settle_pss_mib": {
+        "n": 2,
+        "min": 154.8994140625,
+        "p50": 584.7900390625,
+        "p95_observed": 971.6916015625,
+        "max": 1014.6806640625,
+        "mean": 584.7900390625
+      },
+      "late_settle_pss_plus_swap_mib": {
+        "n": 2,
+        "min": 982.7431640625,
+        "p50": 998.7119140625,
+        "p95_observed": 1013.0837890625,
+        "max": 1014.6806640625,
+        "mean": 998.7119140625
+      }
+    },
+    "C_fresh0_all": {
+      "ready_s": {
+        "n": 3,
+        "min": 8.456000000000131,
+        "p50": 10.575000000000045,
+        "p95_observed": 13.470299999999929,
+        "max": 13.791999999999916,
+        "mean": 10.941000000000031
+      },
+      "android_first_frame_ms": {
+        "n": 3,
+        "min": 849,
+        "p50": 1337,
+        "p95_observed": 1481.9,
+        "max": 1498,
+        "mean": 1228
+      },
+      "late_settle_pss_mib": {
+        "n": 3,
+        "min": 154.8994140625,
+        "p50": 1014.6806640625,
+        "p95_observed": 1017.33232421875,
+        "max": 1017.626953125,
+        "mean": 729.0690104166666
+      },
+      "late_settle_pss_plus_swap_mib": {
+        "n": 3,
+        "min": 982.7431640625,
+        "p50": 1014.6806640625,
+        "p95_observed": 1017.33232421875,
+        "max": 1017.626953125,
+        "mean": 1005.0169270833334
+      }
+    }
+  },
+  "cache_snapshots": [
+    {
+      "source_directory": "20261022-233914",
+      "label": "A-existing-before",
+      "private_file_bytes": 34518,
+      "private_files": [
+        {
+          "bytes": 34032,
+          "mtime": 1791604516,
+          "path": "cache/oat_primary/arm64/base.art"
+        },
+        {
+          "bytes": 30,
+          "mtime": 1791615545,
+          "path": "files/dialogue-probe-request.txt"
+        },
+        {
+          "bytes": 6,
+          "mtime": 1791620251,
+          "path": "files/sdkapi_base"
+        },
+        {
+          "bytes": 327,
+          "mtime": 1791620251,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1791359019,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 10746332,
+      "external_files": [
+        {
+          "bytes": 10396112,
+          "mtime": 1792683556,
+          "path": "il2cpp/Metadata/global-metadata.dat"
+        },
+        {
+          "bytes": 337563,
+          "mtime": 1792683556,
+          "path": "il2cpp/Resources/mscorlib.dll-resources.dat"
+        },
+        {
+          "bytes": 36,
+          "mtime": 1792683556,
+          "path": "il2cpp/unity.ver"
+        },
+        {
+          "bytes": 12621,
+          "mtime": 1792683555,
+          "path": "matesoul-v1.json"
+        }
+      ],
+      "il2cpp_bytes": 10733711,
+      "diagnostic_bytes": 0,
+      "save_bytes": 12621
+    },
+    {
+      "source_directory": "20261022-233914",
+      "label": "A-existing-after",
+      "private_file_bytes": 34518,
+      "private_files": [
+        {
+          "bytes": 34032,
+          "mtime": 1791604516,
+          "path": "cache/oat_primary/arm64/base.art"
+        },
+        {
+          "bytes": 30,
+          "mtime": 1791615545,
+          "path": "files/dialogue-probe-request.txt"
+        },
+        {
+          "bytes": 6,
+          "mtime": 1791620251,
+          "path": "files/sdkapi_base"
+        },
+        {
+          "bytes": 327,
+          "mtime": 1791620251,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1791359019,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 17924361,
+      "external_files": [
+        {
+          "bytes": 10396112,
+          "mtime": 1792683556,
+          "path": "il2cpp/Metadata/global-metadata.dat"
+        },
+        {
+          "bytes": 337563,
+          "mtime": 1792683556,
+          "path": "il2cpp/Resources/mscorlib.dll-resources.dat"
+        },
+        {
+          "bytes": 36,
+          "mtime": 1792683556,
+          "path": "il2cpp/unity.ver"
+        },
+        {
+          "bytes": 12621,
+          "mtime": 1792683555,
+          "path": "matesoul-v1.json"
+        },
+        {
+          "bytes": 768,
+          "mtime": 1792683685,
+          "path": "bowling-grab-validation/state.json"
+        },
+        {
+          "bytes": 7156216,
+          "mtime": 1792683671,
+          "path": "seating-validation/mesh.json"
+        },
+        {
+          "bytes": 21045,
+          "mtime": 1792683685,
+          "path": "seating-validation/state.json"
+        }
+      ],
+      "il2cpp_bytes": 10733711,
+      "diagnostic_bytes": 7178029,
+      "save_bytes": 12621
+    },
+    {
+      "source_directory": "20261022-233914",
+      "label": "B-filecold-same12-before",
+      "private_file_bytes": 450,
+      "private_files": [
+        {
+          "bytes": 327,
+          "mtime": 1791620251,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1791359019,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 12621,
+      "external_files": [
+        {
+          "bytes": 12621,
+          "mtime": 1792683555,
+          "path": "matesoul-v1.json"
+        }
+      ],
+      "il2cpp_bytes": 0,
+      "diagnostic_bytes": 0,
+      "save_bytes": 12621
+    },
+    {
+      "source_directory": "20261022-233914",
+      "label": "B-filecold12-1-after",
+      "private_file_bytes": 450,
+      "private_files": [
+        {
+          "bytes": 327,
+          "mtime": 1791620251,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1791359019,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 17924356,
+      "external_files": [
+        {
+          "bytes": 12621,
+          "mtime": 1792683555,
+          "path": "matesoul-v1.json"
+        },
+        {
+          "bytes": 10396112,
+          "mtime": 1792683689,
+          "path": "il2cpp/Metadata/global-metadata.dat"
+        },
+        {
+          "bytes": 337563,
+          "mtime": 1792683689,
+          "path": "il2cpp/Resources/mscorlib.dll-resources.dat"
+        },
+        {
+          "bytes": 36,
+          "mtime": 1792683689,
+          "path": "il2cpp/unity.ver"
+        },
+        {
+          "bytes": 768,
+          "mtime": 1792683712,
+          "path": "bowling-grab-validation/state.json"
+        },
+        {
+          "bytes": 7156216,
+          "mtime": 1792683695,
+          "path": "seating-validation/mesh.json"
+        },
+        {
+          "bytes": 21040,
+          "mtime": 1792683712,
+          "path": "seating-validation/state.json"
+        }
+      ],
+      "il2cpp_bytes": 10733711,
+      "diagnostic_bytes": 7178024,
+      "save_bytes": 12621
+    },
+    {
+      "source_directory": "20261022-233914",
+      "label": "B-filecold12-2-after",
+      "private_file_bytes": 450,
+      "private_files": [
+        {
+          "bytes": 327,
+          "mtime": 1791620251,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1791359019,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 17924374,
+      "external_files": [
+        {
+          "bytes": 12607,
+          "mtime": 1792683737,
+          "path": "matesoul-v1.json"
+        },
+        {
+          "bytes": 10396112,
+          "mtime": 1792683689,
+          "path": "il2cpp/Metadata/global-metadata.dat"
+        },
+        {
+          "bytes": 337563,
+          "mtime": 1792683689,
+          "path": "il2cpp/Resources/mscorlib.dll-resources.dat"
+        },
+        {
+          "bytes": 36,
+          "mtime": 1792683689,
+          "path": "il2cpp/unity.ver"
+        },
+        {
+          "bytes": 768,
+          "mtime": 1792683743,
+          "path": "bowling-grab-validation/state.json"
+        },
+        {
+          "bytes": 7156216,
+          "mtime": 1792683725,
+          "path": "seating-validation/mesh.json"
+        },
+        {
+          "bytes": 21072,
+          "mtime": 1792683742,
+          "path": "seating-validation/state.json"
+        }
+      ],
+      "il2cpp_bytes": 10733711,
+      "diagnostic_bytes": 7178056,
+      "save_bytes": 12607
+    },
+    {
+      "source_directory": "20261022-233914",
+      "label": "B-filecold12-3-after",
+      "private_file_bytes": 450,
+      "private_files": [
+        {
+          "bytes": 327,
+          "mtime": 1791620251,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1791359019,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 17924385,
+      "external_files": [
+        {
+          "bytes": 12621,
+          "mtime": 1792683555,
+          "path": "matesoul-v1.json"
+        },
+        {
+          "bytes": 10396112,
+          "mtime": 1792683689,
+          "path": "il2cpp/Metadata/global-metadata.dat"
+        },
+        {
+          "bytes": 337563,
+          "mtime": 1792683689,
+          "path": "il2cpp/Resources/mscorlib.dll-resources.dat"
+        },
+        {
+          "bytes": 36,
+          "mtime": 1792683689,
+          "path": "il2cpp/unity.ver"
+        },
+        {
+          "bytes": 768,
+          "mtime": 1792683772,
+          "path": "bowling-grab-validation/state.json"
+        },
+        {
+          "bytes": 7156216,
+          "mtime": 1792683755,
+          "path": "seating-validation/mesh.json"
+        },
+        {
+          "bytes": 21069,
+          "mtime": 1792683772,
+          "path": "seating-validation/state.json"
+        }
+      ],
+      "il2cpp_bytes": 10733711,
+      "diagnostic_bytes": 7178053,
+      "save_bytes": 12621
+    },
+    {
+      "source_directory": "20261022-234408",
+      "label": "C-fresh0-before",
+      "private_file_bytes": 0,
+      "private_files": [],
+      "external_file_bytes": 0,
+      "external_files": [],
+      "il2cpp_bytes": 0,
+      "diagnostic_bytes": 0,
+      "save_bytes": 0
+    },
+    {
+      "source_directory": "20261022-234408",
+      "label": "C-fresh0-1-after",
+      "private_file_bytes": 252,
+      "private_files": [
+        {
+          "bytes": 129,
+          "mtime": 1792683856,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1792683860,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 17911735,
+      "external_files": [
+        {
+          "bytes": 10396112,
+          "mtime": 1792683856,
+          "path": "il2cpp/Metadata/global-metadata.dat"
+        },
+        {
+          "bytes": 337563,
+          "mtime": 1792683856,
+          "path": "il2cpp/Resources/mscorlib.dll-resources.dat"
+        },
+        {
+          "bytes": 36,
+          "mtime": 1792683856,
+          "path": "il2cpp/unity.ver"
+        },
+        {
+          "bytes": 768,
+          "mtime": 1792683877,
+          "path": "bowling-grab-validation/state.json"
+        },
+        {
+          "bytes": 7156216,
+          "mtime": 1792683863,
+          "path": "seating-validation/mesh.json"
+        },
+        {
+          "bytes": 21040,
+          "mtime": 1792683877,
+          "path": "seating-validation/state.json"
+        }
+      ],
+      "il2cpp_bytes": 10733711,
+      "diagnostic_bytes": 7178024,
+      "save_bytes": 0
+    },
+    {
+      "source_directory": "20261022-234408",
+      "label": "C-fresh0-2-after",
+      "private_file_bytes": 252,
+      "private_files": [
+        {
+          "bytes": 129,
+          "mtime": 1792683856,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1792683860,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 17911734,
+      "external_files": [
+        {
+          "bytes": 10396112,
+          "mtime": 1792683856,
+          "path": "il2cpp/Metadata/global-metadata.dat"
+        },
+        {
+          "bytes": 337563,
+          "mtime": 1792683856,
+          "path": "il2cpp/Resources/mscorlib.dll-resources.dat"
+        },
+        {
+          "bytes": 36,
+          "mtime": 1792683856,
+          "path": "il2cpp/unity.ver"
+        },
+        {
+          "bytes": 768,
+          "mtime": 1792683902,
+          "path": "bowling-grab-validation/state.json"
+        },
+        {
+          "bytes": 7156216,
+          "mtime": 1792683887,
+          "path": "seating-validation/mesh.json"
+        },
+        {
+          "bytes": 21039,
+          "mtime": 1792683902,
+          "path": "seating-validation/state.json"
+        }
+      ],
+      "il2cpp_bytes": 10733711,
+      "diagnostic_bytes": 7178023,
+      "save_bytes": 0
+    },
+    {
+      "source_directory": "20261022-234408",
+      "label": "C-fresh0-3-after",
+      "private_file_bytes": 252,
+      "private_files": [
+        {
+          "bytes": 129,
+          "mtime": 1792683856,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1792683860,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 17911735,
+      "external_files": [
+        {
+          "bytes": 10396112,
+          "mtime": 1792683856,
+          "path": "il2cpp/Metadata/global-metadata.dat"
+        },
+        {
+          "bytes": 337563,
+          "mtime": 1792683856,
+          "path": "il2cpp/Resources/mscorlib.dll-resources.dat"
+        },
+        {
+          "bytes": 36,
+          "mtime": 1792683856,
+          "path": "il2cpp/unity.ver"
+        },
+        {
+          "bytes": 768,
+          "mtime": 1792683932,
+          "path": "bowling-grab-validation/state.json"
+        },
+        {
+          "bytes": 7156216,
+          "mtime": 1792683917,
+          "path": "seating-validation/mesh.json"
+        },
+        {
+          "bytes": 21040,
+          "mtime": 1792683932,
+          "path": "seating-validation/state.json"
+        }
+      ],
+      "il2cpp_bytes": 10733711,
+      "diagnostic_bytes": 7178024,
+      "save_bytes": 0
+    },
+    {
+      "source_directory": "20261022-234408",
+      "label": "D-idle12-end",
+      "private_file_bytes": 450,
+      "private_files": [
+        {
+          "bytes": 327,
+          "mtime": 1791620251,
+          "path": "shared_prefs/com.UnityTechnologies.com.unity.template.urpblank.v2.playerprefs.xml"
+        },
+        {
+          "bytes": 123,
+          "mtime": 1791359019,
+          "path": "shared_prefs/pico-ipc-sp.xml"
+        }
+      ],
+      "external_file_bytes": 17925101,
+      "external_files": [
+        {
+          "bytes": 12621,
+          "mtime": 1792683850,
+          "path": "matesoul-v1.json"
+        },
+        {
+          "bytes": 10396112,
+          "mtime": 1792683935,
+          "path": "il2cpp/Metadata/global-metadata.dat"
+        },
+        {
+          "bytes": 337563,
+          "mtime": 1792683935,
+          "path": "il2cpp/Resources/mscorlib.dll-resources.dat"
+        },
+        {
+          "bytes": 36,
+          "mtime": 1792683935,
+          "path": "il2cpp/unity.ver"
+        },
+        {
+          "bytes": 767,
+          "mtime": 1792684275,
+          "path": "bowling-grab-validation/state.json"
+        },
+        {
+          "bytes": 7156216,
+          "mtime": 1792683947,
+          "path": "seating-validation/mesh.json"
+        },
+        {
+          "bytes": 21076,
+          "mtime": 1792684275,
+          "path": "seating-validation/state.json"
+        },
+        {
+          "bytes": 710,
+          "mtime": 1792684128,
+          "path": "framework-navigation.json"
+        }
+      ],
+      "il2cpp_bytes": 10733711,
+      "diagnostic_bytes": 7178059,
+      "save_bytes": 12621
+    }
+  ],
+  "idle_5min": {
+    "app_Pss_mib": {
+      "n": 59,
+      "min": 1026.12890625,
+      "p50": 1028.046875,
+      "p95_observed": 1036.721875,
+      "max": 1038.0859375,
+      "mean": 1029.930730270127,
+      "first_minute_median": 1027.146484375,
+      "last_minute_median": 1028.369140625,
+      "median_delta": 1.22265625
+    },
+    "app_Rss_mib": {
+      "n": 59,
+      "min": 1192.125,
+      "p50": 1194.0390625,
+      "p95_observed": 1202.7140625,
+      "max": 1204.078125,
+      "mean": 1195.9241260593221,
+      "first_minute_median": 1193.142578125,
+      "last_minute_median": 1194.361328125,
+      "median_delta": 1.21875
+    },
+    "app_SwapPss_mib": {
+      "n": 59,
+      "min": 0.0,
+      "p50": 0.0,
+      "p95_observed": 0.0,
+      "max": 0.0,
+      "mean": 0.0,
+      "first_minute_median": 0.0,
+      "last_minute_median": 0.0,
+      "median_delta": 0.0
+    },
+    "app_pss_plus_swap_mib": {
+      "n": 59,
+      "min": 1026.12890625,
+      "p50": 1028.046875,
+      "p95_observed": 1036.721875,
+      "max": 1038.0859375,
+      "mean": 1029.930730270127,
+      "first_minute_median": 1027.146484375,
+      "last_minute_median": 1028.369140625,
+      "median_delta": 1.22265625
+    },
+    "host_footprint_gib": {
+      "n": 59,
+      "min": 14.81887473911047,
+      "p50": 14.86318626254797,
+      "p95_observed": 14.952467007935047,
+      "max": 14.973080083727837,
+      "mean": 14.875590149502633,
+      "first_minute_median": 14.913898881524801,
+      "last_minute_median": 14.887897938489914,
+      "median_delta": -0.026000943034887314
+    },
+    "threads": {
+      "n": 59,
+      "min": 71,
+      "p50": 72,
+      "p95_observed": 72.0,
+      "max": 72,
+      "mean": 71.9322033898305,
+      "first_minute_median": 72.0,
+      "last_minute_median": 72.0,
+      "median_delta": 0.0
+    },
+    "pss_plus_swap_linear_slope_mib_per_minute": 0.01256044988324553,
+    "samples": 59,
+    "sample_span_s": 299.676528916,
+    "pids": [
+      12556
+    ],
+    "nominal_observation_seconds": 300
+  },
+  "sampled_app_pss_peak_mib": 1468.5830078125,
+  "sampled_app_pss_plus_swap_peak_mib": 1468.6435546875,
+  "minimum_guest_available_mib": 2613.7578125,
+  "startup_count": 12,
+  "startup_ready_count": 12,
+  "startup_survived_settle_count": 11,
+  "errors": [
+    {
+      "phase": "settle",
+      "run": "B-filecold12-3",
+      "error": "RuntimeError(\"command failed: [PosixPath('/Users/bytedance/MateSoul/.pico-home/6.2/emulator/system-images/platform-tools/adb'), '-s', 'emulator-5554', 'shell', 'rm -rf /sdcard/Android/data/com.UnityTechnologies.com.unity.template.urpblank/files']: 'rm: global-metadata.dat: Permission denied\\\\nrm: mscorlib.dll-resources.dat: Permission denied\\\\nrm: unity.ver: Permission denied\\\\n'\")"
+    },
+    {
+      "phase": "restore",
+      "error": "RuntimeError(\"command failed: [PosixPath('/Users/bytedance/MateSoul/.pico-home/6.2/emulator/system-images/platform-tools/adb'), '-s', 'emulator-5554', 'shell', 'rm -rf /sdcard/Android/data/com.UnityTechnologies.com.unity.template.urpblank/files']: 'rm: global-metadata.dat: Permission denied\\\\nrm: mscorlib.dll-resources.dat: Permission denied\\\\nrm: unity.ver: Permission denied\\\\n'\")"
+    }
+  ],
+  "restoration": [
+    false,
+    true
+  ]
+}

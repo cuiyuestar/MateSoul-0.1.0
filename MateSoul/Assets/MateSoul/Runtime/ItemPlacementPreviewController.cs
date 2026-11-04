@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace MateSoul.Runtime
 {
@@ -12,11 +13,30 @@ namespace MateSoul.Runtime
         private ItemDefinition definition;
         private GameObject projection;
         private Material material;
+        private PlayerInteractionModeController input;
+        private bool gestureReady, gesturePressed;
+        private InputAction confirmAction, cancelAction;
+        private bool controllerReady;
+        private float cancelGestureStarted = -1;
+        public event Action<ItemDefinition> ConfirmRequested;
+        public event Action<bool> ActiveChanged;
         public bool CanPlace { get; private set; }
         public Pose Placement { get; private set; }
         public bool IsActive => definition != null;
 
-        private void Awake() => bootstrap = GetComponent<GameBootstrap>();
+        private void Awake()
+        {
+            confirmAction = new InputAction("确认放置", InputActionType.Button,
+                "<XRController>{RightHand}/triggerPressed");
+            cancelAction = new InputAction("取消放置", InputActionType.Button,
+                "<XRController>{RightHand}/secondaryButton");
+        }
+
+        private void OnEnable()
+        {
+            confirmAction.Enable();
+            cancelAction.Enable();
+        }
 
         public bool IsPreviewing(ItemDefinition item) => definition == item;
 
@@ -24,26 +44,77 @@ namespace MateSoul.Runtime
         {
             if (item == null || !item.PlacementPreview)
                 throw new ArgumentException("This item does not use placement preview.");
+            bootstrap = GetComponent<GameBootstrap>();
+            input = FindObjectOfType<PlayerInteractionModeController>();
+            if (definition == null && input != null && input.PlacementActive)
+                throw new InvalidOperationException("请先完成当前放置。");
             definition = item;
+            if (input != null) input.PlacementActive = true;
+            gestureReady = gesturePressed = false;
+            controllerReady = false;
+            cancelGestureStarted = -1;
             EnsureProjection();
             projection.transform.localScale = item.PlacementSurface == ItemPlacementSurface.Wall
                 ? new Vector3(item.Footprint.x, item.PlacementHeight, .006f)
                 : new Vector3(item.Footprint.x, .006f, item.Footprint.y);
             projection.SetActive(true);
             Refresh();
+            ActiveChanged?.Invoke(true);
         }
 
         public void Cancel()
         {
+            if (definition == null) return;
             definition = null;
             CanPlace = false;
+            gestureReady = gesturePressed = false;
+            cancelGestureStarted = -1;
+            if (input != null) input.PlacementActive = false;
             if (projection != null) projection.SetActive(false);
+            ActiveChanged?.Invoke(false);
         }
 
         private void Update()
         {
             if (definition == null) return;
+            if (cancelAction.WasPressedThisFrame())
+            {
+                Cancel();
+                return;
+            }
             Refresh();
+            if (input == null || !input.DirectHandsEnabled)
+            {
+                if (!confirmAction.IsPressed()) controllerReady = true;
+                if (controllerReady && CanPlace && confirmAction.WasPressedThisFrame())
+                {
+                    controllerReady = false;
+                    ConfirmRequested?.Invoke(definition);
+                }
+                return;
+            }
+            var hands = input.Hands;
+            if (hands != null && hands.Length == 2 &&
+                hands[0].Tracked && hands[1].Tracked && hands[0].Closed && hands[1].Closed)
+            {
+                if (cancelGestureStarted < 0) cancelGestureStarted = Time.unscaledTime;
+                if (Time.unscaledTime - cancelGestureStarted >= 1f) Cancel();
+                return;
+            }
+            cancelGestureStarted = -1;
+            if (!CanPlace || !input.TryGetPlacementHand(out _, out var pressed))
+            {
+                gestureReady = gesturePressed = false;
+                return;
+            }
+            if (!pressed && !gesturePressed) gestureReady = true;
+            var confirm = gestureReady && gesturePressed && !pressed;
+            gesturePressed = pressed;
+            if (confirm)
+            {
+                gestureReady = false;
+                ConfirmRequested?.Invoke(definition);
+            }
         }
 
         private void Refresh()
@@ -57,6 +128,11 @@ namespace MateSoul.Runtime
                 return;
             }
             projection.SetActive(true);
+            if (input != null && input.DirectHandsEnabled)
+            {
+                RefreshDirectHand(cameraTransform.position);
+                return;
+            }
             if (definition.PlacementSurface == ItemPlacementSurface.Wall)
             {
                 CanPlace = session.TryResolveWallPlacement(definition,
@@ -75,7 +151,7 @@ namespace MateSoul.Runtime
             }
             if (session.TryResolveSurfacePlacement(definition,
                     new Ray(cameraTransform.position, cameraTransform.forward),
-                    null, out var surfacePlacement))
+                    null, out var surfacePlacement, cameraTransform.position))
             {
                 CanPlace = true;
                 Placement = surfacePlacement;
@@ -96,6 +172,51 @@ namespace MateSoul.Runtime
             projection.transform.SetPositionAndRotation(
                 Placement.position + Vector3.up * .004f, Placement.rotation);
             SetProjectionColor();
+        }
+
+        private void RefreshDirectHand(Vector3 viewerPosition)
+        {
+            if (!input.TryGetPlacementHand(out var hand, out _))
+            {
+                CanPlace = false;
+                projection.SetActive(false);
+                return;
+            }
+            var session = bootstrap.Session;
+            if (definition.PlacementSurface == ItemPlacementSurface.Wall)
+            {
+                var direction = hand.rotation * Vector3.forward;
+                // Wall controls are placed within arm's reach, never across the room.
+                CanPlace = session.TryResolveWallPlacement(definition,
+                    new Ray(hand.position, direction), null, out var wall);
+                var center = wall.position + Vector3.up * definition.PlacementHeight * .5f;
+                CanPlace &= Vector3.Distance(center, hand.position) <= .3f + definition.Footprint.y * .5f;
+                Placement = wall;
+                projection.transform.SetPositionAndRotation(
+                    CanPlace ? center : hand.position + direction * .15f,
+                    CanPlace ? wall.rotation : Quaternion.LookRotation(-direction));
+            }
+            else
+            {
+                // Vertical projection under the actual palm; no visible aiming ray.
+                CanPlace = session.TryResolveSurfacePlacement(definition,
+                    new Ray(hand.position, Vector3.down), null, out var surface,
+                    viewerPosition);
+                CanPlace &= hand.position.y - surface.position.y >= -.01f &&
+                            hand.position.y - surface.position.y <= 2f;
+                Placement = surface;
+                projection.transform.SetPositionAndRotation(
+                    CanPlace ? surface.position + Vector3.up * .004f : hand.position,
+                    CanPlace ? surface.rotation : Quaternion.identity);
+            }
+            SetProjectionColor();
+        }
+
+        private void OnDisable()
+        {
+            Cancel();
+            confirmAction.Disable();
+            cancelAction.Disable();
         }
 
         private void SetProjectionColor()
@@ -125,6 +246,8 @@ namespace MateSoul.Runtime
 
         private void OnDestroy()
         {
+            confirmAction.Dispose();
+            cancelAction.Dispose();
             if (material != null) Destroy(material);
         }
     }

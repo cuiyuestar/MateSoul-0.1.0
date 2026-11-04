@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+/*******************************************************************************
 Copyright © 2015-2022 PICO Technology Co., Ltd.All rights reserved.  
 
 NOTICE：All information contained herein is, and remains the property of 
@@ -288,6 +288,11 @@ namespace ByteDance.PICO.XR.Editor
         }
 
         [InitializeOnLoadMethod]
+        private static void SchedulePortalInitialization()
+        {
+            EditorApplication.delayCall += InitializeOnLoad;
+        }
+
         private static void InitializeOnLoad()
         {
             if (!PXR_ProjectSetting.GetProjectConfig().portalInited)

@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-24",
+  "progressStatus": "historical_combined_patch_superseded_by_verified_stable_navigation",
+  "latestVerificationReport": "/Users/bytedance/MateSoul/项目沉淀资料/validation/headset_stable_startup_20261024.json",
+  "package": "com.matesoul.game",
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RoomFixed_UIFollow_20261024.apk",
+  "bytes": 202838211,
+  "sha256": "fe561531f21cd1fa9186d674a0b42b34a11b92adc01cacc7dfd8a252a8a4b210",
+  "build": {
+    "unityExitCode": 0,
+    "seconds": 112.62,
+    "development": true,
+    "abi": "arm64-v8a",
+    "il2cpp": true,
+    "zipCrcPassed": true,
+    "zipEntries": 1564,
+    "signatureVerified": true,
+    "certificateSha256": "0799ed95a5c84fcc7d5eb21dfa5e587dbc8650b1ac54dc50201de4540711ea97",
+    "handsOnlyManifestVerified": true,
+    "sceneAnchorEnabled": true,
+    "environmentDepthEnabled": true,
+    "compiledHudPitchFollowVerified": true,
+    "compiledLocalQuaternionRepairVerified": true,
+    "compiledVoxelSizeMeters": 0.02,
+    "protectedAssetsUnchanged": true,
+    "protectedAssetSha256": {
+      "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+      "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553"
+    }
+  },
+  "hudLocalValidation": {
+    "distanceMeters": 0.65,
+    "visiblePanelElevationDegrees": -18,
+    "pitchFollowFraction": 0.25,
+    "pitchFollowLimitDegrees": 8,
+    "headDown35PanelElevationDegrees": -26,
+    "headDown35MovementMeters": 0.09068,
+    "freezeDuringPressOrPoke": true,
+    "physicalAppearanceAndClickAcceptance": "pending"
+  },
+  "capturedRoomProductionReplay": {
+    "source": "real-headset-scene-capture",
+    "floorVertices": 9,
+    "obstaclesRetained": 18,
+    "furnitureWithMissingLocalQuaternion": 6,
+    "characterRadiusMeters": 0.25,
+    "characterHeightMeters": 1.65,
+    "additionalObstacleExpansionMeters": 0,
+    "voxelSizeMeters": 0.02,
+    "navMeshVertices": 8,
+    "navMeshAreaMetersSquared": 0.01724,
+    "safeCapsuleSamples": 4,
+    "buildMilliseconds": 29,
+    "passed": true,
+    "limitation": "Very little remaining navigable center area; free roaming is not established."
+  },
+  "device": {
+    "serial": "PB3A10MGL9220170B",
+    "installed": true,
+    "installSeconds": 6.87,
+    "installedApkHashMatches": true,
+    "saveExisted": true,
+    "saveUnchangedByInstall": true,
+    "logcatCleared": false,
+    "launches": [
+      {
+        "index": 1,
+        "pid": 5111,
+        "activityStarted": true,
+        "observedSeconds": 63.76,
+        "wakefulnessAfter11Seconds": "Asleep",
+        "unityInitializationObserved": false,
+        "navMeshBuiltObserved": false,
+        "avatarBoundObserved": false,
+        "businessReadyObserved": false,
+        "navigationResult": "inconclusive_before_unity_initialization"
+      },
+      {
+        "index": 2,
+        "pid": 8378,
+        "userOpenedWhileWearingHeadset": true,
+        "unityInitializationObserved": true,
+        "navMeshBuiltObserved": true,
+        "navMeshBuiltAt": "2026-10-24T19:15:00.861+08:00",
+        "obstaclesRetained": 18,
+        "avatarBoundObserved": false,
+        "businessReadyObserved": false,
+        "startupError": "房间内没有可用的角色出生点。",
+        "navigationResult": "navmesh_valid_but_player_relative_spawn_search_too_short"
+      }
+    ],
+    "twoColdStartsPassed": false,
+    "pendingAction": "Install spawn-search repair and verify two cold starts while the headset stays awake."
+  },
+  "spawnSearchRepair": {
+    "searchDistance": "Distance(desiredSpawn, roomBounds.center) + roomBounds.extents.magnitude",
+    "productionReplayCases": 15,
+    "oldSearchMisses": 13,
+    "newSearchPasses": 15,
+    "allObstaclesRetained": true,
+    "physicalPostFixVerification": "pending",
+    "installedApk": "/Users/bytedance/MateSoul/Builds/MateSoul_RoomSpawnFixed_20261024.apk",
+    "followUpReport": "/Users/bytedance/MateSoul/项目沉淀资料/validation/headset_spawn_startup_20261024.json"
+  },
+  "evidenceDirectory": "/tmp/matesoul-room-repair-20261024",
+  "evidence": [
+    "production-replay.log",
+    "final-build.log",
+    "final-build-result.json",
+    "final-signature.txt",
+    "final-manifest.txt",
+    "final-install-result.json",
+    "cold-1-device.log",
+    "cold-1-power.txt",
+    "final-device-result.json",
+    "worn-launch-device.log",
+    "worn-launch-diagnostics/startup-current.log",
+    "spawn-build.log"
+  ]
+}

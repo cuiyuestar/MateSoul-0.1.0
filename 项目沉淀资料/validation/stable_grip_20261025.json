@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-25",
+  "branch": "fix/stable-grip-handhold-20261025",
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_StableGrip_20261025.apk",
+  "bytes": 215346246,
+  "sha256": "2777e0f1f63575d1976f670637a5f52aec6a979d9e3a36e3bfc4f31d2765067a",
+  "deviceSha256": "2777e0f1f63575d1976f670637a5f52aec6a979d9e3a36e3bfc4f31d2765067a",
+  "installed": true,
+  "device": "PB3A10MGL9220170B",
+  "saveBefore": "6233a5dc886f6a53dc0d3d06eaa02710dd5c44726fcdcc102be99a52e6ae6fe0",
+  "saveAfter": "6233a5dc886f6a53dc0d3d06eaa02710dd5c44726fcdcc102be99a52e6ae6fe0",
+  "saveUnchanged": true,
+  "checks": {
+    "specializedPassed": 28,
+    "regressionPassed": 59,
+    "regressionFailed": 0,
+    "playerSourceSha256Matches": 14,
+    "zipCrcEntries": 1564,
+    "signatureV2": true,
+    "zipalign": true,
+    "arm64Il2cpp": true,
+    "nativeLibraryMatchesBuild": true,
+    "metadataMatchesBuild": true,
+    "protectedSceneCharacterControllerOcclusionHashesUnchanged": true,
+    "productionKnifeActuallyCutCarrot": true,
+    "temporaryEditorAcceptanceScriptRemoved": true
+  },
+  "controlledUnityMetrics": {
+    "frames": 100,
+    "maximumPositionErrorM": 0,
+    "maximumRotationErrorDeg": 0,
+    "originalRandomMinimumM": 1.25,
+    "currentRandomMinimumM": 0.35,
+    "availableShortPathM": 0.545050442,
+    "originalShortPathRejected": true,
+    "currentShortPathAccepted": true,
+    "ambiguousReleaseSeconds": 0.02,
+    "trackingLostSeconds": 0.05,
+    "testedAmbiguousReleaseSeconds": 0.022,
+    "defaultSpawnDistanceM": 0.55,
+    "maximumNearbySearchM": 0.2
+  },
+  "deviceStartup": {
+    "pid": 15922,
+    "nativeMeshes": 10,
+    "meshDepth": true,
+    "environmentDepthWidth": 512,
+    "pausedAfterHeadsetNotWorn": true,
+    "businessReadyObserved": false
+  },
+  "humanFeelAcceptance": "pending",
+  "actualRoomMovementPostFix": "pending",
+  "limitations": [
+    "Controlled Unity pose error is not a measurement of real headset tracking accuracy.",
+    "Apple currently uses an existing split action; free blade sweep is enabled on carrot.",
+    "Stable grips reduce physics feedback while preserving sampled environment collision restrictions.",
+    "Device post-fix handhold, movement and handling reproduction remains required."
+  ]
+}

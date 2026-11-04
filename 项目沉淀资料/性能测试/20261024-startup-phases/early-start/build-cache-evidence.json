@@ -1,0 +1,137 @@
+{
+  "attributeOnlyBuild": {
+    "apkBytes": 214636370,
+    "apkSha256": "56cc5f42fbf15d87492c408efb43feada15d65571a90e95941bae7d3634d72a4",
+    "protectedAssets": [
+      {
+        "path": "MateSoul/ProjectSettings/ProjectSettings.asset",
+        "sha256": "a912dcd37bcc1d102f0c90e7f02313ce8e77cacc89824396df11de1d993eedde",
+        "unchanged": true
+      },
+      {
+        "path": "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity",
+        "sha256": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+        "unchanged": true
+      },
+      {
+        "path": "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab",
+        "sha256": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+        "unchanged": true
+      },
+      {
+        "path": "MateSoul/Assets/MateSoul/Content/Avatar.controller",
+        "sha256": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553",
+        "unchanged": true
+      }
+    ],
+    "zipCrcPass": true,
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unityExited": true
+  },
+  "importedOrderBuild": {
+    "apkBytes": 214636370,
+    "apkSha256": "118ae9fffbd41a60cad28c6233a1b6485b8aa41f8ba019b2c4c6b50151147d05",
+    "protectedAssets": [
+      {
+        "path": "MateSoul/ProjectSettings/ProjectSettings.asset",
+        "sha256": "a912dcd37bcc1d102f0c90e7f02313ce8e77cacc89824396df11de1d993eedde",
+        "unchanged": true
+      },
+      {
+        "path": "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity",
+        "sha256": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+        "unchanged": true
+      },
+      {
+        "path": "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab",
+        "sha256": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+        "unchanged": true
+      },
+      {
+        "path": "MateSoul/Assets/MateSoul/Content/Avatar.controller",
+        "sha256": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553",
+        "unchanged": true
+      }
+    ],
+    "bootstrapImporterOrder": -100,
+    "bootstrapMetaSha256": "e5a31a70556bad896f6de87c26aaedadd1dac6a66354561f8c96a110da4e72e0",
+    "zipCrcPass": true,
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unityExited": true
+  },
+  "serializedOldAndImportedOrders": [
+    {
+      "apk": "MateSoul_StartupTimeline_20261024.apk",
+      "assetsSha256": "71c53d3a427b55e283544ab554cf850fd339a42508b233b5a3ce077dc2271ed9",
+      "assetsBytes": 6040232,
+      "pathId": 903,
+      "class": "GameBootstrap",
+      "assembly": "MateSoul.Runtime",
+      "order": 0
+    },
+    {
+      "apk": "MateSoul_StartupTimeline_20261024.apk",
+      "assetsSha256": "71c53d3a427b55e283544ab554cf850fd339a42508b233b5a3ce077dc2271ed9",
+      "assetsBytes": 6040232,
+      "pathId": 1159,
+      "class": "GameHud",
+      "assembly": "MateSoul.Runtime",
+      "order": 0
+    },
+    {
+      "apk": "imported-order.apk",
+      "assetsSha256": "71c53d3a427b55e283544ab554cf850fd339a42508b233b5a3ce077dc2271ed9",
+      "assetsBytes": 6040232,
+      "pathId": 903,
+      "class": "GameBootstrap",
+      "assembly": "MateSoul.Runtime",
+      "order": 0
+    },
+    {
+      "apk": "imported-order.apk",
+      "assetsSha256": "71c53d3a427b55e283544ab554cf850fd339a42508b233b5a3ce077dc2271ed9",
+      "assetsBytes": 6040232,
+      "pathId": 1159,
+      "class": "GameHud",
+      "assembly": "MateSoul.Runtime",
+      "order": 0
+    }
+  ],
+  "cleanIntermediate": {
+    "incompleteBuild": true,
+    "assetsSha256": "92cc76b15b684331671dc4539efefa7f7d6432e800666046aa3f5a05294d5155",
+    "scripts": [
+      {
+        "class": "GameBootstrap",
+        "order": -100,
+        "pathId": 903
+      },
+      {
+        "class": "GameHud",
+        "order": 0,
+        "pathId": 1160
+      }
+    ]
+  },
+  "finalSerializedOrders": [
+    {
+      "class": "SystemNotificationPresenter",
+      "order": 0,
+      "pathId": 300
+    },
+    {
+      "class": "GameBootstrap",
+      "order": -100,
+      "pathId": 903
+    },
+    {
+      "class": "GameHud",
+      "order": 0,
+      "pathId": 1160
+    }
+  ]
+}

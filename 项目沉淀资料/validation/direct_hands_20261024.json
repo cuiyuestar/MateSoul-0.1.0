@@ -1,0 +1,57 @@
+{
+  "exitCode": 0,
+  "seconds": 257.42,
+  "protectedAssetsUnchanged": true,
+  "protectedAssetSha256": {
+    "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+    "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+    "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553"
+  },
+  "apkBytes": 202838211,
+  "apkSha256": "fc781f5c51a77e2a60d42ae5ccccaadb9b7388384f085082a298badffe133293",
+  "date": "2026-10-24",
+  "package": "com.matesoul.game",
+  "abis": [
+    "arm64-v8a"
+  ],
+  "il2cpp": true,
+  "zipCrcValid": true,
+  "zipEntryCount": 1564,
+  "signatureValid": true,
+  "certificateSha256": "0799ed95a5c84fcc7d5eb21dfa5e587dbc8650b1ac54dc50201de4540711ea97",
+  "signatureMatchesRoomDiagnostic": true,
+  "manifest": {
+    "handtracking": "1",
+    "controllerDeclared": false,
+    "environmentDepth": "1",
+    "sceneCapture": "1"
+  },
+  "validationPassed": 23,
+  "validationCases": [
+    "远处握拳不拾取",
+    "握拳进入范围不吸取",
+    "近距新握拳进入原有物理跟随",
+    "带Snap资产直接握取不瞬移",
+    "持有后移出候选范围不掉落",
+    "移动保持握取位置偏移",
+    "正常松手释放并保留物理速度",
+    "丢失跟踪安全释放且清除抛出速度",
+    "跟踪恢复时握拳不自动重新拾取",
+    "双手争抢只允许一个持有者",
+    "暂停中的物品不可拾取",
+    "固定物品不可拾取",
+    "手与物品之间的实体阻挡拾取",
+    "放置模式禁止物品拾取",
+    "退出放置后必须重新张手握紧",
+    "空手食指允许UI触碰",
+    "食指触碰允许其余手指自然弯曲",
+    "握取时禁止同手UI触碰",
+    "官方Left手骨骼模型可加载",
+    "官方Right手骨骼模型可加载",
+    "虚拟手URP材质编译",
+    "构建配置HandsOnly",
+    "未激活物品预览不清除小游戏放置状态"
+  ],
+  "installedOnDevice": false,
+  "deviceAcceptance": "pending"
+}

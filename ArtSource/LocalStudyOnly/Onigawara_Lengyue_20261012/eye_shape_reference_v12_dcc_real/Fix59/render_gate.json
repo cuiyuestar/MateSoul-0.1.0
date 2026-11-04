@@ -1,0 +1,102 @@
+{
+  "roi_tests": [
+    {
+      "view": "head_90",
+      "bbox": [
+        545,
+        850,
+        710,
+        1105
+      ],
+      "before_skin_pixels": 4354,
+      "after_skin_pixels": 0,
+      "closed": true
+    },
+    {
+      "view": "hair_135",
+      "bbox": [
+        1470,
+        1330,
+        1760,
+        1950
+      ],
+      "before_skin_pixels": 17633,
+      "after_skin_pixels": 0,
+      "closed": true
+    }
+  ],
+  "render_differences": {
+    "head_0": {
+      "changed_pixels_gt2": 162,
+      "bbox": [
+        341,
+        701,
+        484,
+        1345
+      ]
+    },
+    "head_45": {
+      "changed_pixels_gt2": 21065,
+      "bbox": [
+        274,
+        726,
+        538,
+        1344
+      ]
+    },
+    "head_90": {
+      "changed_pixels_gt2": 41110,
+      "bbox": [
+        457,
+        679,
+        773,
+        1347
+      ]
+    },
+    "hair_120": {
+      "changed_pixels_gt2": 189644,
+      "bbox": [
+        1182,
+        1045,
+        1627,
+        2399
+      ]
+    },
+    "hair_135": {
+      "changed_pixels_gt2": 147620,
+      "bbox": [
+        1332,
+        1074,
+        1736,
+        2399
+      ]
+    },
+    "hair_150": {
+      "changed_pixels_gt2": 111541,
+      "bbox": [
+        1580,
+        1065,
+        1858,
+        2299
+      ]
+    },
+    "hair_180": {
+      "changed_pixels_gt2": 53970,
+      "bbox": [
+        1775,
+        984,
+        2043,
+        2284
+      ]
+    },
+    "hair_225": {
+      "changed_pixels_gt2": 1308,
+      "bbox": [
+        1562,
+        2078,
+        1732,
+        2263
+      ]
+    }
+  }
+}

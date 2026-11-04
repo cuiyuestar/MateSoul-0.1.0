@@ -1,0 +1,140 @@
+{
+  "feature": "tableware_size_variants",
+  "date": "2026-10-15",
+  "generation": {
+    "script": "ArtSource/SapphiArt/Props/build_tableware_size_variants.py",
+    "uniform_scale_only": true,
+    "independent_blend_glb_fbx": true,
+    "shared_topology_uv_materials": true
+  },
+  "bowl": {
+    "small": {
+      "id": "bowl",
+      "display_name": "小号碗",
+      "dimensions_mm": [138.0, 138.0, 70.0],
+      "existing_id_preserved": true
+    },
+    "medium": {
+      "id": "bowl-medium",
+      "display_name": "中号碗",
+      "dimensions_mm": [180.0, 180.0, 91.3044],
+      "scale_from_small": 1.30434783,
+      "vertices": 4354,
+      "triangles": 8704,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "blend_sha256": "9703bb98bda8b1c9c3b020b58503d276d114e10ec6a92451f1c0f499a6e22b1b",
+      "glb_sha256": "9347e3f6104ec837e83cd80ef1c6a68e4c1807da9977f0de7aec5533b1430985",
+      "fbx_sha256": "e9bc0216221223f5fefe6575a28fbe0c1065300d1f7b95def7ace4a69b227f72"
+    },
+    "large": {
+      "id": "bowl-large",
+      "display_name": "大号碗",
+      "dimensions_mm": [220.0, 220.0, 111.5942],
+      "scale_from_small": 1.5942029,
+      "vertices": 4354,
+      "triangles": 8704,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "blend_sha256": "85c5e0d41a7cf8d8049c0be6c8cc57fe706bf780db0fa22711b0c2bc90fc0fba",
+      "glb_sha256": "7964511bf8085b2397464410eea7df85aa324d580d5995cf510c5ce6f2e29092",
+      "fbx_sha256": "0a53bcc5d6a13cc4bbbfe756e2a192c4c5146ab754d3439d41626f03cacb9cd1"
+    }
+  },
+  "plate": {
+    "small": {
+      "id": "plate",
+      "display_name": "小号盘子",
+      "dimensions_mm": [200.0, 200.0, 25.0],
+      "existing_id_preserved": true
+    },
+    "medium": {
+      "id": "plate-medium",
+      "display_name": "中号盘子",
+      "dimensions_mm": [250.0, 250.0, 31.25],
+      "scale_from_small": 1.25,
+      "vertices": 2690,
+      "triangles": 5376,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "blend_sha256": "d78abc81732a84c5144fdf41f1fefddc0b684362ffdd0d45da011edd8d517f63",
+      "glb_sha256": "aa8bda3e8be42c45cdd940ba02699a965c81cd4f84f5497dc6949fdd1f77e51c",
+      "fbx_sha256": "f5eaebceb32f8b7b05b8c6e2421bf79af06fea68cc45fe171ff4b3f4ccbeb9c4",
+      "light_fracture_meshes": 4,
+      "heavy_fracture_meshes": 22
+    },
+    "large": {
+      "id": "plate-large",
+      "display_name": "大号盘子",
+      "dimensions_mm": [300.0, 300.0, 37.5],
+      "scale_from_small": 1.5,
+      "vertices": 2690,
+      "triangles": 5376,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "blend_sha256": "6b4838686f146a3e6a19d9f23100bfd757a68ea9f1fb0429a4031e6f6f429003",
+      "glb_sha256": "d851bacc5c4cff043f8e96501b93ad8fe2d9cb44e109c6993de8b21f07d800d5",
+      "fbx_sha256": "e3ac7ab357c3a3fe0be0e8566e4fe99fc62ab98889d258bd397a29f9282584f5",
+      "light_fracture_meshes": 4,
+      "heavy_fracture_meshes": 22
+    }
+  },
+  "virtual_items": [
+    {
+      "id": "plate-medium",
+      "definition_guid": "b88e027919a7b4a5d98db33a24ab1abb",
+      "prefab_guid": "500cd3a9673a74484b850ed064bbaa5b",
+      "definition_sha256": "07dc674a8087fbb02cde9ca2287595bdc8ef3f70c3236f49cbb47fdbfe2fb891",
+      "prefab_sha256": "2ccbe98a9a9580a86cf6923156480693549d7bc16d0ceb5f3a5c526c8c5af11e",
+      "mass_kg": 0.82,
+      "inventory_limit": 2
+    },
+    {
+      "id": "plate-large",
+      "definition_guid": "bbf9070e2ee864f52b4c6ea89f713f0b",
+      "prefab_guid": "e4e67979f9d17462ab98a8b0a2beaba0",
+      "definition_sha256": "57788de0c82df03ac58917027d38b3f5699abdadacb54cd92b4a61a4776e0737",
+      "prefab_sha256": "df89b3f6a43e7ddb8c0552de64aff87a3ccf093346cacc4fbb7e89da7a5ba559",
+      "mass_kg": 1.42,
+      "inventory_limit": 2
+    },
+    {
+      "id": "bowl-medium",
+      "definition_guid": "a866b00f9d2d344cb8abd08f0e446108",
+      "prefab_guid": "d33aa351a680e419a8c59b72dad98e3a",
+      "definition_sha256": "c7dc48c9026f4ada2fbc1f0889104148ada59ba2ada3e464bf4e67bdf23a9d6d",
+      "prefab_sha256": "911cc488181fd0ee50c5ec39acd15795b87c770c673958a5be0212b0e8c77d95",
+      "mass_kg": 0.69,
+      "inventory_limit": 2
+    },
+    {
+      "id": "bowl-large",
+      "definition_guid": "b62f703f4e65c487f9bd900fd5a1f103",
+      "prefab_guid": "5e2d5cc1a9f6a4f88bb8af3eb9a55d6f",
+      "definition_sha256": "ed55d21890b3f4e1779d81d51a7778d6d20a4061ddc99b6d29da88801478b6ec",
+      "prefab_sha256": "2c1148bb15536e0671bb9b6d5605233dadd92b1679390b7203a492159d27dc57",
+      "mass_kg": 1.26,
+      "inventory_limit": 2
+    }
+  ],
+  "unity": {
+    "version": "2022.3.38f1",
+    "scene_build_exit_code": 0,
+    "all_catalog_visible": true,
+    "all_allow_surface_placement": true,
+    "scene_references_all_definitions": true,
+    "shared_existing_plate_and_bowl_materials": true,
+    "new_tableware_navmesh_obstacles": 0,
+    "tests": {
+      "result": "Passed",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "cases": [
+        "MateSoul.Tests.GameRuntimeTests.CatalogPlacementGrabAndFocusUseRegisteredDefinitions",
+        "MateSoul.Tests.GameRuntimeTests.ProductionCatalogContainsEveryStandaloneProp"
+      ]
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "feature": "electric-kettle-v3",
+  "date": "2026-10-18",
+  "unity": "2022.3.38f1",
+  "geometry": {
+    "result": "passed",
+    "source": "ArtSource/SapphiArt/Props/ElectricKettle/source/ElectricKettle_Set_220x245x245mm.blend",
+    "review": "ArtSource/SapphiArt/Props/ElectricKettle/source/ElectricKettle_Set_bottom.png",
+    "closed_surfaces": [
+      "Kettle_BottomPlate",
+      "KettleBase_BottomPlate",
+      "KettleBase_Deck"
+    ],
+    "implementation": "explicit capped cylinder meshes"
+  },
+  "docking": {
+    "result": "passed",
+    "previous_detection_radius_meters": 0.16,
+    "detection_radius_meters": 0.12
+  },
+  "tests": {
+    "suite": "MateSoul.Tests.ElectricKettleTests",
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "result_xml": ".artifacts/electric-kettle-v3/test-results.xml"
+  },
+  "android": {
+    "apk": "Builds/MateSoul_Framework.apk",
+    "bytes": 139819389,
+    "sha256": "d0a495627d5c008fcc1efc703afd547ded694715db82173352ec73fec43c9c97",
+    "zip_integrity": "passed",
+    "signature_v2": "passed"
+  }
+}

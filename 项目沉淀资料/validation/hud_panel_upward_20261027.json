@@ -1,0 +1,74 @@
+{
+  "recordedAt": "2026-10-27T00:19:47+0800",
+  "layoutGeometry": {
+    "derivedFromProductionSource": true,
+    "unityRuntimePoseReplay": false,
+    "worldCanvasScaleMetersPerUnit": 0.00066,
+    "collapsedNavigationCenterUnits": 80.0,
+    "expandedPageCenterUnits": 365.0,
+    "previousDefaultNavigationDropMeters": 0.1628993784518529,
+    "newNavigationDropMeters": 0.02,
+    "expandedPageToNavigationCenterDistanceMeters": 0.1881,
+    "pageToNavigationEdgeGapMetersInCanvasPlane": 0.0264,
+    "collapseRestoresBaseline": true,
+    "positionUsesExistingExponentialInterpolation": true,
+    "headHeightAndPitchFollowRetained": true
+  },
+  "apk": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_HudPanelUpward_20261027.apk",
+    "bytes": 218746517,
+    "sha256": "19b8a6c90ecbeed71803d1df9adaa3c4bd5e850e430f5632ba3dd4a5f464cc63",
+    "crcPassed": true,
+    "zipEntries": 1573,
+    "signaturePassed": true,
+    "alignmentPassed": true,
+    "abis": [
+      "arm64-v8a"
+    ],
+    "packageName": "com.matesoul.game"
+  },
+  "build": {
+    "reusedConcurrentBuild": true,
+    "log": "/tmp/matesoul-debug-spawn-measured-support/instrumented-build-short-ipc.log",
+    "successLine": "MATESOUL_BUILD_PASS path=/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk bytes=2437954627 duration=00:01:44.3756418",
+    "il2cppSha256": "b078a83ad3b987c28a0fa862dd6003f30bf1f65230fd56bf49bdad165963f9a2",
+    "firstAttempt": {
+      "exitCode": -11,
+      "buildPassed": false,
+      "elapsedSeconds": 45.233,
+      "startedEpoch": 1793031279.922158,
+      "abortReason": null,
+      "log": "/tmp/matesoul-hud-panel-upward-20261027/android-build.log"
+    },
+    "batchmodeExitObserved": true
+  },
+  "gameHudSha256": "4b7f59f6b6a7091800716709ed02690cc3e19740cb63723fa17f062e2f4b5ebd",
+  "sourceMatchesPlayerAndStrippedPdb": true,
+  "protectedAssetsUnchanged": true,
+  "protectedAssetsSha256": {
+    "Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+    "Assets/MateSoul/Scenes/MateSoul.unity.meta": "39a325b9d846ca0d54ffa78b62b8c4260313a262a92294ed34d9d5fdd2ca8972",
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "822c9bfccf779137a4d33b6335457124b4d18be69b53bb96a8cef40c2b03bb6c",
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab.meta": "cabeeaba45bae4692603767cdcfd618ffa5937a1f09d27f017c27af12287c6ab",
+    "Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553",
+    "Assets/MateSoul/Content/Avatar.controller.meta": "9e72e747d1eb89c662fa44c4d324cc1d71bf5d894d30c62767b82e27b0e77ac4"
+  },
+  "installation": {
+    "completed": true,
+    "verificationMode": "reusedConcurrentInstallation",
+    "device": "PB3A10MGL9220170B",
+    "verifiedAt": "2026-10-27T00:24:39+0800",
+    "baseApkPath": "/data/app/~~ceyXQ3OAL1OBCfxPaKN6og==/com.matesoul.game-lz7mMZWLWUnFfWSsESBsIw==/base.apk",
+    "installedSha256": "19b8a6c90ecbeed71803d1df9adaa3c4bd5e850e430f5632ba3dd4a5f464cc63",
+    "saveSha256AtStartOfVerification": "1d70e575b16e72be4ba512e2484f4a0ef38d868e296ec10dcc05f1257456eb0c",
+    "saveSha256AfterVerification": "1d70e575b16e72be4ba512e2484f4a0ef38d868e296ec10dcc05f1257456eb0c",
+    "saveUnchangedDuringVerification": true,
+    "reinstallationPerformedByThisTask": false
+  },
+  "headsetLayoutExperienceVerified": false,
+  "adbRecovery": {
+    "serverWasUnresponsive": true,
+    "serverRestarted": true,
+    "diagnosticReverse7781Restored": true
+  }
+}

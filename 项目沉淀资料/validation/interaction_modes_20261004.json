@@ -1,0 +1,66 @@
+{
+  "feature": "controller-eye-hand-physical-press",
+  "date": "2026-10-04",
+  "modes": {
+    "controller": {
+      "right_ui_press": "<XRController>{RightHand}/primaryButton",
+      "left_ui_press": "<XRController>{LeftHand}/primaryButton",
+      "grab": "gripPressed"
+    },
+    "eye_hand": {
+      "position": "<PXR_HMD>/eyeGazePosition",
+      "rotation": "<PXR_HMD>/eyeGazeRotation",
+      "tracked": "<PXR_HMD>/eyeGazeIsTracked",
+      "right_pinch": "<PicoHandInteraction>{RightHand}/pinchTouched",
+      "grab_binding_present": false
+    },
+    "automatic_switch": {
+      "controller_loss_delay_seconds": 0.75,
+      "far_rays_mutually_exclusive": true
+    }
+  },
+  "physical_press": {
+    "interactor": "PhysicalPressInteractor",
+    "surface": "TelevisionPhysicalPressSurface",
+    "trigger_size_m": [0.032, 0.032, 0.016],
+    "full_press_depth_m": 0.006,
+    "activate_threshold": 0.7,
+    "rearm_threshold": 0.2,
+    "disabled_interactor_cleanup": true
+  },
+  "tests": {
+    "television": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    "framework": {
+      "passed": 77,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "apk": {
+    "path": "Builds/MateSoul_Framework.apk",
+    "bytes": 82379655,
+    "sha256": "feca0a0ce5ffcdb3ce9d7868b44491d84e6ed6f82c1798ce35cdde6e32099a83",
+    "signature_scheme_v2": true,
+    "permissions": {
+      "com.picovr.permission.EYE_TRACKING": "granted",
+      "com.picovr.permission.HAND_TRACKING": "granted",
+      "com.picovr.permission.SPATIAL_DATA": "granted"
+    }
+  },
+  "emulator": {
+    "device_id": "emulator-5554",
+    "device_hash_matches_host": true,
+    "app_running_foreground": true,
+    "fatal_runtime_errors": 0
+  },
+  "remaining_validation": [
+    "physical headset eye-tracking calibration",
+    "real controller A-button interaction",
+    "real hand pinch comfort",
+    "final virtual-hand collider tuning"
+  ]
+}

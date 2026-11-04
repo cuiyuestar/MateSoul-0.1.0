@@ -1,0 +1,58 @@
+{
+  "feature": "dining_chair_virtual_item",
+  "date": "2026-10-15",
+  "asset_revision": "V002",
+  "asset": {
+    "name": "NaturalOakDiningChair_480x505x820mm",
+    "nominal_dimensions_m": [0.48, 0.505, 0.82],
+    "visual_dimensions_m": [0.4819661, 0.5108422, 0.8199502],
+    "seat_top_height_m": 0.475,
+    "mesh_count": 16,
+    "vertices": 13660,
+    "triangles": 27260,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "cushion_triangles": 9408,
+    "piping_triangles": 3840,
+    "embedded_glb_images": 6,
+    "blend_sha256": "ff10672713cee1bbe0120b785f40136c19eddb3b80bd0487713c391126632a50",
+    "glb_sha256": "016857032790473ddfc7aa3c945d019ee1cde50c4c29731bea4d558d67a36331",
+    "fbx_sha256": "53bff6f26704d19c2f19cde16181b31c99922474823e9802483a9bea7199dd48"
+  },
+  "virtual_item": {
+    "id": "chair",
+    "display_name": "餐椅",
+    "catalog_visible": false,
+    "footprint_m": [0.48, 0.505],
+    "placement_height_m": 0.82,
+    "mass_kg": 5.5,
+    "prefab_guid": "e0c5b82c8b0db4edc95628e4e213e217",
+    "definition_guid": "22898bdf986214a14883e06d935de66a",
+    "prefab_sha256": "80b997a728fdbab02d6a8a6263a245f185280f8ef0f38674533f1cc27a960549",
+    "definition_sha256": "d8e882f55aefe88615445a9e76caa061024e4dbab890f6178d02d6aad7d5908b",
+    "scene_reference_preserved": true,
+    "box_collider_count": 6,
+    "mesh_collider_count": 0,
+    "rigidbody_count": 1,
+    "unity_wood_base_map": true,
+    "unity_wood_normal_map": true,
+    "unity_cushion_base_map": true,
+    "unity_cushion_normal_map": true,
+    "normal_maps_imported_as_normal": true
+  },
+  "unity": {
+    "version": "2022.3.38f1",
+    "scene_build_exit_code": 0,
+    "tests": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "cases": [
+        "MateSoul.Tests.GameRuntimeTests.CatalogPlacementGrabAndFocusUseRegisteredDefinitions",
+        "MateSoul.Tests.GameRuntimeTests.RemovingSupportThenPausingRestoresTheRemainingItemUnderGravity",
+        "MateSoul.Tests.GameRuntimeTests.SurfacePlacementAndReversedSupportOrderRestoreAsOneLayout"
+      ]
+    }
+  }
+}

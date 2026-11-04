@@ -1,0 +1,52 @@
+{
+  "feature": "electric-kettle-v2",
+  "date": "2026-10-18",
+  "unity": "2022.3.38f1",
+  "model": {
+    "result": "passed",
+    "source": "ArtSource/SapphiArt/Props/ElectricKettle/source/ElectricKettle_Set_220x245x245mm.blend",
+    "reviews": [
+      "ArtSource/SapphiArt/Props/ElectricKettle/source/ElectricKettle_Set_front.png",
+      "ArtSource/SapphiArt/Props/ElectricKettle/source/ElectricKettle_Set_side.png",
+      "ArtSource/SapphiArt/Props/ElectricKettle/source/ElectricKettle_Set_top.png"
+    ],
+    "axis": {
+      "spout": "-X",
+      "handle": "+X"
+    },
+    "material": {
+      "shader": "Universal Render Pipeline/Lit",
+      "metallic": 0.94,
+      "smoothness": 0.72,
+      "normal_scale": 0.42,
+      "base_map": "kettle_brushed_steel_basecolor.png",
+      "normal_map": "kettle_brushed_steel_normal.png"
+    }
+  },
+  "docking": {
+    "result": "passed",
+    "detection_radius_meters": 0.16,
+    "behavior": [
+      "nearest base contact selected",
+      "kettle contact snapped to base contact",
+      "rotation aligned to base",
+      "linear and angular velocity cleared",
+      "gravity disabled while docked",
+      "player follow and character interaction undock first"
+    ]
+  },
+  "tests": {
+    "suite": "MateSoul.Tests.ElectricKettleTests",
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "result_xml": ".artifacts/electric-kettle-v2/test-results.xml"
+  },
+  "android": {
+    "apk": "Builds/MateSoul_Framework.apk",
+    "bytes": 139803909,
+    "sha256": "9c2a6f621c57f7f30df0fe644c929389c6f6312d65fc19f038aa6fe8568345b6",
+    "zip_integrity": "passed",
+    "signature_v2": "passed"
+  }
+}

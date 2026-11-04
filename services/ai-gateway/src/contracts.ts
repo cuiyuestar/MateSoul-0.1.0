@@ -89,6 +89,100 @@ const RuntimeEventSchema = z.object({
   value: z.string().max(200).optional(),
 }).strict();
 
+const RuntimeWorldItemSchema = z.object({
+  id: z.string().min(1).max(128),
+  name: z.string().min(1).max(200),
+  state: z.string().min(1).max(128),
+  control: z.string().min(1).max(64),
+  distance: z.enum(["unknown", "within-reach", "near", "in-room", "far"]),
+}).strict();
+
+const RuntimeWorldSchema = z.object({
+  schema_version: z.literal(1),
+  revision: z.number().int().nonnegative(),
+  player: z.object({
+    nearby: z.boolean(),
+    proximity: z.enum(["unknown", "within-reach", "near", "in-room", "far"]),
+    distance_m: z.number().finite().nonnegative(),
+    dialogue_open: z.boolean(),
+    interaction_mode: z.enum(["unknown", "controller", "eye-hand", "gesture"]),
+    focused_item: RuntimeWorldItemSchema.nullable().optional(),
+  }).strict(),
+  held_items: z.array(z.object({
+    id: z.string().min(1).max(128),
+    name: z.string().min(1).max(200),
+    state: z.string().min(1).max(128),
+    holder: z.enum(["player", "character"]),
+  }).strict()).max(8),
+  activity: z.object({
+    id: z.string().min(1).max(128),
+    name: z.string().min(1).max(200),
+    state: z.string().min(1).max(64),
+    phase: z.string().min(1).max(128),
+    player_score: z.number().int().nonnegative(),
+    companion_score: z.number().int().nonnegative(),
+  }).strict().nullable().optional(),
+  active_facts: z.array(z.object({
+    subject_id: z.string().min(1).max(128),
+    subject_name: z.string().min(1).max(200),
+    category: z.string().min(1).max(64),
+    state: z.string().min(1).max(128),
+    value: z.string().max(500),
+  }).strict()).max(12),
+  inventory_alerts: z.array(z.object({
+    definition_id: z.string().min(1).max(128),
+    name: z.string().min(1).max(200),
+    remaining: z.number().int().nonnegative(),
+    limit: z.number().int().positive(),
+    severity: z.enum(["low", "empty"]),
+  }).strict()).max(8),
+  environment: z.object({
+    revision: z.number().int().nonnegative(),
+    source: z.string().min(1).max(200),
+    confidence: z.enum(["low", "medium", "high"]),
+    count_quality: z.enum(["observed", "estimated"]),
+    floor_area_m2: z.number().finite().nonnegative(),
+    width_m: z.number().finite().nonnegative(),
+    length_m: z.number().finite().nonnegative(),
+    height_m: z.number().finite().nonnegative(),
+    shape: z.enum(["unknown", "rectangular", "irregular", "multi-area"]),
+    open_space: z.enum(["open", "balanced", "dense"]),
+    floor_count: z.number().int().nonnegative(),
+    semantic_counts: z.array(z.object({
+      id: z.string().min(1).max(64),
+      name: z.string().min(1).max(100),
+      count: z.number().int().nonnegative(),
+      estimated: z.boolean(),
+    }).strict()).max(24),
+    zones: z.array(z.object({
+      id: z.string().min(1).max(64),
+      description: z.string().min(1).max(200),
+    }).strict()).max(6),
+    relations: z.array(z.object({
+      subject: z.string().min(1).max(128),
+      relation: z.string().min(1).max(64),
+      target: z.string().min(1).max(128),
+    }).strict()).max(8),
+  }).strict(),
+  virtual_world: z.object({
+    revision: z.number().int().nonnegative(),
+    total_count: z.number().int().nonnegative(),
+    omitted_group_count: z.number().int().nonnegative(),
+    item_groups: z.array(z.object({
+      definition_id: z.string().min(1).max(128),
+      name: z.string().min(1).max(200),
+      state: z.string().min(1).max(128),
+      control: z.string().min(1).max(64),
+      count: z.number().int().positive(),
+    }).strict()).max(24),
+    control_counts: z.array(z.object({
+      control: z.string().min(1).max(64),
+      count: z.number().int().positive(),
+    }).strict()).max(8),
+    salient_items: z.array(RuntimeWorldItemSchema).max(12),
+  }).strict(),
+}).strict();
+
 const RuntimeSchema = z.object({
   schema_version: z.literal(1),
   revision: z.number().int().nonnegative(),
@@ -103,6 +197,7 @@ const RuntimeSchema = z.object({
   posture: z.string().min(1).max(128),
   actions: z.array(RuntimeActionSchema).max(16),
   recent_events: z.array(RuntimeEventSchema).max(8),
+  world: RuntimeWorldSchema.nullable().optional(),
 }).strict();
 
 export function createConversationRequestSchema(maxHistoryMessages: number) {

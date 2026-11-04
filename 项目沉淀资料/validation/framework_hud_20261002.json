@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "date": "2026-10-02",
+  "scene": "Assets/MateSoul/Scenes/MateSoul.unity",
+  "method": "Synthetic MouseState events queued from a PlayMode coroutine through InputSystem, XRUIInputModule and the production GraphicRaycaster; no direct onClick calls",
+  "isolation": "Temporary synthetic Mouse device; XRUIInputModule temporarily set to InputSystemActions to avoid legacy input overwriting injected state. Original mode restored and device removed after verification.",
+  "checks": [
+    { "button": "暂停 / 继续", "state": "Paused", "before": false, "after": true, "raycastHit": true },
+    { "button": "暂停 / 继续", "state": "Paused", "before": true, "after": false, "raycastHit": true },
+    { "button": "留在这里", "state": "Autonomy.Enabled", "before": true, "after": false, "raycastHit": true },
+    { "button": "自主活动", "state": "Autonomy.Enabled", "before": false, "after": true, "raycastHit": true },
+    { "button": "字幕开关", "state": "Subtitles", "before": true, "after": false, "raycastHit": true },
+    { "button": "字幕开关", "state": "Subtitles", "before": false, "after": true, "raycastHit": true }
+  ],
+  "limitations": [
+    "OS-generated mouse injection was not reliably delivered to the Game view; physical mouse input under the retained Both setting is not certified by this test.",
+    "Physical PICO controller ray input requires headset verification."
+  ]
+}

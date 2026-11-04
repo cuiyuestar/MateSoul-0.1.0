@@ -1,3 +1,4 @@
+using ByteDance.PICO.XR;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -6,6 +7,7 @@ namespace MateSoul.Runtime
 {
     public sealed class RealityEnvironmentOcclusionFeature : ScriptableRendererFeature
     {
+        private static bool reportedExecution;
         [SerializeField] private Shader occlusionShader;
 
         private Material material;
@@ -33,7 +35,8 @@ namespace MateSoul.Runtime
             if (!RealityOcclusionMeshRenderer.EnvironmentDepthAvailable ||
                 pass == null ||
                 renderingData.cameraData.cameraType != CameraType.Game ||
-                renderingData.cameraData.camera != Camera.main)
+                renderingData.cameraData.camera != Camera.main ||
+                !HasCurrentDepth(renderingData.cameraData.camera))
                 return;
 
             renderer.EnqueuePass(pass);
@@ -46,10 +49,17 @@ namespace MateSoul.Runtime
             if (!RealityOcclusionMeshRenderer.EnvironmentDepthAvailable ||
                 pass == null ||
                 renderingData.cameraData.cameraType != CameraType.Game ||
-                renderingData.cameraData.camera != Camera.main)
+                renderingData.cameraData.camera != Camera.main ||
+                !HasCurrentDepth(renderingData.cameraData.camera))
                 return;
 
             pass.SetTarget(renderer.cameraColorTargetHandle);
+        }
+
+        private static bool HasCurrentDepth(Camera camera)
+        {
+            var manager = camera.GetComponentInParent<PXR_EnvironmentDepthManager>();
+            return manager != null && manager.IsDepthFrameCurrent;
         }
 
         protected override void Dispose(bool disposing)
@@ -67,7 +77,9 @@ namespace MateSoul.Runtime
             public EnvironmentOcclusionPass(Material material)
             {
                 this.material = material;
-                renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
+                // Composite opaque virtual geometry before transparent HUD rendering.
+                // HUD shaders deliberately ignore scene and environment depth.
+                renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
                 ConfigureInput(ScriptableRenderPassInput.Depth);
             }
 
@@ -87,6 +99,13 @@ namespace MateSoul.Runtime
                 ScriptableRenderContext context,
                 ref RenderingData renderingData)
             {
+                if (!reportedExecution)
+                {
+                    reportedExecution = true;
+                    Debug.Log($"MATESOUL_OCCLUSION_PASS frame={Time.frameCount} " +
+                              $"alphaPreserved={Graphics.preserveFramebufferAlpha} " +
+                              $"format={renderingData.cameraData.cameraTargetDescriptor.graphicsFormat}");
+                }
                 var commandBuffer = CommandBufferPool.Get("MateSoul Reality Occlusion");
                 commandBuffer.DrawProcedural(
                     Matrix4x4.identity,

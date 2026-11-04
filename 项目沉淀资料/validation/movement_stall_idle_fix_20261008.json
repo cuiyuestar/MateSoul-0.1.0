@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-08",
+  "scope": "movement stall termination and Idle01 runtime verification",
+  "movementFix": {
+    "minimumProgressDistanceMeters": 0.03,
+    "blockedDurationSeconds": 1.25,
+    "animationIdleSpeedMetersPerSecond": 0.05,
+    "blockedOutcome": "action failed, motor stopped, animator Speed reset to zero"
+  },
+  "idleRuntime": {
+    "clip": "Lengyue_Idle01_Combined",
+    "normalArrivalWeight": 1.0,
+    "blockedArrivalWeight": 1.0,
+    "sourceFrameRate": 30,
+    "sourceLengthSeconds": 9.166667,
+    "rootTranslationRangeMeters": 0.0,
+    "sampledHeadRotationDegrees": 24.88,
+    "sampledRightUpperArmRotationDegrees": 3.71,
+    "facialBlendShapeCurves": 0
+  },
+  "tests": {
+    "targeted": {
+      "passed": 2,
+      "failed": 0,
+      "cases": [
+        "ProductionCharacterMovesAnimatesAndStopsWithoutLeavingNavMesh",
+        "CharacterPushesLightObjectButCannotWalkThroughAnUnmappedWall"
+      ]
+    },
+    "fullFramework": {
+      "passed": 117,
+      "failed": 1,
+      "skipped": 1,
+      "unrelatedFailure": "ProductionRayInputSnapsBowlingBallToHandAndReleasesIt: existing bowling ball release-position deviation"
+    },
+    "concurrentGameplaySuite": {
+      "passed": 23,
+      "failed": 0
+    }
+  },
+  "deployment": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+    "bytes": 111935968,
+    "sha256": "d3a7f25371b255d13ddb85d6a6229c8a9a9ea5480609e84a19edaf9ba0cf6b0b",
+    "deviceSha256Matched": true,
+    "coldLaunch": "ok",
+    "readyLog": "MATESOUL_READY source=PICO Emulator Spatial Mesh items=1 itemState=ready navMs=41"
+  }
+}

@@ -6,17 +6,14 @@ namespace MateSoul.Runtime
     [DisallowMultipleComponent, RequireComponent(typeof(PhysicsBody))]
     public sealed class LiquidPourer : MonoBehaviour
     {
-        private const int MaximumRaycastHits = 16;
-
         [SerializeField] private WaterReceiver source;
         [SerializeField] private Transform outlet;
         [SerializeField] private Renderer streamRenderer;
         [SerializeField, Min(.01f)] private float flowLitersPerSecond = .24f;
         [SerializeField, Range(5f, 89f)] private float minimumTiltDegrees = 52f;
-        [SerializeField, Min(.05f)] private float maximumDropDistance = .65f;
-
-        private readonly RaycastHit[] hits = new RaycastHit[MaximumRaycastHits];
         private PhysicsBody body;
+        private FluidStream fluid;
+        private double emissionTime;
 
         public WaterReceiver Source => source;
         public Transform Outlet => outlet;
@@ -44,7 +41,6 @@ namespace MateSoul.Runtime
             streamRenderer = stream;
             flowLitersPerSecond = flowRate;
             minimumTiltDegrees = tiltDegrees;
-            maximumDropDistance = dropDistance;
             streamRenderer.gameObject.SetActive(false);
         }
 
@@ -55,12 +51,21 @@ namespace MateSoul.Runtime
                     "Liquid pourer bindings are incomplete.");
             body = GetComponent<PhysicsBody>();
             streamRenderer.gameObject.SetActive(false);
+            fluid = GetComponent<FluidStream>() ?? gameObject.AddComponent<FluidStream>();
+            fluid.Configure(streamRenderer.sharedMaterial);
         }
 
         private void Update() => Advance(Time.deltaTime);
 
         public void AdvanceForTesting(float deltaSeconds)
-            => Advance(deltaSeconds);
+        {
+            for (var remaining = deltaSeconds; remaining > 0; remaining -= .02f)
+            {
+                var step = Mathf.Min(.02f, remaining);
+                Advance(step);
+                fluid?.Advance(step);
+            }
+        }
 
         public float TryPourInto(WaterReceiver target, float requestedLiters,
             Vector3 targetWorldPoint)
@@ -79,71 +84,29 @@ namespace MateSoul.Runtime
                 Vector3.Dot(transform.up, Vector3.up) >
                 Mathf.Cos(minimumTiltDegrees * Mathf.Deg2Rad))
             {
-                SetStream(false, outlet == null
-                    ? transform.position
-                    : outlet.position);
+                IsPouring = false;
+                emissionTime = 0;
+                if (streamRenderer != null) streamRenderer.gameObject.SetActive(false);
                 return;
             }
 
-            if (!TryFindReceiver(out var target, out var targetPoint))
+            if (fluid == null)
             {
-                SetStream(false, outlet.position);
-                return;
+                fluid = GetComponent<FluidStream>() ?? gameObject.AddComponent<FluidStream>();
+                fluid.Configure(streamRenderer.sharedMaterial);
             }
-
-            var transferred = TryPourInto(
-                target, flowLitersPerSecond * deltaSeconds, targetPoint);
-            SetStream(transferred > 0, targetPoint);
-        }
-
-        private bool TryFindReceiver(
-            out WaterReceiver target, out Vector3 targetPoint)
-        {
-            target = null;
-            targetPoint = outlet.position;
-            var count = Physics.RaycastNonAlloc(
-                outlet.position + Vector3.down * .002f,
-                Vector3.down, hits, maximumDropDistance,
-                Physics.AllLayers, QueryTriggerInteraction.Ignore);
-            var nearest = float.PositiveInfinity;
-            for (var index = 0; index < count; index++)
+            streamRenderer.gameObject.SetActive(false);
+            emissionTime += deltaSeconds;
+            IsPouring = true;
+            while (emissionTime + .000001 >= .02 && source.CurrentLiters > 0)
             {
-                var hit = hits[index];
-                if (hit.collider == null || hit.distance >= nearest ||
-                    hit.collider.transform.IsChildOf(transform))
-                    continue;
-                var candidate =
-                    hit.collider.GetComponentInParent<WaterReceiver>();
-                if (candidate == null || candidate == source) continue;
-                var opening = candidate.transform.TransformPoint(
-                    candidate.OpeningCenter);
-                var horizontal = Vector3.ProjectOnPlane(
-                    opening - outlet.position, Vector3.up);
-                if (horizontal.sqrMagnitude >
-                    candidate.OpeningRadius * candidate.OpeningRadius)
-                    continue;
-                target = candidate;
-                targetPoint = opening;
-                nearest = hit.distance;
+                emissionTime = Math.Max(0, emissionTime - .02);
+                var amount = Mathf.Min(source.CurrentLiters, flowLitersPerSecond * .02f);
+                var emitted = fluid.Emit(outlet.position, Vector3.down * .2f,
+                    amount, source.CurrentTemperatureCelsius, source.LiquidColor);
+                if (emitted > 0) source.Drain(emitted);
             }
-            return target != null && target.CanReceiveAt(targetPoint);
-        }
-
-        private void SetStream(bool visible, Vector3 endpoint)
-        {
-            IsPouring = visible;
-            if (streamRenderer == null) return;
-            streamRenderer.gameObject.SetActive(visible);
-            if (!visible) return;
-            var start = outlet.position;
-            var delta = endpoint - start;
-            var length = Mathf.Max(.002f, delta.magnitude);
-            streamRenderer.transform.position = start + delta * .5f;
-            streamRenderer.transform.rotation =
-                Quaternion.FromToRotation(Vector3.up, delta / length);
-            var scale = streamRenderer.transform.localScale;
-            streamRenderer.transform.localScale =
-                new Vector3(scale.x, length * .5f, scale.z);
+            TransferredLiters = fluid.ReceivedLiters;
         }
 
         private void OnDisable()

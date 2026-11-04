@@ -1,0 +1,36 @@
+{
+  "exitCode": 0,
+  "timeout": false,
+  "seconds": 475.5,
+  "protectedAssetsUnchanged": true,
+  "protectedAssetSha256": {
+    "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+    "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+    "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553"
+  },
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_SpatialUI_20261024.apk",
+  "bytes": 183346980,
+  "sha256": "1d098d1c00659474077e4cc9701a67aa7b794fbfb4375b9e5f0d2c0202c1f66e",
+  "zipCrcPassed": true,
+  "abis": [
+    "arm64-v8a"
+  ],
+  "signatureVerified": true,
+  "certificateSha256": "0799ed95a5c84fcc7d5eb21dfa5e587dbc8650b1ac54dc50201de4540711ea97",
+  "package": "com.matesoul.game",
+  "development": true,
+  "unityVersion": "2022.3.38f1",
+  "physicalHeadsetVerified": false,
+  "localRegression": {
+    "passed": true,
+    "headPitchDegrees": 35,
+    "beforePitchMovementMeters": 0.9955132,
+    "afterPitchMovementMeters": 0,
+    "beforeUiRenderQueue": 4000,
+    "afterUiRenderQueue": 3000,
+    "sdkBoolTrueValueAfterCompatibilityFix": 1,
+    "trackedHandMode": "Gesture",
+    "syntheticBlockedRoomError": "Room obstacles removed the complete walkable surface.",
+    "actualRoomGeometryCause": "INCONCLUSIVE"
+  }
+}

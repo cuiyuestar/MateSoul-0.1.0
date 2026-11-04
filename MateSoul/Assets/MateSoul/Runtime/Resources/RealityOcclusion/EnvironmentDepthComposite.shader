@@ -58,6 +58,7 @@ Shader "Hidden/MateSoul/Reality Environment Depth Composite"
             #define ENVIRONMENT_DEPTH_CONVERT_OBJECT_TO_WORLD(positionOS) \
                 TransformObjectToWorld(positionOS.xyz)
             #include "Packages/com.bytedance.pico.xr/Assets/Resources/Shader/EnvironmentOcclusion.cginc"
+            #include "Assets/MateSoul/Runtime/Shaders/RealityEnvironmentDepth.hlsl"
 
             struct Attributes
             {
@@ -105,7 +106,7 @@ Shader "Hidden/MateSoul/Reality Environment Depth Composite"
 
                 float3 positionWS =
                     ComputeWorldSpacePosition(uv, rawDepth, UNITY_MATRIX_I_VP);
-                float occlusion = CalculateEnvironmentDepthOcclusion(
+                float occlusion = MateSoulEnvironmentOcclusion(
                     positionWS,
                     _EnvironmentDepthBias);
                 return half4(0, 0, 0, saturate(occlusion));

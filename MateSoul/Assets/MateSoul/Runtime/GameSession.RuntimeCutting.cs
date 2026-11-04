@@ -15,6 +15,17 @@ namespace MateSoul.Runtime
                 return false;
             var cuttable = target.GetComponent<RuntimeCuttable>();
             if (cuttable == null) return false;
+            if (cuttable.CutDepth >= cuttable.Settings.maximumCutDepth) return false;
+            var worldPoint = -worldPlane.normal * worldPlane.distance;
+            var localNormal = target.transform
+                .InverseTransformDirection(worldPlane.normal).normalized;
+            var localPoint = target.transform.InverseTransformPoint(worldPoint);
+            var localPlane = new Plane(localNormal, localPoint);
+            var bounds = cuttable.CollisionMesh.bounds;
+            var projectedExtent = Vector3.Dot(bounds.extents, new Vector3(
+                Mathf.Abs(localNormal.x), Mathf.Abs(localNormal.y), Mathf.Abs(localNormal.z)));
+            if (Mathf.Abs(localPlane.GetDistanceToPoint(bounds.center)) > projectedExtent)
+                return false;
 
             var runId = Guid.NewGuid();
             var lease = Items.TryReserve(target.Instance, "runtime-cuttable", owner, runId,
@@ -26,11 +37,6 @@ namespace MateSoul.Runtime
             var committed = false;
             try
             {
-                var worldPoint = -worldPlane.normal * worldPlane.distance;
-                var localNormal = target.transform
-                    .InverseTransformDirection(worldPlane.normal).normalized;
-                var localPoint = target.transform.InverseTransformPoint(worldPoint);
-                var localPlane = new Plane(localNormal, localPoint);
                 pair = cuttable.CreateCut(localPlane);
                 if (pair == null) return false;
 

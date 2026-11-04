@@ -175,6 +175,7 @@ namespace MateSoul.Editor
                 definition.ConfigureInventory(1);
                 definition.ConfigurePlacement(true, true,
                     ItemPlacementSurface.Ground, true);
+                definition.ConfigurePlacementFacing(negativeZFace ? 180f : 0f);
                 definition.ClearBreakable();
                 definition.ClearImpactSound();
                 definition.ConfigurePlacementParts();

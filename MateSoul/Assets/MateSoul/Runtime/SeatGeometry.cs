@@ -25,11 +25,33 @@ namespace MateSoul.Runtime
         public SeatTarget Copy() => (SeatTarget)MemberwiseClone();
     }
 
+    public sealed class SeatScanDiagnostics
+    {
+        public int HorizontalTriangles, SurfaceGroups;
+        public int AreaRejected, PlaneRejected, BackrestRejected, SizeRejected, SupportRejected;
+
+        public string NoTargetStatus(int triangleCount)
+        {
+            if (triangleCount == 0) return "尚未收到房间扫描数据，请先扫描椅子附近";
+            if (HorizontalTriangles == 0) return "未找到合适高度的椅面，请观察椅面与地面";
+            if (SupportRejected > 0) return "椅面扫描覆盖不足，请继续观察椅面";
+            if (SizeRejected > 0) return "候选椅面尺寸不足或过大，无法落座";
+            if (BackrestRejected > 0) return "已找到候选椅面，请继续观察靠背";
+            if (PlaneRejected > 0) return "候选椅面起伏过大，尚不能确认落座位置";
+            return "椅面扫描面积不足或尚未连成可用表面";
+        }
+    }
+
     // Pure geometry: semantic labels select candidates, never determine a contact pose.
     public static class SeatGeometry
     {
         public static List<SeatTarget> Extract(IReadOnlyList<RealityTriangle> triangles, float floorY)
+            => Extract(triangles, floorY, out _);
+
+        public static List<SeatTarget> Extract(IReadOnlyList<RealityTriangle> triangles, float floorY,
+            out SeatScanDiagnostics diagnostics)
         {
+            diagnostics = new SeatScanDiagnostics();
             var horizontal = triangles.Where(t => t.HasSemantic(PxrSemanticLabel.Chair) &&
                 Mathf.Abs(t.Normal.y) > .985f &&
                 t.Center.y - floorY >= .32f && t.Center.y - floorY <= .60f).ToArray();
@@ -89,63 +111,81 @@ namespace MateSoul.Runtime
                     continue;
                 seats.Add(seat);
             }
-            ExtractGeometricChairs(triangles, floorY, seats);
+            ExtractGeometricChairs(triangles, floorY, seats, diagnostics);
             return seats;
         }
 
         private static void ExtractGeometricChairs(IReadOnlyList<RealityTriangle> triangles,
-            float floorY, ICollection<SeatTarget> seats)
+            float floorY, ICollection<SeatTarget> seats, SeatScanDiagnostics diagnostics)
         {
-            var sources = triangles.Where(t => t.Label == (int)PxrSemanticLabel.Unknown && t.SourceId != -1)
-                .GroupBy(t => t.SourceId);
-            foreach (var source in sources)
+            // SDK source IDs identify spatial mesh blocks, not furniture instances.
+            // A seat may cross a block seam, and its back may carry a different label.
+            var geometry = triangles.Where(t => t.HasSemantic(PxrSemanticLabel.Chair) ||
+                t.Label == (int)PxrSemanticLabel.Unknown && t.SourceId != -1).ToArray();
+            var horizontal = geometry.Where(t => Mathf.Abs(t.Normal.y) > .7f &&
+                t.Center.y - floorY >= .32f && t.Center.y - floorY <= .60f).ToArray();
+            diagnostics.HorizontalTriangles = horizontal.Length;
+            foreach (var group in Connected(horizontal))
             {
-                var geometry = source.ToArray();
-                var horizontal = geometry.Where(t => Mathf.Abs(t.Normal.y) > .7f &&
-                    t.Center.y - floorY >= .32f && t.Center.y - floorY <= .60f).ToArray();
-                foreach (var group in Connected(horizontal))
-                {
-                    if (!TryCreateGeometricTarget(group, geometry, floorY, out var target) ||
-                        seats.Any(existing => Vector3.Distance(existing.Center, target.Center) < .25f))
-                        continue;
-                    seats.Add(target);
-                }
+                diagnostics.SurfaceGroups++;
+                if (!TryCreateGeometricTarget(group, geometry, floorY, diagnostics, out var target) ||
+                    seats.Any(existing => Vector3.Distance(existing.Center, target.Center) < .25f))
+                    continue;
+                seats.Add(target);
             }
         }
 
         private static bool TryCreateGeometricTarget(IReadOnlyList<RealityTriangle> group,
-            IReadOnlyList<RealityTriangle> source, float floorY, out SeatTarget target)
+            IReadOnlyList<RealityTriangle> source, float floorY,
+            SeatScanDiagnostics diagnostics, out SeatTarget target)
         {
             target = null;
             var area = group.Sum(t => t.Area);
-            if (area < .12f || area > .90f) return false;
+            if (area < .12f || area > .90f) { diagnostics.AreaRejected++; return false; }
             var center = group.Aggregate(Vector3.zero, (sum, triangle) =>
                 sum + triangle.Center * triangle.Area) / area;
             var planeError = Mathf.Sqrt(group.Sum(t =>
                 Mathf.Pow(t.Center.y - center.y, 2) * t.Area) / area);
-            if (planeError > .05f) return false;
+            if (planeError > .05f) { diagnostics.PlaneRejected++; return false; }
+            var points = group.SelectMany(t => new[] { t.A, t.B, t.C }).ToArray();
 
             var upper = Vector3.zero;
             var upperArea = 0f;
             foreach (var triangle in source)
             {
+                if (Mathf.Abs(triangle.Normal.y) > .40f) continue;
                 var delta = triangle.Center - center;
                 if (delta.y < .12f || delta.y > .75f) continue;
                 delta.y = 0;
                 if (delta.magnitude < .12f || delta.magnitude > .65f) continue;
-                upper += delta.normalized * triangle.Area;
+                var normal = Vector3.ProjectOnPlane(triangle.Normal, Vector3.up).normalized;
+                if (Mathf.Abs(Vector3.Dot(normal, delta)) < .12f) continue;
+                var outward = Vector3.Dot(normal, delta) >= 0 ? normal : -normal;
+                var edge = points.Max(point => Vector3.Dot(point - center, outward));
+                // A neighbouring wall or an object above a table cannot stand in
+                // for a backrest. Only vertical structure at the seat edge counts.
+                if (Mathf.Abs(Vector3.Dot(delta, outward) - edge) > .10f) continue;
+                var side = Vector3.Cross(Vector3.up, outward);
+                var lateral = Vector3.Dot(delta, side);
+                if (lateral < points.Min(point => Vector3.Dot(point - center, side)) - .08f ||
+                    lateral > points.Max(point => Vector3.Dot(point - center, side)) + .08f) continue;
+                // Surface normals preserve facing when only one side of a back
+                // is scanned; radial vectors would skew it toward that fragment.
+                upper += outward * triangle.Area;
                 upperArea += triangle.Area;
             }
-            if (upperArea < .18f || upper.magnitude / upperArea < .65f) return false;
+            // Sparse/slatted backs provide direction without a solid 0.18m² panel.
+            if (upperArea < .035f || upper.magnitude / upperArea < .65f)
+            { diagnostics.BackrestRejected++; return false; }
 
             var forward = -upper.normalized;
             var right = Vector3.Cross(Vector3.up, forward);
-            var points = group.SelectMany(t => new[] { t.A, t.B, t.C }).ToArray();
             var xs = points.Select(point => Vector3.Dot(point - center, right)).ToArray();
             var zs = points.Select(point => Vector3.Dot(point - center, forward)).ToArray();
             var width = xs.Max() - xs.Min();
             var depth = zs.Max() - zs.Min();
-            if (width < .42f || width > .90f || depth < .38f || depth > .85f) return false;
+            if (width < .36f || width > .90f || depth < .34f || depth > .85f)
+            { diagnostics.SizeRejected++; return false; }
             center += right * (xs.Max() + xs.Min()) * .5f +
                       forward * (zs.Max() + zs.Min()) * .5f;
 
@@ -155,9 +195,12 @@ namespace MateSoul.Runtime
                 {
                     var point = center + right * (x / 3f * (width * .5f - .045f)) +
                                 forward * (z / 3f * (depth * .5f - .045f));
-                    if (group.Any(triangle => ContainsXZ(triangle, point))) supported++;
+                    var hasSupport = group.Any(triangle => ContainsXZ(triangle, point));
+                    if (hasSupport) supported++;
+                    else if (Mathf.Abs(x) <= 1 && Mathf.Abs(z) <= 1)
+                    { diagnostics.SupportRejected++; return false; }
                 }
-            if (supported < 42) return false;
+            if (supported < 42) { diagnostics.SupportRejected++; return false; }
 
             target = new SeatTarget
             {

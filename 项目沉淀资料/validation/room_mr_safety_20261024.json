@@ -1,0 +1,147 @@
+{
+  "date": "2026-10-24",
+  "progress_status": "awaiting_post_fix_human_room_verification",
+  "device": "PB3A10MGL9220170B",
+  "root_cause": {
+    "confirmed_configuration_mismatch": true,
+    "old_enable_mr_safeguard": 0,
+    "old_native_branch": "VR_NO_JUMP",
+    "persisted_room_data_exists": true,
+    "persisted_data_is_not_active_map": true
+  },
+  "build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_MRSafety_20261024.apk",
+    "sha256": "f3314afb7744c2b45f45ee9a3bd137ae1e6e7b788348eda5f21fa4951c2ae596",
+    "bytes": 202950656,
+    "signatureV2": true,
+    "crcEntries": 1564,
+    "mrSafeguard": true,
+    "protectedAssets": {
+      "Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+      "Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553"
+    },
+    "sourcePdbMatches": {
+      "GameBootstrap": "d1df081e3deb7961538c62b5cabf3a210c15a0707e96833c585acfa2996bedf5",
+      "HudEyeHandInteractor": "15057ad49348e993440cc14382be905215604329dd29fefa2c6ab8ce5b502572",
+      "PicoHandPoke": "04e63b28f4a8d22ab961d9f9d11730cffc5e0c59546f2b7d05b30ff14292ee0c",
+      "PicoTrackedHand": "cc48b786637d992a73a4091577305c79b17a43d8ff4ac25ed82b2b752e779f72",
+      "PicoDirectHandInteractor": "1d2e4f9e3c03284a8c0e6470ec64b021dadb4f3ab1e79c4b5b89944d33f8241a",
+      "RealityMeshSource": "5462d023e10b7dc2b50c39beb76d5634ce1fff06b66ebccabf61aab1e0c0afdf",
+      "RealityOcclusionMeshRenderer": "0c65e1f223de2de1a7f76136c26d39c17c118aee980d7c053b4871cb568d4730",
+      "RuntimeColliderRefiner": "2f189a24793f1a15e455e07fc1b0b953f61b7fb29d27adaf1e2470e9ee59c44b",
+      "RoomMapProviders": "c63284fa8690eb7bc1864f17615466df0fb872abe45b156559dcc5282a14b0f8",
+      "RuntimeRoomNavigation": "988c09d46a0f87c0d8f9bbdc858881a3e738f1b0acdd64bc16750566bf91756a"
+    },
+    "saveBefore": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "saveAfter": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "installedHash": "f3314afb7744c2b45f45ee9a3bd137ae1e6e7b788348eda5f21fa4951c2ae596",
+    "installed": true
+  },
+  "build_pipeline_seconds": 139.5129215,
+  "runtime": {
+    "pid": 19672,
+    "fresh_startup_log": true,
+    "observed_startup_stages": [
+      "bootstrap_start",
+      "save_loaded",
+      "anchor_start",
+      "room_load_start",
+      "scene_provider_start",
+      "scene_provider_started",
+      "first_main_camera_render",
+      "anchor_unavailable",
+      "scene_query_done",
+      "scene_localization_wait"
+    ],
+    "scene_capture_started": true,
+    "boundary_preemption_observed_this_launch": false,
+    "scene_queries": [
+      {
+        "result": "SUCCESS",
+        "anchors": 0,
+        "query": 1,
+        "updates": 2,
+        "elapsedMs": 3352,
+        "focused": 1
+      }
+    ],
+    "room_loaded": false,
+    "ready": false,
+    "first_probe_wake": "Asleep",
+    "observation_seconds": 62.2,
+    "observations": [
+      {
+        "seconds": 10.2,
+        "pid": "19672",
+        "wake": "Asleep",
+        "foreground": "",
+        "freshStartup": true,
+        "lastStage": "scene_localization_wait",
+        "ready": false,
+        "roomLoaded": false
+      },
+      {
+        "seconds": 20.5,
+        "pid": "19672",
+        "wake": "Asleep",
+        "foreground": "",
+        "freshStartup": true,
+        "lastStage": "scene_localization_wait",
+        "ready": false,
+        "roomLoaded": false
+      },
+      {
+        "seconds": 31.5,
+        "pid": "19672",
+        "wake": "Asleep",
+        "foreground": "",
+        "freshStartup": true,
+        "lastStage": "scene_localization_wait",
+        "ready": false,
+        "roomLoaded": false
+      },
+      {
+        "seconds": 41.7,
+        "pid": "19672",
+        "wake": "Asleep",
+        "foreground": "",
+        "freshStartup": true,
+        "lastStage": "scene_localization_wait",
+        "ready": false,
+        "roomLoaded": false
+      },
+      {
+        "seconds": 52.0,
+        "pid": "19672",
+        "wake": "Asleep",
+        "foreground": "",
+        "freshStartup": true,
+        "lastStage": "scene_localization_wait",
+        "ready": false,
+        "roomLoaded": false
+      },
+      {
+        "seconds": 62.2,
+        "pid": "19672",
+        "wake": "Asleep",
+        "foreground": "",
+        "freshStartup": true,
+        "lastStage": "scene_localization_wait",
+        "ready": false,
+        "roomLoaded": false
+      }
+    ],
+    "save_after_runtime_sha256": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "save_unchanged": true,
+    "direct_http_events": 0,
+    "offline_events_imported": 1
+  },
+  "constraints": {
+    "room_capture_data_not_cleared": true,
+    "save_not_cleared": true,
+    "system_safety_not_disabled": true,
+    "current_input_fixes_preserved": true
+  },
+  "report": "/Users/bytedance/MateSoul/项目沉淀资料/真机验收/MateSoul_MR安全策略与房间启动修复_20261024.md"
+}

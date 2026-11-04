@@ -1,0 +1,107 @@
+{
+  "reproduction": {
+    "device": "PB3A10MGL9220170B",
+    "installedPackageSha256": "e2335100b7793251079306ea47ee1f2c10a50522816efb2db6aeb5946e6b8ef9",
+    "processId": 19751,
+    "startupUtc": "2026-10-25T09:44:04.4775720Z",
+    "sceneFallbackElapsedMs": 12050,
+    "nativeMeshBlocks": 8,
+    "environmentDepthAvailable": true,
+    "rawDepthWidth": 512,
+    "processedDepthWidth": 512,
+    "meshQueriesAfterFallback": 23,
+    "lastMeshQueryResult": "SUCCESS",
+    "failure": "PICO Spatial Mesh was not navigation-ready within 12s. Last query result: SUCCESS.",
+    "roomLoaded": false,
+    "avatarBound": false,
+    "itemsRestored": false,
+    "businessReady": false,
+    "nativeOnlineMeshFloorStatus": -1,
+    "nativeOnlineMeshFloorHeight": "inf"
+  },
+  "rootCause": {
+    "status": "CONFIRMED",
+    "description": "The runtime mesh existed, but the room provider required Floor semantic triangles and a 4 m2 floor. PICO returned no online floor semantic, so every successful mesh query was rejected before room assembly."
+  },
+  "fix": {
+    "semanticFloorPriority": true,
+    "geometricFallbackLabels": [
+      "Unknown"
+    ],
+    "minimumHorizontalNormalY": 0.75,
+    "trackingFloorToleranceMeters": 0.3,
+    "minimumMeasuredFloorAreaM2": 1.0,
+    "cellSizeMeters": 0.16,
+    "keepsMeasuredConcavity": true,
+    "requiresMeasuredSpawnSupport": true,
+    "rejectsRaisedUnknownSurfaces": true
+  },
+  "tests": {
+    "roomNavigationSurfaceMesh": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "roomAndOcclusionFocused": {
+      "total": 14,
+      "passed": 14,
+      "failed": 0
+    },
+    "results": [
+      "/tmp/matesoul-live-room-geometry-20261025/user-postfix-still-missing-20261025/floor-fallback-tests-4.xml",
+      "/tmp/matesoul-live-room-geometry-20261025/user-postfix-still-missing-20261025/floor-occlusion-focused.xml"
+    ]
+  },
+  "build": {
+    "exitCode": 0,
+    "duration": "00:03:11.2703744",
+    "protectedFilesChanged": [],
+    "playerPdbVerified": [
+      "RoomMapProviders.cs",
+      "RuntimeRoomNavigation.cs",
+      "GameBootstrap.cs",
+      "PhysicsBody.cs",
+      "PicoTrackedHand.cs",
+      "TrackedHandPhysics.cs",
+      "RealityOcclusionMeshRenderer.cs"
+    ],
+    "compiledMetadataMarkers": [
+      "scene_fallback_spatial_mesh",
+      "tracking-floor-geometry",
+      "MinimumMeasuredFloorArea"
+    ]
+  },
+  "artifact": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_MeasuredFloorFallback_20261025.apk",
+    "bytes": 215323018,
+    "sha256": "d5d0a9a9777fe6f432f1bb99863ee482fb4fcee329acb2988c69878d61f44237",
+    "installedSha256": "d5d0a9a9777fe6f432f1bb99863ee482fb4fcee329acb2988c69878d61f44237",
+    "zipEntries": 1564,
+    "crcPass": true,
+    "signatureV2Pass": true,
+    "abis": [
+      "arm64-v8a"
+    ],
+    "il2cpp": true,
+    "spatialDataPermissionDeclared": true
+  },
+  "saveProtection": {
+    "beforeInstallSha256": "d583d595759ecedaf70b2cdd68700a07113d99577a486df3ebfde99c98463540",
+    "afterInstallSha256": "d583d595759ecedaf70b2cdd68700a07113d99577a486df3ebfde99c98463540"
+  },
+  "sourceChecksums": {
+    "Assets/MateSoul/RoomNavigation/Runtime/RoomMapProviders.cs": "f3b0be5c98768dd42c94f407cd91bd6b8f2356f62b1024c6fcb3fe0a6b982cc6",
+    "Assets/MateSoul/RoomNavigation/Runtime/RuntimeRoomNavigation.cs": "7c2381cd61d9033753d3086c77fbcec606ff87162fed98885fa75e6697a07202",
+    "Assets/MateSoul/Runtime/GameBootstrap.cs": "e65849849556b65e30c78589f92e51d39c9d6c4d495eb8ed9f43c7c16d928e50",
+    "Assets/MateSoul/Runtime/PicoTrackedHand.cs": "0923dd7a1d9b223a9049037c80618cce28a51bc12cc19d594f7968e54e225501",
+    "Assets/MateSoul/Runtime/TrackedHandPhysics.cs": "21783be3f826fb750734415fc76a1d0125282fa644939942dc042d6d3648138b",
+    "Assets/MateSoul/Runtime/PhysicsBody.cs": "443668c7a2f173f731c60700d7a08438e06d11322239aebfc67c21fd5f92f6d9"
+  },
+  "acceptance": {
+    "implementationAndPackage": "passed",
+    "installedArtifact": "passed",
+    "awakeRoomLoaded": "pending_user_retest",
+    "avatarAndItemsVisible": "pending_user_retest",
+    "visualOcclusion": "pending_user_retest"
+  }
+}

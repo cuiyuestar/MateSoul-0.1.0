@@ -1,0 +1,182 @@
+{
+  "date": "2026-10-28",
+  "source": "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/RuntimeCuttingTool.cs",
+  "source_sha256": "1faaff41fdb6e062d61318ab57d5143dce32ec40488711c0b15b8ab635d0c759",
+  "settings": {
+    "minimum_stroke_distance_m": 0.008,
+    "minimum_stroke_speed_m_s": 0.08,
+    "maximum_blade_sample_spacing_m": 0.004,
+    "cut_cooldown_s": 0.14
+  },
+  "baseline_valid_cases": [
+    {
+      "name": "MateSoul.Tests.CarrotKnifeReplay.FastBladeStrokeCutsThroughProductionTool",
+      "result": "Passed",
+      "failure": null
+    },
+    {
+      "name": "MateSoul.Tests.CarrotKnifeReplay.SlowContinuousStrokeAccumulatesAcrossPhysicsFrames",
+      "result": "Failed",
+      "failure": "  胡萝卜已放置。\n  Expected: 2\n  But was:  0\n"
+    },
+    {
+      "name": "MateSoul.Tests.CarrotKnifeReplay.SlowDownwardChopOnTableCutsAndKeepsPiecesAboveSupport",
+      "result": "Failed",
+      "failure": "  胡萝卜已放置。\n  Expected: 2\n  But was:  0\n"
+    },
+    {
+      "name": "MateSoul.Tests.CarrotKnifeReplay.SmallAlternatingJitterDoesNotCut",
+      "result": "Passed",
+      "failure": null
+    }
+  ],
+  "baseline_narrow_case_excluded": "Initial fixture failed before evaluating blade contact.",
+  "replay": {
+    "unity_exit_code": 0,
+    "process_seconds": 83.11,
+    "source_unchanged": true,
+    "summary": {
+      "id": "2",
+      "testcasecount": "20",
+      "result": "Passed",
+      "total": "20",
+      "passed": "20",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-28 06:23:31Z",
+      "end-time": "2026-10-28 06:23:32Z",
+      "duration": "0.9497593"
+    },
+    "tests": [
+      {
+        "name": "MateSoul.Tests.CarrotCuttingTests.CutHistoryReplaysTheSameCollisionVolume",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotCuttingTests.HorizontalCutPreservesVolumeAndClosesBothHalves",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotCuttingTests.LegacyEmptyCutStateRemainsAValidUncutItem",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotCuttingTests.ObliqueCutStoresDirectionalMaterialAlignment",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotCuttingTests.ProductionCarrotHasValidatedCuttableAssets",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotCuttingTests.RepeatedCutsStopAtTheAuthoredDepth",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotCuttingTests.SaveValidationRejectsInvalidCutPlane",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotKnifeReplay.BladeCutsANarrowPieceBetweenLegacySamplePoints",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotKnifeReplay.FastBladeStrokeCutsThroughProductionTool",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotKnifeReplay.SlowContinuousStrokeAccumulatesAcrossPhysicsFrames",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotKnifeReplay.SlowDownwardChopOnTableCutsAndKeepsPiecesAboveSupport",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CarrotKnifeReplay.SmallAlternatingJitterDoesNotCut",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.GameRuntimeTests.RuntimeCarrotCutCommitsTwoPhysicalSavedPieces",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.GripGrabTests.ControllerGripDrivesSelectionFollowAndReleaseThroughRealRay",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.GripGrabTests.DigitalGripWithNoAnalogValueStillGrabsAndReleases",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PhysicsRuntimeTests.CompoundCollidersShareOneMaterialAndRejectNestedBodies",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PhysicsRuntimeTests.FrictionStopsSlidingAndFastObjectDoesNotTunnelThroughFloor",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PhysicsRuntimeTests.GravityImpulseAndSleepUseRealMassAndRejectInvalidInput",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PhysicsRuntimeTests.HeldBodyCannotCrossThinWallAndReleaseKeepsResolvedMomentum",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PhysicsRuntimeTests.PauseFreezesFallingBodyAndRestoresVelocityWithoutCatchup",
+        "result": "Passed",
+        "failure": null
+      }
+    ],
+    "log": "/tmp/matesoul-carrot-cut-20261028/after.log",
+    "xml": "/tmp/matesoul-carrot-cut-20261028/after.xml"
+  },
+  "protected_assets": {
+    "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+    "MateSoul/Assets/MateSoul/Content/Avatar.controller": "175119629f0667255f5242a1b3fb777685fe6d4640057da8efc31222dee1dd23",
+    "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543"
+  },
+  "build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_CarrotCutFix_20261028.apk",
+    "sha256": "edbba2790726d99e2915caac565905e9eb98fe8c5f8ae4bad1dec362821f3e69",
+    "bytes": 165619187,
+    "seconds": 157.06,
+    "source_inputs": 1815,
+    "source_unchanged": true,
+    "crc": true,
+    "signature": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): false\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1",
+    "zipalign": true,
+    "generated_cutting_cpp": true,
+    "native_matches": true,
+    "installed": false
+  },
+  "temporary_test_entry_removed": true,
+  "headset_connected": false,
+  "installed": false,
+  "headset_behavior_verified": false
+}

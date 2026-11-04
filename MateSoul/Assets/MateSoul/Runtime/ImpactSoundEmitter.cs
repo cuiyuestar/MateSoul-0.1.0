@@ -123,6 +123,24 @@ namespace MateSoul.Runtime
             LastVolume = volume;
             PlayCount++;
             nextAllowedAt = Time.unscaledTime + Cooldown;
+#region debug-point C:impact-audio
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            if (PlayCount <= 20 || PlayCount % 25 == 0)
+            {
+                var culture = System.Globalization.CultureInfo.InvariantCulture;
+                var payload =
+                    $"{{\"sessionId\":\"emulator-memory-growth\",\"runId\":\"interaction-correlation\"," +
+                    $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                    $"\"location\":\"ImpactSoundEmitter.HandleImpact\",\"msg\":\"[DEBUG] impact audio played\"," +
+                    $"\"data\":{{\"definition\":\"{item.Definition.Id}\",\"count\":{PlayCount}," +
+                    $"\"severity\":\"{severity}\",\"force\":{force.ToString("R", culture)}}}}}";
+                var request = UnityWebRequest.Post(
+                    "http://127.0.0.1:7791/event", payload, "application/json");
+                var operation = request.SendWebRequest();
+                operation.completed += _ => request.Dispose();
+            }
+#endif
+#endregion
         }
 
         private void Update()

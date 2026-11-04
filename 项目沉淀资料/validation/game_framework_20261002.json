@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-02",
+  "status": "passed_with_physical_device_boundaries",
+  "branch": "framework/game-runtime",
+  "unity": "2022.3.38f1",
+  "scene": "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity",
+  "staticCompilation": "passed",
+  "unityEditorCompilation": "passed",
+  "domainTests": {
+    "total": 28,
+    "passed": 28,
+    "failed": 0,
+    "report": ".artifacts/framework/domain-tests.xml"
+  },
+  "unityTests": {
+    "total": 34,
+    "passed": 34,
+    "failed": 0,
+    "report": ".artifacts/framework/unity-tests.xml",
+    "latestRunEndUtc": "2026-10-02T14:32:01Z",
+    "fixedIssue": "Unity Test Framework restores iterator PC after EnterPlayMode but skips captured-local closure initialization; replaced SetUp WaitUntil lambda with while/yield.",
+    "cleanRunWithoutInstrumentation": true
+  },
+  "batchmode": {
+    "status": "abandoned_after_hang",
+    "error": "mono_os_sem_post: semaphore_signal failed with error 15",
+    "observedAt": "ADB and Bee subprocess startup",
+    "stalledProcessTerminated": true,
+    "underlyingCauseConfirmed": false
+  },
+  "workingAlternative": "Unity Hub -> MateSoul > Game > Run Framework Tests (Unity TestRunnerApi)",
+  "currentBlocker": null,
+  "androidBuild": {
+    "status": "passed",
+    "path": "Builds/MateSoul_Framework.apk",
+    "bytes": 79907577,
+    "unityTotalBuildOutputBytes": 742907229,
+    "durationSeconds": 44.4935346,
+    "sha256": "a15c89e9feab53bf288a8d7e5b09b7112c4dd47ab0b9c8449c280497325528b5",
+    "configuration": "Development ARM64 IL2CPP",
+    "inputHandling": "Input System Package (New)"
+  },
+  "emulator": {
+    "device": "emulator-5554",
+    "installed": true,
+    "launched": true,
+    "ready": true,
+    "readyAtDeviceLocal": "2026-10-02 18:47:44.570",
+    "source": "PICO Emulator Spatial Mesh",
+    "meshBlocks": 48,
+    "floorAreaM2": 55.89,
+    "navMeshBuildMs": 37,
+    "vst": {
+      "status": "passed_with_emulator_runtime_log_noise",
+      "report": "项目沉淀资料/validation/framework_vst_20261002.json",
+      "background": "PICO Emulator built-in bedroom",
+      "blackBackground": false,
+      "characterAndHudComposited": true
+    },
+    "movementRegression": {
+      "status": "passed",
+      "report": "项目沉淀资料/validation/framework_navigation_20261002.json",
+      "gameSeconds": 30.004255294799806,
+      "frames": 1096,
+      "movementStarts": 5,
+      "distanceM": 15.384299278259278,
+      "maxAnimatorSpeed": 1.1000256538391114,
+      "outsideFloorFrames": 0,
+      "offNavMeshFrames": 0,
+      "roomPenetrationFrames": 0
+    },
+    "performanceAcceptance": "not_measured"
+  },
+  "editorScene": {
+    "ready": true,
+    "source": "PICO SDK MockSceneData",
+    "navMeshBuildMs": 6,
+    "characterAndHudVisible": true,
+    "autonomousMovementObserved": true,
+    "hudInput": {
+      "status": "passed_synthetic_mouse_event_chain",
+      "report": "项目沉淀资料/validation/framework_hud_20261002.json",
+      "checks": 6,
+      "physicalMouseAndController": "requires_manual_device_verification"
+    }
+  },
+  "ui": {
+    "status": "passed",
+    "report": "项目沉淀资料/validation/framework_ui_20261002.json",
+    "placement": "player view bottom",
+    "navigation": ["对话", "互动", "信息", "虚拟物品", "设置"],
+    "style": "near-square translucent lavender tiles; hand, information, and backpack silhouettes extracted from the supplied reference pixels",
+    "interactionActivities": 4,
+    "pointerClickRegression": "passed"
+  },
+  "remaining": [
+    "Validate Room Capture and spatial-anchor restoration on a physical headset",
+    "Validate physical PICO controller rays and final input mode on a headset",
+    "Validate the real HTTPS model gateway when its endpoint and service are available"
+  ]
+}

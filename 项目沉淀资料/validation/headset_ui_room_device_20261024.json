@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-24",
+  "deviceModel": "B3110",
+  "deviceProduct": "swan",
+  "package": "com.matesoul.game",
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_SpatialUI_20261024.apk",
+  "installedSha256": "1d098d1c00659474077e4cc9701a67aa7b794fbfb4375b9e5f0d2c0202c1f66e",
+  "installedHashMatches": true,
+  "install": {
+    "success": true,
+    "replaceExisting": true,
+    "applicationDataCleared": false,
+    "seconds": 8.83
+  },
+  "launch": {
+    "activity": "com.matesoul.game/com.unity3d.player.UnityPlayerActivity",
+    "amStartStatus": "ok",
+    "pid": 29505,
+    "processStillRunningAtFinalCheck": true,
+    "activityResumedObserved": true,
+    "businessReady": false
+  },
+  "handInput": {
+    "subsystemStarted": true,
+    "sdkReportsInteractionSupported": true,
+    "leftDeviceCreated": true,
+    "rightDeviceCreated": true,
+    "leftTrackingObserved": true,
+    "rightTrackingObserved": true,
+    "automaticModeObserved": "EyeHand",
+    "userClickAcceptance": "PENDING"
+  },
+  "historicalLog": {
+    "available": true,
+    "failureLocalTime": "2026-10-24 16:53:55.824",
+    "pid": 27357,
+    "marker": "MATESOUL_NAVIGATION_FAIL",
+    "error": "启动失败：Room obstacles removed the complete walkable surface.",
+    "startupGeometryLinesRetained": false,
+    "zeroMetricsAreUninitializedProbeResults": true
+  },
+  "currentRoomFailure": {
+    "failureLocalTime": "2026-10-24 18:08:45.596",
+    "source": "PICO Room Capture",
+    "querySucceeded": true,
+    "floorSources": 1,
+    "floorAreaM2": 5.48,
+    "obstacleSources": 18,
+    "surfaceSources": 0,
+    "navMeshVertices": 0,
+    "agentRadiusMeters": 0.25,
+    "agentHeightMeters": 1.65,
+    "error": "Room obstacles removed the complete walkable surface.",
+    "failureBeforeAvatarEnable": true,
+    "roomAnchorPreparationObserved": false,
+    "confirmedFailureBoundary": "Obstacle-inclusive NavMesh is empty; floor-only NavMesh can be sampled.",
+    "suspectedGeometryCause": "Furniture obstacles all report zero Euler rotation; SDK example marks Box3D local rotation unsupported while provider multiplies it into anchor rotation.",
+    "exactGeometryRootCause": "INCONCLUSIVE"
+  },
+  "offlineStartupLog": {
+    "created": true,
+    "pulled": true,
+    "bytes": 23401,
+    "devicePath": "/sdcard/Android/data/com.matesoul.game/files/diagnostics/startup-current.log"
+  },
+  "evidenceDirectory": "/tmp/matesoul-headset-ui-room/device-20261024",
+  "physicalUiAcceptance": "PENDING_USER_TEST",
+  "automaticRestartDuringUserTest": false
+}

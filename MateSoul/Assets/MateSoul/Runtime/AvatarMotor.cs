@@ -20,8 +20,57 @@ namespace MateSoul.Runtime
         private readonly RuntimeRoomNavigation room;
         public RoomNavigationService(RuntimeRoomNavigation room) { this.room = room; }
         public float FloorHeight => room.Snapshot.MainFloor.Centroid.y;
+        public bool ContainsFloorPoint(Vector3 point)
+        {
+            foreach (var floor in room.Snapshot.Floors)
+                if (RoomGeometry.ContainsPointXZ(floor.Vertices, point)) return true;
+            return false;
+        }
+
         public bool TryPath(Vector3 origin, Vector3 destination, out Vector3[] corners)
         {
+#region debug-point A-C-D:navigation-path-input
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            var debugOriginOnMesh = NavMesh.SamplePosition(
+                origin, out var debugOriginHit, .75f, NavMesh.AllAreas);
+            var debugNearTargetOnMesh = TrySample(
+                destination, .08f, out var debugNearTarget);
+            var debugTargetOnMesh = TrySample(
+                destination, .75f, out var debugTarget);
+            var debugPath = new NavMeshPath();
+            var debugCalculated = debugOriginOnMesh && debugTargetOnMesh &&
+                                  NavMesh.CalculatePath(
+                                      origin, debugTarget, NavMesh.AllAreas, debugPath);
+            var debugPathCorners = debugPath.corners == null
+                ? ""
+                : string.Join(",", Array.ConvertAll(
+                    debugPath.corners, value => JsonUtility.ToJson(value)));
+            var debugTriangulation = NavMesh.CalculateTriangulation();
+            var debugPayload =
+                $"{{\"sessionId\":\"item-seat-navigation-fail\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"A-C-D\",\"location\":\"RoomNavigationService.TryPath\"," +
+                $"\"msg\":\"[DEBUG] navigation path input\",\"data\":{{" +
+                $"\"frame\":{Time.frameCount},\"origin\":{JsonUtility.ToJson(origin)}," +
+                $"\"destination\":{JsonUtility.ToJson(destination)}," +
+                $"\"originOnMesh\":{debugOriginOnMesh.ToString().ToLowerInvariant()}," +
+                $"\"originSample\":{JsonUtility.ToJson(debugOriginHit.position)}," +
+                $"\"originError\":{(debugOriginOnMesh ? Vector3.Distance(origin, debugOriginHit.position) : -1)}," +
+                $"\"nearTargetOnMesh\":{debugNearTargetOnMesh.ToString().ToLowerInvariant()}," +
+                $"\"nearTarget\":{JsonUtility.ToJson(debugNearTarget)}," +
+                $"\"nearTargetError\":{(debugNearTargetOnMesh ? Vector3.Distance(destination, debugNearTarget) : -1)}," +
+                $"\"targetOnMesh\":{debugTargetOnMesh.ToString().ToLowerInvariant()}," +
+                $"\"targetSample\":{JsonUtility.ToJson(debugTarget)}," +
+                $"\"calculated\":{debugCalculated.ToString().ToLowerInvariant()}," +
+                $"\"status\":\"{debugPath.status}\",\"corners\":[{debugPathCorners}]," +
+                $"\"navVertices\":{debugTriangulation.vertices.Length}}}}}";
+            var debugRequest = UnityWebRequest.Post(
+                Application.isEditor
+                    ? "http://127.0.0.1:7780/event"
+                    : "http://127.0.0.1:7780/event",
+                debugPayload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
             corners = null;
             if (!TrySample(destination, .75f, out var target)) return false;
             var path = new NavMeshPath();
@@ -33,7 +82,24 @@ namespace MateSoul.Runtime
         public bool TrySample(Vector3 point, float distance, out Vector3 result)
             => room.TrySamplePosition(point, distance, out result);
         public bool TryRandom(Vector3 origin, System.Random random, out Vector3 result)
-            => room.TryGetRandomReachablePoint(origin, random, 1.25f, out result, out _);
+        {
+            var available = room.TryGetRandomReachablePoint(origin, random, .35f, out result, out _);
+#region debug-point A:random-route-admission
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            var shortAvailable = !available && room.TryGetRandomReachablePoint(
+                origin, new System.Random(937), .35f, out var shortPoint, out _);
+            var payload = $"{{\"sessionId\":\"movement-handhold-stall\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"A\",\"location\":\"RoomNavigationService.TryRandom\"," +
+                $"\"msg\":\"[DEBUG] random route admission\",\"data\":{{" +
+                $"\"available\":{available.ToString().ToLowerInvariant()}," +
+                $"\"shortAvailable\":{shortAvailable.ToString().ToLowerInvariant()}," +
+                $"\"origin\":{JsonUtility.ToJson(origin)}}}}}";
+            var request = UnityWebRequest.Post("http://127.0.0.1:7781/event", payload, "application/json");
+            request.SendWebRequest().completed += _ => request.Dispose();
+#endif
+#endregion
+            return available;
+        }
     }
 
     public interface IAvatarMotor
@@ -49,6 +115,8 @@ namespace MateSoul.Runtime
     [RequireComponent(typeof(PhysicsBody), typeof(CapsuleCollider))]
     public sealed class AvatarMotor : MonoBehaviour, IAvatarMotor
     {
+        public const float FullWalkBlendSpeed = .12f;
+        public const float WalkReferenceSpeed = .6221811f;
         private const float AnimationIdleSpeed = .05f;
         private const float TurnAnimationStartSpeed = .12f;
         private const float TurnBeforeMoveEnterAngle = 70f;
@@ -57,13 +125,15 @@ namespace MateSoul.Runtime
         // cadence instead of allowing the capsule to outrun the planted feet.
         private const float MaximumInPlaceTurnSpeed = 78f;
         private const float TurnStepSettleSpeed = 28f;
+        private const float TurnStepEndTime = .96f;
+        private const float TurnStepCompleteAngle = 1f;
         private const float TurnStepRecoverySeconds = .6f;
         private const float RepeatTurnStepAngle = 48f;
-        private const float PhysicalAvoidanceActivationSeconds = .3f;
-        private const float PhysicalAvoidanceHoldSeconds = 1.25f;
+        private const float PhysicalAvoidanceActivationSeconds = .45f;
+        private const float PhysicalAvoidanceHoldSeconds = .65f;
         private const float PhysicalAvoidanceFailureSeconds = 8f;
         [SerializeField] private Animator animator;
-        [SerializeField] private float speed = 1.1f;
+        [SerializeField] private float speed = .75f;
         [SerializeField] private float turnSpeed = 240f;
         [SerializeField] private float handHoldAcceleration = 2.2f;
         private PhysicsBody body;
@@ -71,18 +141,22 @@ namespace MateSoul.Runtime
         private NavMeshAgent agent;
         private Vector3[] corners;
         private int corner;
-        private int speedParameter, turnRateParameter, socialAttentionParameter;
-        private int turnStepLeftParameter, turnStepRightParameter;
+        private int speedParameter, walkPlaybackRateParameter, turnRateParameter, socialAttentionParameter;
+        private int turnStepLeftParameter, turnStepRightParameter, turnStepActiveParameter;
         private bool hasTurnRateParameter, hasSocialAttentionParameter;
-        private bool hasTurnStepLeftParameter, hasTurnStepRightParameter;
-        private bool turnStepRequested, turnStepWasObserved, completedTurnStep;
+        private bool hasTurnStepLeftParameter, hasTurnStepRightParameter, hasTurnStepActiveParameter;
+        private bool turnStepRequested, turnStepActive;
         private float turnStepRecoverySeconds;
         private bool contact;
         private Vector3 contactExit;
         private Vector3 desiredVelocity;
+        private Vector3 externalResponseVelocity;
+        private Vector3 physicalStepOrigin, physicalStepOffset;
+        private float physicalStepSeconds;
+        private bool physicalStepActive;
         private Quaternion facing;
         private float facingSpeed;
-        private bool handHoldDrive, waitingForFacing;
+        private bool handHoldDrive, waitingForFacing, dockFacing;
         private readonly TurnInPlaceMotion turnMotion = new TurnInPlaceMotion();
         private AvatarTurnFootPlantRig turnFootPlant;
         private Collider physicalBlocker;
@@ -91,15 +165,38 @@ namespace MateSoul.Runtime
         private float physicalContactIdleSeconds, physicalAvoidanceTotalSeconds;
         private readonly HashSet<int> contactIgnoredSurfaceSources = new HashSet<int>();
         private readonly RaycastHit[] groundHits = new RaycastHit[12];
+#region debug-point B:grounded-motion
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+        private float debugNextMotorReport;
+#endif
+#endregion
+#region debug-point A-C:animation-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private float debugNextAnimationReport;
+        private float debugNextMovementDriveReport;
+        private float debugNextMovementCollisionReport;
+        private float debugNextBedStallReport;
+        private float debugNextBedCollisionReport;
+        private float debugNextMovementHandholdReport;
+        private Transform debugLeftLeg;
+        private Transform debugRightLeg;
+        private Quaternion debugPreviousLeftLeg;
+        private Quaternion debugPreviousRightLeg;
+#endif
+#endregion
         public PhysicsBody Body => body;
         public string ContactPosture => !contact ? null :
             Vector3.Dot(body.Pose.rotation * Vector3.up, Vector3.up) < .7f ? "lying" : "seated";
         public Vector3 Position => body != null ? body.Pose.position : transform.position;
         public bool IsMoving => corners != null;
         public bool IsTurning => turnMotion.IsTurning;
+        public bool IsTurnStepActive => turnStepActive;
         public bool SocialAttentionEnabled { get; private set; }
         public bool PhysicalAvoidanceFailed
             => physicalAvoidanceTotalSeconds >= PhysicalAvoidanceFailureSeconds;
+        public Vector3 ExternalResponseVelocity => externalResponseVelocity;
+        public bool IsPhysicalStepActive => physicalStepActive;
+        public float PhysicalStepProgress => Mathf.Clamp01(physicalStepSeconds / .62f);
 
         public void Bind(Animator characterAnimator)
         {
@@ -113,7 +210,7 @@ namespace MateSoul.Runtime
             body.Place(initialPose);
             agent = GetComponent<NavMeshAgent>();
             if (agent == null) agent = gameObject.AddComponent<NavMeshAgent>();
-            agent.radius = RuntimeRoomNavigation.CharacterRadius;
+            agent.radius = RuntimeRoomNavigation.NavigationRadius;
             agent.height = RuntimeRoomNavigation.CharacterHeight;
             agent.baseOffset = 0;
             agent.speed = speed;
@@ -125,7 +222,7 @@ namespace MateSoul.Runtime
             agent.updatePosition = false;
             agent.updateRotation = false;
             agent.updateUpAxis = false;
-            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
             agent.avoidancePriority = 50;
             if (!agent.isOnNavMesh &&
                 NavMesh.SamplePosition(Position, out var navHit, .5f, NavMesh.AllAreas))
@@ -135,10 +232,12 @@ namespace MateSoul.Runtime
             facing = body.Pose.rotation;
             facingSpeed = turnSpeed;
             speedParameter = Animator.StringToHash("Speed");
+            walkPlaybackRateParameter = Animator.StringToHash("WalkPlaybackRate");
             turnRateParameter = Animator.StringToHash("TurnRate");
             socialAttentionParameter = Animator.StringToHash("SocialAttention");
             turnStepLeftParameter = Animator.StringToHash("TurnStepLeft");
             turnStepRightParameter = Animator.StringToHash("TurnStepRight");
+            turnStepActiveParameter = Animator.StringToHash("TurnStepActive");
             hasTurnRateParameter = HasFloatParameter(turnRateParameter);
             hasSocialAttentionParameter = HasParameter(
                 socialAttentionParameter, AnimatorControllerParameterType.Bool);
@@ -146,10 +245,25 @@ namespace MateSoul.Runtime
                 turnStepLeftParameter, AnimatorControllerParameterType.Trigger);
             hasTurnStepRightParameter = HasParameter(
                 turnStepRightParameter, AnimatorControllerParameterType.Trigger);
+            hasTurnStepActiveParameter = HasParameter(
+                turnStepActiveParameter, AnimatorControllerParameterType.Bool);
             turnFootPlant = GetComponent<AvatarTurnFootPlantRig>();
-            turnMotion.Reset();
+            ResetTurnMotion();
             SocialAttentionEnabled = false;
             animator.applyRootMotion = false;
+#region debug-point A-C:animation-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            foreach (var child in animator.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name == "Leg_L") debugLeftLeg = child;
+                else if (child.name == "Leg_R") debugRightLeg = child;
+            }
+            debugPreviousLeftLeg = debugLeftLeg != null
+                ? debugLeftLeg.localRotation : Quaternion.identity;
+            debugPreviousRightLeg = debugRightLeg != null
+                ? debugRightLeg.localRotation : Quaternion.identity;
+#endif
+#endregion
         }
 
         public void Begin(Vector3[] path)
@@ -176,6 +290,32 @@ namespace MateSoul.Runtime
             agent.isStopped = false;
             if (destinationChanged && !agent.SetDestination(endpoint))
                 throw new InvalidOperationException("Navigation avoidance rejected the destination.");
+#region debug-point B-C-D:bed-stall-begin
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            var debugCorners = string.Join(",",
+                Array.ConvertAll(path, value => JsonUtility.ToJson(value)));
+            var debugPayload =
+                $"{{\"sessionId\":\"avatar-bed-corner-stall\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"B-C-D\",\"location\":\"AvatarMotor.Begin\"," +
+                $"\"msg\":\"[DEBUG] navigation begin\",\"data\":{{" +
+                $"\"position\":{JsonUtility.ToJson(Position)}," +
+                $"\"endpoint\":{JsonUtility.ToJson(endpoint)}," +
+                $"\"corners\":[{debugCorners}],\"agentEnabled\":{agent.enabled.ToString().ToLowerInvariant()}," +
+                $"\"onNavMesh\":{agent.isOnNavMesh.ToString().ToLowerInvariant()}," +
+                $"\"isStopped\":{agent.isStopped.ToString().ToLowerInvariant()}," +
+                $"\"hasPath\":{agent.hasPath.ToString().ToLowerInvariant()}," +
+                $"\"pathPending\":{agent.pathPending.ToString().ToLowerInvariant()}," +
+                $"\"pathStatus\":\"{agent.pathStatus}\",\"contact\":{contact.ToString().ToLowerInvariant()}}}}}";
+#if UNITY_EDITOR
+            const string debugEndpoint = "http://127.0.0.1:7778/event";
+#else
+            const string debugEndpoint = "http://127.0.0.1:7778/event";
+#endif
+            var debugRequest = UnityWebRequest.Post(
+                debugEndpoint, debugPayload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
         }
 
         public bool Tick(float deltaSeconds)
@@ -197,6 +337,52 @@ namespace MateSoul.Runtime
                     physicalContactIdleSeconds = physicalAvoidanceTotalSeconds = 0;
                 physicalAvoidanceNormal = Vector3.zero;
             }
+#region debug-point A-B-C-D-E:bed-stall-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextBedStallReport)
+            {
+                debugNextBedStallReport = Time.unscaledTime + .25f;
+                var debugEndpointPosition = corners[corners.Length - 1];
+                var debugForward = Vector3.ProjectOnPlane(
+                    body.Pose.rotation * Vector3.forward, Vector3.up);
+                var debugDrive = Vector3.ProjectOnPlane(desiredVelocity, Vector3.up);
+                var debugAngle = debugDrive.sqrMagnitude > .0025f
+                    ? Vector3.Angle(debugForward, debugDrive) : 0;
+                var debugBlocker = physicalBlocker != null
+                    ? physicalBlocker.name.Replace("\"", "'") : "none";
+                var debugPayload =
+                    $"{{\"sessionId\":\"avatar-bed-corner-stall\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A-B-C-D-E\",\"location\":\"AvatarMotor.Tick\"," +
+                    $"\"msg\":\"[DEBUG] navigation state sample\",\"data\":{{" +
+                    $"\"position\":{JsonUtility.ToJson(Position)}," +
+                    $"\"endpoint\":{JsonUtility.ToJson(debugEndpointPosition)}," +
+                    $"\"corner\":{corner},\"cornerCount\":{corners.Length}," +
+                    $"\"desiredVelocity\":{JsonUtility.ToJson(desiredVelocity)}," +
+                    $"\"actualVelocity\":{JsonUtility.ToJson(body.Rigidbody.velocity)}," +
+                    $"\"waitingForFacing\":{waitingForFacing.ToString().ToLowerInvariant()}," +
+                    $"\"facingAngle\":{debugAngle},\"contact\":{contact.ToString().ToLowerInvariant()}," +
+                    $"\"handHoldDrive\":{handHoldDrive.ToString().ToLowerInvariant()}," +
+                    $"\"blocker\":\"{debugBlocker}\",\"blockSeconds\":{physicalBlockSeconds}," +
+                    $"\"avoidanceSeconds\":{physicalAvoidanceSeconds}," +
+                    $"\"avoidanceTotal\":{physicalAvoidanceTotalSeconds}," +
+                    $"\"agentEnabled\":{(agent != null && agent.enabled).ToString().ToLowerInvariant()}," +
+                    $"\"onNavMesh\":{(agent != null && agent.isOnNavMesh).ToString().ToLowerInvariant()}," +
+                    $"\"isStopped\":{(agent != null && agent.isStopped).ToString().ToLowerInvariant()}," +
+                    $"\"hasPath\":{(agent != null && agent.hasPath).ToString().ToLowerInvariant()}," +
+                    $"\"pathPending\":{(agent != null && agent.pathPending).ToString().ToLowerInvariant()}," +
+                    $"\"pathStatus\":\"{(agent != null ? agent.pathStatus.ToString() : "none")}\"," +
+                    $"\"agentDesiredVelocity\":{JsonUtility.ToJson(agent != null ? agent.desiredVelocity : Vector3.zero)}}}}}";
+#if UNITY_EDITOR
+                const string debugEndpoint = "http://127.0.0.1:7778/event";
+#else
+                const string debugEndpoint = "http://127.0.0.1:7778/event";
+#endif
+                var debugRequest = UnityWebRequest.Post(
+                    debugEndpoint, debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
             if (agent != null && agent.enabled && agent.isOnNavMesh)
             {
                 agent.nextPosition = Position;
@@ -215,9 +401,6 @@ namespace MateSoul.Runtime
                     desiredVelocity = Vector3.ClampMagnitude(avoidanceVelocity, speed);
                     Face(Position + desiredVelocity, deltaSeconds);
                     GateMovementForTurn();
-                    var avoidanceActualSpeed = Vector3.ProjectOnPlane(
-                        body.Rigidbody.velocity, Vector3.up).magnitude;
-                    SetAnimationSpeed(avoidanceActualSpeed);
                     return false;
                 }
             }
@@ -233,8 +416,6 @@ namespace MateSoul.Runtime
             desiredVelocity = deltaSeconds > 0 ? movement / deltaSeconds : Vector3.zero;
             Face(corners[corner], deltaSeconds);
             GateMovementForTurn();
-            var actualSpeed = Vector3.ProjectOnPlane(body.Rigidbody.velocity, Vector3.up).magnitude;
-            SetAnimationSpeed(actualSpeed);
             return false;
         }
 
@@ -267,9 +448,11 @@ namespace MateSoul.Runtime
 
         public void Stop()
         {
+            EndPhysicalStep();
             corners = null;
             handHoldDrive = false;
             waitingForFacing = false;
+            dockFacing = false;
             desiredVelocity = Vector3.zero;
             physicalBlocker = null;
             physicalBlockSeconds = physicalAvoidanceSeconds = physicalAvoidanceSign = 0;
@@ -336,13 +519,37 @@ namespace MateSoul.Runtime
             SetAnimationSpeed(0);
         }
 
-        public bool Dock(Vector3 position, Quaternion rotation, float dt)
+        public void BeginPhysicalStep(Vector3 offset)
+        {
+            if (body == null || body.IsPaused || contact || handHoldDrive ||
+                !PhysicsBody.IsFinite(offset))
+                throw new InvalidOperationException("Balance step is unavailable.");
+            Stop();
+            HoldFacing();
+            physicalStepOrigin = Position;
+            physicalStepOffset = Vector3.ClampMagnitude(
+                Vector3.ProjectOnPlane(offset, Vector3.up), .09f);
+            physicalStepSeconds = 0;
+            physicalStepActive = true;
+        }
+
+        public void EndPhysicalStep()
+        {
+            physicalStepActive = false;
+            externalResponseVelocity = Vector3.zero;
+        }
+
+        public bool Dock(Vector3 position, Quaternion rotation, float dt,
+            float positionTolerance = .015f)
         {
             Stop();
             var delta = Vector3.ProjectOnPlane(position - Position, Vector3.up);
-            desiredVelocity = Vector3.ClampMagnitude(delta * 8f, .35f);
+            var positionReached = delta.magnitude < positionTolerance;
+            desiredVelocity = positionReached ? Vector3.zero : Vector3.ClampMagnitude(delta * 8f, .35f);
             facing = rotation;
-            return delta.magnitude < .015f && Quaternion.Angle(body.Pose.rotation, rotation) < 1f;
+            var rotationReached = Quaternion.Angle(body.Pose.rotation, rotation) < 1f;
+            dockFacing = !rotationReached;
+            return positionReached && rotationReached;
         }
 
         private void FixedUpdate()
@@ -363,19 +570,114 @@ namespace MateSoul.Runtime
                 grounded = true;
                 break;
             }
+#region debug-point A-B:movement-runtime-state
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextMovementHandholdReport)
+            {
+                debugNextMovementHandholdReport = Time.unscaledTime + 1f;
+                var payload = $"{{\"sessionId\":\"movement-handhold-stall\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A-B\",\"location\":\"AvatarMotor.FixedUpdate\"," +
+                    $"\"msg\":\"[DEBUG] movement runtime state\",\"data\":{{" +
+                    $"\"position\":{JsonUtility.ToJson(Position)}," +
+                    $"\"desiredVelocity\":{JsonUtility.ToJson(desiredVelocity)}," +
+                    $"\"actualVelocity\":{JsonUtility.ToJson(body.Rigidbody.velocity)}," +
+                    $"\"moving\":{(corners != null).ToString().ToLowerInvariant()}," +
+                    $"\"handHoldDrive\":{handHoldDrive.ToString().ToLowerInvariant()}," +
+                    $"\"grounded\":{grounded.ToString().ToLowerInvariant()}," +
+                    $"\"bodyPaused\":{body.IsPaused.ToString().ToLowerInvariant()}," +
+                    $"\"agentEnabled\":{(agent != null && agent.enabled).ToString().ToLowerInvariant()}," +
+                    $"\"onNavMesh\":{(agent != null && agent.isOnNavMesh).ToString().ToLowerInvariant()}," +
+                    $"\"isStopped\":{(agent != null && agent.isStopped).ToString().ToLowerInvariant()}," +
+                    $"\"hasPath\":{(agent != null && agent.hasPath).ToString().ToLowerInvariant()}," +
+                    $"\"pathStatus\":\"{(agent != null ? agent.pathStatus.ToString() : "none")}\"," +
+                    $"\"blocker\":\"{(physicalBlocker != null ? physicalBlocker.name.Replace("\"", "'") : "none")}\"," +
+                    $"\"avoidanceTotal\":{physicalAvoidanceTotalSeconds}}}}}";
+                var request = UnityWebRequest.Post(
+                    "http://127.0.0.1:7781/event", payload, "application/json");
+                request.SendWebRequest().completed += _ => request.Dispose();
+            }
+#endif
+#endregion
+#region debug-point B:movement-drive
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (corners != null && Time.unscaledTime >= debugNextMovementDriveReport)
+            {
+                debugNextMovementDriveReport = Time.unscaledTime + .5f;
+                var payload =
+                    $"{{\"sessionId\":\"movement-blocked\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"B\",\"location\":\"AvatarMotor.FixedUpdate\"," +
+                    $"\"msg\":\"[DEBUG] movement drive sample\",\"data\":{{" +
+                    $"\"grounded\":{grounded.ToString().ToLowerInvariant()}," +
+                    $"\"supportDistance\":{supportDistance},\"corner\":{corner}," +
+                    $"\"cornerCount\":{corners.Length},\"position\":{JsonUtility.ToJson(Position)}," +
+                    $"\"target\":{JsonUtility.ToJson(corners[Mathf.Min(corner, corners.Length - 1)])}," +
+                    $"\"desiredVelocity\":{JsonUtility.ToJson(desiredVelocity)}," +
+                    $"\"actualVelocity\":{JsonUtility.ToJson(body.Rigidbody.velocity)}}}}}";
+#if UNITY_EDITOR
+                const string endpoint = "http://127.0.0.1:7794/event";
+#else
+                const string endpoint = "http://127.0.0.1:7794/event";
+#endif
+                var request = UnityWebRequest.Post(endpoint, payload, "application/json");
+                request.SendWebRequest().completed += _ => request.Dispose();
+            }
+#endif
+#endregion
+#region debug-point B:grounded-motion
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            if (corners != null && Time.unscaledTime >= debugNextMotorReport)
+            {
+                debugNextMotorReport = Time.unscaledTime + 1f;
+                var position = Position;
+                var velocity = body.Rigidbody.velocity;
+                var culture = System.Globalization.CultureInfo.InvariantCulture;
+                var payload = $"{{\"sessionId\":\"bowling-companion-timeout\",\"runId\":\"post-fix\"," +
+                              $"\"hypothesisId\":\"B\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                              $"\"location\":\"AvatarMotor.FixedUpdate\",\"msg\":\"[DEBUG] grounded motor sample\",\"data\":{{" +
+                              $"\"grounded\":{grounded.ToString().ToLowerInvariant()},\"hitCount\":{count}," +
+                              $"\"supportDistance\":{supportDistance.ToString("R", culture)}," +
+                              $"\"capsuleRadius\":{capsule.radius.ToString("R", culture)}," +
+                              $"\"capsuleHeight\":{capsule.height.ToString("R", culture)}," +
+                              $"\"positionX\":{position.x.ToString("R", culture)}," +
+                              $"\"positionY\":{position.y.ToString("R", culture)}," +
+                              $"\"positionZ\":{position.z.ToString("R", culture)}," +
+                              $"\"desiredX\":{desiredVelocity.x.ToString("R", culture)}," +
+                              $"\"desiredY\":{desiredVelocity.y.ToString("R", culture)}," +
+                              $"\"desiredZ\":{desiredVelocity.z.ToString("R", culture)}," +
+                              $"\"velocityX\":{velocity.x.ToString("R", culture)}," +
+                              $"\"velocityY\":{velocity.y.ToString("R", culture)}," +
+                              $"\"velocityZ\":{velocity.z.ToString("R", culture)}," +
+                              $"\"sleeping\":{body.Rigidbody.IsSleeping().ToString().ToLowerInvariant()}" + "}}";
+                UnityWebRequest.Post("http://127.0.0.1:7783/event", payload, "application/json")
+                    .SendWebRequest();
+            }
+#endif
+#endregion
             if (grounded)
             {
-                var target = Vector3.ProjectOnPlane(desiredVelocity, normal);
+                if (physicalStepActive)
+                {
+                    physicalStepSeconds += Time.fixedDeltaTime;
+                    var targetPosition = physicalStepOrigin + physicalStepOffset *
+                        Mathf.SmoothStep(0, 1, PhysicalStepProgress);
+                    externalResponseVelocity = Vector3.ClampMagnitude(
+                        Vector3.ProjectOnPlane(targetPosition - Position, Vector3.up) * 12f, .22f);
+                    if (physicalStepSeconds >= .62f)
+                        EndPhysicalStep();
+                }
+                var target = Vector3.ProjectOnPlane(
+                    desiredVelocity + externalResponseVelocity, normal);
                 var actual = Vector3.ProjectOnPlane(body.Rigidbody.velocity, normal);
                 var acceleration = handHoldDrive ? handHoldAcceleration : 14f;
                 body.AddForce(Vector3.ClampMagnitude((target - actual) / Time.fixedDeltaTime, acceleration),
                     ForceMode.Acceleration);
             }
+            if (!physicalStepActive)
+                externalResponseVelocity = Vector3.MoveTowards(
+                    externalResponseVelocity, Vector3.zero,
+                    1.4f * Time.fixedDeltaTime);
             UpdateFacing(Vector3.ProjectOnPlane(
                 body.Rigidbody.velocity, Vector3.up).magnitude);
-            if (handHoldDrive && animator != null)
-                SetAnimationSpeed(
-                    Vector3.ProjectOnPlane(body.Rigidbody.velocity, Vector3.up).magnitude);
         }
 
         private void OnCollisionStay(Collision collision)
@@ -421,7 +723,67 @@ namespace MateSoul.Runtime
                 physicalBlockSeconds = 0;
             }
 
+#region debug-point A-E:bed-stall-collision
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Mathf.Abs(normal.y) <= .7f &&
+                Time.unscaledTime >= debugNextBedCollisionReport)
+            {
+                debugNextBedCollisionReport = Time.unscaledTime + .25f;
+                var debugName = other != null
+                    ? other.name.Replace("\"", "'") : "none";
+                var debugObstacle = other != null
+                    ? other.GetComponentInParent<NavMeshObstacle>() : null;
+                var debugPayload =
+                    $"{{\"sessionId\":\"avatar-bed-corner-stall\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A-E\",\"location\":\"AvatarMotor.OnCollisionStay\"," +
+                    $"\"msg\":\"[DEBUG] navigation collision\",\"data\":{{" +
+                    $"\"collider\":\"{debugName}\",\"normal\":{JsonUtility.ToJson(normal)}," +
+                    $"\"actualVelocity\":{JsonUtility.ToJson(body.Rigidbody.velocity)}," +
+                    $"\"desiredVelocity\":{JsonUtility.ToJson(desiredVelocity)}," +
+                    $"\"navObstacle\":{(debugObstacle != null).ToString().ToLowerInvariant()}," +
+                    $"\"blockSeconds\":{physicalBlockSeconds}," +
+                    $"\"avoidanceSeconds\":{physicalAvoidanceSeconds}," +
+                    $"\"avoidanceTotal\":{physicalAvoidanceTotalSeconds}}}}}";
+#if UNITY_EDITOR
+                const string debugEndpoint = "http://127.0.0.1:7778/event";
+#else
+                const string debugEndpoint = "http://127.0.0.1:7778/event";
+#endif
+                var debugRequest = UnityWebRequest.Post(
+                    debugEndpoint, debugPayload, "application/json");
+                debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+            }
+#endif
+#endregion
 
+#region debug-point C:movement-collision
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Mathf.Abs(normal.y) > .7f ||
+                Time.unscaledTime < debugNextMovementCollisionReport) return;
+            debugNextMovementCollisionReport = Time.unscaledTime + .5f;
+            var item = other != null ? other.GetComponentInParent<GameItem>() : null;
+            var obstacle = other != null ? other.GetComponentInParent<NavMeshObstacle>() : null;
+            var name = other != null ? other.name.Replace("\"", "'") : "none";
+            var state = item != null && item.Instance != null
+                ? item.Instance.ControlState.ToString() : "none";
+            var payload =
+                $"{{\"sessionId\":\"movement-blocked\",\"runId\":\"post-fix-2\"," +
+                $"\"hypothesisId\":\"C\",\"location\":\"AvatarMotor.OnCollisionStay\"," +
+                $"\"msg\":\"[DEBUG] movement collision\",\"data\":{{\"collider\":\"{name}\"," +
+                $"\"itemState\":\"{state}\",\"navObstacle\":{(obstacle != null).ToString().ToLowerInvariant()}," +
+                $"\"normal\":{JsonUtility.ToJson(normal)},\"impulse\":{JsonUtility.ToJson(collision.impulse)}," +
+                $"\"blockSeconds\":{physicalBlockSeconds}," +
+                $"\"avoidanceSeconds\":{physicalAvoidanceSeconds}," +
+                $"\"position\":{JsonUtility.ToJson(Position)}}}}}";
+#if UNITY_EDITOR
+            const string endpoint = "http://127.0.0.1:7794/event";
+#else
+            const string endpoint = "http://127.0.0.1:7794/event";
+#endif
+            var request = UnityWebRequest.Post(endpoint, payload, "application/json");
+            request.SendWebRequest().completed += _ => request.Dispose();
+#endif
+#endregion
         }
 
         private void OnCollisionExit(Collision collision)
@@ -433,8 +795,21 @@ namespace MateSoul.Runtime
         private void SetAnimationSpeed(float value)
         {
             if (animator != null)
+            {
                 animator.SetFloat(speedParameter,
                     value < AnimationIdleSpeed ? 0 : value);
+                animator.SetFloat(walkPlaybackRateParameter,
+                    value < AnimationIdleSpeed ? 1 : value / WalkReferenceSpeed);
+            }
+        }
+
+        private void Update()
+        {
+            if (body == null || animator == null) return;
+            // Update once per rendered frame from physics, including braking, docking
+            // and hand holding. A blocked capsule must not keep advancing the gait.
+            SetAnimationSpeed(body.IsPaused || contact ? 0 :
+                Vector3.ProjectOnPlane(body.Rigidbody.velocity, Vector3.up).magnitude);
         }
 
         private void UpdateFacing(float actualSpeed)
@@ -464,10 +839,17 @@ namespace MateSoul.Runtime
             var turnStepPlaying = IsTurnStepPlaying();
             UpdateTurnStepAnimation(sample, turnStepPlaying);
 
+            var finishingStep = turnStepPlaying && !animator.IsInTransition(0) &&
+                                animator.GetCurrentAnimatorStateInfo(0).normalizedTime >=
+                                TurnStepEndTime;
             var delta = sample.DeltaAngle;
-            if (sample.IsTurning && !turnStepPlaying)
+            // Docking needs exact facing even when the residual yaw is below the step threshold.
+            if (dockFacing && !sample.IsTurning && !turnStepPlaying)
+                delta = Mathf.Sign(remaining) * Mathf.Min(
+                    Mathf.Abs(remaining), TurnStepSettleSpeed * Time.fixedDeltaTime);
+            if (sample.IsTurning && (!turnStepPlaying || finishingStep))
             {
-                var settleThreshold = completedTurnStep
+                var settleThreshold = turnStepActive
                     ? RepeatTurnStepAngle : TurnInPlaceMotion.EnterAngle;
                 delta = Mathf.Abs(sample.RemainingAngle) < settleThreshold
                     ? Mathf.Sign(sample.RemainingAngle) * Mathf.Min(
@@ -484,7 +866,8 @@ namespace MateSoul.Runtime
                            body.Pose.rotation;
                 body.RotateTowards(step, Mathf.Abs(delta));
             }
-            SetAnimationTurnRate(turnStepPlaying ? sample.NormalizedRate : 0);
+            SetAnimationTurnRate(turnStepPlaying && !finishingStep
+                ? sample.NormalizedRate : 0);
         }
 
         private bool HasFloatParameter(int hash)
@@ -505,8 +888,7 @@ namespace MateSoul.Runtime
             turnMotion.Reset();
             SetAnimationTurnRate(0);
             turnStepRequested = false;
-            turnStepWasObserved = false;
-            completedTurnStep = false;
+            SetTurnStepActive(false);
             turnStepRecoverySeconds = 0;
             if (animator != null)
             {
@@ -521,6 +903,13 @@ namespace MateSoul.Runtime
         {
             if (animator != null && hasTurnRateParameter)
                 animator.SetFloat(turnRateParameter, value);
+        }
+
+        private void SetTurnStepActive(bool value)
+        {
+            turnStepActive = value;
+            if (animator != null && hasTurnStepActiveParameter)
+                animator.SetBool(turnStepActiveParameter, value);
         }
 
         private bool IsTurnStepPlaying()
@@ -540,41 +929,100 @@ namespace MateSoul.Runtime
             TurnMotionSample sample, bool inStep)
         {
             if (animator == null ||
-                !hasTurnStepLeftParameter || !hasTurnStepRightParameter)
+                !hasTurnStepLeftParameter || !hasTurnStepRightParameter ||
+                !hasTurnStepActiveParameter)
                 return;
 
             if (inStep)
             {
-                turnStepRequested = true;
-                turnStepWasObserved = true;
-                return;
+                if (!turnStepActive || animator.IsInTransition(0)) return;
+                if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime <
+                    TurnStepEndTime)
+                {
+                    turnStepRequested = false;
+                    turnStepRecoverySeconds = TurnStepRecoverySeconds;
+                    return;
+                }
+                if (!sample.IsTurning &&
+                    Mathf.Abs(sample.RemainingAngle) <= TurnStepCompleteAngle)
+                {
+                    SetTurnStepActive(false);
+                    turnStepRequested = false;
+                    return;
+                }
+                // Keep the end pose during recovery; the next corrective step
+                // continues directly, without yielding this facing episode to Idle.
+                if (turnStepRequested || turnStepRecoverySeconds > 0 ||
+                    Mathf.Abs(sample.RemainingAngle) < RepeatTurnStepAngle)
+                    return;
             }
-            if (animator.IsInTransition(0)) return;
-            if (turnStepRequested)
-            {
-                if (!turnStepWasObserved) return;
-                turnStepRequested = false;
-                turnStepWasObserved = false;
-                completedTurnStep = true;
-                turnStepRecoverySeconds = TurnStepRecoverySeconds;
+            else if (animator.IsInTransition(0) || turnStepRequested)
                 return;
-            }
-            if (turnStepRecoverySeconds > 0) return;
-            var triggerAngle = completedTurnStep
-                ? RepeatTurnStepAngle : TurnInPlaceMotion.EnterAngle;
             if (!sample.IsTurning ||
-                Mathf.Abs(sample.RemainingAngle) < triggerAngle ||
+                Mathf.Abs(sample.RemainingAngle) < TurnInPlaceMotion.EnterAngle ||
                 Mathf.Abs(sample.NormalizedRate) < .02f)
                 return;
 
+            SetTurnStepActive(true);
             animator.ResetTrigger(sample.NormalizedRate < 0
                 ? turnStepRightParameter : turnStepLeftParameter);
             animator.SetTrigger(sample.NormalizedRate < 0
                 ? turnStepLeftParameter : turnStepRightParameter);
             turnStepRequested = true;
-            turnStepWasObserved = false;
         }
 
+#region debug-point A-C:animation-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private void LateUpdate()
+        {
+            if (animator == null || body == null ||
+                Time.unscaledTime < debugNextAnimationReport) return;
+            debugNextAnimationReport = Time.unscaledTime + .5f;
+            var clips = animator.GetCurrentAnimatorClipInfo(0);
+            var firstName = clips.Length > 0 && clips[0].clip != null
+                ? clips[0].clip.name : "none";
+            var secondName = clips.Length > 1 && clips[1].clip != null
+                ? clips[1].clip.name : "none";
+            var firstWeight = clips.Length > 0 ? clips[0].weight : 0;
+            var secondWeight = clips.Length > 1 ? clips[1].weight : 0;
+            var leftDelta = debugLeftLeg != null
+                ? Quaternion.Angle(debugPreviousLeftLeg, debugLeftLeg.localRotation) : -1;
+            var rightDelta = debugRightLeg != null
+                ? Quaternion.Angle(debugPreviousRightLeg, debugRightLeg.localRotation) : -1;
+            if (debugLeftLeg != null) debugPreviousLeftLeg = debugLeftLeg.localRotation;
+            if (debugRightLeg != null) debugPreviousRightLeg = debugRightLeg.localRotation;
+            var velocity = Vector3.ProjectOnPlane(
+                body.Rigidbody.velocity, Vector3.up).magnitude;
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            var controllerName = animator.runtimeAnimatorController != null
+                ? animator.runtimeAnimatorController.name : "null";
+            var payload = $"{{\"sessionId\":\"avatar-stuck-walk\",\"runId\":\"post-fix\"," +
+                          $"\"hypothesisId\":\"A-C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                          $"\"location\":\"AvatarMotor.LateUpdate\",\"msg\":\"[DEBUG] visible locomotion state\"," +
+                          $"\"data\":{{\"animatorId\":{animator.GetInstanceID()},\"controller\":\"{controllerName}\"," +
+                          $"\"animatorEnabled\":{animator.enabled.ToString().ToLowerInvariant()}," +
+                          $"\"animatorPlaybackSpeed\":{animator.speed.ToString("R", culture)}," +
+                          $"\"motorMoving\":{IsMoving.ToString().ToLowerInvariant()}," +
+                          $"\"handHoldDrive\":{handHoldDrive.ToString().ToLowerInvariant()}," +
+                          $"\"contact\":{contact.ToString().ToLowerInvariant()}," +
+                          $"\"rigidbodySpeed\":{velocity.ToString("R", culture)}," +
+                          $"\"desiredSpeed\":{desiredVelocity.magnitude.ToString("R", culture)}," +
+                          $"\"speedParameter\":{animator.GetFloat(speedParameter).ToString("R", culture)}," +
+                          $"\"clipCount\":{clips.Length},\"clip0\":\"{firstName}\"," +
+                          $"\"weight0\":{firstWeight.ToString("R", culture)},\"clip1\":\"{secondName}\"," +
+                          $"\"weight1\":{secondWeight.ToString("R", culture)}," +
+                          $"\"leftLegDelta\":{leftDelta.ToString("R", culture)}," +
+                          $"\"rightLegDelta\":{rightDelta.ToString("R", culture)}}}}}";
+#if UNITY_EDITOR
+            const string debugEndpoint = "http://127.0.0.1:7785/event";
+#else
+            const string debugEndpoint = "http://127.0.0.1:7785/event";
+#endif
+            UnityWebRequest.Post(
+                debugEndpoint, payload, "application/json").SendWebRequest();
+        }
+#endif
+#endregion
 
         public void BeginBodyContact(Vector3 exit, float seatHeight, int seatSourceId = -1)
         {
@@ -619,8 +1067,10 @@ namespace MateSoul.Runtime
             // The authored lying pose is a snap, but it must have a clear raised transfer
             // route and a valid torso volume. No disabled collider or unchecked teleport.
             capsule.radius = .14f;
-            capsule.height = 1.5f;
-            capsule.center = new Vector3(0, .775f, .145f);
+            // Keep the foot end, but stop the torso proxy below the neck: the
+            // head rests on the pillow instead of blocking the torso landing.
+            capsule.height = 1.4f;
+            capsule.center = new Vector3(0, .725f, .145f);
             Physics.SyncTransforms();
             if (!IsLyingTransferClear(from, target))
             {

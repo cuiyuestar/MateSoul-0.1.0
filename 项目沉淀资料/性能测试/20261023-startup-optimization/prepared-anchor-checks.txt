@@ -1,0 +1,8 @@
+PASS completed prefetch is consumed without a second provider query
+PASS restore waits for pending prefetch
+PASS paused restore cancels promptly
+PASS pause preserves in-flight prefetch
+PASS resume consumes original result without duplicate provider query
+PASS prefetch failure propagates to existing restore fallback
+PASS failed prefetch is cleared for a later retry
+PASS later retry uses provider after prefetch failure

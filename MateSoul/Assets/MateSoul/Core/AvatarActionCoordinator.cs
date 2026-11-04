@@ -33,6 +33,16 @@ namespace MateSoul.Core
             return false;
         }
 
+        public bool HasBlockingClaim(ControlChannels channels, IntentSource source)
+        {
+            int priority = PriorityOf(source);
+            foreach (var execution in executions)
+                if ((execution.Definition.Channels & channels) != 0 &&
+                    execution.Priority >= priority)
+                    return true;
+            return false;
+        }
+
         public AvatarActionCoordinator(ActionCatalog catalog)
         {
             this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
@@ -243,6 +253,7 @@ namespace MateSoul.Core
             {
                 case IntentSource.System: return 100;
                 case IntentSource.Player: return 90;
+                case IntentSource.Contact: return 70;
                 case IntentSource.UI:
                 case IntentSource.AI: return 60;
                 case IntentSource.Autonomous: return 10;

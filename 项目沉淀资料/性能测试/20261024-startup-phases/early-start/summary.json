@@ -1,0 +1,106 @@
+{
+  "formalRuns": 3,
+  "warmupRuns": 1,
+  "allIdentitiesPreserved": true,
+  "allRoomStartedBeforeBothPresenters": true,
+  "allReadyGateOrderPreserved": true,
+  "aliveAfterReadySeconds": 12,
+  "baselineAfterSceneToRoomStartMs": {
+    "median": 138,
+    "min": 131,
+    "max": 277,
+    "values": [
+      277,
+      131,
+      132,
+      138,
+      163
+    ]
+  },
+  "managedIntervalsMs": {
+    "after_scene_to_room_start": {
+      "median": 53,
+      "min": 33,
+      "max": 54,
+      "values": [
+        33,
+        54,
+        53
+      ]
+    },
+    "hud_total": {
+      "median": 338,
+      "min": 333,
+      "max": 420,
+      "values": [
+        333,
+        420,
+        338
+      ]
+    },
+    "hud_font_load": {
+      "median": 269,
+      "min": 259,
+      "max": 318,
+      "values": [
+        259,
+        318,
+        269
+      ]
+    },
+    "notifications_total": {
+      "median": 1,
+      "min": 1,
+      "max": 4,
+      "values": [
+        4,
+        1,
+        1
+      ]
+    },
+    "notifications_font_load": {
+      "median": 1,
+      "min": 0,
+      "max": 1,
+      "values": [
+        1,
+        1,
+        0
+      ]
+    },
+    "room_load": {
+      "median": 3057,
+      "min": 2551,
+      "max": 3720,
+      "values": [
+        2551,
+        3720,
+        3057
+      ]
+    }
+  },
+  "activityToReadyMs": {
+    "median": 11709.0,
+    "min": 11495.0,
+    "max": 12626.0,
+    "values": [
+      11495.0,
+      12626.0,
+      11709.0
+    ]
+  },
+  "uiDuringRoomWaitMs": {
+    "median": 339,
+    "min": 337,
+    "max": 421,
+    "values": [
+      337,
+      421,
+      339
+    ]
+  },
+  "scope": "Local scheduling boundary; total READY not a single-variable causal comparison.",
+  "localBoundaryMedianReductionMs": 85,
+  "diagnosticProfileRuns": 1,
+  "diagnosticRecordingExcluded": true
+}

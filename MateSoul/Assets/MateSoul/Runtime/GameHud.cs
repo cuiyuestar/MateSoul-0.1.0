@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 using MateSoul.Core;
 using TMPro;
 using UnityEngine;
@@ -22,9 +23,12 @@ namespace MateSoul.Runtime
             Dialogue,
             Interaction,
             MiniGames,
+            PickupItems,
             Information,
             Items,
-            Settings
+            Settings,
+            AIConfiguration,
+            AITutorial
         }
 
         private static readonly Color DockColor = new Color(.22f, .14f, .22f, .52f);
@@ -33,6 +37,11 @@ namespace MateSoul.Runtime
         private static readonly Color SelectedColor = new Color(.86f, .72f, .84f, .94f);
         private static readonly Color TextColor = new Color(.98f, .95f, .98f);
         private static readonly Color MutedTextColor = new Color(.77f, .72f, .79f);
+        private static readonly Color CardColor = new Color(.25f, .18f, .28f, .88f);
+        private static readonly Color CardHoverColor = new Color(.39f, .28f, .41f, .96f);
+        private static readonly Color PrimaryTextColor = new Color(.24f, .15f, .27f);
+        private static readonly Color QuietColor = new Color(.32f, .24f, .35f, .64f);
+        private static readonly Color DangerColor = new Color(.46f, .25f, .36f, .84f);
         private static readonly Color DialogueGlassColor = new Color(.72f, .63f, .86f, .68f);
         private static readonly Color DialogueHazeColor = new Color(.98f, .95f, 1f, .14f);
         private static readonly Color DialogueInputColor = new Color(.27f, .20f, .34f, .42f);
@@ -49,6 +58,14 @@ namespace MateSoul.Runtime
         };
         private const int CatalogPageSize = 6;
         private const float HandToggleHoldSeconds = .5f;
+        private const float HudDistance = .45f;
+        private const float HudVerticalOffset = -.20f;
+        private const float HudExpandedNavigationDrop = .02f;
+        private const float HudDownwardAngle = 30f;
+        private const float HudPitchFollowFraction = .25f;
+        private const float HudPitchFollowLimit = 8f;
+        private const float HudYawDeadZone = 30f;
+        private const float HudTranslationDeadZone = .2f;
 
         [SerializeField] private GameBootstrap bootstrap;
         private readonly Dictionary<HudPage, GameObject> pages = new Dictionary<HudPage, GameObject>();
@@ -58,13 +75,27 @@ namespace MateSoul.Runtime
         private readonly List<Texture2D> iconTextures = new List<Texture2D>();
         private readonly List<Button> catalogButtons = new List<Button>();
         private readonly List<TMP_Text> catalogQuantityLabels = new List<TMP_Text>();
-        private readonly List<Image> catalogCategoryBackgrounds = new List<Image>();
+        private readonly List<HudPanelButton> pickupButtons = new List<HudPanelButton>();
+        private ItemDefinition[] pickupDefinitions = Array.Empty<ItemDefinition>();
+        private TMP_Text pickupPageLabel, pickupFeedback;
+        private Button pickupReleaseButton;
+        private ActionHandle pickupAction;
+        private int pickupPage;
+        private readonly List<HudPanelButton> catalogCategoryButtons = new List<HudPanelButton>();
+        private readonly List<IUIInteractor> hudPointers = new List<IUIInteractor>();
         private ItemDefinition[] catalog = Array.Empty<ItemDefinition>();
         private ItemDefinition[] categoryCatalog = Array.Empty<ItemDefinition>();
         private TMP_Text status, subtitle, selectedItem, interactionFeedback, catalogPageLabel;
         private TMP_Text autonomyLabel, pauseLabel, inputModeLabel;
         private TMP_Text hudVisibilityHint;
         private TMP_InputField input;
+        private TMP_InputField aiAddress, aiModel, aiKey;
+        private TMP_Text aiConfigurationStatus;
+        private RectTransform aiRequiredHint;
+        private Button aiSaveButton, aiCheckButton;
+        private bool aiReturnToDialogue, aiCheckRunning;
+        private int placementVisibilityFrame = -1;
+        private readonly CancellationTokenSource hudLifetime = new CancellationTokenSource();
         private Button sendButton, recycleButton;
         private Canvas canvas;
         private TMP_FontAsset font;
@@ -73,13 +104,20 @@ namespace MateSoul.Runtime
         private ItemPlacementPreviewController placementPreview;
         private Sprite roundedSprite;
         private Texture2D roundedTexture;
+        private Sprite panelSprite;
+        private Texture2D panelTexture;
         private RectTransform canvasRoot, hudRoot, contentRoot;
+        private bool hudPoseInitialized, hudInteractionActive;
+        private Vector3 hudFollowOrigin, hudTargetPosition;
+        private Quaternion hudFollowRotation, hudTargetRotation;
         private RectTransform navigationRoot, dialogueRoot;
         private RectTransform personalitySettingsRoot, systemSettingsRoot;
         private CanvasGroup navigationGroup, dialogueGroup;
+        private CanvasGroup contentGroup;
+        private HudPanelButton personalityTab, systemTab;
         private HudPage activePage;
         private PlayerInteractionModeController interactionMode;
-        private InputAction controllerHudToggle, leftHandFist, rightHandFist;
+        private InputAction controllerHudToggle;
         private int selected, catalogPage;
         private ItemCategory selectedCategory = ItemCategory.Furniture;
         private bool hudVisible = true;
@@ -90,6 +128,7 @@ namespace MateSoul.Runtime
         private float handToggleStarted = -1;
         private float nextRefresh;
         private Coroutine dialogueTransition;
+        private Coroutine panelTransition;
         private string localMessage;
         private string message
         {
@@ -102,21 +141,106 @@ namespace MateSoul.Runtime
         }
         private ActionHandle interactionAction;
 
+        #region debug-point A-E:ui-quality-runtime-evidence
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+        private bool uiQualityReported;
+        private bool windowGlyphCoverageReported;
+#endif
+        #endregion
 
-        public bool IsVisible => hudVisible;
+        public bool IsVisible => hudVisible && (placementPreview == null || !placementPreview.IsActive);
         public bool IsDialogueOpen => dialogueOpen;
+
+        // Native keyboard gestures must not also click/deselect the world-space HUD.
+        // TMP keeps isFocused until it has consumed the keyboard's final text/status.
+        public static bool IsTextInputFocused
+        {
+            get
+            {
+                var selectedObject = EventSystem.current?.currentSelectedGameObject;
+                return selectedObject != null &&
+                       selectedObject.TryGetComponent<TMP_InputField>(out var field) &&
+                       field.isFocused;
+            }
+        }
+
+#region debug-point D:eyehand-pointer-stall
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private static bool debugLocalInputTrace;
+        private XRUIInputModule debugUiModule;
+        private float debugNextUiTrace;
+
+        internal static string InputTraceString(string value)
+            => "\"" + (value ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"")
+                .Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t") + "\"";
+
+        internal static void ReportInputTrace(string payload)
+        {
+            if (debugLocalInputTrace)
+            {
+                Debug.Log("MATESOUL_INPUT_TRACE " + payload);
+                return;
+            }
+            var request = UnityWebRequest.Post("http://127.0.0.1:7789/event", payload, "application/json");
+            request.timeout = 2;
+            var operation = request.SendWebRequest();
+            operation.completed += _ =>
+            {
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    debugLocalInputTrace = true;
+                    Debug.Log("MATESOUL_INPUT_TRACE " + payload);
+                }
+                request.Dispose();
+            };
+        }
+
+        private void TraceInputDown(GameObject target, PointerEventData data)
+            => TraceInputEvent("down", target, data);
+        private void TraceInputUp(GameObject target, PointerEventData data)
+            => TraceInputEvent("up", target, data);
+        private void TraceInputClick(GameObject target, PointerEventData data)
+            => TraceInputEvent("click", target, data);
+
+        private void TraceInputEvent(string stage, GameObject target, PointerEventData data)
+        {
+            if (target != null && !target.transform.IsChildOf(canvasRoot)) return;
+            var source = debugUiModule.GetInteractor(data.pointerId);
+            ReportInputTrace($"{{\"sessionId\":\"eyehand-pointer-stall\",\"runId\":\"post-fix-2\"," +
+                $"\"hypothesisId\":\"D\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                $"\"location\":\"GameHud.UIEvent\",\"msg\":\"[DEBUG] {stage}\",\"data\":{{" +
+                $"\"frame\":{Time.frameCount},\"pointer\":{data.pointerId}," +
+                $"\"source\":{InputTraceString(source?.GetType().Name)}," +
+                $"\"target\":{InputTraceString(target == null ? "" : target.name)}," +
+                $"\"targetId\":{(target == null ? 0 : target.GetInstanceID())}," +
+                $"\"press\":{InputTraceString(data.pointerPress == null ? "" : data.pointerPress.name)}," +
+                $"\"eligible\":{(data.eligibleForClick ? 1 : 0)},\"page\":{InputTraceString(activePage.ToString())}," +
+                $"\"transition\":{(dialogueTransition != null ? 1 : 0)}}}}}");
+        }
+#endif
+#endregion
 
         public void Configure(GameBootstrap game) { bootstrap = game; }
 
         private void Start()
         {
+            StartupTimeline.Mark("hud_start");
             focusController = bootstrap == null ? null : bootstrap.GetComponent<VirtualItemFocusController>();
             placementPreview = bootstrap == null
                 ? null : bootstrap.GetComponent<ItemPlacementPreviewController>();
+            if (placementPreview != null)
+            {
+                placementPreview.ConfirmRequested += OnHandPlacementConfirmed;
+                placementPreview.ActiveChanged += OnPlacementActiveChanged;
+            }
             interactionMode = FindObjectOfType<PlayerInteractionModeController>();
+            hudPointers.AddRange(FindObjectsOfType<MonoBehaviour>(true).OfType<IUIInteractor>());
             CreateHudToggleActions();
+            StartupTimeline.Mark("hud_font_load_start");
             font = AlwaysOnTopUi.TextFont;
+            StartupTimeline.Mark("hud_font_load_end");
             roundedSprite = CreateRoundedSprite();
+            panelSprite = CreatePanelSprite();
             overlayMaterial = AlwaysOnTopUi.CreateMaterial();
             var root = new GameObject("MateSoul HUD", typeof(RectTransform));
             root.transform.SetParent(transform, false);
@@ -134,31 +258,71 @@ namespace MateSoul.Runtime
                 scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
                 scaler.matchWidthOrHeight = .5f;
                 hudRoot = AnchoredRect("Bottom HUD", root.transform, new Vector2(.5f, 0),
-                    new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 20), new Vector2(920, 620));
+                    new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 20), new Vector2(920, 760));
             }
             else
             {
                 canvas.renderMode = RenderMode.WorldSpace;
-                canvasRoot.sizeDelta = new Vector2(920, 620);
-                canvasRoot.localScale = Vector3.one * .00108f;
+                canvasRoot.sizeDelta = new Vector2(920, 760);
+                canvasRoot.localScale = Vector3.one * .00066f;
                 hudRoot = StretchRect("Bottom HUD", root.transform);
                 Recenter(true);
             }
             AlwaysOnTopUi.Configure(canvas);
 
+            Debug.Log($"MATESOUL_UI worldSpace={canvas.renderMode == RenderMode.WorldSpace} " +
+                      $"distance={HudDistance:F2} sortingOrder={canvas.sortingOrder} " +
+                      $"shader={overlayMaterial.shader.name}");
+
             BuildNavigation();
             BuildDialogueBar();
             BuildSubtitle();
             BuildPages();
+            var hudLayer = LayerMask.NameToLayer(HudEyeHandInteractor.HudLayerName);
+            if (hudLayer < 0) throw new InvalidOperationException("MateSoulHUD layer is missing.");
+            foreach (var child in root.GetComponentsInChildren<Transform>(true))
+                child.gameObject.layer = hudLayer;
             AlwaysOnTopUi.Apply(root.transform, overlayMaterial);
             SetActivePage(HudPage.None);
             SetHudVisible(true);
+            if (!Application.isEditor)
+            {
+                Canvas.ForceUpdateCanvases();
+                Recenter(true);
+            }
 
             if (EventSystem.current == null)
             {
                 var events = new GameObject("UI Event System", typeof(EventSystem), typeof(XRUIInputModule));
                 events.transform.SetParent(transform, false);
             }
+            var module = EventSystem.current.GetComponent<XRUIInputModule>();
+            if (module == null) throw new InvalidOperationException("XR UI input module is missing.");
+            if (Application.platform == RuntimePlatform.Android)
+            {
+                // PICO HUD input comes from tracked hands. Android keyboard touch/mouse
+                // events belong to the system keyboard, not to the Unity canvas.
+                module.enableMouseInput = false;
+                module.enableTouchInput = false;
+            }
+            if (interactionMode != null)
+            {
+#region debug-point D:eyehand-pointer-stall
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                debugUiModule = module;
+                module.pointerDown += TraceInputDown;
+                module.pointerUp += TraceInputUp;
+                module.pointerClick += TraceInputClick;
+#endif
+#endregion
+                // Process contact first so gaze arbitration uses this frame's actual UI hit.
+                if (interactionMode.Hands != null)
+                    foreach (var hand in interactionMode.Hands) hand.Poke.Bind(module);
+                var eyeHand = gameObject.AddComponent<HudEyeHandInteractor>();
+                eyeHand.Configure(this, canvasRoot, interactionMode, module);
+                hudPointers.Add(eyeHand);
+            }
+            StartupTimeline.Mark("hud_ready");
         }
 
         private void BuildNavigation()
@@ -215,6 +379,9 @@ namespace MateSoul.Runtime
             input.placeholder = placeholder;
             input.characterLimit = 1000;
             input.lineType = TMP_InputField.LineType.SingleLine;
+#region debug-point C:input-glyphs
+            input.onValueChanged.AddListener(ReportInputGlyphCoverage);
+#endregion
 
             sendButton = Button("发送", 598, 20, 106, 72,
                 SendDialogue, dialogueRoot, 20, "发送");
@@ -222,6 +389,14 @@ namespace MateSoul.Runtime
             var closeButton = Button("关闭", 716, 20, 90, 72,
                 CloseDialogue, dialogueRoot, 18, "关闭");
             closeButton.GetComponent<Image>().color = DialogueCloseColor;
+            aiRequiredHint = Rect("AI 未配置提示", 0, -68, 824, 60, dialogueRoot);
+            AddBackground(aiRequiredHint, DialogueGlassColor);
+            Label("先配置ai才能激活对话功能", 18, 10, 570, 40, 22,
+                aiRequiredHint, TextAnchor.MiddleLeft, TextColor, "AI 配置提示");
+            var configure = Button("点此配置ai", 600, 7, 206, 46,
+                () => OpenAIConfiguration(true), aiRequiredHint, 21);
+            configure.GetComponent<Image>().color = DialogueSendColor;
+            RefreshAIAvailability();
 
             dialogueGroup.alpha = 0;
             dialogueGroup.interactable = false;
@@ -234,7 +409,7 @@ namespace MateSoul.Runtime
         private void BuildSubtitle()
         {
             var root = AnchoredRect("角色字幕", hudRoot, new Vector2(.5f, 0),
-                new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 174), new Vector2(824, 64));
+                new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 668), new Vector2(824, 64));
             subtitle = AlwaysOnTopUi.ConfigureText(root.gameObject.AddComponent<TextMeshProUGUI>());
             subtitle.fontSize = 24;
             subtitle.enableAutoSizing = true;
@@ -250,18 +425,27 @@ namespace MateSoul.Runtime
         private void BuildPages()
         {
             contentRoot = AnchoredRect("HUD Content", hudRoot, new Vector2(.5f, 0),
-                new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 383), new Vector2(760, 330));
-            AddBackground(contentRoot, PanelColor);
+                new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 200), new Vector2(760, 448));
+            AddPanelBackground(contentRoot, PanelColor);
+            contentGroup = contentRoot.gameObject.AddComponent<CanvasGroup>();
+            contentGroup.alpha = 0;
+            contentGroup.interactable = contentGroup.blocksRaycasts = false;
+            contentRoot.gameObject.SetActive(false);
             BuildInteractionPage();
             BuildMiniGamesPage();
+            BuildPickupPage();
             BuildInformationPage();
             BuildItemsPage();
             BuildSettingsPage();
+            BuildAIConfigurationPage();
+            BuildAITutorialPage();
         }
 
         private GameObject CreatePage(HudPage page, string name)
         {
             var root = StretchRect(name, contentRoot);
+            root.gameObject.AddComponent<CanvasGroup>().alpha = 0;
+            root.gameObject.SetActive(false);
             pages.Add(page, root.gameObject);
             return root.gameObject;
         }
@@ -269,44 +453,142 @@ namespace MateSoul.Runtime
         private void BuildInteractionPage()
         {
             var page = CreatePage(HudPage.Interaction, "互动栏目");
-            Label("选择互动", 22, 14, 716, 34, 25, page.transform,
-                TextAnchor.MiddleLeft, TextColor, "互动标题");
+            PageHeader(page.transform, "选择互动", "和冷月一起，享受片刻陪伴", "互动标题");
             var activities = new[] { "一起散步", "坐下聊天", "躺床休息", "起身", "切水果" };
             for (var i = 0; i < activities.Length; i++)
             {
                 var activity = activities[i];
-                Button(activity, 22, 58 + i * 44, 716, 40,
-                    () => SelectTestActivity(activity), page.transform, 20, "活动/" + activity);
+                PanelButton(activity, 28 + i % 2 * 360, 112 + i / 2 * 72, 344, 60,
+                    () => SelectTestActivity(activity), page.transform, 22, "活动/" + activity);
             }
-            Button("小游戏", 22, 278, 470, 40, () => SetActivePage(HudPage.MiniGames),
-                page.transform, 24, "活动/小游戏");
-            Button("取消切水果", 506, 278, 232, 40,
+            PanelButton("物品拾取", 388, 256, 344, 60, () => SetActivePage(HudPage.PickupItems),
+                page.transform, 22, "活动/物品拾取", primary: true);
+            PanelButton("小游戏  ›", 28, 328, 704, 52, () => SetActivePage(HudPage.MiniGames),
+                page.transform, 22, "活动/小游戏", primary: true);
+            var feedback = PanelCard("互动状态", 28, 390, 704, 44, page.transform);
+            interactionFeedback = Label("请选择一项互动活动。", 14, 2, 476, 40, 16,
+                feedback, TextAnchor.MiddleLeft, MutedTextColor, "互动反馈");
+            PanelButton("取消切水果", 506, 4, 184, 36,
                 () => Run(() => bootstrap.Session.CancelItemAction()),
-                page.transform, 20, "取消切水果");
-            interactionFeedback = Label("请选择一项互动活动。", 22, 326, 716, 28, 18,
-                page.transform, TextAnchor.MiddleLeft, MutedTextColor, "互动反馈");
+                feedback, 18, "取消切水果", danger: true);
+        }
+
+        private void BuildPickupPage()
+        {
+            var page = CreatePage(HudPage.PickupItems, "物品拾取面板");
+            PageHeader(page.transform, "物品拾取", "先放置物品，点击名称让冷月走过去拿起", "拾取标题");
+            PanelButton("‹ 返回互动", 574, 20, 158, 44,
+                () => SetActivePage(HudPage.Interaction), page.transform, 18, "拾取/返回", quiet: true);
+            for (var slot = 0; slot < CatalogPageSize; slot++)
+            {
+                var capturedSlot = slot;
+                pickupButtons.Add(PanelButton("", 28 + slot % 3 * 240, 112 + slot / 3 * 80, 224, 68,
+                    () => PickUpItem(capturedSlot), page.transform, 18, "拾取槽位/" + slot));
+            }
+            PanelButton("‹", 28, 284, 68, 42, () => ChangePickupPage(-1),
+                page.transform, 24, "拾取/上一页", quiet: true);
+            pickupPageLabel = Label("", 108, 284, 544, 42, 17, page.transform,
+                TextAnchor.MiddleCenter, MutedTextColor, "拾取页码");
+            PanelButton("›", 664, 284, 68, 42, () => ChangePickupPage(1),
+                page.transform, 24, "拾取/下一页", quiet: true);
+            pickupFeedback = Label("仅列出房间内可移动的单手物品。", 28, 332, 704, 46, 17,
+                page.transform, TextAnchor.MiddleLeft, MutedTextColor, "拾取状态");
+            PanelButton("去放置物品", 28, 390, 344, 44, () => SetActivePage(HudPage.Items),
+                page.transform, 18, "拾取/放置", quiet: true);
+            pickupReleaseButton = PanelButton("放下 / 取消", 388, 390, 344, 44,
+                () => Run(() => bootstrap.Session.Avatar.Cancel(pickupAction)),
+                page.transform, 18, "拾取/放下", danger: true);
+        }
+
+        private void ChangePickupPage(int offset)
+        {
+            var count = Mathf.Max(1, (pickupDefinitions.Length + CatalogPageSize - 1) / CatalogPageSize);
+            pickupPage = (pickupPage + offset + count) % count;
+            RefreshPickupPage();
+        }
+
+        private void RefreshPickupPage()
+        {
+            var session = bootstrap == null ? null : bootstrap.Session;
+            var placed = session == null ? Array.Empty<GameItem>() :
+                session.ItemViews.Where(item => PickupItemAction.Supports(item) &&
+                    session.Items.IsCurrent(item.Instance)).ToArray();
+            pickupDefinitions = placed.Select(item => item.Definition).Distinct()
+                .OrderBy(item => item.DisplayName).ThenBy(item => item.Id).ToArray();
+            var count = Mathf.Max(1, (pickupDefinitions.Length + CatalogPageSize - 1) / CatalogPageSize);
+            pickupPage = Mathf.Clamp(pickupPage, 0, count - 1);
+            var running = pickupAction != null && !pickupAction.IsFinished;
+            for (var slot = 0; slot < pickupButtons.Count; slot++)
+            {
+                var index = pickupPage * CatalogPageSize + slot;
+                var button = pickupButtons[slot];
+                button.gameObject.SetActive(index < pickupDefinitions.Length);
+                if (index >= pickupDefinitions.Length) continue;
+                var definition = pickupDefinitions[index];
+                var available = placed.Count(item => item.Definition == definition && !item.Instance.IsOccupied);
+                button.name = "拾取/" + definition.Id;
+                button.transform.Find("Label").GetComponent<TMP_Text>().text =
+                    definition.DisplayName + $"\n可拾取 {available}";
+                button.interactable = session.ItemsReady && !session.Paused && !running && available > 0;
+            }
+            pickupPageLabel.text = pickupDefinitions.Length == 0
+                ? "暂无可拾取物品，请先到物品背包放置"
+                : $"{pickupPage + 1} / {count}  ·  共 {pickupDefinitions.Length} 种";
+            pickupReleaseButton.interactable = running && session != null && !session.Paused;
+            if (running)
+                pickupFeedback.text = session.Avatar.Capture()
+                    .FirstOrDefault(action => action.action_id == PickupItemAction.Id)?.phase ?? "正在准备拾取";
+        }
+
+        private void PickUpItem(int slot)
+        {
+            Run(() =>
+            {
+                if (pickupAction != null && !pickupAction.IsFinished) return;
+                var index = pickupPage * CatalogPageSize + slot;
+                if (index < 0 || index >= pickupDefinitions.Length) return;
+                var session = bootstrap.Session;
+                var definition = pickupDefinitions[index];
+                var item = session.ItemViews.Where(value => PickupItemAction.Supports(value) &&
+                        value.Definition == definition && session.Items.IsCurrent(value.Instance) &&
+                        !value.Instance.IsOccupied)
+                    .OrderBy(value => (value.Body.Pose.position - session.Motor.Position).sqrMagnitude)
+                    .ThenBy(value => value.Instance.Id).FirstOrDefault();
+                if (item == null)
+                {
+                    message = "该物品已被拿取或移除，请重新选择。";
+                    pickupFeedback.text = message;
+                    RefreshPickupPage();
+                    return;
+                }
+                pickupAction = session.Submit(new AvatarIntent(PickupItemAction.Id, IntentSource.UI, item.Instance.Id));
+                message = pickupAction.IsFinished ? pickupAction.Error : "冷月正在拾取" + definition.DisplayName + "。";
+                pickupFeedback.text = message;
+                RefreshPickupPage();
+            });
         }
 
         private void BuildMiniGamesPage()
         {
             var page = CreatePage(HudPage.MiniGames, "小游戏二级页面");
-            Button("‹ 返回互动", 22, 16, 170, 40, () => SetActivePage(HudPage.Interaction), page.transform, 19);
-            Label("一起玩小游戏", 210, 16, 500, 40, 25, page.transform,
-                TextAnchor.MiddleLeft, TextColor);
+            PageHeader(page.transform, "一起玩小游戏", "选择游戏，开始两个人的轻松时光");
+            PanelButton("‹ 返回互动", 574, 20, 158, 44,
+                () => SetActivePage(HudPage.Interaction), page.transform, 18, quiet: true);
             var index = 0;
             foreach (var game in bootstrap.MiniGames.Games)
             {
                 if (game == null) continue;
                 var id = game.Id;
-                Button(game.DisplayName, 22, 76 + index * 66, 220, 54, () =>
+                var card = PanelCard("游戏/" + id, 28, 112 + index * 76, 704, 64, page.transform);
+                PanelButton(game.DisplayName, 10, 8, 214, 48, () =>
                 {
                     if (bootstrap.MiniGames.TryStart(id)) SetActivePage(HudPage.None);
-                }, page.transform, 24, "小游戏/" + id);
-                Label(game.Description, 262, 76 + index * 66, 472, 54, 19,
-                    page.transform, TextAnchor.MiddleLeft, MutedTextColor);
+                }, card, 22, "小游戏/" + id, primary: true);
+                Label(game.Description, 244, 8, 442, 48, 18,
+                    card, TextAnchor.MiddleLeft, MutedTextColor);
                 index++;
             }
-            Button("再来一局", 22, 244, 344, 54, () => Run(() =>
+            PanelButton("再来一局", 28, 362, 344, 58, () => Run(() =>
             {
                 var host = bootstrap.MiniGames;
                 if (host.Active == null) { message = "请先选择一个小游戏。"; return; }
@@ -314,7 +596,7 @@ namespace MateSoul.Runtime
                 host.Stop();
                 if (host.TryStart(id)) SetActivePage(HudPage.None);
             }), page.transform, 21);
-            Button("结束小游戏", 394, 244, 344, 54, () =>
+            PanelButton("结束小游戏", 388, 362, 344, 58, () =>
             {
                 bootstrap.MiniGames.Stop();
                 SetActivePage(HudPage.Interaction);
@@ -324,66 +606,71 @@ namespace MateSoul.Runtime
         private void BuildInformationPage()
         {
             var page = CreatePage(HudPage.Information, "信息栏目");
-            Label("陪伴信息", 22, 16, 716, 34, 25, page.transform,
-                TextAnchor.MiddleLeft, TextColor, "信息标题");
-            status = Label("", 22, 58, 716, 112, 20, page.transform,
+            PageHeader(page.transform, "陪伴信息", "此刻的心情与陪伴状态", "信息标题");
+            var card = PanelCard("陪伴状态", 28, 112, 704, 218, page.transform);
+            Label("冷月 · 当前状态", 22, 18, 660, 34, 21, card,
+                TextAnchor.MiddleLeft, SelectedColor);
+            status = Label("", 22, 66, 660, 130, 20, card,
                 TextAnchor.UpperLeft, TextColor, "角色状态");
-            Button("去走走", 22, 208, 220, 54, () => Run(() =>
+            PanelButton("去走走", 28, 362, 224, 58, () => Run(() =>
             {
                 var session = bootstrap.Session;
                 if (session.Navigation.TryRandom(session.Motor.Position, new System.Random(), out var point))
                     session.Submit(new AvatarIntent("move", IntentSource.UI, payload: point));
-            }), page.transform, 20);
-            Button("留在这里", 270, 208, 220, 54, () => Run(() =>
+            }), page.transform, 20, primary: true);
+            PanelButton("留在这里", 268, 362, 224, 58, () => Run(() =>
             {
                 var session = bootstrap.Session;
                 session.Autonomy.Enabled = false;
                 session.Submit(new AvatarIntent("stay", IntentSource.Player));
             }), page.transform, 20);
-            Button("切换服装", 518, 208, 220, 54, SwitchOutfit, page.transform, 20);
+            PanelButton("切换服装", 508, 362, 224, 58, SwitchOutfit, page.transform, 20);
         }
 
         private void BuildItemsPage()
         {
             var page = CreatePage(HudPage.Items, "虚拟物品栏目");
-            Label("虚拟物品", 22, 10, 716, 34, 25, page.transform,
-                TextAnchor.MiddleLeft, TextColor, "物品标题");
+            PageHeader(page.transform, "物品背包", "选择分类，点击物品即可取出", "物品标题");
             catalog = bootstrap.CatalogItems.ToArray();
-            const float categoryWidth = 112;
-            const float categoryGap = 8.8f;
+            const float categoryWidth = 110.6667f;
+            const float categoryGap = 8;
             for (var index = 0; index < CatalogCategories.Length; index++)
             {
                 var category = CatalogCategories[index];
-                var button = Button(category.GetDisplayName(),
-                    22 + index * (categoryWidth + categoryGap), 45, categoryWidth, 34,
+                var button = PanelButton(category.GetDisplayName(),
+                    28 + index * (categoryWidth + categoryGap), 94, categoryWidth, 42,
                     () => SelectCatalogCategory(category), page.transform, 16,
-                    "物品分类/" + category.GetDisplayName());
-                catalogCategoryBackgrounds.Add(button.GetComponent<Image>());
+                    "物品分类/" + category.GetDisplayName(), quiet: true);
+                catalogCategoryButtons.Add(button);
             }
             for (var slot = 0; slot < CatalogPageSize; slot++)
             {
                 var capturedSlot = slot;
-                var button = Button("", 22 + slot % 3 * 248, 88 + slot / 3 * 44, 220, 40,
+                var button = PanelButton("", 28 + slot % 3 * 240, 152 + slot / 3 * 80, 224, 68,
                     () => PlaceCatalogItem(capturedSlot), page.transform, 18,
                     "物品槽位/" + slot);
                 catalogButtons.Add(button);
                 var titleRect = button.transform.Find("Label") as RectTransform;
-                if (titleRect != null) titleRect.sizeDelta = new Vector2(180, 40);
-                catalogQuantityLabels.Add(Label("", 184, 18, 28, 20, 14, button.transform,
-                    TextAnchor.MiddleRight, TextColor, "剩余数量"));
+                titleRect.anchoredPosition = new Vector2(14, -8);
+                titleRect.sizeDelta = new Vector2(122, 52);
+                button.GetComponentInChildren<TMP_Text>().alignment = TextAlignmentOptions.Left;
+                var badge = PanelCard("数量", 140, 10, 74, 48, button.transform);
+                badge.GetComponent<Image>().color = QuietColor;
+                catalogQuantityLabels.Add(Label("", 4, 0, 66, 48, 12, badge,
+                    TextAnchor.MiddleCenter, MutedTextColor, "剩余数量"));
             }
-            Button("‹", 22, 179, 80, 34, () => ChangeCatalogPage(-1),
-                page.transform, 24, "物品/上一页");
-            catalogPageLabel = Label("", 110, 179, 540, 34, 17, page.transform,
+            PanelButton("‹", 28, 312, 68, 42, () => ChangeCatalogPage(-1),
+                page.transform, 24, "物品/上一页", quiet: true);
+            catalogPageLabel = Label("", 108, 312, 544, 42, 17, page.transform,
                 TextAnchor.MiddleCenter, MutedTextColor, "物品页码");
-            Button("›", 658, 179, 80, 34, () => ChangeCatalogPage(1),
-                page.transform, 24, "物品/下一页");
-            selectedItem = Label("", 22, 219, 716, 32, 18, page.transform,
+            PanelButton("›", 664, 312, 68, 42, () => ChangeCatalogPage(1),
+                page.transform, 24, "物品/下一页", quiet: true);
+            selectedItem = Label("", 28, 358, 704, 28, 17, page.transform,
                 TextAnchor.MiddleLeft, TextColor, "当前物品");
-            Button("下个已放置", 22, 258, 220, 46, () => selected++, page.transform, 18);
-            Button("过去看看", 270, 258, 220, 46, VisitSelectedItem, page.transform, 18);
-            recycleButton = Button("回收当前物品", 518, 258, 220, 46,
-                RemoveSelectedItem, page.transform, 18);
+            PanelButton("下个已放置", 28, 396, 224, 40, () => selected++, page.transform, 18);
+            PanelButton("过去看看", 268, 396, 224, 40, VisitSelectedItem, page.transform, 18);
+            recycleButton = PanelButton("回收当前物品", 508, 396, 224, 40,
+                RemoveSelectedItem, page.transform, 18, danger: true);
             SelectCatalogCategory(selectedCategory);
         }
 
@@ -392,9 +679,8 @@ namespace MateSoul.Runtime
             selectedCategory = category;
             categoryCatalog = catalog.Where(item => item.Category == category).ToArray();
             catalogPage = 0;
-            for (var index = 0; index < catalogCategoryBackgrounds.Count; index++)
-                catalogCategoryBackgrounds[index].color =
-                    CatalogCategories[index] == category ? SelectedColor : ButtonColor;
+            for (var index = 0; index < catalogCategoryButtons.Count; index++)
+                catalogCategoryButtons[index].SetSelected(CatalogCategories[index] == category);
             RefreshCatalogPage();
         }
 
@@ -444,44 +730,171 @@ namespace MateSoul.Runtime
         private void BuildSettingsPage()
         {
             var page = CreatePage(HudPage.Settings, "设置栏目");
-            Button("角色性格", 22, 12, 344, 38,
-                () => SetSettingsMode(true), page.transform, 18, "设置/角色性格");
-            Button("系统", 394, 12, 344, 38,
-                () => SetSettingsMode(false), page.transform, 18, "设置/系统");
-            personalitySettingsRoot = StretchRect("角色性格设置", page.transform);
-            systemSettingsRoot = StretchRect("系统设置", page.transform);
-            var autonomyButton = Button("自主活动：开启", 22, 70, 220, 54,
+            PageHeader(page.transform, "设置", "调整陪伴偏好与系统功能");
+            personalityTab = PanelButton("角色性格", 28, 94, 344, 44,
+                () => SetSettingsMode(true), page.transform, 19, "设置/角色性格", quiet: true);
+            systemTab = PanelButton("系统", 388, 94, 344, 44,
+                () => SetSettingsMode(false), page.transform, 19, "设置/系统", quiet: true);
+            personalitySettingsRoot = Rect("角色性格设置", 28, 154, 704, 266, page.transform);
+            systemSettingsRoot = Rect("系统设置", 28, 154, 704, 266, page.transform);
+            var autonomyButton = PanelButton("自主活动：开启", 0, 0, 344, 60,
                 () => Run(() => bootstrap.Session.Autonomy.Enabled = !bootstrap.Session.Autonomy.Enabled),
                 systemSettingsRoot, 19);
             autonomyLabel = autonomyButton.GetComponentInChildren<TMP_Text>();
-            var pauseButton = Button("暂停", 270, 70, 220, 54,
+            var pauseButton = PanelButton("暂停", 360, 0, 344, 60,
                 () => bootstrap.TogglePause(), systemSettingsRoot, 20, "暂停 / 继续");
             pauseLabel = pauseButton.GetComponentInChildren<TMP_Text>();
-            Button("重试定位", 518, 70, 220, 54,
-                () => RunAsync(() => bootstrap.Session.RestoreItemsAsync()), systemSettingsRoot, 20);
-            Button("保存", 22, 146, 220, 54,
+            PanelButton("重试定位", 0, 74, 344, 60,
+                RetryLocalization, systemSettingsRoot, 20);
+            PanelButton("保存", 360, 74, 344, 60,
                 () => Run(() => { bootstrap.Session.Save(); message = "已保存"; }),
-                systemSettingsRoot, 20);
-            Button("重置界面", 270, 146, 220, 54, () =>
+                systemSettingsRoot, 20, primary: true);
+            PanelButton("重置界面", 0, 148, 344, 60, () =>
             {
                 Recenter(true);
                 message = "界面已重新定位";
             }, systemSettingsRoot, 20);
-            var modeButton = Button("交互模式", 22, 224, 716, 50, () => Run(() =>
+            PanelButton("AI配置", 360, 148, 344, 60,
+                () => OpenAIConfiguration(false), systemSettingsRoot, 20, "设置/AI配置");
+            var modeButton = PanelButton("交互模式", 0, 222, 704, 44, () => Run(() =>
             {
                 var mode = bootstrap.MiniGames.Input;
                 if (mode == null) return;
-                if (mode.Automatic) mode.SetMode(PlayerInteractionMode.Controller);
-                else if (mode.CurrentMode == PlayerInteractionMode.Controller) mode.SetMode(PlayerInteractionMode.EyeHand);
-                else if (mode.CurrentMode == PlayerInteractionMode.EyeHand) mode.SetMode(PlayerInteractionMode.Gesture);
-                else mode.ResumeAutomaticSwitching();
+                if (Application.isEditor)
+                    mode.SetMode(mode.CurrentMode == PlayerInteractionMode.Controller
+                        ? PlayerInteractionMode.Gesture : PlayerInteractionMode.Controller);
+                else message = "菜单可注视后捏合点选，也可食指触碰；物品需伸手靠近后握紧拾取，松手放下。";
             }), systemSettingsRoot, 20);
             inputModeLabel = modeButton.GetComponentInChildren<TMP_Text>();
             SetSettingsMode(true);
         }
 
+        private void BuildAIConfigurationPage()
+        {
+            var page = CreatePage(HudPage.AIConfiguration, "AI配置");
+            PageHeader(page.transform, "AI配置", "连接你的 AI，开启与冷月的对话", "AI配置标题");
+            PanelButton("返回", 612, 20, 120, 44, ReturnFromAIConfiguration,
+                page.transform, 19, quiet: true);
+            aiAddress = AIField("API 地址", "https://api.deepseek.com", 104, page.transform);
+            aiModel = AIField("模型名称", "deepseek-v4-pro", 172, page.transform);
+            aiKey = AIField("API Key", "填写你的 DeepSeek API Key", 240, page.transform, true);
+            aiConfigurationStatus = Label("保存后立即生效；API Key 在本机加密保存。",
+                28, 310, 704, 44, 17, page.transform, TextAnchor.MiddleLeft,
+                MutedTextColor, "AI配置状态");
+            aiSaveButton = PanelButton("保存配置", 28, 362, 224, 58,
+                SaveAIConfiguration, page.transform, 20, primary: true);
+            aiCheckButton = PanelButton("测试连接", 268, 362, 224, 58,
+                CheckAIConfiguration, page.transform, 20);
+            PanelButton("如何配置AI", 508, 362, 224, 58,
+                () => SetActivePage(HudPage.AITutorial), page.transform, 20);
+        }
+
+        private TMP_InputField AIField(string title, string placeholder, float y,
+            Transform parent, bool secret = false)
+        {
+            Label(title, 28, y, 132, 56, 19, parent, TextAnchor.MiddleLeft, MutedTextColor);
+            var root = Rect(title + "输入框", 174, y, 558, 56, parent);
+            AddPanelBackground(root, CardColor);
+            var field = root.gameObject.AddComponent<TMP_InputField>();
+            field.textComponent = Label("", 18, 0, 522, 56, 19, root,
+                TextAnchor.MiddleLeft, TextColor, title + "内容");
+            field.placeholder = Label(placeholder, 18, 0, 522, 56, 18, root,
+                TextAnchor.MiddleLeft, MutedTextColor, title + "提示");
+            field.lineType = TMP_InputField.LineType.SingleLine;
+            field.characterLimit = secret ? 4096 : 300;
+            if (secret) field.contentType = TMP_InputField.ContentType.Password;
+            return field;
+        }
+
+        private void BuildAITutorialPage()
+        {
+            var page = CreatePage(HudPage.AITutorial, "如何配置AI");
+            PageHeader(page.transform, "如何配置AI", "跟随三个步骤，完成连接");
+            PanelButton("返回配置", 578, 20, 154, 44,
+                () => SetActivePage(HudPage.AIConfiguration), page.transform, 19, quiet: true);
+            TutorialStep(page.transform, 1, 104, "创建密钥",
+                "在 platform.deepseek.com 注册、充值并创建 API Key。");
+            TutorialStep(page.transform, 2, 210, "填写连接信息",
+                "默认地址 https://api.deepseek.com；也支持 OpenAI 协议的\n供应商 HTTPS 地址。填写模型名称与自己的 API Key。");
+            TutorialStep(page.transform, 3, 316, "验证并保存",
+                "点击「测试连接」，验证成功后「保存配置」。\n回到对话即可发送，更换配置无需重启游戏。");
+        }
+
+        private void OpenAIConfiguration(bool fromDialogue)
+        {
+            aiReturnToDialogue = fromDialogue;
+            var saved = bootstrap.AIConfiguration;
+            aiAddress.text = saved.endpoint;
+            aiModel.text = saved.model;
+            aiKey.text = saved.apiKey;
+            aiConfigurationStatus.text = "保存后立即生效；API Key 在本机加密保存。";
+            if (dialogueOpen) SetDialogueOpen(false);
+            SetActivePage(HudPage.AIConfiguration);
+        }
+
+        private PlayerAIConfiguration ReadAIConfiguration() => PlayerAIConfiguration.Validate(
+            aiAddress.text, aiModel.text, aiKey.text, bootstrap.AllowLocalAIHttp);
+
+        private void SaveAIConfiguration()
+        {
+            try
+            {
+                bootstrap.SaveAIConfiguration(ReadAIConfiguration());
+                aiConfigurationStatus.text = "AI配置已保存。";
+                RefreshAIAvailability();
+                if (aiReturnToDialogue) ReturnFromAIConfiguration();
+            }
+            catch (Exception error) { aiConfigurationStatus.text = error.Message; }
+        }
+
+        private async void CheckAIConfiguration()
+        {
+            if (aiCheckRunning) return;
+            aiCheckRunning = true;
+            aiSaveButton.interactable = aiCheckButton.interactable = false;
+            aiAddress.interactable = aiModel.interactable = aiKey.interactable = false;
+            try
+            {
+                var configuration = ReadAIConfiguration();
+                aiConfigurationStatus.text = "正在验证 API Key 与模型…";
+                await HttpLLMProvider.CheckConfigurationAsync(configuration, hudLifetime.Token);
+                aiConfigurationStatus.text = "连接成功，API Key 与模型可用。请保存配置。";
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception error)
+            {
+                if (aiConfigurationStatus != null) aiConfigurationStatus.text = error.Message;
+            }
+            finally
+            {
+                aiCheckRunning = false;
+                if (aiSaveButton != null) aiSaveButton.interactable = true;
+                if (aiCheckButton != null) aiCheckButton.interactable = true;
+                if (aiAddress != null)
+                    aiAddress.interactable = aiModel.interactable = aiKey.interactable = true;
+            }
+        }
+
+        private void ReturnFromAIConfiguration()
+        {
+            if (aiReturnToDialogue) SetDialogueOpen(true);
+            else { SetActivePage(HudPage.Settings); SetSettingsMode(false); }
+        }
+
+        private void RefreshAIAvailability()
+        {
+            var configured = bootstrap != null && bootstrap.AIConfiguration.IsConfigured;
+            if (aiRequiredHint != null) aiRequiredHint.gameObject.SetActive(!configured);
+            if (input != null) input.interactable = configured;
+            if (sendButton != null)
+                sendButton.interactable = configured && bootstrap.Session != null &&
+                    bootstrap.Session.Conversation.State != MateSoul.Gameplay.ConversationState.Thinking;
+        }
+
         private void SetSettingsMode(bool personality)
         {
+            personalityTab?.SetSelected(personality);
+            systemTab?.SetSelected(!personality);
             if (personalitySettingsRoot != null)
                 personalitySettingsRoot.gameObject.SetActive(personality);
             if (systemSettingsRoot != null)
@@ -493,13 +906,13 @@ namespace MateSoul.Runtime
             if (personalityLabels.Count > 0) return;
             var identity = session.Persona.Identity;
             Label($"{identity.name} · {identity.age}岁 · 女 · {identity.height_cm} cm",
-                22, 55, 716, 28, 18, personalitySettingsRoot,
+                0, 0, 704, 28, 18, personalitySettingsRoot,
                 TextAnchor.MiddleCenter, MutedTextColor, "角色基础信息");
             for (var index = 0; index < session.Persona.Traits.Count; index++)
             {
                 var trait = session.Persona.Traits[index];
                 var traitId = trait.id;
-                var button = Button("", 22, 90 + index * 42, 716, 36,
+                var button = PanelButton("", index % 2 * 360, 44 + index / 2 * 72, 344, 60,
                     () => Run(() => session.SelectNextPersonality(traitId)),
                     personalitySettingsRoot, 18, "性格/" + traitId);
                 personalityLabels.Add(traitId, button.GetComponentInChildren<TMP_Text>());
@@ -522,9 +935,73 @@ namespace MateSoul.Runtime
                 placementPreview.Cancel();
             if (page != HudPage.Items) CancelRecycleSelection();
             activePage = page;
-            if (contentRoot != null) contentRoot.gameObject.SetActive(page != HudPage.None);
-            foreach (var entry in pages) entry.Value.SetActive(entry.Key == page);
+            if (page == HudPage.PickupItems) RefreshPickupPage();
+            if (panelTransition != null) StopCoroutine(panelTransition);
+            if (page == HudPage.None && !contentRoot.gameObject.activeSelf)
+            {
+                foreach (var entry in pages) entry.Value.SetActive(false);
+                panelTransition = null;
+            }
+            else panelTransition = StartCoroutine(AnimatePanel(page));
             RefreshNavigationSelection();
+        }
+
+        private IEnumerator AnimatePanel(HudPage target)
+        {
+            var opening = target != HudPage.None;
+            var roots = pages.Values.ToArray();
+            var groups = roots.Select(root => root.GetComponent<CanvasGroup>()).ToArray();
+            var alphas = groups.Select(group => group.alpha).ToArray();
+            var positions = roots.Select(root => ((RectTransform)root.transform).anchoredPosition).ToArray();
+            var targetRoot = opening ? pages[target] : null;
+            for (var index = 0; index < roots.Length; index++)
+            {
+                groups[index].interactable = groups[index].blocksRaycasts = false;
+                if (roots[index] == targetRoot && !roots[index].activeSelf)
+                {
+                    roots[index].SetActive(true);
+                    alphas[index] = groups[index].alpha = 0;
+                    positions[index] = new Vector2(0, -10);
+                }
+            }
+            contentRoot.gameObject.SetActive(true);
+            contentGroup.interactable = contentGroup.blocksRaycasts = false;
+            var startAlpha = contentGroup.alpha;
+            var startPosition = contentRoot.anchoredPosition;
+            if (startAlpha == 0) startPosition = new Vector2(0, 188);
+            var duration = opening ? .26f : .18f;
+            var elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var ease = EaseOutQuint(Mathf.Clamp01(elapsed / duration));
+                var pageEase = EaseInOutCubic(Mathf.Clamp01(elapsed / .18f));
+                contentGroup.alpha = Mathf.Lerp(startAlpha, opening ? 1 : 0, ease);
+                contentRoot.anchoredPosition = Vector2.Lerp(
+                    startPosition, new Vector2(0, opening ? 200 : 188), ease);
+                for (var index = 0; index < roots.Length; index++)
+                {
+                    if (!roots[index].activeSelf) continue;
+                    var incoming = roots[index] == targetRoot;
+                    groups[index].alpha = Mathf.Lerp(alphas[index], incoming ? 1 : 0, pageEase);
+                    ((RectTransform)roots[index].transform).anchoredPosition = Vector2.Lerp(
+                        positions[index], incoming ? Vector2.zero : new Vector2(0, 6), pageEase);
+                }
+                yield return null;
+            }
+            contentGroup.alpha = opening ? 1 : 0;
+            contentRoot.anchoredPosition = new Vector2(0, 200);
+            contentRoot.gameObject.SetActive(opening);
+            contentGroup.interactable = contentGroup.blocksRaycasts = opening;
+            for (var index = 0; index < roots.Length; index++)
+            {
+                var incoming = roots[index] == targetRoot;
+                roots[index].SetActive(incoming);
+                groups[index].alpha = incoming ? 1 : 0;
+                groups[index].interactable = groups[index].blocksRaycasts = incoming;
+                ((RectTransform)roots[index].transform).anchoredPosition = Vector2.zero;
+            }
+            panelTransition = null;
         }
 
         private void RefreshNavigationSelection()
@@ -533,7 +1010,8 @@ namespace MateSoul.Runtime
                 entry.Value.color =
                     entry.Key == HudPage.Dialogue && dialogueOpen ||
                     entry.Key == activePage ||
-                    entry.Key == HudPage.Interaction && activePage == HudPage.MiniGames
+                    entry.Key == HudPage.Interaction &&
+                        (activePage == HudPage.MiniGames || activePage == HudPage.PickupItems)
                         ? SelectedColor
                         : ButtonColor;
         }
@@ -542,6 +1020,7 @@ namespace MateSoul.Runtime
         {
             if (dialogueOpen == open && dialogueTransition == null) return;
             if (open) SetActivePage(HudPage.None);
+            RefreshAIAvailability();
             dialogueOpen = open;
             bootstrap?.Session?.SetDialogueAttention(open);
             RefreshNavigationSelection();
@@ -639,17 +1118,19 @@ namespace MateSoul.Runtime
         {
             controllerHudToggle = new InputAction("展示/隐藏 UI", InputActionType.Button);
             controllerHudToggle.AddBinding("<XRController>{RightHand}/secondaryButton");
-            leftHandFist = new InputAction("左手握拳", InputActionType.Button,
-                "<PicoHandInteraction>{LeftHand}/graspFirm");
-            rightHandFist = new InputAction("右手握拳", InputActionType.Button,
-                "<PicoHandInteraction>{RightHand}/graspFirm");
             controllerHudToggle.Enable();
-            leftHandFist.Enable();
-            rightHandFist.Enable();
         }
 
         private void UpdateHudVisibilityInput()
         {
+            if (IsTextInputFocused)
+            {
+                controllerToggleReady = handToggleReady = handToggleLatched = false;
+                handToggleStarted = -1;
+                return;
+            }
+            if (placementPreview != null && placementPreview.IsActive ||
+                placementVisibilityFrame == Time.frameCount) return;
             if (interactionMode == null)
                 interactionMode = bootstrap?.MiniGames?.Input ??
                                   FindObjectOfType<PlayerInteractionModeController>();
@@ -680,8 +1161,14 @@ namespace MateSoul.Runtime
                 return;
             }
 
-            var left = leftHandFist != null && leftHandFist.ReadValue<float>() > .5f;
-            var right = rightHandFist != null && rightHandFist.ReadValue<float>() > .5f;
+            if (!interactionMode.CanToggleHandMenu)
+            {
+                handToggleReady = handToggleLatched = false;
+                handToggleStarted = -1;
+                return;
+            }
+            var left = interactionMode.Hands[0].Closed;
+            var right = interactionMode.Hands[1].Closed;
             if (!left && !right)
             {
                 handToggleReady = true;
@@ -715,14 +1202,27 @@ namespace MateSoul.Runtime
                        ? "右手 B 键 / 双手握拳"
                        : interactionMode.CurrentMode == PlayerInteractionMode.Controller
                            ? "右手 B 键"
-                           : "双手握拳");
+                           : "空手远离物品，双手握拳");
         }
 
         private void SetHudVisible(bool visible)
         {
             hudVisible = visible;
-            if (hudRoot != null) hudRoot.gameObject.SetActive(visible);
-            if (visible || EventSystem.current == null || canvasRoot == null) return;
+            ApplyHudVisibility();
+        }
+
+        private void OnPlacementActiveChanged(bool active)
+        {
+            placementVisibilityFrame = Time.frameCount;
+            controllerToggleReady = handToggleReady = handToggleLatched = false;
+            handToggleStarted = -1;
+            ApplyHudVisibility();
+        }
+
+        private void ApplyHudVisibility()
+        {
+            if (hudRoot != null) hudRoot.gameObject.SetActive(IsVisible);
+            if (IsVisible || EventSystem.current == null || canvasRoot == null) return;
             var selectedObject = EventSystem.current.currentSelectedGameObject;
             if (selectedObject != null && selectedObject.transform.IsChildOf(canvasRoot))
                 EventSystem.current.SetSelectedGameObject(null);
@@ -763,7 +1263,7 @@ namespace MateSoul.Runtime
                     interactionAction = session.Submit(new AvatarIntent(
                         RealityInteractionIds.Lie, IntentSource.UI, bed.Id));
                     message = interactionAction.IsFinished
-                        ? interactionAction.Error : "正在走向床尾并准备躺下";
+                        ? interactionAction.Error : "正在走向床边并准备躺下";
                 });
             }
             else if (activity == "起身")
@@ -779,10 +1279,16 @@ namespace MateSoul.Runtime
             if (interactionFeedback != null) interactionFeedback.text = message;
         }
 
-        private void CloseDialogue() => SetDialogueOpen(false);
-
         private void SendDialogue()
         {
+            if (!bootstrap.AIConfiguration.IsConfigured)
+            {
+                RefreshAIAvailability();
+                return;
+            }
+#region debug-point A:send-button
+            ReportDialogueHudAction("send");
+#endregion
             RunAsync(async () =>
             {
                 var value = input.text;
@@ -800,7 +1306,51 @@ namespace MateSoul.Runtime
             });
         }
 
+#region debug-point A:close-button
+        private void CloseDialogue()
+        {
+            ReportDialogueHudAction("close");
+            SetDialogueOpen(false);
+        }
 
+        private void ReportDialogueHudAction(string action)
+        {
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var conversation = bootstrap?.Session?.Conversation;
+            var payload =
+                $"{{\"sessionId\":\"dialogue-font-tofu\",\"runId\":\"pre-fix-iteration-3\"," +
+                $"\"hypothesisId\":\"A\",\"location\":\"GameHud.{action}\"," +
+                $"\"msg\":\"[DEBUG] dialogue HUD action\",\"data\":{{" +
+                $"\"action\":\"{action}\",\"inputLength\":{input?.text?.Length ?? -1}," +
+                $"\"conversationState\":\"{(conversation == null ? "no-session" : conversation.State.ToString())}\"," +
+                $"\"sendInteractable\":{(sendButton != null && sendButton.interactable).ToString().ToLowerInvariant()}," +
+                $"\"applicationFocused\":{Application.isFocused.ToString().ToLowerInvariant()}," +
+                $"\"frame\":{Time.frameCount}}}}}";
+            var request = UnityWebRequest.Post(
+                "http://127.0.0.1:7785/event", payload, "application/json");
+            var operation = request.SendWebRequest();
+            operation.completed += _ => request.Dispose();
+#endif
+        }
+#endregion
+
+#region debug-point C:input-glyphs
+        private void ReportInputGlyphCoverage(string value)
+        {
+            if (string.IsNullOrEmpty(value) || font == null) return;
+            var covered = font.HasCharacters(value, out uint[] missingCharacters, true, true);
+            var missingCodes = missingCharacters == null
+                ? "" : string.Join(",", missingCharacters);
+            var debugPayload = $"{{\"sessionId\":\"dialogue-font-tofu\",\"runId\":\"post-fix\"," +
+                               $"\"hypothesisId\":\"C\",\"location\":\"GameHud.ReportInputGlyphCoverage\"," +
+                               $"\"msg\":\"[DEBUG] input glyph coverage\",\"data\":{{" +
+                               $"\"length\":{value.Length},\"covered\":{covered.ToString().ToLowerInvariant()}," +
+                               $"\"missingCodes\":\"{missingCodes}\",\"populationMode\":\"{font.atlasPopulationMode}\"," +
+                               $"\"characterCount\":{font.characterTable?.Count ?? -1}}}}}";
+            UnityWebRequest.Post("http://127.0.0.1:7785/event", debugPayload, "application/json")
+                .SendWebRequest();
+        }
+#endregion
 
         private void SwitchOutfit()
         {
@@ -839,13 +1389,25 @@ namespace MateSoul.Runtime
                     if (placementPreview != null) placementPreview.Cancel();
                     focusController.BeginRecycleSelection();
                     SetRecycleButtonLabel("确认回收");
-                    message = "移动视野选择物品，光圈亮起后再次点击确认回收。";
+                    message = "将一只手靠近物品，亮起后用另一只手点击确认回收。";
                     return;
                 }
                 var item = focusController.FocusedItem;
+#region debug-point D:delete-selection
+#if MATESOUL_ITEM_FOCUS_DIAGNOSTICS && DEVELOPMENT_BUILD && !UNITY_EDITOR
+                var deletePayload = $"{{\"sessionId\":\"item-focus-interaction\",\"runId\":\"post-fix\"," +
+                                    $"\"hypothesisId\":\"D\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                                    $"\"location\":\"GameHud.RemoveSelectedItem\"," +
+                                    $"\"msg\":\"[DEBUG] delete button target resolved\",\"data\":{{" +
+                                    $"\"focusId\":\"{focusController?.FocusedItem?.Instance?.Id ?? "none"}\"," +
+                                    $"\"targetId\":\"{item?.Instance?.Id ?? "none"}\"" + "}}";
+                UnityWebRequest.Post("http://127.0.0.1:7782/event", deletePayload, "application/json")
+                    .SendWebRequest();
+#endif
+#endregion
                 if (item == null)
                 {
-                    message = "视野中心没有可回收物品。";
+                    message = "手边没有可回收物品。";
                     return;
                 }
                 if (!bootstrap.Session.RecycleItem(item.Instance.Id)) return;
@@ -871,19 +1433,73 @@ namespace MateSoul.Runtime
             if (Application.isEditor) return;
             var activeCamera = Camera.main;
             if (activeCamera == null || canvasRoot == null || canvas == null) return;
-            var cameraTransform = activeCamera.transform;
-            var targetPosition = cameraTransform.position + cameraTransform.forward * 1.5f -
-                                 cameraTransform.up * .7f;
-            var targetRotation = cameraTransform.rotation;
-            var amount = immediate ? 1f : 1f - Mathf.Exp(-7f * Time.unscaledDeltaTime);
-            canvasRoot.position = Vector3.Lerp(canvasRoot.position, targetPosition, amount);
-            canvasRoot.rotation = Quaternion.Slerp(canvasRoot.rotation, targetRotation, amount);
+            UpdateWorldPose(activeCamera.transform, immediate, Time.unscaledDeltaTime);
             canvas.worldCamera = activeCamera;
         }
 
+        private void UpdateWorldPose(Transform cameraTransform, bool immediate, float deltaTime)
+        {
+            if (!immediate && hudInteractionActive) return;
+            var forward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up);
+            var yaw = forward.sqrMagnitude >= .01f
+                ? Quaternion.LookRotation(forward.normalized, Vector3.up)
+                : hudPoseInitialized
+                    ? hudFollowRotation
+                    : Quaternion.Euler(0, cameraTransform.eulerAngles.y, 0);
+            if (immediate || !hudPoseInitialized ||
+                Quaternion.Angle(hudFollowRotation, yaw) > HudYawDeadZone ||
+                Vector3.ProjectOnPlane(cameraTransform.position - hudFollowOrigin, Vector3.up)
+                    .sqrMagnitude > HudTranslationDeadZone * HudTranslationDeadZone)
+            {
+                hudPoseInitialized = true;
+                hudFollowOrigin = cameraTransform.position;
+                hudFollowRotation = yaw;
+            }
+            // Height follows continuously; horizontal dead zones must not retain a crouched origin.
+            hudFollowOrigin.y = cameraTransform.position.y;
+            var headElevation = Mathf.Atan2(cameraTransform.forward.y, forward.magnitude) *
+                                Mathf.Rad2Deg;
+            // Smoothly approach the comfort limit so raising the head always starts returning.
+            var elevation = -HudDownwardAngle + HudPitchFollowLimit *
+                (float)Math.Tanh(headElevation * HudPitchFollowFraction / HudPitchFollowLimit);
+            hudTargetRotation = hudFollowRotation * Quaternion.Euler(-elevation, 0, 0);
+            var visibleCenter = CalculateVisibleCenter(hudFollowOrigin, hudTargetRotation);
+            if (contentRoot != null && contentRoot.gameObject.activeSelf)
+                visibleCenter -= Vector3.up * HudExpandedNavigationDrop;
+            // Anchor the controls; expanded pages occupy the space above them.
+            var referencePanel = dialogueOpen ? dialogueRoot : navigationRoot;
+            var panelCenter = referencePanel == null ? Vector3.zero :
+                canvasRoot.InverseTransformPoint(referencePanel.TransformPoint(referencePanel.rect.center));
+            hudTargetPosition = visibleCenter -
+                                hudTargetRotation * Vector3.Scale(panelCenter, canvasRoot.lossyScale);
+            var amount = immediate ? 1f : 1f - Mathf.Exp(-7f * deltaTime);
+            canvasRoot.position = Vector3.Lerp(canvasRoot.position, hudTargetPosition, amount);
+            canvasRoot.rotation = Quaternion.Slerp(canvasRoot.rotation, hudTargetRotation, amount);
+        }
+
+        private static Vector3 CalculateVisibleCenter(Vector3 origin, Quaternion rotation)
+            => origin + rotation * Vector3.forward * HudDistance +
+               Vector3.up * HudVerticalOffset;
+
         private void LateUpdate()
         {
-            if (!Application.isEditor) Recenter(false);
+            if (Application.isEditor) return;
+            hudInteractionActive = false;
+            if (EventSystem.current != null &&
+                EventSystem.current.currentInputModule is XRUIInputModule module)
+            {
+                foreach (var interactor in hudPointers)
+                {
+                    if (!module.GetTrackedDeviceModel(interactor, out var model) ||
+                        !(model.select || interactor is PicoHandPoke poke && poke.IsTouching(canvasRoot)) ||
+                        model.currentRaycast.gameObject == null ||
+                        !model.currentRaycast.gameObject.transform.IsChildOf(canvasRoot))
+                        continue;
+                    hudInteractionActive = true;
+                    break;
+                }
+            }
+            Recenter(false);
         }
 
         private GameItem SelectedItem()
@@ -896,6 +1512,9 @@ namespace MateSoul.Runtime
             return items == null || items.Length == 0 ? null : items[selected % items.Length];
         }
 
+        private void OnHandPlacementConfirmed(ItemDefinition definition)
+            => RunAsync(() => PlaceAsync(definition));
+
         private async Task PlaceAsync(ItemDefinition definition)
         {
             var s = bootstrap.Session;
@@ -906,9 +1525,11 @@ namespace MateSoul.Runtime
                 if (!placementPreview.IsPreviewing(definition))
                 {
                     placementPreview.Begin(definition);
-                    var surface = definition.PlacementSurface == ItemPlacementSurface.Wall
-                        ? "墙面" : "地面";
-                    message = $"移动视线选择{surface}位置，绿色可放置；再次点击确认。";
+                    message = definition.PlacementSurface == ItemPlacementSurface.Wall
+                        ? "把手伸到墙面附近，绿色时先张手，再握紧并松开确认；双手握拳1秒取消。"
+                        : "移动手掌选择正下方位置，绿色时先张手，再握紧并松开确认；双手握拳1秒取消。";
+                    if (interactionMode != null && !interactionMode.DirectHandsEnabled)
+                        message = "选择绿色位置后按右手扳机确认，B键取消。";
                     return;
                 }
                 if (!placementPreview.CanPlace)
@@ -930,9 +1551,13 @@ namespace MateSoul.Runtime
                 forward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
             }
             if (forward.sqrMagnitude < .01f) forward = Vector3.forward;
-            var desired = origin + forward * 1.45f;
-            await s.PlaceItemAsync(definition.Id,
-                new Pose(desired, definition.ResolvePlacementRotation(-forward)));
+            if (!s.TryResolveNearPlayerPlacement(definition,
+                    new Pose(origin, Quaternion.LookRotation(forward)), out var placement))
+            {
+                message = "眼前没有可放置的平台，请看向附近桌面后重试。";
+                return;
+            }
+            await s.PlaceItemAsync(definition.Id, placement, false, true);
         }
 
         private void RefreshCatalogQuantities()
@@ -946,7 +1571,8 @@ namespace MateSoul.Runtime
                 var remaining = session == null ? 0 :
                     session.GetRemainingQuantity(definition.Id);
                 catalogQuantityLabels[slot].text =
-                    definition.UnlimitedInventory ? "∞" : remaining.ToString();
+                    (definition.UnlimitedInventory ? "可用 ∞" : $"可用 {remaining}") +
+                    $"\n已放 {session?.ItemViews.Where(item => item.InventoryDefinitionId == definition.Id).Select(item => item.InventoryUnitId).Distinct().Count() ?? 0}";
                 catalogButtons[slot].interactable = session != null &&
                     (definition.UnlimitedInventory || remaining > 0);
             }
@@ -955,14 +1581,54 @@ namespace MateSoul.Runtime
         private void Update()
         {
             UpdateHudVisibilityInput();
+#region debug-point D:eyehand-pointer-stall
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextUiTrace && navigationGroup != null && dialogueGroup != null)
+            {
+                debugNextUiTrace = Time.unscaledTime + 1f;
+                ReportInputTrace($"{{\"sessionId\":\"eyehand-pointer-stall\",\"runId\":\"post-fix-2\"," +
+                    $"\"hypothesisId\":\"D\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                    $"\"location\":\"GameHud.Update\",\"msg\":\"[DEBUG] UI access\",\"data\":{{" +
+                    $"\"frame\":{Time.frameCount},\"focus\":{(Application.isFocused ? 1 : 0)}," +
+                    $"\"visible\":{(hudVisible ? 1 : 0)},\"page\":{InputTraceString(activePage.ToString())}," +
+                    $"\"transition\":{(dialogueTransition != null ? 1 : 0)}," +
+                    $"\"navActive\":{(navigationRoot.gameObject.activeInHierarchy ? 1 : 0)}," +
+                    $"\"navInteractable\":{(navigationGroup.interactable ? 1 : 0)}," +
+                    $"\"navRaycasts\":{(navigationGroup.blocksRaycasts ? 1 : 0)}," +
+                    $"\"dialogueActive\":{(dialogueRoot.gameObject.activeInHierarchy ? 1 : 0)}," +
+                    $"\"dialogueInteractable\":{(dialogueGroup.interactable ? 1 : 0)}," +
+                    $"\"dialogueRaycasts\":{(dialogueGroup.blocksRaycasts ? 1 : 0)}," +
+                    $"\"sessionReady\":{(bootstrap?.Session != null ? 1 : 0)}}}}}");
+            }
+#endif
+#endregion
+            #region debug-point A-E:ui-quality-runtime-evidence
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            if (!uiQualityReported && Time.unscaledTime >= 2f)
+            {
+                uiQualityReported = true;
+                ReportUiQuality();
+            }
+            if (!windowGlyphCoverageReported && Time.unscaledTime >= 2f)
+            {
+                windowGlyphCoverageReported = true;
+                ReportWindowGlyphCoverage();
+            }
+#endif
+            #endregion
 
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + .2f;
             var session = bootstrap == null ? null : bootstrap.Session;
             RefreshCatalogQuantities();
-            if (sendButton != null)
-                sendButton.interactable = session != null &&
-                    session.Conversation.State != MateSoul.Gameplay.ConversationState.Thinking;
+            RefreshAIAvailability();
+            if (pickupAction != null && pickupAction.IsFinished)
+            {
+                message = pickupAction.Error ?? "物品拾取已结束，可再次选择物品。";
+                pickupFeedback.text = message;
+                pickupAction = null;
+            }
+            if (activePage == HudPage.PickupItems) RefreshPickupPage();
             if (interactionAction != null && interactionAction.IsFinished)
             {
                 message = interactionAction.Error ?? (
@@ -1009,20 +1675,181 @@ namespace MateSoul.Runtime
             if (inputModeLabel != null && bootstrap.MiniGames.Input != null)
             {
                 var mode = bootstrap.MiniGames.Input;
-                var title = mode.CurrentMode == PlayerInteractionMode.Controller ? "手柄" :
-                    mode.CurrentMode == PlayerInteractionMode.EyeHand ? "眼手" : "手势";
-                inputModeLabel.text = $"交互模式：{(mode.Automatic ? "自动 / " : "")}{title}（点击切换）";
+                inputModeLabel.text = mode.DirectHandsEnabled
+                    ? "菜单：眼手点选 / 触碰；物品：近距握取"
+                    : "交互：编辑器手柄模拟（点击切换）";
             }
             if (autonomyLabel != null)
                 autonomyLabel.text = $"自主活动：{(session.Autonomy.Enabled ? "开启" : "关闭")}";
             if (pauseLabel != null) pauseLabel.text = session.Paused ? "继续" : "暂停";
         }
 
+        #region debug-point A-E:ui-quality-runtime-evidence
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+        private void ReportUiQuality()
+        {
+            const string endpoint = "http://127.0.0.1:7783/event";
+            var navText = GetComponentsInChildren<TMP_Text>(true)
+                .FirstOrDefault(value => value.name == "功能名称");
+            var icons = GetComponentsInChildren<Image>(true)
+                .Where(value => value.name == "功能图标").ToArray();
+            var icon = icons.FirstOrDefault();
+            var importedIcon = icons.Skip(1).FirstOrDefault();
+            var scaler = canvas == null ? null : canvas.GetComponent<CanvasScaler>();
+            var camera = Camera.main;
+            var corners = new Vector3[4];
+            if (navText != null) navText.rectTransform.GetWorldCorners(corners);
+            var projectedHeight = camera == null || navText == null
+                ? -1f
+                : Vector3.Distance(camera.WorldToScreenPoint(corners[0]),
+                    camera.WorldToScreenPoint(corners[1]));
+            var worldHeight = navText == null ? -1f : Vector3.Distance(corners[0], corners[1]);
+            var pipeline = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline;
+            var renderScaleProperty = pipeline?.GetType().GetProperty("renderScale");
+            var msaaProperty = pipeline?.GetType().GetProperty("msaaSampleCount");
+            var renderScale = renderScaleProperty == null
+                ? -1f
+                : Convert.ToSingle(renderScaleProperty.GetValue(pipeline));
+            var pipelineMsaa = msaaProperty == null
+                ? -1
+                : Convert.ToInt32(msaaProperty.GetValue(pipeline));
+            var pico = FindObjectOfType<ByteDance.PICO.XR.PXR_Manager>();
+            var textTexture = navText?.fontSharedMaterial?.mainTexture;
+            var fontAtlas = navText?.font?.atlasTextures?.FirstOrDefault();
+            var textMaterial = navText == null ? null : navText.materialForRendering;
+            var renderedTextTexture = textMaterial?.mainTexture;
+            var textColor = navText == null ? Color.clear : navText.color;
+            var faceColor = textMaterial != null && textMaterial.HasProperty(ShaderUtilities.ID_FaceColor)
+                ? textMaterial.GetColor(ShaderUtilities.ID_FaceColor)
+                : Color.clear;
+            var gradientScale = textMaterial != null &&
+                                textMaterial.HasProperty(ShaderUtilities.ID_GradientScale)
+                ? textMaterial.GetFloat(ShaderUtilities.ID_GradientScale)
+                : -1f;
+            var textInfo = navText?.textInfo;
+            var firstCharacterVisible = textInfo != null && textInfo.characterCount > 0 &&
+                                        textInfo.characterInfo[0].isVisible;
+            var textInfoVertexCount = textInfo == null || textInfo.meshInfo.Length == 0
+                ? -1
+                : textInfo.meshInfo[0].vertexCount;
+            var zTestMode = textMaterial != null &&
+                            textMaterial.HasProperty(ShaderUtilities.ShaderTag_ZTestMode)
+                ? textMaterial.GetFloat(ShaderUtilities.ShaderTag_ZTestMode)
+                : -1f;
+            var iconTexture = icon == null ? null : icon.mainTexture;
+            var importedIconTexture = importedIcon == null ? null : importedIcon.mainTexture;
+
+            var a =
+                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"A\"," +
+                $"\"location\":\"GameHud.ReportUiQuality:text\",\"msg\":\"[DEBUG] text raster metrics\"," +
+                $"\"data\":{{\"fontSize\":{navText?.fontSize ?? -1},\"pixelsPerUnit\":{navText?.pixelsPerUnit ?? -1:F3}," +
+                $"\"fontMode\":\"{navText?.font?.atlasPopulationMode}\",\"fontAtlasWidth\":{fontAtlas?.width ?? -1}," +
+                $"\"fontAtlasHeight\":{fontAtlas?.height ?? -1},\"materialTextureWidth\":{textTexture?.width ?? -1}," +
+                $"\"materialTextureHeight\":{textTexture?.height ?? -1},\"atlasCount\":{navText?.font?.atlasTextureCount ?? -1}," +
+                $"\"fontAsset\":\"{navText?.font?.name}\",\"sourceFont\":\"{navText?.font?.sourceFontFile?.name}\"," +
+                $"\"fontCharacters\":{navText?.font?.characterTable?.Count ?? -1}," +
+                $"\"textLength\":{navText?.text?.Length ?? -1},\"textCharacters\":{navText?.textInfo?.characterCount ?? -1}," +
+                $"\"rectHeight\":{navText?.rectTransform.rect.height ?? -1:F3}," +
+                $"\"requiredLineHeight\":{(navText == null ? -1f : navText.fontSize * navText.font.faceInfo.lineHeight / navText.font.faceInfo.pointSize):F3}}}}}";
+            UnityWebRequest.Post(endpoint, a, "application/json").SendWebRequest();
+
+            var b =
+                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"B\"," +
+                $"\"location\":\"GameHud.ReportUiQuality:xr\",\"msg\":\"[DEBUG] XR render metrics\"," +
+                $"\"data\":{{\"screenWidth\":{Screen.width},\"screenHeight\":{Screen.height}," +
+                $"\"eyeWidth\":{UnityEngine.XR.XRSettings.eyeTextureWidth}," +
+                $"\"eyeHeight\":{UnityEngine.XR.XRSettings.eyeTextureHeight}," +
+                $"\"eyeScale\":{UnityEngine.XR.XRSettings.eyeTextureResolutionScale:F3}," +
+                $"\"urpRenderScale\":{renderScale:F3},\"quality\":\"{QualitySettings.names[QualitySettings.GetQualityLevel()]}\"," +
+                $"\"qualityMsaa\":{QualitySettings.antiAliasing},\"pipelineMsaa\":{pipelineMsaa}," +
+                $"\"cameraPixelWidth\":{camera?.pixelWidth ?? -1},\"cameraPixelHeight\":{camera?.pixelHeight ?? -1}," +
+                $"\"cameraMsaa\":\"{camera?.allowMSAA}\",\"picoRecommendedMsaa\":\"{pico?.useRecommendedAntiAliasingLevel}\"" +
+                "}}";
+            UnityWebRequest.Post(endpoint, b, "application/json").SendWebRequest();
+
+            var c =
+                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"C\"," +
+                $"\"location\":\"GameHud.ReportUiQuality:projection\",\"msg\":\"[DEBUG] projected text size\"," +
+                $"\"data\":{{\"canvasScaleFactor\":\"{canvas?.scaleFactor ?? -1:F3}\"," +
+                $"\"dynamicPixelsPerUnit\":\"{scaler?.dynamicPixelsPerUnit ?? -1:F3}\"," +
+                $"\"projectedTextHeight\":\"{projectedHeight:F3}\",\"worldTextHeight\":\"{worldHeight:F5}\"," +
+                $"\"canvasWorldScale\":\"{canvasRoot?.lossyScale.x ?? -1:F6}\",\"isRootCanvas\":\"{canvas?.isRootCanvas}\"," +
+                $"\"cameraDistance\":\"{(camera == null || canvasRoot == null ? -1f : Vector3.Distance(camera.transform.position, canvasRoot.position)):F3}\"}}}}";
+            UnityWebRequest.Post(endpoint, c, "application/json").SendWebRequest();
+
+            var d =
+                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"D\"," +
+                $"\"location\":\"GameHud.ReportUiQuality:material\",\"msg\":\"[DEBUG] UI material metrics\"," +
+                $"\"data\":{{\"textShader\":\"{textMaterial?.shader?.name}\"," +
+                $"\"overlayShader\":\"{overlayMaterial?.shader?.name}\",\"textureFilter\":\"{textTexture?.filterMode}\"," +
+                $"\"textureMips\":{textTexture?.mipmapCount ?? -1},\"textOverlay\":\"{navText?.isOverlay}\"," +
+                $"\"renderTextureWidth\":{renderedTextTexture?.width ?? -1},\"renderTextureHeight\":{renderedTextTexture?.height ?? -1}," +
+                $"\"textLength\":{navText?.text?.Length ?? -1},\"textCharacters\":{textInfo?.characterCount ?? -1}," +
+                $"\"textInfoVertexCount\":{textInfoVertexCount},\"firstCharacterVisible\":\"{firstCharacterVisible}\"," +
+                $"\"rendererCull\":\"{navText?.canvasRenderer.cull}\",\"zTestMode\":{zTestMode:F1}," +
+                $"\"textColor\":\"{textColor.r:F3},{textColor.g:F3},{textColor.b:F3},{textColor.a:F3}\"," +
+                $"\"faceColor\":\"{faceColor.r:F3},{faceColor.g:F3},{faceColor.b:F3},{faceColor.a:F3}\"," +
+                $"\"rendererAlpha\":\"{navText?.canvasRenderer?.GetAlpha() ?? -1:F3}\"," +
+                $"\"gradientScale\":\"{gradientScale:F3}\",\"vertexCount\":{navText?.mesh?.vertexCount ?? -1}}}}}";
+            UnityWebRequest.Post(endpoint, d, "application/json").SendWebRequest();
+
+            var e =
+                $"{{\"sessionId\":\"xr-ui-blur\",\"runId\":\"post-fix\",\"hypothesisId\":\"E\"," +
+                $"\"location\":\"GameHud.ReportUiQuality:icon\",\"msg\":\"[DEBUG] icon sampling metrics\"," +
+                $"\"data\":{{\"iconWidth\":{iconTexture?.width ?? -1},\"iconHeight\":{iconTexture?.height ?? -1}," +
+                $"\"iconFilter\":\"{iconTexture?.filterMode}\",\"iconMips\":{iconTexture?.mipmapCount ?? -1}," +
+                $"\"importedIconWidth\":{importedIconTexture?.width ?? -1},\"importedIconHeight\":{importedIconTexture?.height ?? -1}," +
+                $"\"importedIconMips\":{importedIconTexture?.mipmapCount ?? -1}," +
+                $"\"picoSuperResolution\":\"{pico?.enableSuperResolution}\",\"picoAdaptiveResolution\":\"{pico?.adaptiveResolution}\"," +
+                $"\"picoFoveation\":\"{pico?.foveationLevel}\",\"picoSharpening\":\"{pico?.sharpeningMode}\"" +
+                "}}";
+            UnityWebRequest.Post(endpoint, e, "application/json").SendWebRequest();
+        }
+
+        private void ReportWindowGlyphCoverage()
+        {
+            const string endpoint = "http://127.0.0.1:7784/event";
+            var targets = new[]
+            {
+                new { Page = HudPage.Items, Hypothesis = "A,B" },
+                new { Page = HudPage.Settings, Hypothesis = "A,B,D" }
+            };
+            foreach (var target in targets)
+            {
+                var labels = pages[target.Page].GetComponentsInChildren<TMP_Text>(true)
+                    .Where(text => text != null && !string.IsNullOrEmpty(text.text))
+                    .ToArray();
+                var combined = string.Concat(labels.Select(text => text.text));
+                var covered = font.HasCharacters(
+                    combined, out uint[] missing, false, false);
+                missing ??= Array.Empty<uint>();
+                var missingCodes = string.Join(",", missing.Select(code => $"U+{code:X4}"));
+                var windowText = string.Join("|", labels.Select(text =>
+                    text.text.Replace("\\", "\\\\").Replace("\"", "\\\"")
+                        .Replace("\r", "").Replace("\n", "\\n")));
+                var payload =
+                    $"{{\"sessionId\":\"window-missing-glyphs\",\"runId\":\"pre-fix\"," +
+                    $"\"hypothesisId\":\"{target.Hypothesis}\",\"location\":\"GameHud.ReportWindowGlyphCoverage\"," +
+                    $"\"msg\":\"[DEBUG] window font coverage\",\"data\":{{\"page\":\"{target.Page}\"," +
+                    $"\"labelCount\":{labels.Length},\"fontCharacters\":{font.characterTable.Count}," +
+                    $"\"covered\":\"{covered}\",\"missingCount\":{missing.Length}," +
+                    $"\"missingCodes\":\"{missingCodes}\",\"windowText\":\"{windowText}\"}}}}";
+                UnityWebRequest.Post(endpoint, payload, "application/json").SendWebRequest();
+            }
+        }
+#endif
+        #endregion
 
         private void Run(Action action)
         {
             if (bootstrap.Session == null || bootstrap.Session.Paused) return;
             try { message = null; action(); }
+            catch (Exception error) { message = error.Message; }
+        }
+        private async void RetryLocalization()
+        {
+            if (bootstrap.Session?.Paused == true) return;
+            try { message = null; await bootstrap.RetryLocalizationAsync(); }
             catch (Exception error) { message = error.Message; }
         }
         private async void RunAsync(Func<Task> action)
@@ -1073,6 +1900,86 @@ namespace MateSoul.Runtime
                 image.type = Image.Type.Sliced;
             }
             return image;
+        }
+
+        private Image AddPanelBackground(RectTransform rect, Color color)
+        {
+            var image = AddBackground(rect, color);
+            image.sprite = panelSprite;
+            return image;
+        }
+
+        private RectTransform PanelCard(string title, float x, float y, float width, float height,
+            Transform parent)
+        {
+            var rect = Rect(title, x, y, width, height, parent);
+            AddPanelBackground(rect, CardColor).raycastTarget = false;
+            return rect;
+        }
+
+        private void PageHeader(Transform parent, string title, string description,
+            string objectName = "页面标题")
+        {
+            var accent = Rect("标题色块", 28, 22, 4, 28, parent);
+            AddPanelBackground(accent, SelectedColor).raycastTarget = false;
+            Label(title, 44, 16, 506, 38, 26, parent,
+                TextAnchor.MiddleLeft, TextColor, objectName);
+            Label(description, 28, 58, 704, 26, 17, parent,
+                TextAnchor.MiddleLeft, MutedTextColor, "页面说明");
+        }
+
+        private void TutorialStep(Transform parent, int number, float y, string title, string body)
+        {
+            var card = PanelCard("配置步骤/" + number, 28, y, 704, 98, parent);
+            var badge = PanelCard("步骤序号", 16, 20, 46, 46, card);
+            badge.GetComponent<Image>().color = QuietColor;
+            Label(number.ToString("00"), 0, 0, 46, 46, 19, badge,
+                TextAnchor.MiddleCenter, SelectedColor);
+            Label(title, 80, 10, 606, 30, 20, card, TextAnchor.MiddleLeft, TextColor);
+            Label(body, 80, 40, 606, 54, 17, card, TextAnchor.MiddleLeft, MutedTextColor);
+        }
+
+        private HudPanelButton PanelButton(string title, float x, float y, float width, float height,
+            UnityEngine.Events.UnityAction action, Transform parent, int fontSize,
+            string objectName = null, bool primary = false, bool quiet = false, bool danger = false)
+        {
+            var rect = Rect(objectName ?? title, x, y, width, height, parent);
+            var background = primary ? ButtonColor : danger ? DangerColor : quiet ? QuietColor : CardColor;
+            var foreground = primary ? PrimaryTextColor : TextColor;
+            var image = AddPanelBackground(rect, background);
+            var label = Label(title, 12, 0, width - 24, height, fontSize, rect,
+                TextAnchor.MiddleCenter, foreground, "Label");
+            var button = rect.gameObject.AddComponent<HudPanelButton>();
+            button.Configure(image, label, background, foreground,
+                primary || quiet ? SelectedColor : CardHoverColor,
+                primary || quiet ? PrimaryTextColor : TextColor);
+            button.onClick.AddListener(action);
+            return button;
+        }
+
+        private Sprite CreatePanelSprite()
+        {
+            const int size = 128;
+            const float radius = 24;
+            panelTexture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                name = "MateSoul Panel Soft Corners",
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp
+            };
+            var pixels = new Color32[size * size];
+            for (var y = 0; y < size; y++)
+                for (var x = 0; x < size; x++)
+                {
+                    var dx = Mathf.Max(Mathf.Abs(x + .5f - size * .5f) - (size * .5f - radius), 0);
+                    var dy = Mathf.Max(Mathf.Abs(y + .5f - size * .5f) - (size * .5f - radius), 0);
+                    var alpha = Mathf.Clamp01(radius + .5f - Mathf.Sqrt(dx * dx + dy * dy));
+                    pixels[y * size + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(alpha * 255));
+                }
+            panelTexture.SetPixels32(pixels);
+            panelTexture.Apply(false, true);
+            return Sprite.Create(panelTexture, new Rect(0, 0, size, size), new Vector2(.5f, .5f),
+                100, 0, SpriteMeshType.FullRect, Vector4.one * radius);
         }
 
         private Sprite CreateRoundedSprite()
@@ -1351,17 +2258,35 @@ namespace MateSoul.Runtime
 
         private void OnDestroy()
         {
+#region debug-point D:eyehand-pointer-stall
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (debugUiModule != null)
+            {
+                debugUiModule.pointerDown -= TraceInputDown;
+                debugUiModule.pointerUp -= TraceInputUp;
+                debugUiModule.pointerClick -= TraceInputClick;
+            }
+#endif
+#endregion
+            if (placementPreview != null)
+            {
+                placementPreview.ConfirmRequested -= OnHandPlacementConfirmed;
+                placementPreview.ActiveChanged -= OnPlacementActiveChanged;
+            }
+            hudLifetime.Cancel();
+            hudLifetime.Dispose();
             CancelRecycleSelection();
             if (dialogueTransition != null) StopCoroutine(dialogueTransition);
+            if (panelTransition != null) StopCoroutine(panelTransition);
             bootstrap?.Session?.SetDialogueAttention(false);
             controllerHudToggle?.Dispose();
-            leftHandFist?.Dispose();
-            rightHandFist?.Dispose();
             if (overlayMaterial != null) Destroy(overlayMaterial);
             foreach (var sprite in iconSprites) if (sprite != null) Destroy(sprite);
             foreach (var texture in iconTextures) if (texture != null) Destroy(texture);
             if (roundedSprite != null) Destroy(roundedSprite);
             if (roundedTexture != null) Destroy(roundedTexture);
+            if (panelSprite != null) Destroy(panelSprite);
+            if (panelTexture != null) Destroy(panelTexture);
         }
     }
 }

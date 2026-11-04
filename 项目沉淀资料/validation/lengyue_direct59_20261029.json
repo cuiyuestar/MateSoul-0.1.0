@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-29T17:20:19+0800",
+  "status": "integrated_static_verified_runtime_pending",
+  "sourceVersion": "Direct59",
+  "productionPrefab": "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab",
+  "productionPrefabGuid": "b62edb46b12e444e5953050e8431e291",
+  "bindings": {
+    "bodyMesh": "Assets/LengyueIntegration/Direct55/Body_Direct54_LimbRefinement.asset",
+    "bodyMaterial": "Assets/LengyueIntegration/Direct59/BodySkin_Direct56.mat",
+    "faceMesh": "Assets/LengyueIntegration/Direct55/Face_Direct54_GameExpressions.asset",
+    "faceBlendShapeCount": 61,
+    "faceExpressionMaterial": "Assets/LengyueIntegration/Direct59/FaceExpression_Direct57.mat",
+    "hairMesh": "Assets/LengyueIntegration/Direct59/Hair_Direct59.asset",
+    "hairStrandLinesMesh": "Assets/LengyueIntegration/Direct59/HairStrandLines_Direct59.asset"
+  },
+  "sourceGates": {
+    "geometryGate": true,
+    "independentBlendGate": true,
+    "unityGate": true,
+    "packageGate": true,
+    "roiClosed": true,
+    "changedHairVertices": 79,
+    "targetHairGroups": [84],
+    "triangleFlips": 0,
+    "newDegenerateTriangles": 0
+  },
+  "staticValidation": {
+    "pass": true,
+    "copiedPayloadsByteExact": 8,
+    "uniqueAssetGuids": 8,
+    "materialDependenciesResolved": true,
+    "prefabOnlyExpectedBindingChanges": true,
+    "sceneStillReferencesProductionPrefab": true,
+    "sceneTouchedByThisMerge": false,
+    "scopedDiffCheck": true
+  },
+  "hashes": {
+    "hairDirect59": "df15500d74cae5a429fe76db21fb92bd0e63316f9167b96006d80cadf2f80425",
+    "hairStrandLinesDirect59": "60858f755fb26d175a7bf5830db314c116328adcbd4b1de16df9f964a0368cce",
+    "bodyMaterialDirect56": "d5b57383ce9c238c44d7d7080e4dd6d4725d112c51fa317000e5400992c1ad1f",
+    "faceExpressionMaterialDirect57": "33294ac9d54be63f2d928a1172f64402d1d636caaaf6997542c6566794188f3a",
+    "gameFaceMeshPreserved": "848abc75b29da41b9a36c36fd966d2efa873a08c6684f930ef8dcd26425ed88b",
+    "gameBodyMeshPreserved": "0bc9f6300f4c55a0a7137877d8628c4719b444000da76476c1bbaab2b690153c",
+    "gameSupplementalArmsPreserved": "edc34d12eae1151f61c6782d1417c9ffd6815691ae1c129eba5d49da2e3e2590",
+    "prefabBefore": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+    "prefabAfter": "bd1fce82b5ffb98b60beceae15958eb52ec21989751b8155986dc2889289d7"
+  },
+  "unityValidation": {
+    "launchAttempted": true,
+    "executed": false,
+    "blocker": "Unity 2022.3.38f1 exited before project import because com.unity.editor.headless entitlement was inactive.",
+    "assetFailureObserved": false
+  },
+  "validatorCompile": {
+    "executed": true,
+    "pass": true,
+    "compiler": "Unity 2022.3.38f1 Mono csc",
+    "assemblySha256": "e0c3e476b560716ebda4e6a621c102c7a860d8ad487138ec2ad33e53bf4fa6a7"
+  },
+  "frameworkCheck": {
+    "executed": true,
+    "pass": false,
+    "blocker": "Existing check-game-framework.py Roslyn reference set does not include current URP renderer assemblies.",
+    "relatedToDirect59": false
+  },
+  "androidBuild": {
+    "executed": false,
+    "apk": null
+  },
+  "picoValidation": {
+    "executed": false
+  }
+}

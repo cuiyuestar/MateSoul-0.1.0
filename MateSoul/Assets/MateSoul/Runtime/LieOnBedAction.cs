@@ -67,6 +67,7 @@ namespace MateSoul.Runtime
                       $"width={bed.Width:F3} length={bed.Length:F3} height=" +
                       $"{bed.Center.y - bed.FloorY:F3} edge={mount.Edge} " +
                       $"dock={mount.Dock:F3} planeError={bed.PlaneError:F4}");
+            Debug.Log($"MATESOUL_BED headCue={bed.HeadCue} forward={bed.Forward:F3}");
         }
 
         public ActionProgress Tick(float dt)

@@ -37,31 +37,35 @@ namespace MateSoul.Runtime
 
     public sealed class RealityMeshSource : IDisposable
     {
-        private readonly RoomMapSnapshot room;
-        private readonly List<XRMeshSubsystem> started = new List<XRMeshSubsystem>();
+        private readonly Dictionary<Guid, List<RealityTriangle>> blockGeometry =
+            new Dictionary<Guid, List<RealityTriangle>>();
         private List<RealityTriangle> geometry = new List<RealityTriangle>();
+        private readonly MeasuredMeshRetention retention = new MeasuredMeshRetention();
         private bool disposed;
+        private bool dirty;
+        private float nextPublish;
 
         public RealityMeshSource(RoomMapSnapshot snapshot)
         {
-            room = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
+            if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
         }
 
         public IReadOnlyList<RealityTriangle> Geometry => geometry;
         public event Action<List<RealityTriangle>, float> Updated;
+        public void Tick(float now)
+        {
+            if (!dirty || disposed || now < nextPublish) return;
+            geometry = blockGeometry.Values.SelectMany(value => value).ToList();
+            dirty = false;
+            nextPublish = now + .25f;
+            Updated?.Invoke(geometry, now);
+        }
 
         public void Start()
         {
             if (Application.isEditor) return;
             PXR_Manager.SpatialMeshDataUpdated += OnMeshUpdated;
-            var subsystems = new List<XRMeshSubsystem>();
-            SubsystemManager.GetSubsystems(subsystems);
-            foreach (var subsystem in subsystems)
-                if (!subsystem.running)
-                {
-                    subsystem.Start();
-                    started.Add(subsystem);
-                }
+            // RealityOcclusionMeshRenderer is the single scanning lifecycle owner.
             RefreshCached();
         }
 
@@ -77,21 +81,33 @@ namespace MateSoul.Runtime
         {
             try
             {
-                // Spatial Mesh already carries per-vertex semantics. Re-projecting
-                // its own coarse AABBs can overwrite nearby Unknown geometry
-                // (for example, a chair beside a cabinet). Scene Capture snapshots
-                // have no surface mesh and may safely supplement Unknown vertices.
-                var semanticVolumes = room.SurfaceMeshes.Count == 0
-                    ? room.RealityItems
-                    : Array.Empty<RealityItemObservation>();
-                geometry = Convert(blocks, semanticVolumes);
-                Updated?.Invoke(geometry, Time.unscaledTime);
+                var changed = false;
+                foreach (var block in blocks)
+                {
+                    if (block.state == MeshChangeState.Removed)
+                    {
+                        retention.MarkUnobserved(block.uuid);
+                        continue;
+                    }
+                    if (block.state == MeshChangeState.Unchanged &&
+                        blockGeometry.ContainsKey(block.uuid)) continue;
+                    // Old calibration must not turn newly observed Unknown surfaces
+                    // into the furniture that used to occupy this position.
+                    if (block.vertices == null || block.indices == null) continue;
+                    foreach (var obsolete in retention.Observe(block)) blockGeometry.Remove(obsolete);
+                    blockGeometry[block.uuid] = Convert(new[] { block },
+                        Array.Empty<RealityItemObservation>());
+                    changed = true;
+                }
+                if (!changed) return;
+                dirty = true;
+#if MATESOUL_DEVICE_PROBES && DEVELOPMENT_BUILD
+                SeatingDeviceProbe.WriteMeshOnce(blocks);
+#endif
             }
             catch (Exception error)
             {
                 Debug.LogException(error);
-                geometry.Clear();
-                Updated?.Invoke(geometry, Time.unscaledTime);
             }
         }
 
@@ -161,9 +177,8 @@ namespace MateSoul.Runtime
             if (disposed) return;
             disposed = true;
             PXR_Manager.SpatialMeshDataUpdated -= OnMeshUpdated;
-            foreach (var subsystem in started)
-                if (subsystem.running) subsystem.Stop();
-            started.Clear();
+            blockGeometry.Clear();
+            retention.Clear();
             geometry.Clear();
         }
     }

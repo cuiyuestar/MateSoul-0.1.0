@@ -1,0 +1,284 @@
+{
+  "date": "2026-10-28",
+  "status": "passed_and_built",
+  "bed_parameters": {
+    "height_rms_m": 0.1,
+    "local_normal_abs_y": 0.6,
+    "central_sample_coverage": 0.55,
+    "required_samples_out_of_63": 35,
+    "area_to_bounds_ratio": 0.45,
+    "low_detail_height_m": 0.2,
+    "stable_observations": 2,
+    "connected_surface_across_source_ids": true,
+    "pose_center_tolerance_m": 0.06,
+    "locked_contact_lift_change_m": 0.035
+  },
+  "immovable_placement_parameters": {
+    "required_peripheral_samples_out_of_8": 3,
+    "center_required": true,
+    "maximum_sampling_ratio_per_axis": 0.65,
+    "measured_support_height_difference_m": 0.2,
+    "other_support_height_difference_m": 0.08,
+    "measured_local_normal_y": 0.35,
+    "other_local_normal_y": 0.5,
+    "measured_bottom_occupancy_band_m": 0.2,
+    "occupancy_padding_m": 0.005,
+    "wall_normal_abs_y": 0.5,
+    "wall_facing_dot": 0.7,
+    "wall_probe_margin_m": 0.16,
+    "saved_fixed_items_use_tolerant_support_graph": true
+  },
+  "tests": {
+    "exit": 0,
+    "seconds": 92.34,
+    "source_unchanged": true,
+    "changed": [],
+    "log": "/private/tmp/matesoul-broad-tolerance-20261028-xDkmX8/acceptance-1793125708205277000.log",
+    "xml": "/private/tmp/matesoul-broad-tolerance-20261028-xDkmX8/acceptance-1793125708205277000.xml",
+    "tests": [
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.BedWithoutAnUnambiguousHeadEndUsesDefaultDirection",
+        "result": "Passed",
+        "duration": "0.022993",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.ExternalObjectAboveBodyLaneBlocksLying",
+        "result": "Passed",
+        "duration": "0.010027",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.ExtractsOneBedFromOverlappingFrameAndBlanket",
+        "result": "Passed",
+        "duration": "0.009341",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.MountCandidatesFollowObservedBedHeightAndFrameExtents(0.42f,0.95f,2.0f)",
+        "result": "Passed",
+        "duration": "0.010715",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.MountCandidatesFollowObservedBedHeightAndFrameExtents(0.84f,1.9f,2.3f)",
+        "result": "Passed",
+        "duration": "0.007618",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.PlannerUsesReachableSideAndFacesTowardBed",
+        "result": "Passed",
+        "duration": "0.010648",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.ScannerPublishesOneLieCapabilityAfterStableGeometry",
+        "result": "Passed",
+        "duration": "0.032891",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.SideTransfersClearHeadboardAndRejectBlockedRoute",
+        "result": "Passed",
+        "duration": "3.626538",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.AllFixedHorizontalCatalogItemsAcceptEighteenCentimeterScanStep",
+        "result": "Passed",
+        "duration": "3.409376",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.BedAcceptsFortyPercentHolesButRejectsHalfMissingAndExtremeWarp",
+        "result": "Passed",
+        "duration": "0.020922",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.BedAcceptsLargerContinuousRipples(0.2f)",
+        "result": "Passed",
+        "duration": "0.008744",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.BedAcceptsLargerContinuousRipples(0.24f)",
+        "result": "Passed",
+        "duration": "0.009239",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.ConnectedBedAcrossBlocksIsOneMattress",
+        "result": "Passed",
+        "duration": "0.007828",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.FixedItemRestoresAfterScanSurfaceMovesUpEighteenCentimeters",
+        "result": "Passed",
+        "duration": "3.202113",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.HighAndKnownBedObstructionsRemainBlocked(0.25f,Unknown,99)",
+        "result": "Passed",
+        "duration": "0.016283",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.HighAndKnownBedObstructionsRemainBlocked(0.25f,Bed,10)",
+        "result": "Passed",
+        "duration": "0.009097",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.HighAndKnownBedObstructionsRemainBlocked(0.1f,Chair,99)",
+        "result": "Passed",
+        "duration": "0.007260",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.HigherLowClutterPublishesAfterTwoObservations(0.12f)",
+        "result": "Passed",
+        "duration": "0.021858",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.HigherLowClutterPublishesAfterTwoObservations(0.18f)",
+        "result": "Passed",
+        "duration": "0.016483",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.HighScannedAndSmallOrdinaryObstaclesRemainBlocked",
+        "result": "Passed",
+        "duration": "3.174281",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.PillowStillSelectsHead(-1.0f)",
+        "result": "Passed",
+        "duration": "0.018792",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.PillowStillSelectsHead(1.0f)",
+        "result": "Passed",
+        "duration": "0.009056",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.RealPhysXAllowsTwentyFourCentimeterRippleAndEighteenCentimeterClutter",
+        "result": "Passed",
+        "duration": "7.003318",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.ReverseOrderedFixedItemStackRestoresThroughStaticSupport",
+        "result": "Passed",
+        "duration": "3.411537",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.ScanBlockRenumberingDoesNotResetBedButContactLiftChangeDoes",
+        "result": "Passed",
+        "duration": "0.047091",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.SmallVirtualSupportAcceptsFixedButNotMovableAndTinySupportFails",
+        "result": "Passed",
+        "duration": "3.232887",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.ThreePeripheralSamplesPassAndTwoFail",
+        "result": "Passed",
+        "duration": "3.164528",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BroadToleranceAcceptance.TiltedScannedWallAcceptsClockAndHorizontalFloorFails",
+        "result": "Passed",
+        "duration": "3.196826",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.GameRuntimeTests.ConflictingSavedUnitReturnsToInventoryWithoutHidingValidItems",
+        "result": "Passed",
+        "duration": "3.232866",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.GameRuntimeTests.SurfacePlacementAndReversedSupportOrderRestoreAsOneLayout",
+        "result": "Passed",
+        "duration": "5.285996",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.GameRuntimeTests.WallItemsRequireVerticalSurfaceAndRemainLocked",
+        "result": "Passed",
+        "duration": "3.693595",
+        "failure": null
+      }
+    ],
+    "summary": {
+      "id": "2",
+      "testcasecount": "31",
+      "result": "Passed",
+      "total": "31",
+      "passed": "31",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-27 18:29:56Z",
+      "end-time": "2026-10-27 18:29:58Z",
+      "duration": "1.9916022"
+    }
+  },
+  "measurements": [
+    "fixedCatalogCount=4 ids=chair,table,television,water-dispenser",
+    "rippleRange=0.200 rms=0.06660 lift=0.06397",
+    "rippleRange=0.240 rms=0.07975 lift=0.08276",
+    "restoredScanShift=0.18 preservedInstance=true savedY=0.00000",
+    "clutter=0.120 lift=0.09000 stableSamples=2",
+    "clutter=0.180 lift=0.15000 stableSamples=2",
+    "physicsCycle=0 lift=0.08276 contactError=0.00000",
+    "physicsCycle=1 lift=0.15000 contactError=0.00000"
+  ],
+  "source_sha256_same_in_tests_build_and_current": {
+    "BedGeometry.cs": "adcff2119a49ffabf87ea19d6c2d8d98cdb575a0a32ded16b99cbfd7c2b46475",
+    "RealBedScanner.cs": "b4f3ed0fe6bc3b7736dd4273244d200b9d8ea3b0375d6e28a7a93b2212fc626e",
+    "GameSession.cs": "8deffa766579d3d9bb46e41052832e4997295ae11dd309f49345751246f74341"
+  },
+  "deployment": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_BroadTolerance_20261028-025648.apk",
+    "sha256": "ecb71cc1cab7d8fa68d3d015561b5aeec19291858f6be256ab7e83ecb5d7eee3",
+    "bytes": 165772917,
+    "log": "/private/tmp/matesoul-broad-tolerance-20261028-xDkmX8/final-release-20261028-025648/build.log",
+    "build_seconds": 149.5,
+    "source_inputs": 1754,
+    "source_unchanged": true,
+    "production_inputs_unchanged": true,
+    "source_validation_scope": "all tracked production inputs; verified Editor-only Engine tests excluded",
+    "editor_test_assembly_sha256_unchanged": "a09b5ef1d4f37aa4751d707024ee8fba5ad0f976a4dcbb5a3ac037e2e913538d",
+    "crc_signature_alignment_gradle_and_native_checks": true,
+    "package": "com.matesoul.game",
+    "serial": "PB3A10MGL9220170B",
+    "installed": false,
+    "installed_sha256": null,
+    "save_before": null,
+    "save_after": null,
+    "installation_status": "Headset is no longer connected to ADB."
+  },
+  "build_receipt": "/private/tmp/matesoul-broad-tolerance-20261028-xDkmX8/final-release-20261028-025648/result.json",
+  "temporary_acceptance_entry_removed": true,
+  "limitations": [
+    "31 selected tests: 20 new cases and 11 existing regressions; not the full suite.",
+    "Reality scan variation and visual contact fit require wearer evaluation."
+  ]
+}

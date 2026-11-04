@@ -1,0 +1,37 @@
+{
+  "feature": "electric-kettle-v4-material-recovery",
+  "date": "2026-10-18",
+  "root_cause": {
+    "material_binding_lost": false,
+    "base_color_png_was_black": true,
+    "normal_png_was_black": true,
+    "source": "Blender 5.2 Image.save silently wrote black generated images"
+  },
+  "textures": {
+    "base_color": {
+      "path": "MateSoul/Assets/MateSoul/Content/PropsSource/ElectricKettle/kettle_brushed_steel_basecolor.png",
+      "sha256": "adec44b68876c21d041cd0d3a842c849ce7bead8139ab24365a3394a11cc547c",
+      "luma_min": 131,
+      "luma_average": 142.77,
+      "luma_max": 155
+    },
+    "normal": {
+      "path": "MateSoul/Assets/MateSoul/Content/PropsSource/ElectricKettle/kettle_brushed_steel_normal.png",
+      "sha256": "d4c2305e5bff944f348b0b6b584aa61fe3e8c9860e1c85ac89b45494b20de28a"
+    }
+  },
+  "tests": {
+    "suite": "MateSoul.Tests.ElectricKettleTests",
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "result_xml": ".artifacts/electric-kettle-v4/test-results.xml"
+  },
+  "android": {
+    "apk": "Builds/MateSoul_Framework.apk",
+    "bytes": 139947609,
+    "sha256": "e7307de4c23fb7887250cf279f4652ba5d749d016308da703264914f21b94c4a",
+    "zip_integrity": "passed",
+    "signature_v2": "passed"
+  }
+}

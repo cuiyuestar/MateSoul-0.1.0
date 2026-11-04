@@ -1,5 +1,6 @@
 using MateSoul.Core;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace MateSoul.Runtime
@@ -66,6 +67,7 @@ namespace MateSoul.Runtime
             ValidateDistances();
             selectMode = InteractableSelectMode.Single;
             var shape = GetComponent<SphereCollider>();
+            shape.enabled = true;
             shape.isTrigger = true;
             colliders.Clear();
             colliders.Add(shape);
@@ -94,6 +96,21 @@ namespace MateSoul.Runtime
             action = owner == null ? null : owner.RequestHold(request);
             if (action == null || action.State == ActionState.Rejected)
                 cancelSelection = true;
+#region debug-point C-D:handhold-selection
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload = $"{{\"sessionId\":\"movement-handhold-stall\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"C-D\",\"location\":\"HandHoldInteractable.OnSelectEntered\"," +
+                $"\"msg\":\"[DEBUG] handhold selected\",\"data\":{{" +
+                $"\"side\":\"{side}\",\"ownerAvailable\":{(owner != null && owner.IsAvailable).ToString().ToLowerInvariant()}," +
+                $"\"actionState\":\"{(action != null ? action.State.ToString() : "null")}\"," +
+                $"\"actionError\":\"{(action != null && action.Error != null ? action.Error.Replace("\"", "'") : "")}\"," +
+                $"\"cancelSelection\":{cancelSelection.ToString().ToLowerInvariant()}," +
+                $"\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"}}}}";
+            var debugRequest = UnityWebRequest.Post(
+                "http://127.0.0.1:7781/event", payload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
         }
 
         protected override void OnSelectExited(SelectExitEventArgs args)
@@ -104,6 +121,17 @@ namespace MateSoul.Runtime
             request = null;
             action = null;
             cancelSelection = false;
+#region debug-point D:handhold-selection-exit
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload = $"{{\"sessionId\":\"movement-handhold-stall\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"D\",\"location\":\"HandHoldInteractable.OnSelectExited\"," +
+                $"\"msg\":\"[DEBUG] handhold selection exited\",\"data\":{{" +
+                $"\"side\":\"{side}\",\"interactor\":\"{args.interactorObject.transform.name.Replace("\"", "'")}\"}}}}";
+            var debugRequest = UnityWebRequest.Post(
+                "http://127.0.0.1:7781/event", payload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
         }
 
         private void LateUpdate()

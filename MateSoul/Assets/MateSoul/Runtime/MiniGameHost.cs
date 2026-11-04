@@ -34,6 +34,11 @@ namespace MateSoul.Runtime
                     "房间网格已就绪，正在恢复历史虚拟物品，请稍候。");
                 return false;
             }
+            if (Input != null && Input.PlacementActive)
+            {
+                Session.Notifications.ShowHint("请先完成或取消当前物品放置。");
+                return false;
+            }
             foreach (var game in games)
             {
                 if (game == null || game.Id != id) continue;

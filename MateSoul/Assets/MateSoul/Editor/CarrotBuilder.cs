@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using MateSoul.Runtime;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -35,6 +36,78 @@ namespace MateSoul.Editor
             var focus = AssetDatabase.LoadAssetAtPath<Material>(
                 "Assets/MateSoul/Content/ItemFocusHighlight.mat");
             return Build(focus);
+        }
+
+        [MenuItem("MateSoul/Content/Render Carrot Validation")]
+        public static void RenderValidationPreview()
+        {
+            var definition = BuildFromMenu();
+            var scene = EditorSceneManager.NewScene(
+                NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var cameraObject = new GameObject("Validation Camera");
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(.075f, .08f, .09f, 1f);
+            camera.fieldOfView = 32f;
+            camera.transform.position = new Vector3(.28f, .31f, -.82f);
+            camera.transform.LookAt(new Vector3(0, .12f, 0));
+            var lightObject = new GameObject("Key Light");
+            var light = lightObject.AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.color = new Color(1f, .92f, .82f);
+            light.intensity = 1.35f;
+            light.transform.rotation = Quaternion.Euler(38f, -28f, 0);
+            RenderSettings.ambientMode = AmbientMode.Flat;
+            RenderSettings.ambientLight = new Color(.28f, .31f, .36f);
+
+            var full = (GameObject)PrefabUtility.InstantiatePrefab(definition.Prefab);
+            full.name = "Full Carrot";
+            full.transform.position = new Vector3(-.17f, 0, 0);
+            var horizontal = CreateValidationPiece(definition,
+                new Plane(Vector3.up, new Vector3(0, .125f, 0)), false);
+            horizontal.name = "Horizontal Cut";
+            horizontal.transform.position = new Vector3(.02f, 0, 0);
+            var obliqueNormal =
+                Quaternion.AngleAxis(48f, Vector3.forward) * Vector3.up;
+            var oblique = CreateValidationPiece(definition,
+                new Plane(obliqueNormal, new Vector3(0, .13f, 0)), false);
+            oblique.name = "Oblique Cut";
+            oblique.transform.position = new Vector3(.21f, 0, 0);
+
+            var texture = new RenderTexture(1200, 720, 24,
+                RenderTextureFormat.ARGB32);
+            var previous = RenderTexture.active;
+            camera.targetTexture = texture;
+            camera.Render();
+            RenderTexture.active = texture;
+            var image = new Texture2D(texture.width, texture.height,
+                TextureFormat.RGB24, false);
+            image.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+            image.Apply();
+            var path = "/tmp/matesoul-carrot-validation.png";
+            File.WriteAllBytes(path, image.EncodeToPNG());
+            RenderTexture.active = previous;
+            camera.targetTexture = null;
+            UnityEngine.Object.DestroyImmediate(image);
+            UnityEngine.Object.DestroyImmediate(texture);
+            EditorSceneManager.CloseScene(scene, true);
+            Debug.Log("CARROT_VALIDATION_RENDER path=" + path);
+        }
+
+        private static GameObject CreateValidationPiece(ItemDefinition definition,
+            Plane plane, bool positive)
+        {
+            var root = (GameObject)PrefabUtility.InstantiatePrefab(definition.Prefab);
+            var cuttable = root.GetComponent<RuntimeCuttable>();
+            cuttable.Bind(definition.Cuttable);
+            using (var pair = cuttable.CreateCut(plane))
+            {
+                if (pair == null)
+                    throw new InvalidOperationException(
+                        "Carrot validation cut failed.");
+                cuttable.ApplyPiece(positive ? pair.Positive : pair.Negative);
+            }
+            return root;
         }
 
         public static ItemDefinition Build(Material focusMaterial)

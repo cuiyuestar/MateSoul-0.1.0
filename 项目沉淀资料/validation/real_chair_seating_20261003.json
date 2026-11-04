@@ -1,0 +1,104 @@
+{
+  "feature": "native-room-chair-seating",
+  "completed_at": "2026-10-04T00:30:00+08:00",
+  "result": "passed_with_emulator_scope",
+  "claim": "PICO Emulator native room mesh was used end to end; no synthetic chair geometry participated.",
+  "platform": {
+    "runtime": "PICO Emulator",
+    "device": "emulator-5554",
+    "model": "swan_arm64",
+    "physical_headset_verified": false
+  },
+  "build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RealChair_Development.apk",
+    "bytes": 82292943,
+    "sha256": "79fda5d64f6a1bd4ed9fe2b31d78d1af40f5838ddf392001a7e95c1e13477db4",
+    "signature": "APK Signature Scheme v2 verified",
+    "gradle_result": "BUILD SUCCESSFUL in 26s"
+  },
+  "tests": {
+    "seating_suite": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 12.270499,
+      "xml": "/Users/bytedance/MateSoul/.artifacts/framework/unity-tests.xml"
+    },
+    "emulator_action": {
+      "walk": "passed",
+      "dock": "passed",
+      "sit": "passed",
+      "hold": "passed",
+      "stand": "passed",
+      "target_self_mesh_exclusion": "passed",
+      "external_obstacle_fail_closed": "passed"
+    }
+  },
+  "sdk_mesh_observation": {
+    "source": "PICO Emulator Spatial Mesh",
+    "blocks": 48,
+    "triangles": 86323,
+    "published_targets": 1,
+    "synthetic_fixture_used": false,
+    "sdk_chair_label_false_positive": {
+      "visible_object": "round side table with cup",
+      "center_m": [-3.323367, 0.743137, 0.699397],
+      "horizontal_size_m": [0.307953, 0.307953],
+      "rejected": true,
+      "reason": "No coherent backrest; compact backless semantic patches fail closed."
+    },
+    "accepted_native_room_chair": {
+      "semantic_source": "Unknown",
+      "classification": "GeometryInferred",
+      "center_m": [-3.062346, 0.765189, -0.055161],
+      "forward": [0.857872, 0.0, 0.513863],
+      "width_m": 0.801418,
+      "depth_m": 0.708128,
+      "plane_rms_m": 0.029331,
+      "supported_samples": "43/49",
+      "upper_structure_area_m2": 1.153354,
+      "upper_structure_direction_agreement": 0.743398,
+      "stable_samples_at_final_capture": 46
+    }
+  },
+  "clearance_policy": {
+    "target_chair_mesh": "Used to prove chair geometry, excluded from external-obstacle sweep because the avatar intentionally enters that volume.",
+    "all_other_mesh_sources": "Remain hard obstacles regardless of semantic label.",
+    "analysis_result": "All 68 pre-fix sweep intersections came from the accepted chair's own mesh source; external intersections were zero."
+  },
+  "seated_state": {
+    "action": "Running",
+    "seat_count": 1,
+    "seat_geometry_inferred": true,
+    "rig_weight": 1.0,
+    "pelvis_offset_m": 0.17,
+    "character_capsule_enabled": false,
+    "full_body_control_owned": true,
+    "error": ""
+  },
+  "standing_state": {
+    "action": "Succeeded",
+    "rig_weight": 0.0,
+    "character_capsule_enabled": true,
+    "full_body_control_owned": false,
+    "error": ""
+  },
+  "video": {
+    "path": "/Users/bytedance/MateSoul/项目沉淀资料/validation/matesoul_native_room_chair_complete_20261003.mp4",
+    "sha256": "401e1ae83ad9705b2378253715381789372bb49cc277e532e55eb9100815a8f3",
+    "duration_seconds": 48,
+    "resolution": "1080x1080",
+    "fps": 1,
+    "sampled_frames": 48,
+    "unique_frame_hashes": 48,
+    "capture_method": "PICO Emulator Android screenrecord, trimmed only; no synthetic or generated frames",
+    "sequence": ["native room", "walk to inferred lounge chair", "sit", "hold", "stand"],
+    "visible_disambiguation": "The rejected round side table remains visible beside the accepted lounge chair."
+  },
+  "remaining_physical_validation": [
+    "Physical-headset Room Capture and mesh pose accuracy",
+    "Soft, reflective, transparent, and partially occluded chairs",
+    "Physical buttock, skirt, backrest, and foot contact",
+    "Chair movement after scene capture"
+  ]
+}

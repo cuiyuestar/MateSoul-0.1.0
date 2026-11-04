@@ -2,6 +2,7 @@ using System;
 using MateSoul.Core;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
+using UnityEngine.Networking;
 
 namespace MateSoul.Runtime
 {
@@ -74,6 +75,11 @@ namespace MateSoul.Runtime
         private Quaternion filteredGripRotation;
         private Vector3 previousInteractorPosition;
         private float weight;
+#region debug-point E:handhold-ik
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+        private float debugNextHandHoldRig;
+#endif
+#endregion
 
         public bool IsAvailable => session != null && !session.Paused && isActiveAndEnabled;
         public bool IsConfigured => IsArmConfigured(left) && IsArmConfigured(right) && worldTargets != null;
@@ -173,6 +179,20 @@ namespace MateSoul.Runtime
             UpdateHint(activeArm, activeArm.hand.position);
             SetDisplay(activeArm, true);
             SetWeightImmediate(0);
+#region debug-point E:handhold-ik-begin
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload = $"{{\"sessionId\":\"movement-handhold-stall\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"E\",\"location\":\"HandIKRig.BeginHold\"," +
+                $"\"msg\":\"[DEBUG] IK hold begin\",\"data\":{{" +
+                $"\"side\":\"{activeArm.side}\",\"interactor\":{JsonUtility.ToJson(interactor.position)}," +
+                $"\"socket\":{JsonUtility.ToJson(activeArm.socket.transform.position)}," +
+                $"\"configured\":{IsConfigured.ToString().ToLowerInvariant()}," +
+                $"\"constraintEnabled\":{activeArm.constraint.enabled.ToString().ToLowerInvariant()}}}}}";
+            var debugRequest = UnityWebRequest.Post(
+                "http://127.0.0.1:7781/event", payload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
         }
 
         public HandHoldRigSample UpdateTarget(Pose interactor, float deltaSeconds)
@@ -242,6 +262,25 @@ namespace MateSoul.Runtime
                 activeArm.forearmTwist.localRotation =
                     Quaternion.AngleAxis(activeArm.latestTwist * .45f, activeArm.twistAxis) *
                     activeArm.twistRest;
+#region debug-point E:handhold-ik
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            if (activeArm != null && Time.unscaledTime >= debugNextHandHoldRig)
+            {
+                debugNextHandHoldRig = Time.unscaledTime + .25f;
+                var payload = $"{{\"sessionId\":\"movement-handhold-stall\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"E\",\"location\":\"HandIKRig.LateUpdate\"," +
+                    $"\"msg\":\"[DEBUG] IK runtime state\",\"data\":{{" +
+                    $"\"side\":\"{activeArm.side}\",\"weight\":{weight}," +
+                    $"\"constraintWeight\":{activeArm.constraint.weight}," +
+                    $"\"target\":{JsonUtility.ToJson(activeArm.target.position)}," +
+                    $"\"hand\":{JsonUtility.ToJson(activeArm.hand.position)}," +
+                    $"\"targetDistance\":{Vector3.Distance(activeArm.target.position, activeArm.hand.position)}}}}}";
+                var request = UnityWebRequest.Post(
+                    "http://127.0.0.1:7781/event", payload, "application/json");
+                request.SendWebRequest().completed += _ => request.Dispose();
+            }
+#endif
+#endregion
             SyncSocket(left);
             SyncSocket(right);
         }

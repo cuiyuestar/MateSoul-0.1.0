@@ -1,0 +1,37 @@
+{
+  "feature": "cooking-items",
+  "date": "2026-10-16",
+  "unity": "2022.3.38f1",
+  "catalog": {
+    "frying_pan": {
+      "id": "frying-pan",
+      "inventory_limit": 1,
+      "spawned_parts": [
+        "frying-pan-body",
+        "spatula"
+      ],
+      "collider_count": 6
+    },
+    "raw_steak": {
+      "id": "raw-steak",
+      "unlimited_inventory": true,
+      "hud_quantity": "∞"
+    }
+  },
+  "materials": {
+    "brushed_stainless_metallic": 1.0,
+    "cookware_normal_map": true,
+    "raw_steak_normal_map": true
+  },
+  "validation": {
+    "scene_rebuild": "passed",
+    "roslyn_compile": "passed",
+    "bee_nodes": 906,
+    "targeted_tests": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "report": "项目沉淀资料/validation/cooking_items_tests_20261016.xml"
+    }
+  }
+}

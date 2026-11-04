@@ -1,0 +1,160 @@
+{
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_UIPanels_20261027.apk",
+  "bytes": 218783588,
+  "sha256": "0b990d84cbaf00ed742d32f38546a26a2cdcf20316a0fa031b5936f37d6c5d5e",
+  "protectedHudMethods": {
+    "BuildNavigation": true,
+    "NavigationButton": true,
+    "CreateRoundedSprite": true,
+    "CreateIconSprite": true,
+    "ConfigureButton": true,
+    "UpdateWorldPose": true,
+    "AnimateDialogue": true,
+    "BuildDialogueBar": true
+  },
+  "protectedAssetsUnchanged": true,
+  "protectedAssetSha256": {
+    "MateSoul/Assets/MateSoul/Editor/GameSceneBuilder.cs": "6866835a842ad780066ecb0c32392f67916d11ac6814a573dcd3ed4b55b2b088",
+    "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+    "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "822c9bfccf779137a4d33b6335457124b4d18be69b53bb96a8cef40c2b03bb6c",
+    "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553",
+    "MateSoul/Assets/MateSoul/Runtime/GameBootstrap.cs": "2447667dafa604fed99d3f46a85d91cd5fb723e6a3c44b302e8694cfdb584406",
+    "MateSoul/Assets/MateSoul/Runtime/Resources/MateSoulHands/TrackedHand.shader": "a4ac23e85baef7482ddca60158d1e039b6fb29965ed1df12a28e34fe0ef75ad9"
+  },
+  "parallelChangesBeforeBuild": [
+    "MateSoul/Assets/MateSoul/Runtime/GameBootstrap.cs"
+  ],
+  "compiledSourcesMatch": true,
+  "sourceSha256": {
+    "Assets/MateSoul/Runtime/GameHud.cs": "d42fa27560b0aed82f025057401d0e691030725472dbb28b78d3488883d20fbe",
+    "Assets/MateSoul/Runtime/HudPanelButton.cs": "aa377e5b46466cb49e41b4b3ff8c4ee3c8b3e47b388670b6dc494ab2bc56b405",
+    "Assets/MateSoul/Runtime/GameBootstrap.cs": "2447667dafa604fed99d3f46a85d91cd5fb723e6a3c44b302e8694cfdb584406",
+    "Assets/MateSoul/Runtime/RealityOcclusionMeshRenderer.cs": "8ac3f74a7085a75f769d8fb65e48b3159e5dc1feade3f1c54c194a6b2a4d92b6"
+  },
+  "acceptedUiSourcesMatchApkBuild": true,
+  "zipCrcPass": true,
+  "abi": "arm64-v8a",
+  "nativeMatchesBuild": true,
+  "testAssembliesExcluded": true,
+  "sharedAssetEntries": 1184,
+  "changedSharedAssetEntries": [
+    "assets/bin/Data/sharedassets0.assets.split0",
+    "assets/bin/Data/sharedassets0.assets.split1078",
+    "assets/bin/Data/sharedassets0.assets.split1079",
+    "assets/bin/Data/sharedassets0.assets.split1181",
+    "assets/bin/Data/sharedassets0.assets.split1182"
+  ],
+  "characterMeshChecks": {
+    "Body_Direct54_LimbRefinement": {
+      "sha256": "0a6d1e29134eae7eb22f74c0c5d86f075a9b4c16c410d65761c98a36623ffbcb",
+      "vertices": 8165,
+      "expressions": 0
+    },
+    "Face_Direct54_GameExpressions": {
+      "sha256": "0dae7194c06607364f44a4489cdb9d52141ccce0c8ea45a595cbdd836687d7f3",
+      "vertices": 4043,
+      "expressions": 61
+    },
+    "HairStrandLines_Direct55": {
+      "sha256": "42e16565f23738b140931c428fbdfe21b7b742f18c210a6fbdd8912d8e714d9b",
+      "vertices": 46824,
+      "expressions": 0
+    },
+    "Hair_Direct55": {
+      "sha256": "aa3866546747f9d83eb7bb775fb70941165e15cd9b757e667f480b562fd046e2",
+      "vertices": 10743,
+      "expressions": 0
+    },
+    "SupplementalArms_Direct54_LimbRefinement": {
+      "sha256": "08816ba5c1af921e5f635d2702dddb493de0044faaf79a6239f868879cd37b4e",
+      "vertices": 1536,
+      "expressions": 0
+    }
+  },
+  "productionCharacterMeshesUnchanged": true,
+  "signaturePass": true,
+  "zipalignPass": true,
+  "package": "com.matesoul.game",
+  "buildType": "Development",
+  "unityVersion": "2022.3.38f1",
+  "acceptance": {
+    "passed": true,
+    "checks": [
+      {
+        "check": "protected navigation",
+        "passed": true,
+        "buttons": 5
+      },
+      {
+        "page": "Interaction",
+        "boundsViolations": [],
+        "truncatedTexts": []
+      },
+      {
+        "page": "MiniGames",
+        "boundsViolations": [],
+        "truncatedTexts": []
+      },
+      {
+        "page": "Information",
+        "boundsViolations": [],
+        "truncatedTexts": []
+      },
+      {
+        "page": "Items",
+        "boundsViolations": [],
+        "truncatedTexts": []
+      },
+      {
+        "page": "Settings",
+        "boundsViolations": [],
+        "truncatedTexts": []
+      },
+      {
+        "page": "AIConfiguration",
+        "boundsViolations": [],
+        "truncatedTexts": []
+      },
+      {
+        "page": "AITutorial",
+        "boundsViolations": [],
+        "truncatedTexts": []
+      },
+      {
+        "page": "SettingsSystem",
+        "boundsViolations": [],
+        "truncatedTexts": []
+      },
+      {
+        "check": "system toggle business callback",
+        "passed": true
+      },
+      {
+        "check": "actual raycast and animated button click",
+        "passed": true
+      },
+      {
+        "page": "ItemsFood",
+        "boundsViolations": [],
+        "truncatedTexts": []
+      },
+      {
+        "check": "rapid switch and catalog category",
+        "passed": true
+      },
+      {
+        "check": "visibility preserves page and close releases raycasts",
+        "passed": true
+      },
+      {
+        "check": "AI config tutorial save returns to dialogue preserving draft",
+        "passed": true
+      }
+    ]
+  },
+  "installed": false,
+  "serial": "PB3A10MGL9220170B",
+  "runtimeReady": null,
+  "installationPendingReason": "Target headset is not connected to ADB",
+  "physicalUiAppearanceHumanAcceptance": "pending"
+}

@@ -1,0 +1,279 @@
+{
+  "date": "2026-10-28",
+  "scope": "hand tracking gap recovery",
+  "unity": "2022.3.38f1",
+  "tests": {
+    "total": "48",
+    "passed": "48",
+    "failed": "0",
+    "skipped": "0",
+    "duration": "1.3359561"
+  },
+  "test_process": {
+    "exitCode": 0,
+    "seconds": 179.331971958,
+    "sourcesUnchanged": true
+  },
+  "test_cases": [
+    {
+      "name": "MateSoul.Tests.GripGrabTests.ControllerGripDrivesSelectionFollowAndReleaseThroughRealRay",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.GripGrabTests.DigitalGripWithNoAnalogValueStillGrabsAndReleases",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandHoldTests.ControllerHoldRangeUsesTrackedControllerInsteadOfRayReach",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandHoldTests.DeviceSimulatorIsEnabledOnlyForEditorPlayMode",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandHoldTests.EyeHandHoldRangeUsesPinchPoseInsteadOfAimOrigin",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandHoldTests.ProductionPrefabContainsTwoConstrainedSelectableHands",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandHoldTests.ReachUsesSoftTensionAndNeverExceedsHardLength",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandHoldTests.SelectedHandUsesLargerExitRange",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandHoldTests.TractionNeverExceedsConfiguredSpeedOrAcceleration",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandHoldTests.TractionUsesDwellAndLowerReleaseThreshold",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandHoldTests.WristConstraintProjectsCombinedSwingIntoErgonomicEnvelope",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.LargePositionOrRotationJumpCancelsWithoutMovingObject(False,False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.LargePositionOrRotationJumpCancelsWithoutMovingObject(False,True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.LargePositionOrRotationJumpCancelsWithoutMovingObject(True,False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.LargePositionOrRotationJumpCancelsWithoutMovingObject(True,True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.MissingOrNonFiniteJointPositionsAreRejected(0)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.MissingOrNonFiniteJointPositionsAreRejected(1)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.MissingOrNonFiniteJointPositionsAreRejected(2)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.NormalFreshReleasePreservesThrowMomentum(False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.NormalFreshReleasePreservesThrowMomentum(True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.PendingGrabDoesNotSurviveExpiryTargetChangeOrOpening(False,\"expired\")",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.PendingGrabDoesNotSurviveExpiryTargetChangeOrOpening(False,\"different\")",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.PendingGrabDoesNotSurviveExpiryTargetChangeOrOpening(False,\"opened\")",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.PendingGrabDoesNotSurviveExpiryTargetChangeOrOpening(True,\"expired\")",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.PendingGrabDoesNotSurviveExpiryTargetChangeOrOpening(True,\"different\")",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.PendingGrabDoesNotSurviveExpiryTargetChangeOrOpening(True,\"opened\")",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.PendingGrabRecoversOnlyAfterFreshSameTargetContact(False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.PendingGrabRecoversOnlyAfterFreshSameTargetContact(True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.PositionOnlyFingerSamplesSupportGripAndPinchButNeverPalmOrientation",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.ReliableReleaseInFirstRestoredSampleIsImmediateAndHasNoStaleThrow(False,False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.ReliableReleaseInFirstRestoredSampleIsImmediateAndHasNoStaleThrow(False,True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.ReliableReleaseInFirstRestoredSampleIsImmediateAndHasNoStaleThrow(True,False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.ReliableReleaseInFirstRestoredSampleIsImmediateAndHasNoStaleThrow(True,True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.RepeatedInvalidRestoredSamplesCannotRestartDeadline(False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.RepeatedInvalidRestoredSamplesCannotRestartDeadline(True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.SecondTrackedHandCanKeepToolWhenFirstTimesOut",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.ShortGapKeepsXriSelectionFreezesAttachAndClearsMomentum(False,False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.ShortGapKeepsXriSelectionFreezesAttachAndClearsMomentum(False,True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.ShortGapKeepsXriSelectionFreezesAttachAndClearsMomentum(True,False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.ShortGapKeepsXriSelectionFreezesAttachAndClearsMomentum(True,True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.SuspendedHandDisablesPhysicalPushEvenWhenRawTrackingReturns",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.TimeoutDropsWithoutThrowAndRequiresOpenBeforeRegrabbing(False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HandRecoveryAcceptance.TimeoutDropsWithoutThrowAndRequiresOpenBeforeRegrabbing(True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.CompoundCollidersShareOneMaterialAndRejectNestedBodies",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.FrictionStopsSlidingAndFastObjectDoesNotTunnelThroughFloor",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.GravityImpulseAndSleepUseRealMassAndRejectInvalidInput",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.HeldBodyCannotCrossThinWallAndReleaseKeepsResolvedMomentum",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.PhysicsRuntimeTests.PauseFreezesFallingBodyAndRestoresVelocityWithoutCatchup",
+      "result": "Passed"
+    }
+  ],
+  "source_sha256": {
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PicoTrackedHand.cs": "3ab7d327cf139548dc0b87c03aea647875162367ce8c9fe3e4336a8fe9a88e54",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PicoDirectHandInteractor.cs": "15083ad522f1376113ed5612740fba546ec783277ef134c692733732e5850396",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PhysicsBody.cs": "f7308710eafa44144130973f1a2fb5c68f295c9298bf92e871f0f612b7fd558f",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PhysicsGrabInteractable.cs": "23e2a66186b270fd7390f4676c3ca82da0de1a7f594910b87b1405d40e396050",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/TrackedHandPhysics.cs": "5454f5d7c6dfd64da60852a504b7df655b89b9055d45f441dac96296bc0dc655",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/DeviceStartupLog.cs": "6f32ce1a9b3314a71eb0ba5e7e83bf8d25896f62059c2c15803674970d3ed0f4",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Editor/GameSceneBuilder.cs": "bc64b51168fc59f5230498b481cbc140449ea66113ba27773497c12a4ef84c36",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/Resources/PXR_ProjectSetting.asset": "a37b6b7618e43c29f28207ce0c5ddb6e21ab76bd3e5e47fa0cabaa65e96eed71"
+  },
+  "tracking_inputs_unchanged": true,
+  "protected_assets_sha256": {
+    "Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd"
+  },
+  "protected_assets_unchanged": true,
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_HandTrackingRecovery_20261028.apk",
+  "bytes": 165769469,
+  "sha256": "4718e2f8854787c980ad7693719d83ac9c58e25f3446242934aa93787f7158c3",
+  "architectures": [
+    "arm64-v8a"
+  ],
+  "crc_passed": true,
+  "v2_signature_passed": true,
+  "zipalign_passed": true,
+  "packaged_high_frequency_hand_tracking": true,
+  "generated_cpp_markers": {
+    "PicoTrackedHand_TryGetJointPosition": true,
+    "PicoDirectHandInteractor_KeepSelectionDuringTrackingGap": true,
+    "PhysicsBody_HoldFollowPose": true,
+    "requireOpenAfterTrackingLoss": true
+  },
+  "deployment": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_AllLatest_20261028-011707.apk",
+    "sha256": "4718e2f8854787c980ad7693719d83ac9c58e25f3446242934aa93787f7158c3",
+    "bytes": 165769469,
+    "serial": "PB3A10MGL9220170B",
+    "package": "com.matesoul.game",
+    "log": "/var/folders/mp/bbv_ln_177q9ss7dlmf6trmh0000gn/T/matesoul-headset-20261028-011707-9medbmb1/build.log",
+    "build_seconds": 275.14,
+    "source_inputs": 1815,
+    "source_unchanged": true,
+    "installed_sha256": "4718e2f8854787c980ad7693719d83ac9c58e25f3446242934aa93787f7158c3",
+    "save_before": "403dc8bba63db134df73fc4bd0b787157465932d6c87679086c17512af4844ea  /sdcard/Android/data/com.matesoul.game/files/matesoul-v1.json",
+    "save_after": "403dc8bba63db134df73fc4bd0b787157465932d6c87679086c17512af4844ea  /sdcard/Android/data/com.matesoul.game/files/matesoul-v1.json",
+    "activity": "com.matesoul.game/com.unity3d.player.UnityPlayerActivity",
+    "launch": "Starting: Intent { cmp=com.matesoul.game/com.unity3d.player.UnityPlayerActivity }\nStatus: ok\nLaunchState: UNKNOWN (0)\nActivity: com.matesoul.game/com.unity3d.player.UnityPlayerActivity\nWaitTime: 142\nComplete"
+  },
+  "human_head_down_interaction_verified": false,
+  "actual_tracking_rate_and_power_verified": false,
+  "startup": {
+    "pid": 29985,
+    "process_alive": true,
+    "wakefulness": "Asleep",
+    "log_lines": 2603,
+    "markers": {
+      "MATESOUL_INPUT": true,
+      "MATESOUL_UI": true,
+      "MATESOUL_OCCLUSION_PASS": true,
+      "MATESOUL_HAND_TRACKING": false,
+      "MATESOUL_READY": false
+    },
+    "exception_lines": [],
+    "headset_brought_forward": true,
+    "human_interaction_verified": false,
+    "log_sampling_limit": "Latest 2500 buffered records, filtered by current package PID"
+  },
+  "deployment_status": "installed_and_started"
+}

@@ -9,11 +9,13 @@ import {
   type SpontaneousReplyRequest,
 } from "./contracts.js";
 import type { SpontaneousReplyCompletion } from "./spontaneous-reply-service.js";
+import { AIConnectionError, readPlayerCredentials, type PlayerCredentials } from "./player-credentials.js";
 
 export interface ConversationHandler {
   complete(
     request: ConversationRequest,
     signal: AbortSignal,
+    credentials?: PlayerCredentials,
   ): Promise<ConversationCompletion>;
 }
 
@@ -21,6 +23,7 @@ export interface SpontaneousReplyHandler {
   complete(
     request: SpontaneousReplyRequest,
     signal: AbortSignal,
+    credentials?: PlayerCredentials,
   ): Promise<SpontaneousReplyCompletion>;
 }
 
@@ -31,6 +34,7 @@ export interface AppOptions {
   requestBodyLimit: string;
   clientToken: string | null;
   toolNames: readonly string[];
+  checkConfiguration?(credentials: PlayerCredentials | undefined, signal: AbortSignal): Promise<void>;
   log(event: string, fields: Record<string, unknown>): void;
 }
 
@@ -46,6 +50,22 @@ export function createApp(options: AppOptions): Express {
       service: "matesoul-ai-gateway",
       mcp_tools: options.toolNames,
     });
+  });
+
+  app.post("/v1/configuration/check", async (request, response) => {
+    const cancellation = new AbortController();
+    response.once("close", () => {
+      if (!response.writableEnded) cancellation.abort();
+    });
+    try {
+      if (!options.checkConfiguration)
+        throw new AIConnectionError(503, "CONFIGURATION_CHECK_UNAVAILABLE", "请升级网关以支持 AI 配置测试。");
+      await options.checkConfiguration(readPlayerCredentials(request), cancellation.signal);
+      response.json({ status: "ok" });
+    } catch (error) {
+      if (!cancellation.signal.aborted)
+        writeAIError(response, error, "无法验证 AI 配置，请检查网关与网络。", randomUUID());
+    }
   });
 
   app.post("/v1/conversations/reply", async (request, response) => {
@@ -86,10 +106,18 @@ export function createApp(options: AppOptions): Express {
       posture: conversation.runtime.posture,
       mood: conversation.runtime.mood,
       outfitId: conversation.runtime.appearance.outfit_id,
+      worldRevision: conversation.runtime.world?.revision ?? null,
+      virtualItems: conversation.runtime.world?.virtual_world.total_count ?? null,
+      activeWorldFacts: conversation.runtime.world?.active_facts.length ?? null,
+      environmentSource: conversation.runtime.world?.environment.source ?? null,
     });
+    // #region debug-point C-D:gateway-request
+    void fetch("http://127.0.0.1:7782/event", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: "outfit-context-stale", runId: "pre-fix", hypothesisId: "C,D", location: "app.ts:conversation-request", msg: "[DEBUG] gateway request received", data: { requestId: conversation.request_id, contextRevision: conversation.runtime.revision, outfitId: conversation.runtime.appearance.outfit_id, displayName: conversation.runtime.appearance.display_name, historyMessages: conversation.history.length, previousAssistantReply: conversation.history.filter((message) => message.role === "assistant").at(-1)?.content ?? null }, ts: Date.now() }) }).catch(() => {});
+    // #endregion
 
     try {
-      const completion = await options.handler.complete(conversation, cancellation.signal);
+      const completion = await options.handler.complete(
+        conversation, cancellation.signal, readPlayerCredentials(request));
       options.log("AI_REQUEST_COMPLETED", {
         sessionId: conversation.session_id,
         requestId: conversation.request_id,
@@ -100,6 +128,9 @@ export function createApp(options: AppOptions): Express {
         actionId: completion.reply.action.id,
         targetId: completion.reply.action.target_id,
       });
+      // #region debug-point C:gateway-reply
+      void fetch("http://127.0.0.1:7782/event", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: "outfit-context-stale", runId: "pre-fix", hypothesisId: "C", location: "app.ts:conversation-reply", msg: "[DEBUG] gateway reply completed", data: { requestId: conversation.request_id, outfitId: conversation.runtime.appearance.outfit_id, replyText: completion.reply.reply_text, modelCalls: completion.modelCalls }, ts: Date.now() }) }).catch(() => {});
+      // #endregion
       response.json(completion.reply);
     } catch (error) {
       options.log("AI_REQUEST_FAILED", {
@@ -109,13 +140,7 @@ export function createApp(options: AppOptions): Express {
         error: error instanceof Error ? error.message : String(error),
       });
       if (!response.headersSent && !cancellation.signal.aborted) {
-        writeError(
-          response,
-          502,
-          "AI_UPSTREAM_FAILED",
-          "AI 服务暂时无法完成这次对话。",
-          conversation.request_id,
-        );
+        writeAIError(response, error, "AI 服务暂时无法完成这次对话。", conversation.request_id);
       }
     }
   });
@@ -150,7 +175,7 @@ export function createApp(options: AppOptions): Express {
     });
     try {
       const completion = await options.spontaneousReplyHandler.complete(
-        systemReply, cancellation.signal,
+        systemReply, cancellation.signal, readPlayerCredentials(request),
       );
       options.log("SYSTEM_REPLY_REQUEST_COMPLETED", {
         requestId: systemReply.request_id,
@@ -168,10 +193,8 @@ export function createApp(options: AppOptions): Express {
         error: error instanceof Error ? error.message : String(error),
       });
       if (!response.headersSent && !cancellation.signal.aborted) {
-        writeError(
-          response, 502, "AI_UPSTREAM_FAILED",
-          "AI 服务暂时无法生成系统性自发回复。", systemReply.request_id,
-        );
+        writeAIError(response, error,
+          "AI 服务暂时无法生成系统性自发回复。", systemReply.request_id);
       }
     }
   });
@@ -212,6 +235,12 @@ function authorize(
     return;
   }
   next();
+}
+
+function writeAIError(response: Response, error: unknown, fallback: string, requestId: string): void {
+  if (error instanceof AIConnectionError)
+    writeError(response, error.status, error.code, error.message, requestId);
+  else writeError(response, 502, "AI_UPSTREAM_FAILED", fallback, requestId);
 }
 
 function writeError(

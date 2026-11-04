@@ -1,0 +1,122 @@
+{
+  "feature": "real-bed-lying",
+  "completed_at": "2026-10-04T19:56:00+08:00",
+  "result": "passed_with_emulator_scope",
+  "input": {
+    "source": "PICO Emulator Spatial Mesh",
+    "mesh_triangles": 86323,
+    "synthetic_fixture_used": false,
+    "sdk_bed_observations": 2,
+    "validated_bed_targets": 1
+  },
+  "bed_target": {
+    "center_m": [-0.1370468, 0.8203173, 3.1795142],
+    "forward": [0.00000006, 0.0, -0.99999994],
+    "width_m": 1.9102707,
+    "length_m": 2.0948749,
+    "foot_edge_m": 1.5403113,
+    "left_edge_m": 1.1160411,
+    "right_edge_m": 1.1032556,
+    "floor_y_m": 0.3912301,
+    "plane_error_m": 0.0016176,
+    "merged_source_count": 2,
+    "stable_samples_required": 3,
+    "published_capability": "lie"
+  },
+  "geometry_policy": {
+    "connected_surface_grouping": true,
+    "minimum_area_obb": true,
+    "support_coverage_sampling": true,
+    "overlapping_bed_sources_merged": true,
+    "headboard_direction_inferred": true,
+    "body_and_sweep_clearance_required": true,
+    "fail_closed": true
+  },
+  "action": {
+    "id": "lie",
+    "phases": [
+      "walking",
+      "docking",
+      "mounting",
+      "lying",
+      "resting",
+      "rising"
+    ],
+    "approach_edges": ["left", "right", "foot"],
+    "approach_selection": "shortest complete NavMesh path with edge clearance",
+    "preparation_pose": "none",
+    "mount_transition": "single-frame standing-dock-to-contact teleport",
+    "continuous_lying_drift": false,
+    "shared_action_coordinator": true,
+    "shared_item_registry": true,
+    "standing_character_controller_disabled_during_contact": true
+  },
+  "tests": {
+    "total": 71,
+    "passed": 71,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 13.652286,
+    "bed_specific_tests": 8,
+    "xml": "/Users/bytedance/MateSoul/.artifacts/framework/unity-tests.xml"
+  },
+  "emulator_validation": {
+    "lie": {
+      "result": "passed",
+      "far_start_root_m": [-2.3133903, 0.4112301, 0.8505224],
+      "selected_mount_edge": "Foot",
+      "walking_samples_before_dock": 1,
+      "walking_posture": "standing",
+      "walking_lying_weight": 0.0,
+      "mounting_pose": "standing",
+      "bending": false,
+      "fractional_lying_weight_samples": 0,
+      "lying_weight": 1.0,
+      "capsule_enabled": false,
+      "full_body_owned": true,
+      "root_m": [-0.1370468, 0.8553173, 2.2996669],
+      "pelvis_m": [-0.1370468, 0.9545370, 3.3073084],
+      "bed_contact_clearance_m": 0.035
+    },
+    "stand": {
+      "result": "passed",
+      "lying_weight": 0.0,
+      "capsule_enabled": true,
+      "full_body_owned": false,
+      "root_m": [-0.1370467, 0.4469716, 1.2792029]
+    },
+    "target_loss": {
+      "result": "passed",
+      "terminal_action_state": "Failed",
+      "error": "床面几何或可用空间已变化，已退出躺卧。",
+      "lying_weight": 0.0,
+      "capsule_enabled": true,
+      "full_body_owned": false
+    },
+    "chair_regression": {
+      "validated_targets": 1,
+      "status": "passed"
+    }
+  },
+  "video": {
+    "path": "/Users/bytedance/MateSoul/项目沉淀资料/validation/matesoul_native_room_bed_complete_20261004.mp4",
+    "duration_seconds": 26.062367,
+    "width": 2160,
+    "height": 2158,
+    "average_fps": 14.810627,
+    "bytes": 10045661,
+    "sha256": "0d46ec1f07684ba511868d6a43744e11b72aceb554bee8d4c240402d42389376"
+  },
+  "build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RealBed_Development.apk",
+    "canonical_apk": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+    "bytes": 82360293,
+    "sha256": "756b265ddfdcc92f55f1098b52c510a534d28311c5548cc7bfbef132e2bb8f84",
+    "signature": "APK Signature Scheme v2 verified"
+  },
+  "remaining_work": [
+    "Validate Scene Capture bed observations on a physical PICO headset.",
+    "Validate contact height against a physical mattress and passthrough occlusion.",
+    "Validate behavior after moving real furniture while the app is running."
+  ]
+}

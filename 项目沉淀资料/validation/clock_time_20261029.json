@@ -1,0 +1,128 @@
+{
+  "date": "2026-10-29",
+  "baseline": [
+    {
+      "time": "00:00",
+      "hour_degrees": 104.0,
+      "minute_degrees": 248.0
+    },
+    {
+      "time": "03:15",
+      "hour_degrees": 201.5,
+      "minute_degrees": 338.0
+    },
+    {
+      "time": "06:30",
+      "hour_degrees": 299.0,
+      "minute_degrees": 68.00001
+    },
+    {
+      "time": "09:45",
+      "hour_degrees": 36.5,
+      "minute_degrees": 158.0
+    }
+  ],
+  "unity_validation": {
+    "passed": true,
+    "project": "/Users/bytedance/MateSoul/MateSoul/Assets",
+    "finishedAt": "2026-10-29T14:34:47.8170040+08:00",
+    "minuteSamples": 4320,
+    "maximumAngleErrorDegrees": 0.000396728515625,
+    "checks": [
+      "SpawnSynchronizesImmediately",
+      "All1440MinutesAnd4320SecondSamplesPointAtCorrectDialTime",
+      "SecondsIgnoredMinute6DegreesHourFiveMinute2_5Degrees",
+      "FiveMinuteBoundaryMidnightYearRolloverAndBackwardTime",
+      "OnlyHandPivotRotationsChanged",
+      "FourNumeralsPreserved",
+      "RotatedTranslatedScaledPlacementPreservesDialTime",
+      "ReenableSynchronizesImmediately",
+      "ComponentReenableSynchronizesImmediately",
+      "PauseResumeCallbackSynchronizesImmediately",
+      "FocusRestoreCallbackSynchronizesImmediately",
+      "RealUpdateRunsWithTimeScaleZero"
+    ],
+    "examples": [
+      {
+        "time": "2026-10-29 00:00:00",
+        "hourDegrees": 360.0,
+        "minuteDegrees": 0.0
+      },
+      {
+        "time": "2026-10-29 03:15:00",
+        "hourDegrees": 97.49998474121094,
+        "minuteDegrees": 90.0
+      },
+      {
+        "time": "2026-10-29 06:30:00",
+        "hourDegrees": 195.0,
+        "minuteDegrees": 180.0
+      },
+      {
+        "time": "2026-10-29 09:45:00",
+        "hourDegrees": 292.5,
+        "minuteDegrees": 270.0
+      },
+      {
+        "time": "2026-12-31 23:59:59",
+        "hourDegrees": 357.5000305175781,
+        "minuteDegrees": 354.0
+      },
+      {
+        "time": "2027-01-01 00:00:00",
+        "hourDegrees": 360.0,
+        "minuteDegrees": 0.0
+      },
+      {
+        "time": "2026-10-29 05:04:59",
+        "hourDegrees": 150.0,
+        "minuteDegrees": 24.0
+      },
+      {
+        "time": "2026-10-29 05:05:00",
+        "hourDegrees": 152.5,
+        "minuteDegrees": 29.9999942779541
+      },
+      {
+        "time": "2026-10-29 05:00:00",
+        "hourDegrees": 150.0,
+        "minuteDegrees": 0.0
+      }
+    ],
+    "error": ""
+  },
+  "android_build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_ClockTimeFix_20261029.apk",
+    "sha256": "bc99b96466d628ee2607fc9b6cdfa0c8743d1498c22a169b4c719ed5cc2a511a",
+    "bytes": 168237103,
+    "seconds": 230.43,
+    "source_inputs": 3366,
+    "inputs_unchanged": true,
+    "build_type": "Release",
+    "crc_pass": true,
+    "signature_pass": true,
+    "zipalign_pass": true,
+    "native_matches_build": true,
+    "clock_native_methods": [
+      "RealTimeClock_OnEnable",
+      "RealTimeClock_OnApplicationPause",
+      "RealTimeClock_OnApplicationFocus",
+      "RealTimeClock_Synchronize"
+    ],
+    "installed": false
+  },
+  "protected_asset_sha256": {
+    "MateSoul/Assets/MateSoul/Content/Props/Clock.prefab": "dd6f366abecda9aaa7ef9480c285a67ac5dfb8ed14d94c009ca9db84c0a1d943",
+    "MateSoul/Assets/MateSoul/Content/PropsSource/Clock/LavenderChibiClock_160x40mm.fbx": "f142adb3be1ea0bc7f6fec63716487590a781f3ef79e70a57495cbe91d033c94",
+    "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+    "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5891068da5f85c040353475732b4247df763977dd7aac746e65cc9c1550808e6",
+    "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "3be1025fc1eefb6b3a4a04079fda131c1f8e448fd41385427ba9c81ae2c1c4bd"
+  },
+  "runtime_sha256": "e4e3fc47d0c75b59410f77e71ec9d2a500385984e6307db816940a40616cca17",
+  "native_validation_exit_code": 0,
+  "validation_seconds": 40,
+  "outer_sandbox_metrics_write_limited": true,
+  "headset_connected": false,
+  "device_validation_completed": false,
+  "temporary_validation_entry_removed": true
+}

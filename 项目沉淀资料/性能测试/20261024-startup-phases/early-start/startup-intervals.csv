@@ -1,0 +1,5 @@
+run,warmup,activity_to_ready,after_scene_to_room_start,hud_total,hud_font_load,notifications_total,notifications_font_load,room_load
+overlap-warmup,True,14655.0,24,494,289,3,0,5004
+overlap-1,False,11495.0,33,333,259,4,1,2551
+overlap-2,False,12626.0,54,420,318,1,1,3720
+overlap-3,False,11709.0,53,338,269,1,0,3057

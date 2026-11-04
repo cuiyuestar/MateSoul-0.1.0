@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace MateSoul.Runtime
 {
     /// <summary>Uses the existing mouse/XR UI press channel; grip still moves the TV.</summary>
-    public sealed class TelevisionPowerButton : Button
+    public sealed class TelevisionPowerButton : PhysicalUiButton
     {
         [SerializeField] private TelevisionController television;
         [SerializeField] private Transform buttonVisual;

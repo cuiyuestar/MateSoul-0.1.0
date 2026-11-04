@@ -1,0 +1,7 @@
+{
+    "boundaryEdges": 3902,
+    "vertices": 46824,
+    "radiusMeters": 0.0002699999895412475,
+    "depthTest": "LEqual",
+    "crownFade": true
+}

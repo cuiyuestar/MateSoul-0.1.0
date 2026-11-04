@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-28",
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_AllLatest_20261028-011707.apk",
+  "bytes": 165769469,
+  "sha256": "4718e2f8854787c980ad7693719d83ac9c58e25f3446242934aa93787f7158c3",
+  "platform": "Unity 2022.3.38f1 / Android ARM64 / IL2CPP",
+  "build_type": "Release",
+  "unity_exit_code": 0,
+  "build_pipeline_seconds": 208.0249941,
+  "build_install_seconds": 275.14,
+  "source_input_count": 1815,
+  "inputs_unchanged": true,
+  "compiled_source_proof_count": 50,
+  "player_and_stripped_sources_match": true,
+  "zip_crc_pass": true,
+  "signature_v2_pass": true,
+  "zipalign_pass": true,
+  "arm64_only": true,
+  "native_matches_release_staging": true,
+  "unity_apk_matches_gradle_release_output": true,
+  "test_assemblies_excluded": true,
+  "high_frequency_hand_manifest_enabled": true,
+  "hand_recovery_acceptance": {
+    "passed": 48,
+    "failed": 0,
+    "skipped": 0,
+    "accepted_source_inputs_match": 8
+  },
+  "placement_bed_accepted_source_inputs_match": 6,
+  "pan_and_knife_core_resources_match_acceptance": true,
+  "packed_animations": {
+    "Lengyue_Walk_BodyOnly": {
+      "fps": 30,
+      "seconds": 1.0666667222976685
+    },
+    "Lengyue_Angry01": {
+      "fps": 30,
+      "seconds": 1.6333333253860474
+    },
+    "Pickup_Floor": {
+      "fps": 30,
+      "seconds": 2.299999952316284
+    },
+    "Pickup_Low": {
+      "fps": 30,
+      "seconds": 2.133333444595337
+    },
+    "Pickup_Table": {
+      "fps": 30,
+      "seconds": 1.7999999523162842
+    },
+    "Pickup_High": {
+      "fps": 30,
+      "seconds": 1.9666666984558105
+    }
+  },
+  "pan_collider_meshes": [
+    "Pan Lower Wall",
+    "Pan Upper Wall"
+  ],
+  "tracked_hand_alpha": 0.5,
+  "production_character_meshes_unchanged": true,
+  "face_morph_count": 61,
+  "installed": true,
+  "serial": "PB3A10MGL9220170B",
+  "package": "com.matesoul.game",
+  "installed_sha256": "4718e2f8854787c980ad7693719d83ac9c58e25f3446242934aa93787f7158c3",
+  "save_before_sha256": "403dc8bba63db134df73fc4bd0b787157465932d6c87679086c17512af4844ea",
+  "save_after_sha256": "403dc8bba63db134df73fc4bd0b787157465932d6c87679086c17512af4844ea",
+  "save_preserved": true,
+  "activity_started": true,
+  "activity_wait_ms": 142,
+  "process_id": 29985,
+  "unity_ui_input_initialized": true,
+  "runtime_ready": false,
+  "headset_asleep": true,
+  "fatal_errors_in_sample": [],
+  "runtime_ready_pending_reason": "Headset automatically slept before room initialization completed.",
+  "physical_interaction_verified": false,
+  "evidence_directory": "/var/folders/mp/bbv_ln_177q9ss7dlmf6trmh0000gn/T/matesoul-headset-20261028-011707-9medbmb1",
+  "build_reused_from_concurrent_authorized_task": true,
+  "duplicate_unity_build_started": false,
+  "committed": false,
+  "pushed": false
+}

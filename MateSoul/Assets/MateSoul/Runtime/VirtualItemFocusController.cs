@@ -8,6 +8,7 @@ namespace MateSoul.Runtime
         [SerializeField, Min(.5f)] private float focusDistance = 8f;
         private readonly RaycastHit[] focusHits = new RaycastHit[64];
         private GameItem focused;
+        private PlayerInteractionModeController input;
         public GameItem FocusedItem => focused;
         public bool RecycleSelectionActive { get; private set; }
 
@@ -55,6 +56,19 @@ namespace MateSoul.Runtime
 
         private GameItem ResolveFocusTarget(Transform cameraTransform)
         {
+            if (input == null) input = FindObjectOfType<PlayerInteractionModeController>();
+            if (input != null && input.DirectHandsEnabled)
+            {
+                if (input.Hands == null) return null;
+                for (var index = input.Hands.Length - 1; index >= 0; index--)
+                {
+                    var hand = input.Hands[index];
+                    var nearby = hand.Direct.NearbyItem;
+                    if (hand.Tracked && nearby != null && !nearby.IsHeld && !nearby.IsReserved)
+                        return nearby;
+                }
+                return null;
+            }
             if (cameraTransform == null) return null;
             var count = Physics.SphereCastNonAlloc(cameraTransform.position, focusRadius,
                 cameraTransform.forward, focusHits, focusDistance, Physics.DefaultRaycastLayers,

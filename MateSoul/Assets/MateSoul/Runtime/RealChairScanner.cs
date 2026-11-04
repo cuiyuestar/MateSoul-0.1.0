@@ -14,10 +14,13 @@ namespace MateSoul.Runtime
         private readonly List<SeatTarget> targets = new List<SeatTarget>();
         private List<RealityTriangle> triangles = new List<RealityTriangle>();
         private float nextCachedConfirmation;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private float nextScanLog;
+#endif
         private bool disposed;
         public IEnumerable<SeatTarget> Targets => targets.Where(t => t.IsFresh);
         public IReadOnlyList<RealityTriangle> Geometry => triangles;
-        public string Status { get; private set; } = "请观察椅面、靠背和椅子前方";
+        public string Status { get; private set; } = "请扫描椅面、靠背和椅子前方";
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         public bool UseDevelopmentGeometry { get; set; }
 #endif
@@ -70,7 +73,8 @@ namespace MateSoul.Runtime
         public void Observe(List<RealityTriangle> geometry, float now)
         {
             triangles = geometry;
-            var observed = SeatGeometry.Extract(geometry, room.MainFloor.Centroid.y);
+            var floorY = room.MainFloor.Centroid.y;
+            var observed = SeatGeometry.Extract(geometry, floorY, out var diagnostics);
             var matched = new HashSet<SeatTarget>();
             foreach (var candidate in observed)
             {
@@ -124,7 +128,20 @@ namespace MateSoul.Runtime
             }
             var count = Targets.Count();
             Status = count > 0 ? $"已识别 {count} 把可落座椅子" :
-                observed.Count > 0 ? "正在确认椅面稳定性与前方空间" : "尚未找到完整椅面和靠背，请换角度观察";
+                matched.Any(target => target.StableSamples >= 3) ? "已找到椅子，但坐下或起身空间被阻挡" :
+                observed.Count > 0 ? "正在确认椅面稳定性" : diagnostics.NoTargetStatus(geometry.Count);
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (now >= nextScanLog)
+            {
+                nextScanLog = now + 2f;
+                Debug.Log($"MATESOUL_SEAT scan triangles={geometry.Count} floorY={floorY:F3} " +
+                          $"horizontal={diagnostics.HorizontalTriangles} surfaces={diagnostics.SurfaceGroups} " +
+                          $"areaRejected={diagnostics.AreaRejected} planeRejected={diagnostics.PlaneRejected} " +
+                          $"backRejected={diagnostics.BackrestRejected} sizeRejected={diagnostics.SizeRejected} " +
+                          $"supportRejected={diagnostics.SupportRejected} candidates={observed.Count} " +
+                          $"available={count} status={Status}");
+            }
+#endif
         }
 
         public SeatTarget Resolve(string id) => targets.FirstOrDefault(t => t.Id == id && t.IsFresh);

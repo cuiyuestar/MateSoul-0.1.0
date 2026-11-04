@@ -20,6 +20,7 @@ namespace MateSoul.Runtime
                 ? value
                 : throw new ArgumentNullException(nameof(value));
             GetComponent<Collider>().isTrigger = true;
+            AlignOpening();
         }
 
         private void Awake()
@@ -28,7 +29,19 @@ namespace MateSoul.Runtime
                 throw new InvalidOperationException(
                     "Coffee ingredient sensor binding is incomplete.");
             GetComponent<Collider>().isTrigger = true;
+            AlignOpening();
         }
+
+        private void AlignOpening()
+        {
+            var water = receiver.Water;
+            transform.position = water.transform.TransformPoint(
+                water.OpeningCenter + Vector3.down * .012f);
+            if (GetComponent<Collider>() is SphereCollider sphere)
+                sphere.radius = water.OpeningRadius * .95f;
+        }
+
+        private void Start() => AlignOpening();
 
         private void OnTriggerEnter(Collider other) => Observe(other);
 

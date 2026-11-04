@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b6ea52e7ac61401caa91c6f9ce4eb70, type: 3}
+  m_Name: PickupAnimations
+  m_EditorClassIdentifier: 
+  animations:
+  - clip: {fileID: 7400000, guid: 11e41e48d24b64fe1af32589db60621e, type: 2}
+    contactTime: 1.15
+    contactGrip: {x: 0.14164265, y: 0.008360416, z: 0.23021275}
+  - clip: {fileID: 7400000, guid: bdd54885f9c6540658c393b0b58e9c07, type: 2}
+    contactTime: 1.0666667
+    contactGrip: {x: 0.09425694, y: 0.43554467, z: 0.25652492}
+  - clip: {fileID: 7400000, guid: e5b3808f4738d40b9bc53f80b093423a, type: 2}
+    contactTime: 0.9
+    contactGrip: {x: 0.09020152, y: 0.87315917, z: 0.4160349}
+  - clip: {fileID: 7400000, guid: a62c780d6e8d84172a21c234de5a46da, type: 2}
+    contactTime: 0.98333335
+    contactGrip: {x: 0.04927257, y: 1.2298096, z: 0.24287318}

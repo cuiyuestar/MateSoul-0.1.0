@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-24",
+  "progress_status": "awaiting_post_fix_human",
+  "device": "PB3A10MGL9220170B",
+  "pre_fix_evidence": {
+    "input_trace_count": 269,
+    "eye_hand": {
+      "down": 10,
+      "up": 10,
+      "click": 8,
+      "native_released_custom_held_samples": 17,
+      "confirmed_release_delay_ms": 734,
+      "confirmed_closed_cancel_count": 1
+    },
+    "direct_touch": {
+      "down": 4,
+      "up": 4,
+      "click": 2
+    },
+    "arbitration": {
+      "samples": 48,
+      "touching_hud_samples": 0,
+      "stale_touch_capture_confirmed": false
+    },
+    "ui_access": {
+      "focus_lost_samples": 0,
+      "eye_invalid_samples": 0,
+      "unexpected_blocked_samples": 0
+    },
+    "hand_samples": {
+      "total": 107,
+      "right_hand": 68,
+      "right_closed": 16,
+      "native_tracked_but_joint_rejected": 33
+    },
+    "closest_point_warning_count": 27529,
+    "closest_point_warning_window_seconds": 211.067,
+    "closest_point_warning_rate_per_second": 130.43
+  },
+  "hypotheses": {
+    "A_native_release_vs_custom_hysteresis": "CONFIRMED",
+    "B_closed_or_joint_gate_rejects_hud": "CONFIRMED",
+    "C_stale_touch_arbitration": "REJECTED",
+    "D_ui_transition_focus_or_eye_invalid": "REJECTED",
+    "E_direct_touch_cancel_drops_click": "CONFIRMED",
+    "F_nonconvex_closest_point_log_storm": "CONFIRMED"
+  },
+  "post_fix_automated_validation": {
+    "result": "PASS",
+    "count": 6,
+    "checks": [
+      "native HUD pinch is not blocked by Closed",
+      "native release ends press in the same UI update",
+      "first fingertip contact completes one click",
+      "held contact does not repeat click",
+      "retreat and recontact clicks again",
+      "non-convex mesh proximity does not call unsupported ClosestPoint"
+    ],
+    "log": "/tmp/matesoul-ui-conflict-20261024/validation-play-7-unity.log",
+    "result_text": "/tmp/matesoul-ui-conflict-20261024/post-fix-validation.txt"
+  },
+  "build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_UIConflictFixed_20261024.apk",
+    "sha256": "96afed789cafd793c357b7d02983831e2b52ad4a2c7e4efc430432272b9491fa",
+    "bytes": 202921796,
+    "build_pipeline_seconds": 243.31,
+    "signature_verified": true,
+    "zip_crc_entry_count": 1564,
+    "abi": ["arm64-v8a"],
+    "package": "com.matesoul.game",
+    "il2cpp_matches_build": true,
+    "modified_sources_match_android_pdb": 5,
+    "related_sources_match_android_pdb": 11,
+    "protected_scene_character_animator_unchanged": true
+  },
+  "deployment": {
+    "installed": true,
+    "installed_apk_sha256_matches": true,
+    "save_before_sha256": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "save_after_sha256": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "save_unchanged": true,
+    "headset_state_at_install": "Asleep",
+    "human_post_fix_input_verified": false
+  },
+  "report": "/Users/bytedance/MateSoul/项目沉淀资料/真机验收/MateSoul_UI交互冲突根因与修复_20261024.md"
+}

@@ -17,7 +17,7 @@ Shader "MateSoul/UI Always On Top"
     {
         Tags
         {
-            "Queue" = "Overlay"
+            "Queue" = "Transparent"
             "IgnoreProjector" = "True"
             "RenderType" = "Transparent"
             "PreviewType" = "Plane"
@@ -42,12 +42,13 @@ Shader "MateSoul/UI Always On Top"
 
         Pass
         {
-            Name "Always On Top"
+            Name "Spatial UI"
 
             CGPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
-            #pragma target 2.0
+            #pragma target 3.5
+            #pragma multi_compile_instancing
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
 
@@ -59,6 +60,7 @@ Shader "MateSoul/UI Always On Top"
                 float4 positionOS : POSITION;
                 float4 color : COLOR;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -67,6 +69,7 @@ Shader "MateSoul/UI Always On Top"
                 fixed4 color : COLOR;
                 float2 uv : TEXCOORD0;
                 float4 positionOS : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             sampler2D _MainTex;
@@ -78,6 +81,8 @@ Shader "MateSoul/UI Always On Top"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionOS = input.positionOS;
                 output.positionHCS = UnityObjectToClipPos(input.positionOS);
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
@@ -87,6 +92,7 @@ Shader "MateSoul/UI Always On Top"
 
             fixed4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 fixed4 color = input.color * (tex2D(_MainTex, input.uv) + _TextureSampleAdd);
 
                 #ifdef UNITY_UI_CLIP_RECT

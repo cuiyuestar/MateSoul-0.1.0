@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using MateSoul.Gameplay;
 using UnityEngine;
 
 namespace MateSoul.Runtime
 {
     [DisallowMultipleComponent, RequireComponent(typeof(WaterReceiver))]
-    public sealed class CoffeeBrewReceiver : MonoBehaviour
+    public sealed class CoffeeBrewReceiver : MonoBehaviour, IRuntimeWorldFactSource
     {
         public const int DefaultGroundUnitsPerServing = 12;
         public const float DefaultMinimumWaterLiters = .08f;
@@ -50,6 +51,26 @@ namespace MateSoul.Runtime
             }
         }
         public event Action<CoffeeBrewReceiver> BrewCompleted;
+
+        public bool TryCaptureRuntimeWorldFact(
+            out RuntimeWorldFactSnapshot fact)
+        {
+            var wholeBeans = WholeBeanCount;
+            if (!coffee && groundUnits <= 0 && wholeBeans <= 0 &&
+                (water == null || water.CurrentLiters <= 0))
+            {
+                fact = null;
+                return false;
+            }
+            fact = RuntimeWorldFact.Create(
+                this,
+                "coffee",
+                coffee ? "brewed" : "ingredients",
+                $"water_ml={Mathf.RoundToInt((water?.CurrentLiters ?? 0) * 1000f)};" +
+                $"temperature_c={Mathf.RoundToInt(water?.CurrentTemperatureCelsius ?? 0)};" +
+                $"ground_units={groundUnits};whole_beans={wholeBeans}");
+            return true;
+        }
 
         public void Configure(WaterReceiver receiver,
             int servingGroundUnits = DefaultGroundUnitsPerServing,
@@ -236,10 +257,12 @@ namespace MateSoul.Runtime
             if (liquidRenderer == null) return;
             if (!coffee)
             {
+                water.LiquidColor = new Color(.35f, .78f, .95f, .55f);
                 liquidRenderer.SetPropertyBlock(null);
                 return;
             }
             liquidRenderer.GetPropertyBlock(properties);
+            water.LiquidColor = CoffeeColor;
             properties.SetColor("_BaseColor", CoffeeColor);
             properties.SetColor("_Color", CoffeeColor);
             liquidRenderer.SetPropertyBlock(properties);

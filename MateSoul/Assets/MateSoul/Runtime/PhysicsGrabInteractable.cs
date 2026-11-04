@@ -14,8 +14,13 @@ namespace MateSoul.Runtime
         private ItemReservation playerLease;
         private Pose localAttach;
         private bool playerGrabbable = true;
+        private bool activeSnap;
+        private ItemGripAnchor stableGrip;
+        private PicoDirectHandInteractor directHand;
+        private IXRSelectInteractor drivingHand;
         [SerializeField] private bool snapToInteractor;
         public bool SnapToInteractor => snapToInteractor;
+        public IXRSelectInteractor DrivingHand => drivingHand;
         public bool PlayerGrabbable
         {
             get => playerGrabbable;
@@ -32,10 +37,13 @@ namespace MateSoul.Runtime
         {
             body = GetComponent<PhysicsBody>();
             var interactor = interactorsSelecting[0];
+            drivingHand = interactor;
+            directHand = interactor as PicoDirectHandInteractor;
+            activeSnap = snapToInteractor && directHand == null;
             if (item == null) item = GetComponent<GameItem>();
             if (item != null)
             {
-                playerLease = item.Registry.TryReserve(item.Instance, null, interactor,
+                playerLease = item.Registry.TryReserve(item.Instance, null, this,
                     Guid.NewGuid(), ItemControlState.PlayerHeld);
                 if (playerLease == null)
                 {
@@ -46,12 +54,19 @@ namespace MateSoul.Runtime
                 playerLease.OnRelease(_ =>
                 {
                     if (body != null && body.IsFollowing) body.EndFollow();
+                    foreach (var selected in interactorsSelecting)
+                        (selected as PicoDirectHandInteractor)?.SetHeldBody(null);
                 });
             }
-            var attach = snapToInteractor
+            if (directHand != null)
+                directHand.AttachToSurface(body, item == null ? null : item.Definition.Interaction);
+            stableGrip = directHand != null ? directHand.StableGrip : null;
+            var attach = directHand != null
+                ? interactor.GetAttachTransform(this)
+                : activeSnap
                 ? interactor.transform
                 : GetAttachTransform(interactor);
-            if (snapToInteractor)
+            if (activeSnap)
             {
                 localAttach = new Pose(Vector3.zero, Quaternion.identity);
                 var target = new Pose(attach.position, attach.rotation);
@@ -61,16 +76,68 @@ namespace MateSoul.Runtime
                 body.BeginFollow(target);
                 return;
             }
-            localAttach = new Pose(transform.InverseTransformPoint(attach.position),
-                Quaternion.Inverse(transform.rotation) * attach.rotation);
-            body.BeginFollow(body.Pose);
+            localAttach = stableGrip != null ? stableGrip.Profile.Grip :
+                new Pose(transform.InverseTransformPoint(attach.position),
+                    Quaternion.Inverse(transform.rotation) * attach.rotation);
+            directHand?.SetHeldBody(body);
+#region debug-point C:grip-grab-regression
+#if UNITY_EDITOR
+            try { using (var client = new System.Net.WebClient()) client.UploadString("http://127.0.0.1:7790/event", "{\"sessionId\":\"grip-grab-regression\",\"runId\":\"pre-fix\",\"hypothesisId\":\"C\",\"msg\":\"[DEBUG] grab attach\",\"data\":{\"body\":" + JsonUtility.ToJson(body.Pose.position) + ",\"localAttach\":" + JsonUtility.ToJson(localAttach.position) + ",\"interactorAttach\":" + JsonUtility.ToJson(interactor.GetAttachTransform(this).position) + "}}"); } catch (System.Net.WebException) { }
+#endif
+#endregion
+            body.BeginFollow(body.Pose, stableGrip != null,
+                stableGrip != null && stableGrip.Profile.capability == "cutting-tool");
         }
 
         protected override void Drop()
         {
-            if (body != null && body.IsFollowing) body.EndFollow();
+            if (body != null && body.IsFollowing)
+            {
+                if (directHand == null) body.EndFollow();
+                else if (!directHand.IntentionalRelease || !directHand.HasFreshMotion)
+                    body.EndFollow(true);
+                else
+                {
+                    // Selection exits before this frame's held-body update. Read
+                    // the release packet directly instead of averaging old body motion.
+                    directHand.GetFollowMotion(body.Rigidbody.worldCenterOfMass,
+                        out var velocity, out var angular);
+                    body.EndHandFollow(velocity, angular);
+                }
+            }
+            directHand?.SetHeldBody(null);
             playerLease?.Complete();
             playerLease = null;
+            directHand = null;
+            drivingHand = null;
+            stableGrip = null;
+        }
+
+        protected override void OnSelectEntering(SelectEnterEventArgs args)
+        {
+            base.OnSelectEntering(args);
+            if (interactorsSelecting.Count > 1 && args.interactorObject is PicoDirectHandInteractor incoming)
+            {
+                incoming.AttachToSurface(body, item?.Definition.Interaction);
+                incoming.SetHeldBody(body);
+            }
+        }
+
+        protected override void OnSelectExiting(SelectExitEventArgs args)
+        {
+            var driverLeaving = ReferenceEquals(drivingHand, args.interactorObject);
+            base.OnSelectExiting(args);
+            (args.interactorObject as PicoDirectHandInteractor)?.SetHeldBody(null);
+            if (!driverLeaving || interactorsSelecting.Count == 0) return;
+            drivingHand = interactorsSelecting[0];
+            directHand = drivingHand as PicoDirectHandInteractor;
+            stableGrip = directHand?.StableGrip;
+            activeSnap = false;
+            var attach = drivingHand.GetAttachTransform(this);
+            // Transfer the driver's frame without dropping, restarting physics,
+            // releasing the item reservation, or snapping to a new world pose.
+            localAttach = new Pose(transform.InverseTransformPoint(attach.position),
+                Quaternion.Inverse(transform.rotation) * attach.rotation);
         }
 
         // XRI owns selection/dynamic ray attachment. Only PhysicsBody writes motion.
@@ -82,14 +149,20 @@ namespace MateSoul.Runtime
                 if (item != null && item.IsReserved)
                     for (var index = 0; index < interactorsHovering.Count; index++)
                         if (interactorsHovering[index] is IXRSelectInteractor select &&
-                            select.isSelectActive)
+                            select.isSelectActive && !IsSelectableBy(select))
                         {
                             item.ReportUnavailable();
                             break;
                         }
             }
             if (!isSelected || phase != XRInteractionUpdateOrder.UpdatePhase.Dynamic) return;
-            var interactor = interactorsSelecting[0];
+            var interactor = drivingHand;
+            if (interactor == null) return;
+            if (directHand != null && directHand.IsTrackingSuspended)
+            {
+                body.HoldFollowPose();
+                return;
+            }
             var controller = (interactor as XRBaseControllerInteractor)?.xrController;
             if (!interactor.transform.gameObject.activeInHierarchy ||
                 controller != null && controller.enableInputTracking &&
@@ -100,19 +173,30 @@ namespace MateSoul.Runtime
                 CancelGrab();
                 return;
             }
-            var attach = snapToInteractor ? interactor.transform : interactor.GetAttachTransform(this);
-            var rotation = snapToInteractor
+            var attach = activeSnap ? interactor.transform : interactor.GetAttachTransform(this);
+            var rotation = activeSnap
                 ? attach.rotation
                 : attach.rotation * Quaternion.Inverse(localAttach.rotation);
-            var position = snapToInteractor
+            var position = activeSnap
                 ? attach.position
                 : attach.position - rotation * Vector3.Scale(localAttach.position, transform.lossyScale);
             if (!PhysicsBody.IsFinite(position) || Vector3.Distance(position, body.Pose.position) > 1.5f)
             {
+#region debug-point C-D:grip-grab-regression
+#if UNITY_EDITOR
+                try { using (var client = new System.Net.WebClient()) client.UploadString("http://127.0.0.1:7790/event", "{\"sessionId\":\"grip-grab-regression\",\"runId\":\"pre-fix\",\"hypothesisId\":\"C-D\",\"msg\":\"[DEBUG] cancelled by target distance\",\"data\":{\"body\":" + JsonUtility.ToJson(body.Pose.position) + ",\"target\":" + JsonUtility.ToJson(position) + "}}"); } catch (System.Net.WebException) { }
+#endif
+#endregion
                 CancelGrab();
                 return;
             }
-            body.SetFollowTarget(new Pose(position, rotation));
+            var target = new Pose(position, rotation);
+            if (directHand == null) body.SetFollowTarget(target);
+            else
+            {
+                directHand.GetFollowMotion(position, out var velocity, out var angular);
+                body.SetFollowTarget(target, velocity, angular);
+            }
         }
 
         public void CancelGrab()
@@ -126,7 +210,11 @@ namespace MateSoul.Runtime
             var physicsBody = GetComponent<PhysicsBody>();
             var item = GetComponent<GameItem>();
             var permitted = item == null || !item.Instance.IsOccupied ||
-                playerLease != null && playerLease.IsValid && ReferenceEquals(playerLease.Owner, interactor);
+                playerLease != null && playerLease.IsValid &&
+                ReferenceEquals(playerLease.Owner, this) &&
+                (interactorsSelecting.Contains(interactor) ||
+                 interactor is PicoDirectHandInteractor && directHand != null &&
+                 interactorsSelecting.Count < 2);
             var baseSelectable = base.IsSelectableBy(interactor);
             var selectable = permitted && playerGrabbable && !physicsBody.IsPaused &&
                              !physicsBody.IsContact && !physicsBody.IsInteractionControlled && baseSelectable;

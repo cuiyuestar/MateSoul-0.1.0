@@ -1,0 +1,6 @@
+{
+  "name": "MateSoul.Tests.EditMode",
+  "references": ["MateSoul.Core", "MateSoul.Gameplay"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}

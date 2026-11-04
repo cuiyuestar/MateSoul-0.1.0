@@ -1,0 +1,46 @@
+{
+  "feature": "coffee-brewing-feedback-v2",
+  "date": "2026-10-21",
+  "notifications": {
+    "cold_water_with_ground_coffee": "请用加热后的水冲泡咖啡",
+    "coffee_brewed": "咖啡冲泡完成",
+    "whole_bean_with_water": "请先将咖啡豆研磨成粉再冲泡",
+    "deduplication": "one notification per continuously true condition",
+    "whole_bean_priority": "higher than cold-water ground-coffee warning"
+  },
+  "whole_bean_sensor": {
+    "prefab": "MateSoul/Assets/MateSoul/Content/Props/Mug.prefab",
+    "name": "Coffee Ingredient Receiver",
+    "shape": "SphereCollider",
+    "radius_meters": 0.0323,
+    "is_trigger": true,
+    "consumes_bean": false
+  },
+  "behavior": {
+    "dry_whole_bean_has_no_warning": "passed",
+    "cold_water_and_whole_bean_warns": "passed",
+    "hot_water_and_whole_bean_warns": "passed",
+    "cold_water_and_ground_coffee_warns": "passed",
+    "continuous_cold_water_does_not_spam": "passed",
+    "successful_brew_notification": "passed"
+  },
+  "tests": {
+    "suites": [
+      "MateSoul.Tests.CoffeeBrewingTests",
+      "MateSoul.Tests.CoffeeGrinderTests",
+      "MateSoul.Tests.ElectricKettleTests",
+      "MateSoul.Tests.WaterDispenserTests"
+    ],
+    "total": 11,
+    "passed": 11,
+    "failed": 0,
+    "result_xml": ".artifacts/coffee-brewing-feedback/test-results.xml"
+  },
+  "android": {
+    "apk": "Builds/MateSoul_Framework.apk",
+    "bytes": 141226906,
+    "sha256": "2195c0b7eba45d938c62cc6ca3f9200cf53cb0ba718231420e73b4a5e6e6f795",
+    "zip_integrity": "passed",
+    "signature_v2": "passed"
+  }
+}

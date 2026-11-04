@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-24",
+  "progressStatus": "historical_spawn_patch_superseded_by_verified_stable_navigation",
+  "latestVerificationReport": "/Users/bytedance/MateSoul/项目沉淀资料/validation/headset_stable_startup_20261024.json",
+  "previousPhysicalLaunch": {
+    "pid": 8378,
+    "navMeshBuilt": true,
+    "navMeshBuiltAt": "2026-10-24T19:15:00.861+08:00",
+    "obstaclesRetained": 18,
+    "startupError": "房间内没有可用的角色出生点。",
+    "avatarEnabled": false,
+    "businessReady": false,
+    "sourceLog": "/tmp/matesoul-room-repair-20261024/worn-launch-device.log"
+  },
+  "spawnRepair": {
+    "source": "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/GameBootstrap.cs",
+    "searchDistance": "Distance(desiredSpawn, roomBounds.center) + roomBounds.extents.magnitude",
+    "productionNavigationRegressionCases": 15,
+    "oldSearchMisses": 13,
+    "newSearchPasses": 15,
+    "obstaclesRetained": 18,
+    "returnedPointsInsideCapturedFloor": true,
+    "localRegressionPassed": true,
+    "physicalVerification": "pending"
+  },
+  "build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RoomSpawnFixed_20261024.apk",
+    "bytes": 202841762,
+    "sha256": "8e9a935971fb86dfc19dc4398ca2a20f90ef1a0f404ed044fe3f46ffa85102ce",
+    "unityExitCode": 0,
+    "seconds": 291.87,
+    "development": true,
+    "abi": "arm64-v8a",
+    "il2cpp": true,
+    "zipCrcPassed": true,
+    "zipEntries": 1564,
+    "signatureVerified": true,
+    "certificateSha256": "0799ed95a5c84fcc7d5eb21dfa5e587dbc8650b1ac54dc50201de4540711ea97",
+    "package": "com.matesoul.game",
+    "handsOnly": true,
+    "sceneAnchorEnabled": true,
+    "environmentDepthEnabled": true,
+    "protectedAssetsUnchanged": true,
+    "protectedAssetSha256": {
+      "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+      "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553"
+    }
+  },
+  "device": {
+    "serial": "PB3A10MGL9220170B",
+    "installed": true,
+    "installSeconds": 6.7,
+    "installedApkHashMatches": true,
+    "saveUnchangedByInstall": true,
+    "existingSavedItemCount": 0,
+    "existingSaveHasRoomAnchor": false,
+    "logcatCleared": false,
+    "launches": [
+      {
+        "index": 1,
+        "pid": 9594,
+        "activityStarted": true,
+        "observedSeconds": 95.34,
+        "wakefulnessAfter11Seconds": "Asleep",
+        "unityInitializationObserved": false,
+        "navMeshBuilt": false,
+        "spawnFound": false,
+        "avatarEnabled": false,
+        "businessReady": false,
+        "result": "inconclusive_before_unity_initialization"
+      }
+    ],
+    "twoColdStartsPassed": false,
+    "nextAction": "Keep wearing the headset and open MateSoul; validate current launch and then one further cold start."
+  },
+  "evidenceDirectory": "/tmp/matesoul-room-repair-20261024",
+  "evidence": [
+    "worn-launch-device.log",
+    "worn-launch-diagnostics/startup-current.log",
+    "spawn-build.log",
+    "spawn-build-result.json",
+    "spawn-manifest.txt",
+    "spawn-install-result.json",
+    "spawn-cold-1.log",
+    "spawn-device-result.json"
+  ]
+}

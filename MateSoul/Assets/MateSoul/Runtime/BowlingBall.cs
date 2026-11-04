@@ -24,6 +24,17 @@ namespace MateSoul.Runtime
 
         public void AllowPlayer(bool value)
         {
+#region debug-point C:player-grab-state
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload = $"{{\"sessionId\":\"bowling-controller-grab\",\"runId\":\"post-fix-2\"," +
+                          $"\"hypothesisId\":\"C\",\"ts\":{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}," +
+                          $"\"location\":\"BowlingBall.AllowPlayer\",\"msg\":\"[DEBUG] player grab state changed\"," +
+                          $"\"data\":{{\"allowed\":{value.ToString().ToLowerInvariant()}," +
+                          $"\"contact\":{Body.IsContact.ToString().ToLowerInvariant()}" + "}}";
+            UnityWebRequest.Post("http://127.0.0.1:7782/event", payload, "application/json")
+                .SendWebRequest();
+#endif
+#endregion
             playerCanGrab = value;
             Grab.PlayerGrabbable = value;
         }

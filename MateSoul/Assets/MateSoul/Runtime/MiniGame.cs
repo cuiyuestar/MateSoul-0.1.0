@@ -1,3 +1,4 @@
+using MateSoul.Gameplay;
 using UnityEngine;
 
 namespace MateSoul.Runtime
@@ -8,6 +9,14 @@ namespace MateSoul.Runtime
         public abstract string DisplayName { get; }
         public abstract string Description { get; }
         public virtual string DialogueLine => null;
+        public virtual RuntimeActivitySnapshot CaptureRuntimeContext() =>
+            new RuntimeActivitySnapshot
+            {
+                id = Id,
+                name = DisplayName,
+                state = "active",
+                phase = "active"
+            };
         public virtual void RegisterActions(GameSession session) { }
         protected MiniGameHost Host { get; private set; }
         protected GameSession Session => Host.Session;

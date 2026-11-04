@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-24",
+  "progress_status": "awaiting_post_fix_2_human",
+  "device": "PB3A10MGL9220170B",
+  "post_fix_1_evidence": {
+    "input_trace_count": 281,
+    "eye_hand": {
+      "down": 7,
+      "up": 7,
+      "click": 7
+    },
+    "direct_ui_touch": {
+      "down": 3,
+      "up": 3,
+      "click": 3
+    },
+    "arbitration": {
+      "samples": 51,
+      "touching_hud_samples": 1,
+      "canceled_samples": 0,
+      "stale_poke_select_samples": 0
+    },
+    "right_hand": {
+      "samples": 65,
+      "closed_samples": 20,
+      "closed_after_native_pinch_release": 17,
+      "closed_without_hold_or_near_item": 20,
+      "minimum_grip_while_closed": 0.3614213,
+      "maximum_grip_while_closed": 0.8199788,
+      "observed_closed_after_last_eye_click_ms": 6362
+    },
+    "closest_point_warning_count": 0
+  },
+  "hypotheses": {
+    "A_closed_latched_after_eye_pinch": "CONFIRMED",
+    "B_closed_consumes_world_grab_armed": "CONFIRMED",
+    "C_poke_armed_or_contact_stale": "REJECTED",
+    "D_eye_pointer_still_owns_hud": "REJECTED"
+  },
+  "fix": {
+    "closed_source": "PICO native graspFirm",
+    "suppress_grasp_during_native_pinch": true,
+    "suppress_until_native_grasp_opens": true,
+    "rearm_on_any_non_firm_state": true,
+    "poke_ignores_closed_when_not_holding": true,
+    "trace_run_id": "post-fix-2"
+  },
+  "validation": {
+    "grip_isolation": {
+      "result": "PASS",
+      "count": 7,
+      "log": "/tmp/matesoul-hand-after-eye-20261024/validation-unity.log"
+    },
+    "direct_hand_regression": {
+      "result": "PASS",
+      "count": 23,
+      "log": "/tmp/matesoul-hand-after-eye-20261024/direct-hand-regression-2.log"
+    },
+    "total_checks": 30
+  },
+  "parallel_compile_compatibility": {
+    "runtime_collider_refiner_bake_mesh_unity_2022_fixed": true,
+    "avatar_collision_contact_colliders_unity_2022_fixed": true
+  },
+  "build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_HandAfterEyeFixed_20261024.apk",
+    "sha256": "8ae8b3b7db01d6c1c8415ddbeb1c3a5292ef89271eec6a06ee1f66f40430bb02",
+    "bytes": 202949723,
+    "final_build_pipeline_seconds": 184.527,
+    "signature_verified": true,
+    "zip_crc_entry_count": 1564,
+    "abi": ["arm64-v8a"],
+    "package": "com.matesoul.game",
+    "il2cpp_matches_build": true,
+    "modified_hand_physics_sources_match_android_pdb": 9,
+    "related_sources_match_android_pdb": 11,
+    "protected_scene_character_animator_unchanged": true
+  },
+  "deployment": {
+    "installed": true,
+    "installed_apk_sha256_matches": true,
+    "first_attempt_usb_offline": true,
+    "bounded_reconnect_and_retry_succeeded": true,
+    "save_before_sha256": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "save_after_sha256": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "save_unchanged": true,
+    "human_post_fix_2_verified": false
+  },
+  "report": "/Users/bytedance/MateSoul/项目沉淀资料/真机验收/MateSoul_眼手后直接手失效根因与修复_20261024.md"
+}

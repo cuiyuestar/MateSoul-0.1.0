@@ -1,0 +1,320 @@
+{
+  "date": "2026-10-28",
+  "rootCause": "All plate NavMesh hits exceeded the original 18cm authored-stand gate.",
+  "hypotheses": [
+    {
+      "id": "A",
+      "name": "理想站位与实际导航落点偏差导致采样门槛误拒绝",
+      "status": "CONFIRMED"
+    },
+    {
+      "id": "B",
+      "name": "盘子没有任何完整导航路径",
+      "status": "INCONCLUSIVE",
+      "scope": "修正前未进入路径检查，修正后真机未完成"
+    },
+    {
+      "id": "C",
+      "name": "此次拒绝来自角色占位或碰撞体",
+      "status": "REJECTED",
+      "scope": "修正前没有进入占位检查；此结论仅指原始拒绝原因"
+    },
+    {
+      "id": "D",
+      "name": "原搜索遗漏已有吸附能力可使用的附近站位",
+      "status": "INCONCLUSIVE",
+      "scope": "仅编辑器30cm投影已通过"
+    }
+  ],
+  "deviceBefore": [
+    {
+      "utc": "2026-10-28T13:31:36.1484800Z",
+      "item": "apple",
+      "accepted": true,
+      "sampled": 37,
+      "sampleFar": 36,
+      "paths": 1,
+      "blocked": 0,
+      "blockers": "",
+      "actor": {
+        "x": 0.18000000715255737,
+        "y": 0.07726901769638062,
+        "z": -0.7800000309944153
+      },
+      "grip": {
+        "x": -0.11132873594760895,
+        "y": 0.09607574343681335,
+        "z": -0.16751527786254883
+      },
+      "floorY": 0.05123472
+    },
+    {
+      "utc": "2026-10-28T13:31:36.1497080Z",
+      "item": "plate",
+      "accepted": false,
+      "sampled": 34,
+      "sampleFar": 34,
+      "paths": 0,
+      "blocked": 0,
+      "blockers": "",
+      "actor": {
+        "x": 0.18000000715255737,
+        "y": 0.07726901769638062,
+        "z": -0.7800000309944153
+      },
+      "grip": {
+        "x": 0.33039718866348267,
+        "y": 0.279287189245224,
+        "z": 0.15127593278884888
+      },
+      "floorY": 0.05123472
+    }
+  ],
+  "deviceAfter": [],
+  "parameters": {
+    "originalApproachProjectionMetres": 0.18,
+    "fallbackApproachProjectionMetres": 0.65,
+    "maximumExistingIKCorrectionMetres": 0.15,
+    "collisionToleranceMetres": 0.04,
+    "snapLayersMetres": [
+      0.025,
+      0.25,
+      0.65
+    ]
+  },
+  "regressionTests": {
+    "exit": 0,
+    "seconds": 171.31,
+    "summary": {
+      "id": "2",
+      "testcasecount": "29",
+      "result": "Passed",
+      "total": "29",
+      "passed": "29",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-28 14:59:32Z",
+      "end-time": "2026-10-28 14:59:35Z",
+      "duration": "3.2101496"
+    },
+    "cases": [
+      {
+        "name": "MateSoul.Tests.ApproachAcceptance.DisconnectedProjectedPositionStillRejects",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.ApproachAcceptance.NarrowStandPositionsRetainPriorityWithoutFallbackSamples",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.ApproachAcceptance.PickupSnapBoundariesRemainOriginal",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.ApproachAcceptance.ProjectionBeyondExistingFallbackStillRejects",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.ApproachAcceptance.ScanProjectionOutsideEighteenCentimetresFindsReachableFallback",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.ApproachAcceptance.SolidObstacleDoesNotBecomeReachableThroughProjection",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.ApproachAcceptance.StandAdmissionCreditsExistingContactCorrectionButKeepsFinalSnapLimit",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BowlingTests.ProductionRayInputSnapsBowlingBallToHandAndReleasesIt",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.AuthoredMotionKeepsCupOnHandAndFeetPlanted",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.AutonomySelectsOnlyWhitelistedAvailableItemsAndCannotBypassGate",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.CancellationDuringDrinkRestoresPhysicsAndAnimationLayers",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.FloorAndTableUseCompleteAndReturnToOriginalPose",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.PauseDuringDrinkRestoresPhysicsAndAnimationLayers",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.PlayerPreemptionDuringDrinkReleasesItemBeforeNextAction",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.ProductionWhitelistIsMugOnlyAndDrinkPreservesSourceTimingAndBodyBindings",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.DrinkAcceptance.RemovedMugFailsActionAndClearsEveryAvatarLayer",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.ItemActionRuntimeTests.StartingCutActionKeepsFixedWorkspaceCollisionEnabled",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.ContactAndPrimaryAttachWithoutFallbackDelay",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.ContactRecoveryWinsOverPreviouslyPendingFallback",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.FallbackWaitsForNormalFailureAndAnotherSolvedPose",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.OriginalContactAndPrimaryBoundariesKeepPriority(0.025f,0.0f,Contact)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.OriginalContactAndPrimaryBoundariesKeepPriority(0.0251f,0.0f,Primary)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.OriginalContactAndPrimaryBoundariesKeepPriority(0.25f,0.0f,Primary)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.OriginalContactAndPrimaryBoundariesKeepPriority(0.2501f,0.0f,Fallback)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.OriginalContactAndPrimaryBoundariesKeepPriority(0.65f,0.0f,Fallback)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.OriginalContactAndPrimaryBoundariesKeepPriority(0.6501f,0.0f,None)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.OriginalContactAndPrimaryBoundariesKeepPriority(0.2f,0.26f,Fallback)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.OriginalContactAndPrimaryBoundariesKeepPriority(0.2f,0.651f,None)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.PickupLayerPriorityAcceptance.OutsideAllLayersRejectsAndReleasesControl",
+        "result": "Passed",
+        "failure": null
+      }
+    ]
+  },
+  "cleanSourceVerification": "Release compiled after temporary instrumentation removal.",
+  "diagnosticBuild": {
+    "exit": 0,
+    "seconds": 343.4,
+    "sourceChanges": [],
+    "buildPassed": true,
+    "apk": "/tmp/matesoul-item-approach-20261028/post-final-diagnostic.apk",
+    "sha256": "9d85db0ed05c8e98af909bd0ef5154241afe1f74533db701b83d147ab473320a"
+  },
+  "cleanBuild": {
+    "exit": 0,
+    "seconds": 220.23,
+    "sourceChanges": [],
+    "buildPassed": true,
+    "apk": "/tmp/matesoul-item-approach-20261028/clean-release.apk",
+    "sha256": "4451eccbba3680086c19da4178ec5371c6460b5e556319bbbe5be90e4d11d3cd"
+  },
+  "installation": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_ItemApproachFix_20261028.apk",
+    "sha256": "4451eccbba3680086c19da4178ec5371c6460b5e556319bbbe5be90e4d11d3cd",
+    "bytes": 168092347,
+    "serial": "PB3A10MGL9220170B",
+    "installed": true,
+    "installedSha256": "4451eccbba3680086c19da4178ec5371c6460b5e556319bbbe5be90e4d11d3cd",
+    "saveBefore": "5f342d85695b14750db0e5d21c8de11253786ec4a7d85f2cef63bc508fe41e17",
+    "saveAfter": "5f342d85695b14750db0e5d21c8de11253786ec4a7d85f2cef63bc508fe41e17",
+    "savedPreservedDuringInstall": true,
+    "launch": "Starting: Intent { cmp=com.matesoul.game/com.unity3d.player.UnityPlayerActivity }\nStatus: ok\nLaunchState: COLD\nActivity: com.matesoul.game/com.unity3d.player.UnityPlayerActivity\nTotalTime: 158\nWaitTime: 162\nComplete",
+    "launchUtc": "2026-10-28T15:24:30.779245+00:00",
+    "zipCRC": true,
+    "zipalign": true,
+    "signing": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): false\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1",
+    "nativeMatchesBuild": true,
+    "arm64Only": true,
+    "productionBuild": true,
+    "stayOnRestored": "0",
+    "usbReverse": "",
+    "markerRemoved": true
+  },
+  "cleanReady": null,
+  "sourceSHA256": {
+    "Assets/MateSoul/Runtime/ItemTransferStep.cs": "33b6182fbc7dd40c1e5a2a62290924e9d3d7203d230d1a7cdde1521f88a67ff9",
+    "Assets/MateSoul/Runtime/GameBootstrap.cs": "b8f1da8de03b8640e0f411651df18e82eca8e3339d6ff615b5691581b2fbb346",
+    "Assets/MateSoul/Runtime/DeviceStartupLog.cs": "a94272f9566b732d75b663912d10b239d6c86c1fc58075d3ecfed9de7b4f7365"
+  },
+  "deviceProbeCompleted": false,
+  "freshProductionReady": false,
+  "deviceProbeFailure": "2026-10-28T15:17:55.3423460Z Exception InvalidOperationException: PICO Spatial Mesh was not navigation-ready within 12s. Last query result: ERROR_RUNTIME_FAILURE.",
+  "productionStart": "MATESOUL_START utc=2026-10-28T15:24:32.1079080Z version=0.1.0",
+  "productionStartupFailure": "2026-10-28T15:25:01.3186710Z Exception InvalidOperationException: PICO Spatial Mesh was not navigation-ready within 12s. Last query result: ERROR_RUNTIME_FAILURE.",
+  "limits": [
+    "Device probe calculates navigation and occupancy without performing an item action.",
+    "Real-player full pickup/drink/return animation still requires现场验收.",
+    "Save checksums prove installation preservation; startup restore can legitimately change item state.",
+    "Device was Asleep; Scene Capture timed out and Spatial Mesh returned ERROR_RUNTIME_FAILURE, so corrected live approach validation remains pending."
+  ],
+  "cleanup": {
+    "temporaryProbeRemoved": true,
+    "temporaryBuilderRemoved": true,
+    "temporaryTestsRemoved": true,
+    "usbReverseRemoved": true,
+    "stayOnRestoredToZero": true,
+    "diagnosticServerStopped": true,
+    "remoteProbeMarkerRemoved": true,
+    "deviceStillHasEarlierDiagnosticBuild": false
+  },
+  "releaseSourceInputCount": 3362,
+  "nativeApproachFixPresent": true
+}

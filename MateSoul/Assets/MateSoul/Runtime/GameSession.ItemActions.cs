@@ -20,7 +20,12 @@ namespace MateSoul.Runtime
             if (observedItemAction == null || !observedItemAction.IsFinished) return;
             if (observedItemAction.State != ActionState.Rejected)
                 Notifications.ShowHint(observedItemAction.Error ??
-                    (observedItemAction.State == ActionState.Succeeded
+                    (observedItemAction.Intent.ActionId == "visit"
+                        ? observedItemAction.State == ActionState.Succeeded
+                            ? "物品互动已结束。" : "物品互动已取消。"
+                     : observedItemAction.Intent.ActionId == PickupItemAction.Id
+                        ? "物品拾取已结束。" :
+                     observedItemAction.State == ActionState.Succeeded
                         ? "水果切好了，已装入盘子。" : "切水果已取消。"));
             observedItemAction = null;
         }

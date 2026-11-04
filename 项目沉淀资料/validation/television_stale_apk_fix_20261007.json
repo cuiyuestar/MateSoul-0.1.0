@@ -1,0 +1,48 @@
+{
+  "task": "prevent_stale_television_program_apk",
+  "date": "2026-10-07",
+  "root_cause": {
+    "type": "stale_gradle_variant_asset",
+    "description": "A later Android build reused the old Gradle debug sharedassets0.resource even though the main Unity asset and prefab referenced the new program.",
+    "bad_apk_sha256": "41845998d8108d809b5647d6a0dc49a65d4411f13f6512daa8a51578dceaf69b",
+    "bad_embedded_program_sha256": "840f571f0b807a1b35b70bde34f12378a149f4fa883ccd5a1040ba6fd4cd2a12",
+    "bad_embedded_program": {
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "duration_seconds": 19.6
+    }
+  },
+  "fixes": [
+    {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Editor/GameSceneBuilder.cs",
+      "change": "All canonical Android builds include BuildOptions.CleanBuildCache."
+    },
+    {
+      "file": "/Users/bytedance/MateSoul/scripts/start-pico-emulator.command",
+      "change": "Extract and hash the television MP4 inside sharedassets0.resource before comparing or installing the APK; reject stale content."
+    },
+    {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/AlwaysOnTopUi.cs",
+      "change": "Expose the UI helper publicly so the existing engine test assembly compiles."
+    }
+  ],
+  "validation": {
+    "stale_apk_rejected": true,
+    "stale_apk_error": "APK contains a stale television program.",
+    "clean_android_build": "PASS",
+    "canonical_program_sha256": "c55bdafdcc691236eccb0c3639b2eb044d487eb6d19f6e7538c5e381879f0079",
+    "embedded_program_sha256": "c55bdafdcc691236eccb0c3639b2eb044d487eb6d19f6e7538c5e381879f0079",
+    "final_apk": {
+      "path": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+      "size_bytes": 117799263,
+      "sha256": "d8edc592f413b7f8b64d38518e4a2ac3f6a1297de8843102e38d989ba22dcb68"
+    },
+    "pico_emulator": {
+      "device": "emulator-5554",
+      "installed_apk_sha256": "d8edc592f413b7f8b64d38518e4a2ac3f6a1297de8843102e38d989ba22dcb68",
+      "foreground": true,
+      "runtime_ready": "MATESOUL_READY source=PICO Emulator Spatial Mesh items=0 itemState=ready navMs=34"
+    }
+  }
+}

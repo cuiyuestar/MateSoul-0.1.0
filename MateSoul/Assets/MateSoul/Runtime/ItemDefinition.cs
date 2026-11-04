@@ -257,6 +257,8 @@ namespace MateSoul.Runtime
         [SerializeField] private CookingSettings cooking;
         [SerializeField] private CuttableSettings cuttable;
         [SerializeField] private ItemInteractionProfile interaction;
+        [SerializeField] private ItemUseAnimation useAnimation;
+        [SerializeField] private bool allowAutonomousUse;
         [SerializeField] private bool consumedProduct;
         [SerializeField] private ItemPlacementPart[] placementParts = Array.Empty<ItemPlacementPart>();
         public string Id => id;
@@ -287,7 +289,17 @@ namespace MateSoul.Runtime
         public CookingSettings Cooking => cooking;
         public CuttableSettings Cuttable => cuttable;
         public ItemInteractionProfile Interaction => interaction;
+        public ItemUseAnimation UseAnimation => useAnimation;
+        public bool AllowAutonomousUse => allowAutonomousUse;
         public bool ConsumedProduct => consumedProduct;
+        public void ConfigureUse(ItemUseAnimation animation, bool autonomous)
+        {
+            if (autonomous && (animation == null || animation.clip == null))
+                throw new ArgumentException("Autonomous item use requires an authored animation.");
+            useAnimation = animation;
+            allowAutonomousUse = autonomous;
+        }
+
         public void ConfigureInteraction(ItemInteractionProfile value, bool isConsumedProduct = false)
         {
             interaction = value;

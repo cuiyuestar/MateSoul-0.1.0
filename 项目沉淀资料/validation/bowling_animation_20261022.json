@@ -1,0 +1,287 @@
+{
+    "passed": true,
+    "animationFps": 30.0,
+    "length": 4.066667079925537,
+    "contactHeight": 0.11735790967941284,
+    "sourceReferenceError": 0.002692882204428315,
+    "bodyCurves": 690,
+    "faceCurves": 5,
+    "cases": [
+        {
+            "fps": 15,
+            "startingError": 0.0,
+            "pickupTime": 0.6666666865348816,
+            "releaseTime": 3.0666663646698,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.0264053344726563,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Near",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 15,
+            "startingError": 0.2199999988079071,
+            "pickupTime": 0.7333333492279053,
+            "releaseTime": 3.0666663646698,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.0264053344726563,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Expanded",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 15,
+            "startingError": 1.2000000476837159,
+            "pickupTime": 0.7333333492279053,
+            "releaseTime": 3.0666663646698,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.0264053344726563,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Unconditional",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 30,
+            "startingError": 0.0,
+            "pickupTime": 0.6666668057441711,
+            "releaseTime": 3.033331871032715,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.0266143083572388,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Near",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 30,
+            "startingError": 0.2199999988079071,
+            "pickupTime": 0.7000001668930054,
+            "releaseTime": 3.033331871032715,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.0266143083572388,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Expanded",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 30,
+            "startingError": 1.2000000476837159,
+            "pickupTime": 0.7000001668930054,
+            "releaseTime": 3.033331871032715,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.0266143083572388,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Unconditional",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 72,
+            "startingError": 0.0,
+            "pickupTime": 0.6666669249534607,
+            "releaseTime": 3.0138816833496095,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.026594638824463,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Near",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 72,
+            "startingError": 0.2199999988079071,
+            "pickupTime": 0.7083336114883423,
+            "releaseTime": 3.0138816833496095,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.026594638824463,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Expanded",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 72,
+            "startingError": 1.2000000476837159,
+            "pickupTime": 0.7083336114883423,
+            "releaseTime": 3.0138816833496095,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.026594638824463,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Unconditional",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 120,
+            "startingError": 0.0,
+            "pickupTime": 0.6749997138977051,
+            "releaseTime": 3.000011682510376,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.026613712310791,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Near",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 120,
+            "startingError": 0.2199999988079071,
+            "pickupTime": 0.7083330154418945,
+            "releaseTime": 3.000011682510376,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.026613712310791,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Expanded",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        },
+        {
+            "fps": 120,
+            "startingError": 1.2000000476837159,
+            "pickupTime": 0.7083330154418945,
+            "releaseTime": 3.000011682510376,
+            "maximumHeldError": 0.0,
+            "maximumPoseErrorDegrees": 0.0,
+            "handTravel": 1.026613712310791,
+            "launchVelocity": {
+                "x": 0.0,
+                "y": -0.19614113867282868,
+                "z": 2.9990999698638918
+            },
+            "launchAngularVelocity": {
+                "x": 27.471370697021486,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "tier": "Unconditional",
+            "releases": 1,
+            "restoredPhysics": true,
+            "cancelledRestoresPhysics": true
+        }
+    ]
+}

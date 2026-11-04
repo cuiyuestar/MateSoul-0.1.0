@@ -37,6 +37,12 @@ namespace MateSoul.Runtime
 
         private void HandleImpact(float force, Vector3 point)
         {
+#region debug-point E:elevated-floor-impact
+#if UNITY_EDITOR
+            if (Environment.GetEnvironmentVariable("MATESOUL_ELEVATED_RUN") != null)
+                try { using (var client = new System.Net.WebClient()) client.UploadString("http://127.0.0.1:7833/event", $"{{\"sessionId\":\"elevated-hand-release\",\"runId\":\"{Environment.GetEnvironmentVariable("MATESOUL_ELEVATED_RUN")}\",\"hypothesisId\":\"E\",\"location\":\"BreakableItem.HandleImpact\",\"msg\":\"[DEBUG] original item floor impact\",\"data\":{{\"name\":\"{name}\",\"force\":{force},\"light\":{settings.lightForceThreshold},\"heavy\":{settings.heavyForceThreshold},\"armed\":{(Time.fixedTime >= armedAt).ToString().ToLowerInvariant()},\"session\":{(item != null && item.Session != null).ToString().ToLowerInvariant()},\"point\":{JsonUtility.ToJson(point)}}}}}"); } catch (System.Net.WebException) { }
+#endif
+#endregion
             if (broken || item == null || !gameObject.activeInHierarchy ||
                 Time.fixedTime < armedAt || !PhysicsBody.IsFinite(force) ||
                 force < settings.lightForceThreshold ||

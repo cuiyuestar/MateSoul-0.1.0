@@ -1,0 +1,189 @@
+{
+  "date": "2026-10-27",
+  "geometryChecksPassed": 259,
+  "contactSamples": [
+    {
+      "height": "0.02",
+      "rawError": "0.001392208",
+      "correctedError": "5.281511E-08"
+    },
+    {
+      "height": "0.1",
+      "rawError": "0.009390573",
+      "correctedError": "7.18508E-08"
+    },
+    {
+      "height": "0.2",
+      "rawError": "0.01436632",
+      "correctedError": "8.024521E-08"
+    },
+    {
+      "height": "0.3",
+      "rawError": "0.01272071",
+      "correctedError": "2.980232E-08"
+    },
+    {
+      "height": "0.4",
+      "rawError": "0.004380977",
+      "correctedError": "7.122063E-05"
+    },
+    {
+      "height": "0.5",
+      "rawError": "0.014795",
+      "correctedError": "1.818918E-07"
+    },
+    {
+      "height": "0.6",
+      "rawError": "0.0275529",
+      "correctedError": "1.237783E-07"
+    },
+    {
+      "height": "0.7",
+      "rawError": "0.02790402",
+      "correctedError": "1.264405E-07"
+    },
+    {
+      "height": "0.8",
+      "rawError": "0.01607748",
+      "correctedError": "3.071953E-08"
+    },
+    {
+      "height": "0.9",
+      "rawError": "0.02682608",
+      "correctedError": "8.940697E-08"
+    }
+  ],
+  "footSupportSamples": [
+    {
+      "height": "0.02",
+      "minLeftAnkleY": "0.09957653",
+      "minRightAnkleY": "0.09958416"
+    },
+    {
+      "height": "0.1",
+      "minLeftAnkleY": "0.09942943",
+      "minRightAnkleY": "0.09971589"
+    },
+    {
+      "height": "0.2",
+      "minLeftAnkleY": "0.09961534",
+      "minRightAnkleY": "0.09971583"
+    },
+    {
+      "height": "0.3",
+      "minLeftAnkleY": "0.09971559",
+      "minRightAnkleY": "0.09971583"
+    },
+    {
+      "height": "0.4",
+      "minLeftAnkleY": "0.09971565",
+      "minRightAnkleY": "0.09969306"
+    },
+    {
+      "height": "0.5",
+      "minLeftAnkleY": "0.09959763",
+      "minRightAnkleY": "0.09958845"
+    },
+    {
+      "height": "0.6",
+      "minLeftAnkleY": "0.09967554",
+      "minRightAnkleY": "0.09971583"
+    },
+    {
+      "height": "0.7",
+      "minLeftAnkleY": "0.09962457",
+      "minRightAnkleY": "0.09971583"
+    },
+    {
+      "height": "0.8",
+      "minLeftAnkleY": "0.09971571",
+      "minRightAnkleY": "0.09971583"
+    },
+    {
+      "height": "0.9",
+      "minLeftAnkleY": "0.1015923",
+      "minRightAnkleY": "0.1007157"
+    }
+  ],
+  "clipStressSamples": [
+    {
+      "clip": "Pickup_Floor",
+      "seconds": "2.3",
+      "contactTime": "1.15",
+      "height": "0.008360416",
+      "maxContactError": "0.01988423",
+      "maxHipRuntimeDelta": "0",
+      "maxFootRuntimeDelta": "1.405773E-07"
+    },
+    {
+      "clip": "Pickup_Low",
+      "seconds": "2.133333",
+      "contactTime": "1.066667",
+      "height": "0.4355447",
+      "maxContactError": "0.08966667",
+      "maxHipRuntimeDelta": "0",
+      "maxFootRuntimeDelta": "0"
+    },
+    {
+      "clip": "Pickup_Table",
+      "seconds": "1.8",
+      "contactTime": "0.9",
+      "height": "0.8731592",
+      "maxContactError": "0.06002115",
+      "maxHipRuntimeDelta": "0",
+      "maxFootRuntimeDelta": "0"
+    }
+  ],
+  "clipStressNote": "Includes deliberately unreachable offsets; these remain bounded and are rejected by the 0.025m attachment gate.",
+  "integration": {
+    "passed": "2",
+    "failed": "0",
+    "duration": "64.6913204",
+    "tests": [
+      {
+        "name": "CancellationAndPauseReleaseEveryItemAndRestorePhysics",
+        "result": "Passed"
+      },
+      {
+        "name": "PickupCollectsCutsAndServesWithBaselineGripAndNoInventoryLeaks",
+        "result": "Passed"
+      }
+    ]
+  },
+  "existingGripLimitation": {
+    "reachErrorMetres": 0.1106564,
+    "pickupErrorMetres": 0.1106563,
+    "originalStrictTestPassed": false,
+    "jointRotationsEqual": true
+  },
+  "headsetValidation": "not performed",
+  "assetSha256": {
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Pickup_Table.anim.meta": "517c4fb256d2e6e8ab68f3ee9bb189358498a1f40c773ec939da7d57964fb451",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Pickup_Table.anim": "dbad2dcad82747bbff713cdd0ab99ce4ce3f6b32035c449ac81006fcc6c20a7d",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Pickup_Low.anim": "1931f11e32ac58132299351b0089aa058d0fe8c5a94894c47120c01dbe09e88a",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Pickup_Low.anim.meta": "0c2807ba5dcb230a272d55f1e1f15f9caae1cf5eb0bd858e88b853e2e936fa29",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/PickupAnimations.asset": "5343fdf3fd7d5ba21c7a79e8e7321e93fe7319e10642fd9ebedf7000c3f315a6",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/PickupAnimations.asset.meta": "357b8a837201f3a85fd9c4c802c44243020180f01fff410832686aa3ea26ab95",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Pickup_Floor.anim.meta": "00dba01d9d81e13d45db36cf53d26811510f109b80f6379ea67bce02dd71e9eb",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Pickup_Floor.anim": "c01c463401fecb9b6ffc471368bb7bd540913d147657080a2fa5e6c618c37639",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Source.meta": "60b3b6d1f50debeaee6f5dbbb66cb6aa236459a84391311353e5b1ae49621b38",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Source/Pickup_Low_01_InPlace.fbx.meta": "8bc771f0939b272b05c89813d9d022561ee7972876c5aa116a9f9a15a952c213",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Source/Pickup_Low_01_InPlace.fbx": "5f5c87624a2097673ae948d1af96cfe3c938d4b8af09de7c2761b51ebc02714d",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Source/Pickup_Table_01_InPlace.fbx": "7189264bb2a143abba82524a21a035ebcdbf30bafc61aafc6bc7e645298b8fb2",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Source/Pickup_Floor_01_InPlace.fbx": "ae155c515bdfc26950fb0b8ac967e48efd6a56dc297e43d9d3effc462710095e",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Source/Pickup_Floor_01_InPlace.fbx.meta": "d666d3b23934f3939bb02d019eb19f435eeb1ddf622b95242044673b06313d94",
+    "MateSoul/Assets/MateSoul/Content/ItemActions/Pickup/Source/Pickup_Table_01_InPlace.fbx.meta": "47c2682a22612207f21a83b39953bc134bd6849460dd8e52d369f750c6a82c62"
+  },
+  "build": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_PickupAnimations_20261027.apk",
+    "sha256": "c568aa858a2e0c378a116d744a2af4075bb8cd8a9aa3618a65b216b347104e39",
+    "bytes": 165581061,
+    "sourceCount": 154,
+    "sourceChanged": [],
+    "apkCrc": "passed",
+    "signature": "APK v2 verified",
+    "package": "com.matesoul.game",
+    "durationSeconds": 189.1745564,
+    "mode": "Release ARM64 IL2CPP"
+  }
+}

@@ -6,7 +6,7 @@ namespace MateSoul.Runtime
     [DisallowMultipleComponent]
     public sealed class CookwareHeatReceiver : MonoBehaviour
     {
-        private const int MaximumOverlaps = 24;
+        private const int MaximumOverlaps = 128;
         public const float MinimumFoodOverlapRatio = .55f;
         [SerializeField] private Vector3 localBottomCenter;
         [SerializeField, Min(.01f)] private float contactRadius = .112f;

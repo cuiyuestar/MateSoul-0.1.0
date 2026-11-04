@@ -56,6 +56,12 @@ namespace MateSoul.Editor
         {
             Directory.CreateDirectory(Source);
             Directory.CreateDirectory(Materials);
+            var art = Path.GetFullPath(Path.Combine(Application.dataPath,
+                "../../ArtSource/SapphiArt/Props/Television"));
+            CopyIfMissing(Path.Combine(art, "exports/LavenderRetroTV_480x450x420mm.fbx"),
+                Source + "/LavenderRetroTV_480x450x420mm.fbx");
+            foreach (var name in new[] { "electronics_atlas.png", "screen_basecolor.png" })
+                CopyIfMissing(Path.Combine(art, "textures", name), Source + "/" + name);
             AssetDatabase.Refresh();
             var importer = (ModelImporter)AssetImporter.GetAtPath(Source + "/LavenderRetroTV_480x450x420mm.fbx");
             importer.importAnimation = false;
@@ -261,6 +267,11 @@ namespace MateSoul.Editor
             var bounds = renderers[0].bounds;
             foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
             return bounds;
+        }
+
+        private static void CopyIfMissing(string source, string destination)
+        {
+            if (!File.Exists(destination)) File.Copy(source, destination);
         }
 
         private static Material ConvertMaterial(Material original)

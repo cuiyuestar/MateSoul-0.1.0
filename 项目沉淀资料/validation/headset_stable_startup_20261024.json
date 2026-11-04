@@ -1,0 +1,123 @@
+{
+  "date": "2026-10-24",
+  "progressStatus": "two_awake_cold_starts_verified_with_sdk_readiness_limitations",
+  "package": "com.matesoul.game",
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_StableRoomStartup_20261024.apk",
+  "bytes": 202848091,
+  "sha256": "bb97c3719f59f1520464351799f56139d5c2cd3cfa6fbf8f3ce167753c398999",
+  "build": {
+    "unityExitCode": 0,
+    "seconds": 406.32,
+    "development": true,
+    "abi": "arm64-v8a",
+    "il2cpp": true,
+    "zipCrcPassed": true,
+    "zipEntries": 1564,
+    "signatureVerified": true,
+    "certificateSha256": "0799ed95a5c84fcc7d5eb21dfa5e587dbc8650b1ac54dc50201de4540711ea97",
+    "protectedAssetsUnchanged": true,
+    "protectedAssetSha256": {
+      "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+      "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553"
+    }
+  },
+  "navigationRepair": {
+    "obstaclesRetained": 18,
+    "characterRadiusMeters": 0.25,
+    "characterHeightMeters": 1.65,
+    "voxelSizeMeters": 0.02,
+    "minRegionAreaMetersSquared": 0,
+    "additionalObstacleExpansionMeters": 0,
+    "spawnSelection": "Closest capsule-clear candidate among nearest NavMesh point and navigation triangle centers.",
+    "physicalSpawnClearanceValidated": true,
+    "relocalizationReplay": {
+      "fixtures": 2,
+      "orientationsPerFixture": 6,
+      "oldWorld02Passed": 1,
+      "oldWorld02Total": 12,
+      "newWorld02Passed": 12,
+      "newWorld02Total": 12,
+      "candidateAreaMetersSquaredRange": [0.029874, 0.052818],
+      "productionNavigationAndFullCapsuleChecksPassed": 12
+    }
+  },
+  "device": {
+    "serial": "PB3A10MGL9220170B",
+    "installed": true,
+    "installedApkHashMatches": true,
+    "installSeconds": 6.81,
+    "savedDataUnchangedByInstall": true,
+    "savedDataPreservedAcrossColdStarts": true,
+    "savedItemCount": 0,
+    "hasRoomAnchor": false,
+    "logcatCleared": false,
+    "twoConsecutiveAwakeColdStartsPassed": true,
+    "currentRunningPid": 14107,
+    "successfulColdStarts": [
+      {
+        "pid": 13697,
+        "readyAt": "2026-10-24T19:43:59.013+08:00",
+        "navMeshBuilt": true,
+        "spawnFound": true,
+        "spawnPosition": [0.32, -0.05282, -0.68],
+        "avatarEnabled": true,
+        "avatarBound": true,
+        "businessReady": true,
+        "businessReadyFromBootstrapMs": 919,
+        "navMeshBuildMs": 20,
+        "exceptionsObserved": [],
+        "evidence": "/tmp/matesoul-nav-stability-20261024/cold-2-startup.log",
+        "evidenceLines": [69, 89]
+      },
+      {
+        "pid": 14107,
+        "readyAt": "2026-10-24T19:45:04.632+08:00",
+        "navMeshBuilt": true,
+        "spawnFound": true,
+        "spawnPosition": [0.32, -0.05282, -0.68],
+        "avatarEnabled": true,
+        "avatarBound": true,
+        "businessReady": true,
+        "businessReadyFromBootstrapMs": 836,
+        "navMeshBuildMs": 19,
+        "exceptionsObserved": [],
+        "evidence": "/tmp/matesoul-nav-stability-20261024/cold-3-startup.log"
+      }
+    ],
+    "earlierFailedLaunches": [
+      {
+        "pid": 9594,
+        "scenario": "Delayed initialization after headset sleep and resume.",
+        "error": "Scene Anchor query failed: ERROR_RUNTIME_FAILURE.",
+        "fixed": false
+      },
+      {
+        "pid": 12938,
+        "scenario": "First query returned no anchors, native capture completed, snapshot had no floor.",
+        "error": "No floor polygon was provided.",
+        "fixed": false
+      }
+    ]
+  },
+  "limitations": [
+    "The two successful cold starts were performed while the headset remained awake.",
+    "SDK room readiness and sleep/resume failures are still unresolved; the app is not verified stable across every startup scenario.",
+    "The save has no placed items or room anchor; legacy anchor/item recovery was not exercised.",
+    "Remaining navigation space is very small; free roaming was not established.",
+    "Avatar enable/binding/READY are runtime evidence; visual appearance and UI comfort were not automatically assessed."
+  ],
+  "evidenceDirectory": "/tmp/matesoul-nav-stability-20261024",
+  "evidence": [
+    "frame-replay-results.json",
+    "production-stability-results.json",
+    "stable-build-2.log",
+    "stable-build-result.json",
+    "manifest.txt",
+    "device-result.json",
+    "cold-1.log",
+    "cold-2-startup.log",
+    "cold-3-startup.log"
+  ],
+  "cleanupStatus": "Temporary Editor validation link removed; targeted logs retained for unresolved SDK readiness investigation."
+}

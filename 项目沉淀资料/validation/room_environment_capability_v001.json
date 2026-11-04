@@ -1,0 +1,67 @@
+{
+    "deviceModel": "Pico swan_arm64",
+    "deviceName": "swan_arm64",
+    "unityVersion": "2022.3.38f1",
+    "sceneProviderStartResult": "SUCCESS",
+    "sceneQueryResult": "SUCCESS",
+    "sceneAnchorCount": 0,
+    "sceneSemantics": [],
+    "meshSubsystemCount": 1,
+    "meshSubsystemRunning": true,
+    "meshQueryResult": "SUCCESS",
+    "meshBlockCount": 48,
+    "meshVertexCount": 75931,
+    "meshIndexCount": 289074,
+    "meshSemantics": [
+        {
+            "label": "Unknown",
+            "count": 36963
+        },
+        {
+            "label": "Lamp",
+            "count": 2850
+        },
+        {
+            "label": "Floor",
+            "count": 35
+        },
+        {
+            "label": "Chair",
+            "count": 428
+        },
+        {
+            "label": "Door",
+            "count": 1264
+        },
+        {
+            "label": "Bed",
+            "count": 4572
+        },
+        {
+            "label": "Plant",
+            "count": 18489
+        },
+        {
+            "label": "Window",
+            "count": 1631
+        },
+        {
+            "label": "WallArt",
+            "count": 228
+        },
+        {
+            "label": "Wall",
+            "count": 1501
+        },
+        {
+            "label": "Curtain",
+            "count": 5384
+        },
+        {
+            "label": "Cabinet",
+            "count": 2586
+        }
+    ],
+    "nativeEnvironmentDataUsable": true,
+    "recommendedSource": "PICO Emulator native environment data"
+}

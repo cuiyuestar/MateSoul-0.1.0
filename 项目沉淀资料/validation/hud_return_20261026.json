@@ -1,0 +1,79 @@
+{
+  "recordedAt": "2026-10-26T12:01:30+0800",
+  "regression": {
+    "passed": true,
+    "checks": 22,
+    "maximumReturnErrorMeters": 1.46759419e-06,
+    "syntheticPoseReplay": true,
+    "checkNames": [
+      "baseline retains 45cm distance, 30deg tilt and 20cm vertical offset",
+      "height follows changes smaller than the horizontal dead zone",
+      "small height change returns completely",
+      "crouch and stand cycle 1",
+      "crouch and stand cycle 2",
+      "crouch and stand cycle 3",
+      "crouch and stand cycle 4",
+      "crouch and stand cycle 5",
+      "raising from 60deg to 40deg starts returning immediately",
+      "all head elevations retain the 8deg comfort bound",
+      "pitch sweep returns without accumulated offset",
+      "near-vertical gaze does not freeze height tracking",
+      "near-vertical gaze returns to baseline",
+      "interaction freezes position and rotation",
+      "interaction release resumes height tracking",
+      "interaction release has no retained crouch origin",
+      "horizontal dead zone remains independent of height",
+      "horizontal movement beyond 20cm still recenters",
+      "return converges at 30fps",
+      "return converges at 72fps",
+      "return converges at 90fps",
+      "expanded panel uses its visible center on return"
+    ]
+  },
+  "apk": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_HudReturn_20261026.apk",
+    "bytes": 218746149,
+    "sha256": "1b7252ef8d26210e708aad85d8b1d24c5a2615f8865c29f5ef47ffdf9884d880",
+    "zipEntries": 1569,
+    "crcPassed": true,
+    "signaturePassed": true,
+    "packageName": "com.matesoul.game",
+    "abis": [
+      "arm64-v8a"
+    ]
+  },
+  "build": {
+    "entryPoint": "MateSoul.Editor.GameSceneBuilder.BuildCurrentSceneAndroidIncrementalDevelopment",
+    "reusedConcurrentProductionBuild": true,
+    "log": "/tmp/matesoul-ai-finish-20261026/build.log",
+    "exitCode": 0,
+    "successLine": "MATESOUL_BUILD_PASS path=/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk bytes=2433896193 duration=00:02:02.8990599",
+    "il2cppSha256": "7c836676102454d3da03736e73d73de5e2f5fd6d4b4dd17350377fccaf672e96",
+    "matchedNativeOutput": "/Users/bytedance/MateSoul/MateSoul/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/jniLibs/arm64-v8a/libil2cpp.so"
+  },
+  "sourceSha256MatchedInPlayerAndStrippedPdb": {
+    "Assets/MateSoul/Runtime/GameHud.cs": "7a405d00597b99d788b0403dfcf45343a3d2200366404724d76e1fa6d9ff1c3e",
+    "Assets/MateSoul/Runtime/HudEyeHandInteractor.cs": "15057ad49348e993440cc14382be905215604329dd29fefa2c6ab8ce5b502572",
+    "Assets/MateSoul/Runtime/PicoHandPoke.cs": "04e63b28f4a8d22ab961d9f9d11730cffc5e0c59546f2b7d05b30ff14292ee0c",
+    "Assets/MateSoul/Runtime/PicoTrackedHand.cs": "aae97f7ddaeb477e1b3639f814f2038d14b8d0bf35fd9fd4641a53dc562c3288",
+    "Assets/MateSoul/Runtime/PicoDirectHandInteractor.cs": "dc46231b1446bffe2966db8f000acd758199a5fd7a86dafce21856c83e54381f"
+  },
+  "protectedAssetsUnchanged": true,
+  "protectedAssetsSha256": {
+    "Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+    "Assets/MateSoul/Scenes/MateSoul.unity.meta": "39a325b9d846ca0d54ffa78b62b8c4260313a262a92294ed34d9d5fdd2ca8972",
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab.meta": "cabeeaba45bae4692603767cdcfd618ffa5937a1f09d27f017c27af12287c6ab",
+    "Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553",
+    "Assets/MateSoul/Content/Avatar.controller.meta": "9e72e747d1eb89c662fa44c4d324cc1d71bf5d894d30c62767b82e27b0e77ac4"
+  },
+  "installation": {
+    "completed": false,
+    "reason": "No ADB device connected at last check",
+    "deviceCheckAt": "2026-10-26T12:02:50+0800",
+    "connectedDevices": []
+  },
+  "headsetExperienceVerified": false,
+  "temporaryEditorEntryRemoved": true,
+  "temporaryScriptsRecreatedOrExecuted": false
+}

@@ -1,0 +1,154 @@
+{
+  "date": "2026-10-28",
+  "source": {
+    "path": "Pickup_High_01_InPlace.fbx",
+    "sha256": "5a7f79542e666576c959cda4a202b98c11dbec5208ac6ce1536863fe6b3a0034",
+    "fps": 30,
+    "frames": [
+      2,
+      61
+    ]
+  },
+  "clip": {
+    "durationSeconds": 1.9666667,
+    "contactTime": 0.98333335,
+    "contactGrip": [
+      0.04927257,
+      1.2298096,
+      0.24287318
+    ],
+    "guid": "a62c780d6e8d84172a21c234de5a46da"
+  },
+  "geometryChecksPassed": 48,
+  "contactSamples": [
+    {
+      "height": "0.8731592",
+      "rawError": "1.545308E-05",
+      "contactError": "1.545308E-05",
+      "maxHipDelta": "0",
+      "minLeftAnkle": "0.1015923",
+      "minRightAnkle": "0.1007157"
+    },
+    {
+      "height": "0.9326009",
+      "rawError": "0.03374515",
+      "contactError": "6.82857E-08",
+      "maxHipDelta": "0",
+      "minLeftAnkle": "0.1015109",
+      "minRightAnkle": "0.1006238"
+    },
+    {
+      "height": "0.9920427",
+      "rawError": "0.05545374",
+      "contactError": "9.541399E-08",
+      "maxHipDelta": "0",
+      "minLeftAnkle": "0.1014208",
+      "minRightAnkle": "0.1005321"
+    },
+    {
+      "height": "1.051484",
+      "rawError": "0.06337422",
+      "contactError": "9.424322E-08",
+      "maxHipDelta": "0",
+      "minLeftAnkle": "0.1013589",
+      "minRightAnkle": "0.1004673"
+    },
+    {
+      "height": "1.110926",
+      "rawError": "0.05657389",
+      "contactError": "2.980232E-08",
+      "maxHipDelta": "0",
+      "minLeftAnkle": "0.1013258",
+      "minRightAnkle": "0.1004304"
+    },
+    {
+      "height": "1.170368",
+      "rawError": "0.035115",
+      "contactError": "1.238344E-07",
+      "maxHipDelta": "0",
+      "minLeftAnkle": "0.101321",
+      "minRightAnkle": "0.1004228"
+    },
+    {
+      "height": "1.22981",
+      "rawError": "1.144965E-05",
+      "contactError": "1.144965E-05",
+      "maxHipDelta": "0",
+      "minLeftAnkle": "0.1013448",
+      "minRightAnkle": "0.1004443"
+    },
+    {
+      "height": "1.27981",
+      "rawError": "0.04999256",
+      "contactError": "1.464281E-07",
+      "maxHipDelta": "0",
+      "minLeftAnkle": "0.1013448",
+      "minRightAnkle": "0.1004443"
+    },
+    {
+      "height": "1.32981",
+      "rawError": "0.09999263",
+      "contactError": "4.998001E-08",
+      "maxHipDelta": "0",
+      "minLeftAnkle": "0.1013448",
+      "minRightAnkle": "0.1004443"
+    }
+  ],
+  "runtimeTests": [
+    {
+      "name": "MateSoul.Tests.HighPickupAcceptance.ButtonPanelTargetsNearestAvailableItemAndRestoresPhysics",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HighPickupAcceptance.FourHeightsUseAuthoredPickupAndPauseReleases",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.HighPickupAcceptance.MissingBusyFixedAndTooHighTargetsDoNotAcquireOrInterruptControl",
+      "result": "Passed"
+    }
+  ],
+  "runtimeHeights": [
+    {
+      "supportHeight": "0",
+      "targetGripHeight": "0.124",
+      "pickupSeconds": "8.778186",
+      "alignmentError": "1.788139E-07"
+    },
+    {
+      "supportHeight": "0.35",
+      "targetGripHeight": "0.474",
+      "pickupSeconds": "5.299411",
+      "alignmentError": "8.42937E-08"
+    },
+    {
+      "supportHeight": "0.78",
+      "targetGripHeight": "0.904",
+      "pickupSeconds": "7.536268",
+      "alignmentError": "1.46001E-07"
+    },
+    {
+      "supportHeight": "1.10581",
+      "targetGripHeight": "1.22981",
+      "pickupSeconds": "5.275906",
+      "alignmentError": "1.3328E-07"
+    }
+  ],
+  "protectedAssetsChanged": [],
+  "headsetValidation": "not performed",
+  "build": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_PickupHigh_20261028.apk",
+    "bytes": 165797457,
+    "sha256": "224e0b30aad39b73c16c62d6901e4553b38b557d370d855b519dfca72a7a1980",
+    "sourceCount": 274,
+    "sourceChanged": [],
+    "crc": "passed",
+    "arm64Libraries": 18,
+    "pickupActionInPlayer": true,
+    "highAnimationInPlayer": true,
+    "signature": "APK v2 verified",
+    "package": "com.matesoul.game",
+    "durationSeconds": 140.8595286,
+    "gradleOutputMatches": true
+  }
+}

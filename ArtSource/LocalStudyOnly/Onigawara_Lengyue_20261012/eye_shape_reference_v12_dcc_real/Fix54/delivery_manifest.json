@@ -1,0 +1,222 @@
+[
+  {
+    "path": "Onigawara_Lengyue_Direct54.blend",
+    "bytes": 34682781,
+    "sha256": "09db12076306758d5e9d8b4eda52fa65547b96f351bf791a1675a06106169641"
+  },
+  {
+    "path": "冷月Direct54_体态刘海耳廓.unitypackage",
+    "bytes": 39685151,
+    "sha256": "cc8def2976e7790fa4b0700be96763b2bd2a3558c1f692adfed8e906b5b23ee8"
+  },
+  {
+    "path": "交付说明.md",
+    "bytes": 2236,
+    "sha256": "af73542115929a1c384c4a9e4716269a2d35f629e05f8ad718bb48119044047b"
+  },
+  {
+    "path": "预览/冷月Direct54_真实头部三视图.png",
+    "bytes": 775318,
+    "sha256": "2d19edcfedc1aeb7512e291c13eaf96429363ca77f2fd61290afca79c7418311"
+  },
+  {
+    "path": "预览/冷月Direct54_刘海真实前后对照.png",
+    "bytes": 537763,
+    "sha256": "d6aab12230a2daf5a8c9124c32632c1fd43937a2fd7a8448126ba341894e730a"
+  },
+  {
+    "path": "预览/冷月Direct54_体态真实前后对照.png",
+    "bytes": 254621,
+    "sha256": "7493534b4f84aa4d5e733190d83c6065140507ac6f2c8659fd6aba9a2166eb08"
+  },
+  {
+    "path": "预览/冷月Direct54_耳廓灰模结构对照.png",
+    "bytes": 361734,
+    "sha256": "e5d82b38dc4ac31fdbf31f015491a37c2bedbabf317eab94a64e001528b759df"
+  },
+  {
+    "path": "预览/冷月Direct54_体态局部对照.png",
+    "bytes": 82685,
+    "sha256": "e9d03c6aa6e8bcd70ff226bd37c65fc5654dd08d0d4f392df57c91e47a66234d"
+  },
+  {
+    "path": "验证/geometry_gate.json",
+    "bytes": 737,
+    "sha256": "34a763e48978c1ed6df4bbf46e691f980702e7cb7941e002f9f1f8cc0771ef55"
+  },
+  {
+    "path": "验证/unity_gate.json",
+    "bytes": 205,
+    "sha256": "47ebb77e4ff9d4e5fa4cccdd1c44fd26f8c205c15f63b8b90f25f2d2794135f1"
+  },
+  {
+    "path": "验证/independent_blend_gate.json",
+    "bytes": 2103,
+    "sha256": "3436333cf42c2aaa43b07598bcb0a9b00c800f057cfd2112baf497370e8890b6"
+  },
+  {
+    "path": "验证/package_gate.json",
+    "bytes": 12954,
+    "sha256": "33a6a727cb05f4332488f7dc5aba2843128eb5f98f96f8f576405d9c57a578c5"
+  },
+  {
+    "path": "复现/build_model.py",
+    "bytes": 8794,
+    "sha256": "d001ccbda23d85df66bf7b19560a8633176c15722e868c23092812fa20417e12"
+  },
+  {
+    "path": "复现/verify_blend.py",
+    "bytes": 2098,
+    "sha256": "d2587a5c660627cd0a298d38416d8a2685db2dfcfb4f102f9bf0e1ada5c4e6dd"
+  },
+  {
+    "path": "复现/ear_boundaries.json",
+    "bytes": 47619,
+    "sha256": "9a0832e9a2ecfd9a04feb3fa2299aa2542a25808b8d9acc2c2cc0e8d1f47af21"
+  },
+  {
+    "path": "复现/ear_attachment.json",
+    "bytes": 2699,
+    "sha256": "0723f70e568d88af693eec36e232b1452721c5ca66b1654ede5fe65c1e4d31b6"
+  },
+  {
+    "path": "复现/coordinate_check.json",
+    "bytes": 3075,
+    "sha256": "2ebc0244f24d5faaa685646c8103e5c2b97da48e0f597c4f707529a1c9017098"
+  },
+  {
+    "path": "复现/Face_unity.bin",
+    "bytes": 48516,
+    "sha256": "16031a0d36a72934f3d66a17c601e28a16d51e572b53dade67de726b5569dabf"
+  },
+  {
+    "path": "复现/Face_normals.bin",
+    "bytes": 48516,
+    "sha256": "61db08dd28a29ba0108087d4622ddbaf0b8b7b9f45c0d652bb402ab55bbb9803"
+  },
+  {
+    "path": "复现/Face_new.bin",
+    "bytes": 48516,
+    "sha256": "2b0cff9a8661676041114ad59c85390ebf0176fd034e8931e0e4f41d0a052a7c"
+  },
+  {
+    "path": "复现/Face_new_normals.bin",
+    "bytes": 48516,
+    "sha256": "91beef09d1280c8e6855604b9d2bcefa9878b79547c7cbcdc33c69192aa7266c"
+  },
+  {
+    "path": "复现/Face_target.bin",
+    "bytes": 2032,
+    "sha256": "452832bbae05a05a5192ef27490c34b3b64b673827f1e711e0078a43b0693844"
+  },
+  {
+    "path": "复现/Hair_unity.bin",
+    "bytes": 128916,
+    "sha256": "3ab731a8d42588ab7cac7644893ffc1721df37bab4db2d35735b8c8ad8aa28ae"
+  },
+  {
+    "path": "复现/Hair_normals.bin",
+    "bytes": 128916,
+    "sha256": "55f7e7f04b844784c5938e84853b0b1c34a22689a33095a3f30d43921f9b6c52"
+  },
+  {
+    "path": "复现/Hair_new.bin",
+    "bytes": 128916,
+    "sha256": "ca6dd6bc8112a1bb90e6a5c8d02c1421070044ea30bf0da9de47c50bf9675676"
+  },
+  {
+    "path": "复现/Hair_new_normals.bin",
+    "bytes": 128916,
+    "sha256": "6e54af051bc81f3cfde556abb97e17c334acd0c6707e083b878507f208d50066"
+  },
+  {
+    "path": "复现/Hair_target.bin",
+    "bytes": 1608,
+    "sha256": "a1d1a40b6a561f70840f8e38ac2b940879445a11bf3736d44a232b4672f03f2b"
+  },
+  {
+    "path": "复现/Body_unity.bin",
+    "bytes": 97980,
+    "sha256": "72cbc1d430595b50e9b9a57ff359b158dab93d80efef6acd73d9012df623533d"
+  },
+  {
+    "path": "复现/Body_normals.bin",
+    "bytes": 97980,
+    "sha256": "ccf030fb981a7f8982ba4a9d255c762efdcb095428e614661afa24ddb7ef41e0"
+  },
+  {
+    "path": "复现/Body_new.bin",
+    "bytes": 97980,
+    "sha256": "85a874434243eb6a7d62e778de267bfd528457c2f8dc8536f6e0ab6d89e80141"
+  },
+  {
+    "path": "复现/Body_new_normals.bin",
+    "bytes": 97980,
+    "sha256": "d108c9ea2f7870191d38fe7dc1d4dc57a8231e9d00f357197aff382cc505186d"
+  },
+  {
+    "path": "复现/Body_target.bin",
+    "bytes": 7780,
+    "sha256": "c9ffd62f733c0f9e3e6420619d3bbb8ac138c6c071dd9d5d15c934228aa6488f"
+  },
+  {
+    "path": "复现/Body_world.bin",
+    "bytes": 97980,
+    "sha256": "c53d589ec31fc66296af3176de1917d946e8c1edd4fc4a213a286bc61e304d4e"
+  },
+  {
+    "path": "复现/Face_world.bin",
+    "bytes": 48516,
+    "sha256": "012dfe4216d8e94556990ee1f930502aa32b09c0795b5af586efde38212df297"
+  },
+  {
+    "path": "复现/Body_skin.bin",
+    "bytes": 522560,
+    "sha256": "e02193113c0211f5b28a8228223e2ceac379f9319fcf175f7c95497dc6279760"
+  },
+  {
+    "path": "复现/central_hair_locked.bin",
+    "bytes": 2120,
+    "sha256": "d459e4751c273a62a1ffdcadf9439e832d89c9f50d55d00d96e7b3e8c8bfe6f5"
+  },
+  {
+    "path": "复现/ear_seam_pairs.json",
+    "bytes": 840,
+    "sha256": "ae27a30aa21339742f8be7a0fe7a096fada0a8b1ccce93d4cc577a90f9a72c0c"
+  },
+  {
+    "path": "复现/Unity/Direct54Lines.cs",
+    "bytes": 2995,
+    "sha256": "1b115238b5a51dc244e7caf34ec25b0173d278111a009066862bb11774551f7e"
+  },
+  {
+    "path": "复现/Unity/Direct54Inspect.cs",
+    "bytes": 2842,
+    "sha256": "5dab705bcbc85b73b1dc70a801e8fbaf97045ea4a3824f46cc203b0dd12de767"
+  },
+  {
+    "path": "复现/Unity/Direct54Build.cs",
+    "bytes": 7410,
+    "sha256": "7ea43dff596753908d68faf51fe4c30b86a023ae2bd04ea40991699fc04349db"
+  },
+  {
+    "path": "复现依赖/Fix43/strand_groups.json",
+    "bytes": 65317,
+    "sha256": "7c5fa034a5ccb92a99162702bcab46245ea7b9e6e1eac4523421bbc00197b10b"
+  },
+  {
+    "path": "复现依赖/Fix43/face_components.json",
+    "bytes": 62740,
+    "sha256": "9d011fae099fcaca36384011bafd9d3a180497583cd2dc5abd2202837d4ff51e"
+  },
+  {
+    "path": "复现依赖/Fix39/hair_vertex_uv.npy",
+    "bytes": 172016,
+    "sha256": "088846337286e01fc1b0a1500126d5271a204bec46971025b31f02d9e3f6938d"
+  },
+  {
+    "path": "复现依赖/Fix25/hair_components.json",
+    "bytes": 270255,
+    "sha256": "34327c392d8c2b3209cfd204d6cb6c7b0ccd3c6d15bd792082e87790bb6cffd8"
+  }
+]

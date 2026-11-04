@@ -1,0 +1,99 @@
+{
+  "measurement": "render-pixel widths of the marked skin opening at matched rows; not physical units",
+  "rows": [
+    {
+      "y": 1650,
+      "before_width_px": 80,
+      "after_width_px": 31
+    },
+    {
+      "y": 1750,
+      "before_width_px": 105,
+      "after_width_px": 50
+    },
+    {
+      "y": 1850,
+      "before_width_px": 112,
+      "after_width_px": 57
+    },
+    {
+      "y": 1950,
+      "before_width_px": 130,
+      "after_width_px": 75
+    }
+  ],
+  "render_differences": {
+    "head_0": {
+      "changed_pixels_gt2": 874,
+      "bbox": [
+        342,
+        850,
+        484,
+        1346
+      ]
+    },
+    "head_45": {
+      "changed_pixels_gt2": 17914,
+      "bbox": [
+        276,
+        794,
+        558,
+        1342
+      ]
+    },
+    "head_90": {
+      "changed_pixels_gt2": 26152,
+      "bbox": [
+        460,
+        804,
+        812,
+        1345
+      ]
+    },
+    "hair_120": {
+      "changed_pixels_gt2": 118439,
+      "bbox": [
+        1182,
+        1290,
+        1751,
+        2399
+      ]
+    },
+    "hair_135": {
+      "changed_pixels_gt2": 93980,
+      "bbox": [
+        1399,
+        1292,
+        1885,
+        2399
+      ]
+    },
+    "hair_150": {
+      "changed_pixels_gt2": 66509,
+      "bbox": [
+        1580,
+        1318,
+        1975,
+        2300
+      ]
+    },
+    "hair_180": {
+      "changed_pixels_gt2": 20936,
+      "bbox": [
+        1775,
+        1298,
+        2044,
+        2283
+      ]
+    },
+    "hair_225": {
+      "changed_pixels_gt2": 24,
+      "bbox": [
+        1708,
+        2247,
+        1731,
+        2264
+      ]
+    }
+  }
+}

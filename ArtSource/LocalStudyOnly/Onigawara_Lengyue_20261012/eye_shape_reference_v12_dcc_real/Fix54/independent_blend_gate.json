@@ -1,0 +1,80 @@
+{
+  "pass": true,
+  "checks": {
+    "Body": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "dao": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "daoqiao": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Face": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Garments_Optimized_LOD0": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Hair": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Lash_Direct25": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "Lengyue_AdaptedGarments": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "pCube1": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "pCube5": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "pCylinder1": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "polySurface393": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "polySurface412": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "ShirtInnerFacing_Adaptation": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    },
+    "SupplementalArms_SourceCoverageGap": {
+      "protected_vertices": true,
+      "topology_uv_weights_materials": true,
+      "morph_delta_error": 0
+    }
+  }
+}

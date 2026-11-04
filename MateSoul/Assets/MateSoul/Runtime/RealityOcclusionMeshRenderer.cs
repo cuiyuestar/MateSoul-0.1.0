@@ -18,24 +18,29 @@ namespace MateSoul.Runtime
 
         private readonly Dictionary<Guid, MeshEntry> nativeMeshes =
             new Dictionary<Guid, MeshEntry>();
+        private readonly Dictionary<Guid, PxrSpatialMeshInfo> pendingMeshes =
+            new Dictionary<Guid, PxrSpatialMeshInfo>();
         private readonly List<MeshEntry> snapshotMeshes = new List<MeshEntry>();
+        private readonly MeasuredMeshRetention retention = new MeasuredMeshRetention();
+        private readonly List<XRMeshSubsystem> startedSubsystems =
+            new List<XRMeshSubsystem>();
         private Material depthMaterial;
-        private Mesh unitCube;
         private RoomMapSnapshot snapshot;
-        private static bool? environmentDepthAvailable;
-
+        private RuntimeRoomNavigation roomNavigation;
+        private bool meshDepthEnabled;
+#region debug-point A-D:live-room-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private float debugNextRoomReport;
+#endif
+#endregion
         public int NativeMeshCount => nativeMeshes.Count;
         public int SnapshotMeshCount => snapshotMeshes.Count;
         public Material DepthMaterial => depthMaterial;
-        public static bool EnvironmentDepthAvailable
-        {
-            get
-            {
-                if (!environmentDepthAvailable.HasValue)
-                    environmentDepthAvailable = !Application.isEditor && !IsPicoEmulator();
-                return environmentDepthAvailable.Value;
-            }
-        }
+        public bool MeshDepthEnabled => meshDepthEnabled;
+        public bool HasLiveCollision => nativeMeshes.Count > 0;
+        public bool HasPendingMeshes => pendingMeshes.Count > 0;
+        public static bool EnvironmentDepthAvailable =>
+            !Application.isEditor && !PicoDeviceEnvironment.IsEmulator;
 
         public static RealityOcclusionMeshRenderer Install(Camera xrCamera)
         {
@@ -43,38 +48,15 @@ namespace MateSoul.Runtime
 
             var origin = xrCamera.GetComponentInParent<XROrigin>();
             var host = origin != null ? origin.gameObject : xrCamera.transform.root.gameObject;
-            if (EnvironmentDepthAvailable &&
-                host.GetComponent<PXR_EnvironmentDepthManager>() == null)
-                host.AddComponent<PXR_EnvironmentDepthManager>();
+            if (EnvironmentDepthAvailable)
+            {
+                var manager = host.GetComponent<PXR_EnvironmentDepthManager>() ??
+                              host.AddComponent<PXR_EnvironmentDepthManager>();
+                manager.SetTrackingOrigin(origin != null && origin.CameraFloorOffsetObject != null
+                    ? origin.CameraFloorOffsetObject.transform : host.transform);
+            }
             return host.GetComponent<RealityOcclusionMeshRenderer>() ??
                    host.AddComponent<RealityOcclusionMeshRenderer>();
-        }
-
-        private static bool IsPicoEmulator()
-        {
-#if UNITY_ANDROID && !UNITY_EDITOR
-            try
-            {
-                using var build = new AndroidJavaClass("android.os.Build");
-                if (ContainsEmulatorMarker(build.GetStatic<string>("FINGERPRINT")) ||
-                    ContainsEmulatorMarker(build.GetStatic<string>("PRODUCT")) ||
-                    ContainsEmulatorMarker(build.GetStatic<string>("MODEL")))
-                    return true;
-            }
-            catch (Exception error)
-            {
-                Debug.LogWarning(
-                    $"Could not read Android build identity; using Unity device identity: {error.Message}");
-            }
-#endif
-            return ContainsEmulatorMarker(SystemInfo.deviceModel) ||
-                   ContainsEmulatorMarker(SystemInfo.deviceName);
-        }
-
-        private static bool ContainsEmulatorMarker(string value)
-        {
-            return !string.IsNullOrEmpty(value) &&
-                   value.IndexOf("emulator", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private void Awake()
@@ -93,6 +75,8 @@ namespace MateSoul.Runtime
         private void OnEnable()
         {
             PXR_Manager.SpatialMeshDataUpdated += OnSpatialMeshDataUpdated;
+            foreach (var entry in nativeMeshes.Values) entry.GameObject.SetActive(true);
+            StartMeshSubsystems();
             RefreshCachedNativeMeshes();
             if (snapshot != null) BuildSnapshotMeshes(snapshot);
         }
@@ -100,16 +84,33 @@ namespace MateSoul.Runtime
         private void OnDisable()
         {
             PXR_Manager.SpatialMeshDataUpdated -= OnSpatialMeshDataUpdated;
-            ClearEntries(nativeMeshes.Values);
-            nativeMeshes.Clear();
-            ClearEntries(snapshotMeshes);
-            snapshotMeshes.Clear();
+            pendingMeshes.Clear();
+            foreach (var entry in nativeMeshes.Values) entry.GameObject.SetActive(false);
+            foreach (var entry in snapshotMeshes) entry.GameObject.SetActive(false);
+            foreach (var subsystem in startedSubsystems)
+                if (subsystem != null && subsystem.running)
+                    subsystem.Stop();
+            startedSubsystems.Clear();
         }
 
-        public void ApplySnapshot(RoomMapSnapshot snapshot)
+        public void ApplySnapshot(RoomMapSnapshot snapshot, RuntimeRoomNavigation navigation = null)
         {
+            if (this.snapshot != null && snapshot != null && this.snapshot.Id != snapshot.Id)
+            {
+                ClearEntries(nativeMeshes.Values);
+                nativeMeshes.Clear();
+                retention.Clear();
+                pendingMeshes.Clear();
+                roomNavigation?.ClearLiveSurfaces();
+            }
             this.snapshot = snapshot;
+            roomNavigation = navigation;
             BuildSnapshotMeshes(snapshot);
+            // A room replacement clears native entries. Requeue the SDK cache even
+            // if no new mesh event arrives while the headset is stationary.
+            RefreshCachedNativeMeshes();
+            foreach (var pair in nativeMeshes)
+                UpdateNavigationSurface(pair.Key, pair.Value);
         }
 
         private void BuildSnapshotMeshes(RoomMapSnapshot room)
@@ -118,41 +119,20 @@ namespace MateSoul.Runtime
             snapshotMeshes.Clear();
             if (room == null) return;
 
-            if (room.SurfaceMeshes.Count > 0)
+            // Only measured surface meshes can provide depth. Floor polygons and
+            // semantic boxes are navigation proxies and are not rendered here.
+            foreach (var surface in room.SurfaceMeshes)
             {
-                foreach (var surface in room.SurfaceMeshes)
-                {
-                    if (!TryCreateMesh(
-                            $"Reality Surface {surface.Id}",
-                            surface.Vertices,
-                            surface.Indices,
-                            out var mesh))
-                        continue;
-                    snapshotMeshes.Add(CreateEntry(mesh.name, mesh, Vector3.zero,
-                        Quaternion.identity, Vector3.one, true));
-                }
-                return;
-            }
-
-            foreach (var floor in room.Floors)
-            {
-                if (floor.Vertices.Count < 3) continue;
-                var mesh = RoomGeometry.CreateHorizontalPolygonMesh(
-                    floor.Vertices,
-                    $"Reality Floor {floor.Id}");
+                if (!TryCreateMesh(
+                        $"Reality Surface {surface.Id}",
+                        surface.Vertices,
+                        surface.Indices,
+                        out var mesh))
+                    continue;
                 snapshotMeshes.Add(CreateEntry(mesh.name, mesh, Vector3.zero,
-                    Quaternion.identity, Vector3.one, true));
+                    Quaternion.identity, false, surface.SourceId));
             }
-
-            unitCube ??= CreateUnitCubeMesh();
-            foreach (var obstacle in room.Obstacles)
-                snapshotMeshes.Add(CreateEntry(
-                    $"Reality Obstacle {obstacle.Id}",
-                    unitCube,
-                    obstacle.Center,
-                    obstacle.Rotation,
-                    obstacle.Size,
-                    false));
+            UpdateDepthRendering(true);
         }
 
         private void RefreshCachedNativeMeshes()
@@ -168,14 +148,34 @@ namespace MateSoul.Runtime
         {
             if (blocks == null) return;
             foreach (var block in blocks)
+                if (block.state != MeshChangeState.Unchanged ||
+                    !nativeMeshes.ContainsKey(block.uuid))
+                    pendingMeshes[block.uuid] = block;
+        }
+
+        private void ApplyPendingMeshes()
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            var changed = false;
+            // Coalesce each UUID and spend at most 2ms between complete mesh cooks.
+            // One block may exceed that budget; it is never partially installed.
+            while (pendingMeshes.Count > 0 && (!changed || watch.Elapsed.TotalMilliseconds < 2))
             {
+                var block = pendingMeshes.First().Value;
+                pendingMeshes.Remove(block.uuid);
                 if (block.state == MeshChangeState.Removed)
                 {
-                    RemoveNativeMesh(block.uuid);
+                    retention.MarkUnobserved(block.uuid);
                     continue;
                 }
 
+                // The SDK sends the complete cache, including Unchanged blocks.
+                // Do not rebuild and re-cook their physics meshes on every update.
+                if (block.state == MeshChangeState.Unchanged &&
+                    nativeMeshes.ContainsKey(block.uuid))
+                    continue;
                 if (block.vertices == null || block.indices == null ||
+                    !IsValidPose(block.position, block.rotation) ||
                     !TryCreateMesh(
                         $"Reality Native Mesh {block.uuid:N}",
                         block.vertices,
@@ -183,15 +183,80 @@ namespace MateSoul.Runtime
                         out var mesh))
                     continue;
 
-                RemoveNativeMesh(block.uuid);
-                nativeMeshes.Add(block.uuid, CreateEntry(
+                // Cook and register the replacement before retiring old collision.
+                var replacement = CreateEntry(
                     mesh.name,
                     mesh,
                     block.position,
                     block.rotation,
-                    Vector3.one,
-                    true));
+                    true,
+                    block.uuid.GetHashCode());
+                foreach (var obsolete in retention.Observe(block)) RemoveNativeMesh(obsolete);
+                if (nativeMeshes.TryGetValue(block.uuid, out var previous))
+                    DestroyEntry(previous);
+                nativeMeshes[block.uuid] = replacement;
+                UpdateNavigationSurface(block.uuid, replacement);
+                changed = true;
             }
+            if (changed)
+            {
+                UpdateDepthRendering(true);
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                Debug.Log($"[RealityGeometry] liveMeshColliders={nativeMeshes.Count} " +
+                          $"pendingMeshBlocks={pendingMeshes.Count} " +
+                          $"snapshotDepthMeshes={snapshotMeshes.Count} " +
+                          $"meshDepthEnabled={meshDepthEnabled} semanticDepthBoxes=0");
+#endif
+            }
+        }
+
+        private void LateUpdate()
+        {
+            ApplyPendingMeshes();
+            UpdateDepthRendering();
+#region debug-point A-D:live-room-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextRoomReport)
+            {
+                debugNextRoomReport = Time.unscaledTime + 2f;
+                var manager = GetComponent<PXR_EnvironmentDepthManager>();
+                var raw = Shader.GetGlobalTexture("_EnvironmentDepthTexture");
+                var preprocessed = Shader.GetGlobalTexture("_PreprocessedEnvironmentDepthTexture");
+                Debug.Log("MATESOUL_GEOMETRY_TRACE " +
+                    $"{{\"sessionId\":\"live-room-geometry\",\"runId\":\"post-fix\"," +
+                    $"\"hypothesisId\":\"A-D\",\"location\":\"RealityOcclusionMeshRenderer.LateUpdate\"," +
+                    $"\"msg\":\"[DEBUG] live geometry state\",\"data\":{{" +
+                    $"\"nativeMeshes\":{nativeMeshes.Count},\"snapshotMeshes\":{snapshotMeshes.Count}," +
+                    $"\"retainedMeshes\":{retention.RetainedCount}," +
+                    $"\"meshDepth\":{meshDepthEnabled.ToString().ToLowerInvariant()}," +
+                    $"\"depthAvailable\":{(manager != null && manager.IsDepthAvailable).ToString().ToLowerInvariant()}," +
+                    $"\"depthSwitch\":{Shader.GetGlobalFloat("_EnvironmentOcclusionEnabled")}," +
+                    $"\"rawWidth\":{(raw != null ? raw.width : 0)}," +
+                    $"\"processedWidth\":{(preprocessed != null ? preprocessed.width : 0)}," +
+                    $"\"floorColliders\":{(roomNavigation != null ? roomNavigation.GetComponentsInChildren<MeshCollider>().Length : 0)}}}}}");
+            }
+#endif
+#endregion
+        }
+
+        private void UpdateDepthRendering(bool force = false)
+        {
+            // Keep measured real-world occlusion even when depth textures exist.
+            // Texture availability does not prove the depth composite is sufficient.
+            var enabled = nativeMeshes.Count > 0;
+            if (!force && meshDepthEnabled == enabled) return;
+            meshDepthEnabled = enabled;
+            foreach (var entry in nativeMeshes.Values)
+                entry.Renderer.enabled = enabled;
+            foreach (var entry in snapshotMeshes)
+                entry.Renderer.enabled = nativeMeshes.Count == 0;
+        }
+
+        private void UpdateNavigationSurface(Guid id, MeshEntry entry)
+        {
+            if (roomNavigation == null) return;
+            roomNavigation.UpdateLiveSurface(id.ToString("N"), entry.Mesh,
+                entry.GameObject.transform.localToWorldMatrix);
         }
 
         private MeshEntry CreateEntry(
@@ -199,13 +264,14 @@ namespace MateSoul.Runtime
             Mesh mesh,
             Vector3 position,
             Quaternion rotation,
-            Vector3 scale,
-            bool ownsMesh)
+            bool physicalSurface,
+            int sourceId)
         {
             var meshObject = new GameObject(objectName);
+            if (physicalSurface)
+                meshObject.layer = InteractionPhysicsLayers.RealitySurface;
             meshObject.transform.SetParent(transform, false);
             meshObject.transform.SetPositionAndRotation(position, rotation);
-            meshObject.transform.localScale = scale;
             meshObject.AddComponent<MeshFilter>().sharedMesh = mesh;
             var renderer = meshObject.AddComponent<MeshRenderer>();
             renderer.sharedMaterial = depthMaterial;
@@ -215,7 +281,21 @@ namespace MateSoul.Runtime
             renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
             renderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
             renderer.allowOcclusionWhenDynamic = false;
-            return new MeshEntry(meshObject, mesh, ownsMesh);
+            renderer.enabled = meshDepthEnabled;
+            if (physicalSurface)
+            {
+                // Share the measured mesh between rendering and static physics;
+                // updates/removals own both resources together.
+                var collider = meshObject.AddComponent<MeshCollider>();
+                collider.cookingOptions =
+                    MeshColliderCookingOptions.CookForFasterSimulation |
+                    MeshColliderCookingOptions.EnableMeshCleaning |
+                    MeshColliderCookingOptions.WeldColocatedVertices |
+                    MeshColliderCookingOptions.UseFastMidphase;
+                collider.sharedMesh = mesh;
+                meshObject.AddComponent<RoomSurfaceCollider>().Bind(sourceId);
+            }
+            return new MeshEntry(meshObject, mesh, renderer, sourceId);
         }
 
         private void RemoveNativeMesh(Guid id)
@@ -223,6 +303,7 @@ namespace MateSoul.Runtime
             if (!nativeMeshes.TryGetValue(id, out var entry)) return;
             DestroyEntry(entry);
             nativeMeshes.Remove(id);
+            roomNavigation?.RemoveLiveSurface(id.ToString("N"));
         }
 
         private static bool TryCreateMesh(
@@ -239,7 +320,10 @@ namespace MateSoul.Runtime
 
             var vertexArray = new Vector3[vertices.Count];
             for (var index = 0; index < vertexArray.Length; index++)
+            {
+                if (!PhysicsBody.IsFinite(vertices[index])) return false;
                 vertexArray[index] = vertices[index];
+            }
 
             var indexArray = new int[indices.Count];
             for (var index = 0; index < indexArray.Length; index++)
@@ -262,23 +346,25 @@ namespace MateSoul.Runtime
             return true;
         }
 
-        private static Mesh CreateUnitCubeMesh()
+        private static bool IsValidPose(Vector3 position, Quaternion rotation)
         {
-            var vertices = new[]
+            var norm = rotation.x * rotation.x + rotation.y * rotation.y +
+                       rotation.z * rotation.z + rotation.w * rotation.w;
+            return PhysicsBody.IsFinite(position) && PhysicsBody.IsFinite(norm) && norm > .001f;
+        }
+
+        private void StartMeshSubsystems()
+        {
+            if (Application.isEditor) return;
+            InteractionPhysicsLayers.Configure();
+            var subsystems = new List<XRMeshSubsystem>();
+            SubsystemManager.GetSubsystems(subsystems);
+            foreach (var subsystem in subsystems)
             {
-                new Vector3(-.5f, -.5f, -.5f), new Vector3(.5f, -.5f, -.5f),
-                new Vector3(.5f, .5f, -.5f), new Vector3(-.5f, .5f, -.5f),
-                new Vector3(-.5f, -.5f, .5f), new Vector3(.5f, -.5f, .5f),
-                new Vector3(.5f, .5f, .5f), new Vector3(-.5f, .5f, .5f)
-            };
-            var triangles = new[]
-            {
-                0, 2, 1, 0, 3, 2, 1, 2, 6, 1, 6, 5,
-                5, 6, 7, 5, 7, 4, 4, 7, 3, 4, 3, 0,
-                3, 7, 6, 3, 6, 2, 4, 0, 1, 4, 1, 5
-            };
-            TryCreateMesh("Reality Occlusion Unit Cube", vertices, triangles, out var mesh);
-            return mesh;
+                if (subsystem == null || subsystem.running) continue;
+                subsystem.Start();
+                startedSubsystems.Add(subsystem);
+            }
         }
 
         private static void ClearEntries(IEnumerable<MeshEntry> entries)
@@ -288,8 +374,9 @@ namespace MateSoul.Runtime
 
         private static void DestroyEntry(MeshEntry entry)
         {
+            entry.GameObject.SetActive(false);
             DestroyOwned(entry.GameObject);
-            if (entry.OwnsMesh) DestroyOwned(entry.Mesh);
+            DestroyOwned(entry.Mesh);
         }
 
         private static void DestroyOwned(UnityEngine.Object value)
@@ -301,24 +388,29 @@ namespace MateSoul.Runtime
 
         private void OnDestroy()
         {
+            ClearEntries(nativeMeshes.Values);
+            nativeMeshes.Clear();
+            retention.Clear();
+            roomNavigation?.ClearLiveSurfaces();
             ClearEntries(snapshotMeshes);
             snapshotMeshes.Clear();
-            DestroyOwned(unitCube);
             DestroyOwned(depthMaterial);
         }
 
         private readonly struct MeshEntry
         {
-            public MeshEntry(GameObject gameObject, Mesh mesh, bool ownsMesh)
+            public MeshEntry(GameObject gameObject, Mesh mesh, MeshRenderer renderer, int sourceId)
             {
                 GameObject = gameObject;
                 Mesh = mesh;
-                OwnsMesh = ownsMesh;
+                Renderer = renderer;
+                SourceId = sourceId;
             }
 
             public GameObject GameObject { get; }
             public Mesh Mesh { get; }
-            public bool OwnsMesh { get; }
+            public MeshRenderer Renderer { get; }
+            public int SourceId { get; }
         }
     }
 }

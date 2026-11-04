@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+/*******************************************************************************
 Copyright © 2015-2022 PICO Technology Co., Ltd.All rights reserved.  
 
 NOTICE：All information contained herein is, and remains the property of 
@@ -74,7 +74,14 @@ namespace ByteDance.PICO.XR
 
         public static PXR_ProjectSetting GetProjectConfig()
         {
+#if UNITY_EDITOR
+            // Resources is not indexed yet in early domain-reload callbacks.
+            // Load the authored asset directly so existing capabilities are not replaced by defaults.
+            PXR_ProjectSetting projectConfig = AssetDatabase.LoadAssetAtPath<PXR_ProjectSetting>(
+                "Assets/Resources/PXR_ProjectSetting.asset");
+#else
             PXR_ProjectSetting projectConfig = Resources.Load<PXR_ProjectSetting>("PXR_ProjectSetting");
+#endif
 #if UNITY_EDITOR
             if (projectConfig == null)
             {

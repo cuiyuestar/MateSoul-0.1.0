@@ -29,7 +29,7 @@ namespace MateSoul.Editor
         public const string CharacterPath = "Assets/MateSoul/Content/Lengyue_Runtime.prefab";
         public const string PersonaPath = "Assets/MateSoul/Content/LengyuePersona.json";
         private const string Content = "Assets/MateSoul/Content";
-        private const string ConversationGatewayPath = Content + "/ConversationGateway.asset";
+        private const string ModelConnectionPath = Content + "/ModelConnection.asset";
         private const string Source = "Assets/Characters/SapphiArtCustom/Lengyue/Runtime";
 
         [MenuItem("MateSoul/Game/Build Game Scene")]
@@ -61,7 +61,7 @@ namespace MateSoul.Editor
                 bootstrap.Configure(character,
                     AssetDatabase.LoadAssetAtPath<TextAsset>("Packages/com.bytedance.pico.xr/Assets/Resources/MockSceneData.json"),
                     BuildCatalog(focusMaterial), AssetDatabase.LoadAssetAtPath<TextAsset>(PersonaPath),
-                    BuildConversationGateway());
+                    BuildModelConnection());
                 var miniGames = root.GetComponent<MiniGameHost>();
                 miniGames.Configure(new MiniGame[]
                 {
@@ -95,24 +95,32 @@ namespace MateSoul.Editor
         {
             var settings = PXR_ProjectSetting.GetProjectConfig();
             settings.handTracking = true;
-            settings.handTrackingSupportType = HandTrackingSupport.ControllersAndHands;
+            settings.handTrackingSupportType = HandTrackingSupport.HandsOnly;
+            settings.highFrequencyHand = true;
             settings.eyeTracking = true;
             settings.spatialAnchor = true;
+            settings.sceneCapture = true;
             settings.spatialMesh = true;
+            settings.meshLod = PxrMeshLod.High;
+            settings.planeDetection = true;
             settings.environmentDepth = true;
+            settings.lightEstimation = true;
+            settings.lightEstimationTextureResolution = PxrEnvironmentTextureResolution.Size128x128;
             settings.videoSeeThrough = true;
+            // MateSoul uses a captured real room, so startup must adopt PICO's MR safety policy.
+            settings.mrSafeguard = true;
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssetIfDirty(settings);
         }
 
-        private static ConversationGatewaySettings BuildConversationGateway()
+        private static ModelConnectionSettings BuildModelConnection()
         {
-            var settings = AssetDatabase.LoadAssetAtPath<ConversationGatewaySettings>(
-                ConversationGatewayPath);
+            var settings = AssetDatabase.LoadAssetAtPath<ModelConnectionSettings>(
+                ModelConnectionPath);
             if (settings != null) return settings;
-            settings = ScriptableObject.CreateInstance<ConversationGatewaySettings>();
-            settings.Configure("http://127.0.0.1:8787/v1/conversations/reply", 60, true);
-            AssetDatabase.CreateAsset(settings, ConversationGatewayPath);
+            settings = ScriptableObject.CreateInstance<ModelConnectionSettings>();
+            settings.Configure(PlayerAIConfiguration.DefaultEndpoint, 25, false);
+            AssetDatabase.CreateAsset(settings, ModelConnectionPath);
             return settings;
         }
 
@@ -331,6 +339,8 @@ namespace MateSoul.Editor
             shape.radius = .055f;
             shape.isTrigger = true;
             var socket = GetOrAdd<HandHoldInteractable>(socketRoot.gameObject);
+            BuildHandHoldSimulatorMarker(socketRoot, label + " Palm Target (Editor Only)",
+                .04f, BuildHandHoldSimulatorMaterial("Palm", new Color(.08f, .95f, .3f)));
 
             var flexionArc = BuildLimitArc(targetRoot, label + " Wrist Flexion", material);
             var deviationArc = BuildLimitArc(targetRoot, label + " Wrist Deviation", material);
@@ -385,6 +395,49 @@ namespace MateSoul.Editor
             material = new Material(shader) { name = "Hand Hold Limit" };
             AssetDatabase.CreateAsset(material, path);
             return material;
+        }
+
+        private static Material BuildHandHoldSimulatorMaterial(string label, Color color)
+        {
+            var path = Content + "/HandHoldSimulator" + label + ".mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                var shader = Shader.Find("Universal Render Pipeline/Unlit");
+                if (shader == null)
+                    throw new InvalidOperationException("URP Unlit shader is missing.");
+                material = new Material(shader) { name = "Hand Hold Simulator " + label };
+                AssetDatabase.CreateAsset(material, path);
+            }
+            material.SetColor("_BaseColor", color);
+            material.SetColor("_Color", color);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Renderer BuildHandHoldSimulatorMarker(Transform parent, string name,
+            float diameter, Material material)
+        {
+            var marker = parent.Find(name);
+            if (marker == null)
+            {
+                var primitive = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                primitive.name = name;
+                primitive.transform.SetParent(parent, false);
+                marker = primitive.transform;
+            }
+            marker.gameObject.tag = "EditorOnly";
+            marker.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+            marker.localPosition = Vector3.zero;
+            marker.localRotation = Quaternion.identity;
+            marker.localScale = Vector3.one * diameter;
+            var collider = marker.GetComponent<Collider>();
+            if (collider != null) UnityEngine.Object.DestroyImmediate(collider);
+            var renderer = marker.GetComponent<Renderer>();
+            renderer.sharedMaterial = material;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            return renderer;
         }
 
         private static AnimatorController BuildAnimator()
@@ -467,6 +520,7 @@ namespace MateSoul.Editor
             var electricKettle = ElectricKettleBuilder.Build(focusMaterial);
             var coffeeBeanJar = CoffeeBeanJarBuilder.Build(focusMaterial);
             var coffeeGrinder = CoffeeGrinderBuilder.Build(focusMaterial);
+            var condiments = CondimentBuilder.Build(focusMaterial);
             var catalog = new[]
             {
                 BuildLamp(focusMaterial),
@@ -544,13 +598,16 @@ namespace MateSoul.Editor
                 coffeeGrinder[0],
                 coffeeGrinder[1],
                 coffeeGrinder[2],
+                condiments[0],
+                condiments[1],
+                condiments[2],
                 BuildRawSteak(focusMaterial),
                 BuildCatalogProp("cupcake", "纸杯蛋糕",
                     Content + "/PropsSource/Cupcake/LavenderChibiCupcake_70x75mm.fbx",
                     new Vector3(.07f, .075f, .07f), .09f, PhysicsContentBuilder.Food, true,
                     focusMaterial, ItemCategory.Food),
                 BuildCatalogProp("cookie", "曲奇",
-                    "Assets/MateSoul/Content/PropsSource/Cookie/Cookie.prefab",
+                    "Assets/Experiments/YummyCookie_v001/Props/Cookie.prefab",
                     new Vector3(.05f, .011f, .05f), .025f, PhysicsContentBuilder.Food, true,
                     focusMaterial, ItemCategory.Food),
                 BuildCatalogProp("apple", "苹果",
@@ -740,58 +797,7 @@ namespace MateSoul.Editor
         }
 
         private static void ConfigureFryingPanColliders(ItemDefinition definition)
-        {
-            var path = AssetDatabase.GetAssetPath(definition.Prefab);
-            var root = PrefabUtility.LoadPrefabContents(path);
-            try
-            {
-                foreach (var collider in root.GetComponentsInChildren<Collider>(true))
-                    UnityEngine.Object.DestroyImmediate(collider);
-                var bodyRenderer = root.GetComponentsInChildren<Renderer>(true)
-                    .FirstOrDefault(renderer => renderer.name == "FryingPan_Body");
-                if (bodyRenderer == null)
-                    throw new InvalidOperationException("平底锅模型缺少锅体渲染节点。");
-                var body = bodyRenderer.bounds;
-                var center = root.transform.InverseTransformPoint(body.center);
-                var minimum = root.transform.InverseTransformPoint(body.min);
-                var maximum = root.transform.InverseTransformPoint(body.max);
-                AddBoxCollider(root, new Vector3(
-                        center.x, minimum.y + .0045f, center.z),
-                    new Vector3(body.size.x * .92f, .009f, body.size.z * .92f));
-                AddBoxCollider(root, new Vector3(
-                        center.x, minimum.y + .028f, minimum.z + .006f),
-                    new Vector3(body.size.x, .056f, .012f));
-                AddBoxCollider(root, new Vector3(
-                        center.x, minimum.y + .028f, maximum.z - .006f),
-                    new Vector3(body.size.x, .056f, .012f));
-                AddBoxCollider(root, new Vector3(
-                        minimum.x + .006f, minimum.y + .028f, center.z),
-                    new Vector3(.012f, .056f, body.size.z));
-                AddBoxCollider(root, new Vector3(
-                        maximum.x - .006f, minimum.y + .028f, center.z),
-                    new Vector3(.012f, .056f, body.size.z));
-
-                var handleRenderers = root.GetComponentsInChildren<Renderer>(true)
-                    .Where(renderer => renderer.name.Contains("Handle") ||
-                                       renderer.name.Contains("Grip") ||
-                                       renderer.name.Contains("Collar")).ToArray();
-                if (handleRenderers.Length == 0)
-                    throw new InvalidOperationException("平底锅模型缺少手柄渲染节点。");
-                var handle = handleRenderers[0].bounds;
-                foreach (var renderer in handleRenderers.Skip(1))
-                    handle.Encapsulate(renderer.bounds);
-                AddBoxCollider(root, root.transform.InverseTransformPoint(handle.center),
-                    handle.size);
-                var heatReceiver = root.GetComponent<CookwareHeatReceiver>() ??
-                                   root.AddComponent<CookwareHeatReceiver>();
-                heatReceiver.Configure(
-                    new Vector3(center.x, minimum.y + .0045f, center.z),
-                    .112f, .125f, .070f);
-                PhysicsContentBuilder.ConfigureBody(root, definition.Physics);
-                PrefabUtility.SaveAsPrefabAsset(root, path);
-            }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
-        }
+            => FryingPanColliderBuilder.Configure(definition);
 
         private static void AddBoxCollider(GameObject root, Vector3 center, Vector3 size)
         {
@@ -1504,69 +1510,20 @@ namespace MateSoul.Editor
                 ray.sphereCastRadius = .06f;
                 ray.hitClosestOnly = true;
                 ray.useForceGrab = false;
+                var idleColor = hand == "RightHand"
+                    ? new Color(1f, .28f, .62f)
+                    : new Color(.12f, .58f, 1f);
+                var marker = BuildHandHoldSimulatorMarker(root.transform,
+                    hand + " Physical Pose (Editor Only)", .065f,
+                    BuildHandHoldSimulatorMaterial(hand, idleColor));
+                GetOrAdd<HandHoldSimulatorIndicator>(marker.gameObject)
+                    .Configure(ray, marker, idleColor);
                 root.AddComponent<XRInteractorLineVisual>().lineWidth = .003f;
             }
 
-            var gazeRoot = new GameObject("Gaze Pinch Ray");
-            gazeRoot.transform.SetParent(parent, false);
-            var gazeController = gazeRoot.AddComponent<ActionBasedController>();
-            gazeController.positionAction = Action("Gaze Position", "<PXR_HMD>/eyeGazePosition");
-            gazeController.rotationAction = Action("Gaze Rotation", "<PXR_HMD>/eyeGazeRotation");
-            gazeController.isTrackedAction = Action("Gaze Tracked", "<PXR_HMD>/eyeGazeIsTracked");
-            gazeController.trackingStateAction = Action("Gaze Tracking",
-                "<PXR_HMD>/eyeGazeTrackingState");
-            gazeController.uiPressAction = Action("Right Pinch UI Press",
-                "<PicoHandInteraction>{RightHand}/pinchTouched", InputActionType.Button);
-            gazeController.uiPressActionValue = Action("Right Pinch UI Value",
-                "<PicoHandInteraction>{RightHand}/pinchValue");
-            var gazeRay = gazeRoot.AddComponent<XRRayInteractor>();
-            gazeRay.interactionManager = manager;
-            gazeRay.enableUIInteraction = true;
-            gazeRay.maxRaycastDistance = 8;
-            gazeRay.raycastMask = Physics.DefaultRaycastLayers;
-            gazeRay.hitDetectionType = XRRayInteractor.HitDetectionType.SphereCast;
-            gazeRay.sphereCastRadius = .09f;
-            gazeRay.hitClosestOnly = true;
-            gazeRay.useForceGrab = false;
             var mode = parent.gameObject.AddComponent<PlayerInteractionModeController>();
-            var handRoots = new GameObject[hands.Length];
-            for (var index = 0; index < hands.Length; index++)
-            {
-                var hand = hands[index];
-                var root = new GameObject(hand + " Hand Ray");
-                handRoots[index] = root;
-                root.transform.SetParent(parent, false);
-                var controller = root.AddComponent<ActionBasedController>();
-                var path = "<PicoHandInteraction>{" + hand + "}/";
-                controller.positionAction = Action(hand + " Hand Aim Position", path + "pointer/position");
-                controller.rotationAction = Action(hand + " Hand Aim Rotation", path + "pointer/rotation");
-                controller.isTrackedAction = Action(hand + " Hand Tracked", path + "isTracked");
-                controller.trackingStateAction = Action(hand + " Hand Tracking", path + "trackingState");
-                controller.selectAction = Action(hand + " Pinch", path + "pinchTouched",
-                    InputActionType.Button);
-                controller.selectActionValue = Action(hand + " Pinch Value", path + "pinchValue");
-                controller.uiPressAction = Action(hand + " Hand UI Press", path + "pointerActivated",
-                    InputActionType.Button);
-                controller.uiPressActionValue = Action(hand + " Hand UI Value",
-                    path + "pointerActivateValue");
-                var ray = root.AddComponent<HandItemRay>();
-                ray.interactionManager = manager;
-                ray.enableUIInteraction = true;
-                ray.maxRaycastDistance = 8;
-                ray.raycastMask = Physics.DefaultRaycastLayers;
-                ray.hitDetectionType = XRRayInteractor.HitDetectionType.SphereCast;
-                ray.sphereCastRadius = .06f;
-                ray.hitClosestOnly = true;
-                ray.useForceGrab = false;
-                var attach = new GameObject(hand + " Pinch Attach");
-                attach.transform.SetParent(parent, false);
-                attach.AddComponent<HandPinchPose>().Configure(
-                    Action(hand + " Pinch Position", path + "pinchPose/position"),
-                    Action(hand + " Pinch Rotation", path + "pinchPose/rotation"));
-                ray.Configure(mode, gazeRay, attach.transform);
-                root.AddComponent<XRInteractorLineVisual>().lineWidth = .003f;
-            }
-            mode.Configure(controllerRoots, gazeRoot, handRoots: handRoots);
+            // Official tracked hands are installed at runtime by the mode controller.
+            mode.Configure(controllerRoots, null);
         }
 
         private static InputActionProperty Action(string name, string binding, InputActionType type = InputActionType.Value)
@@ -1586,6 +1543,61 @@ namespace MateSoul.Editor
         public static void BuildAndroidDevelopment()
             => BuildAndroid(BuildOptions.Development | BuildOptions.CleanBuildCache);
 
+        [MenuItem("MateSoul/Game/Build Current Scene Android Development APK")]
+        public static void BuildCurrentSceneAndroidDevelopment()
+            => BuildCurrentSceneAndroid(BuildOptions.Development | BuildOptions.CleanBuildCache);
+
+        public static void BuildCurrentSceneAndroidIncrementalDevelopment()
+            => BuildCurrentSceneAndroid(BuildOptions.Development);
+
+        [MenuItem("MateSoul/Game/Build Current Scene Android APK")]
+        public static void BuildCurrentSceneAndroidRelease()
+            => BuildCurrentSceneAndroid(BuildOptions.None);
+
+        private static void BuildCurrentSceneAndroid(BuildOptions options)
+        {
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android &&
+                !EditorUserBuildSettings.SwitchActiveBuildTarget(
+                    BuildTargetGroup.Android, BuildTarget.Android))
+                throw new InvalidOperationException("Unable to switch the Unity build target to Android.");
+            var development = (options & BuildOptions.Development) != 0;
+            ValidateModelConnectionForBuild(development);
+            ConfigureInteractionCapabilities();
+            var path = Path.GetFullPath(Path.Combine(
+                Application.dataPath, "../../Builds/MateSoul_Framework.apk"));
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var insecureHttpOption = PlayerSettings.insecureHttpOption;
+            try
+            {
+                if (development) PlayerSettings.insecureHttpOption = InsecureHttpOption.AlwaysAllowed;
+                // Build the reviewed scene as saved; authoring builders would replace character assets.
+                var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+                {
+                    scenes = new[] { ScenePath }, locationPathName = path,
+                    target = BuildTarget.Android, options = options
+                });
+                if (report.summary.result != BuildResult.Succeeded)
+                    throw new InvalidOperationException($"Android build failed: {report.summary.result}");
+                Debug.Log($"MATESOUL_BUILD_PASS path={path} bytes={report.summary.totalSize} duration={report.summary.totalTime}");
+            }
+            finally { PlayerSettings.insecureHttpOption = insecureHttpOption; }
+        }
+
+#region debug-point A-D:diagnostic-build
+        public static void BuildAndroidDialogueFontDiagnostics()
+        {
+            var insecureHttpOption = PlayerSettings.insecureHttpOption;
+            try
+            {
+                PlayerSettings.insecureHttpOption = InsecureHttpOption.AlwaysAllowed;
+                BuildAndroid(BuildOptions.None);
+            }
+            finally
+            {
+                PlayerSettings.insecureHttpOption = insecureHttpOption;
+            }
+        }
+#endregion
 
         private static void BuildAndroid(BuildOptions options)
         {
@@ -1594,7 +1606,7 @@ namespace MateSoul.Editor
                     BuildTargetGroup.Android, BuildTarget.Android))
                 throw new InvalidOperationException("Unable to switch the Unity build target to Android.");
             var development = (options & BuildOptions.Development) != 0;
-            ValidateConversationGatewayForBuild(development);
+            ValidateModelConnectionForBuild(development);
             UiFontAssetBuilder.Ensure();
             BuildScene();
             ConfigurePicoBuildSettings();
@@ -1621,26 +1633,27 @@ namespace MateSoul.Editor
             }
         }
 
-        private static void ValidateConversationGatewayForBuild(bool development)
+        private static void ValidateModelConnectionForBuild(bool development)
         {
-            var settings = AssetDatabase.LoadAssetAtPath<ConversationGatewaySettings>(
-                ConversationGatewayPath);
+            var settings = AssetDatabase.LoadAssetAtPath<ModelConnectionSettings>(
+                ModelConnectionPath);
             if (settings == null ||
                 !Uri.TryCreate(settings.Endpoint, UriKind.Absolute, out var endpoint))
                 throw new InvalidOperationException(
-                    "ConversationGateway.asset must contain an absolute endpoint.");
+                    "ModelConnection.asset must contain an absolute provider endpoint.");
             if (endpoint.Scheme == Uri.UriSchemeHttps) return;
             if (development && settings.AllowLocalHttpInDevelopment &&
                 endpoint.Scheme == Uri.UriSchemeHttp && endpoint.IsLoopback)
                 return;
             throw new InvalidOperationException(
                 development
-                    ? "Development builds only allow explicitly enabled loopback HTTP or HTTPS gateways."
-                    : "Release builds require an HTTPS conversation gateway. Use Build Android Development APK for the local emulator gateway.");
+                    ? "Development builds only allow HTTPS model APIs or explicitly enabled loopback test APIs."
+                    : "Release builds require an HTTPS model API.");
         }
 
         private static void ConfigurePicoBuildSettings()
         {
+            PlayerSettings.preserveFramebufferAlpha = true;
             const string path = "Assets/Resources/PXR_ProjectSetting.asset";
             AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
             var settings = AssetDatabase.LoadAssetAtPath<PXR_ProjectSetting>(path);
@@ -1648,11 +1661,17 @@ namespace MateSoul.Editor
                 throw new InvalidOperationException($"{path} could not be loaded.");
 
             settings.handTracking = true;
-            settings.handTrackingSupportType = HandTrackingSupport.ControllersAndHands;
+            settings.handTrackingSupportType = HandTrackingSupport.HandsOnly;
+            settings.highFrequencyHand = true;
             settings.eyeTracking = true;
             settings.videoSeeThrough = true;
             settings.spatialAnchor = true;
+            settings.sceneCapture = true;
             settings.spatialMesh = true;
+            settings.planeDetection = true;
+            settings.environmentDepth = true;
+            settings.lightEstimation = true;
+            settings.lightEstimationTextureResolution = PxrEnvironmentTextureResolution.Size128x128;
             settings.superResolution = false;
             settings.normalSharpening = false;
             settings.qualitySharpening = true;

@@ -1,0 +1,247 @@
+{
+  "date": "2026-10-28",
+  "platform": "Unity 2022.3.38f1 / URP 14 / PICO Unity SDK / Android ARM64 IL2CPP",
+  "models": {
+    "SaltShaker": {
+      "triangles": 9736,
+      "dimensions_metres_blender_xyz": [
+        0.057999998331069946,
+        0.057999998331069946,
+        0.12999999523162842
+      ],
+      "mesh_objects": 5,
+      "squeeze_shapes": 0
+    },
+    "BlackPepperSauce": {
+      "triangles": 6592,
+      "dimensions_metres_blender_xyz": [
+        0.07000000029802322,
+        0.05264901928603649,
+        0.2484855353832245
+      ],
+      "mesh_objects": 8,
+      "squeeze_shapes": 2
+    },
+    "SaladDressing": {
+      "triangles": 6592,
+      "dimensions_metres_blender_xyz": [
+        0.07000000029802322,
+        0.05264901928603649,
+        0.2484855353832245
+      ],
+      "mesh_objects": 8,
+      "squeeze_shapes": 2
+    }
+  },
+  "acceptance": {
+    "exit": 0,
+    "seconds": 24.88,
+    "summary": {
+      "id": "2",
+      "testcasecount": "14",
+      "result": "Passed",
+      "total": "14",
+      "passed": "14",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-28 08:48:00Z",
+      "end-time": "2026-10-28 08:48:01Z",
+      "duration": "1.7403926"
+    },
+    "tests": [
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.CataloguePrefabsHaveValidCollidersAndRuntimeBindings(\"SaltShaker\",\"salt-shaker\",InvertedSalt)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.CataloguePrefabsHaveValidCollidersAndRuntimeBindings(\"BlackPepperSauce\",\"black-pepper-sauce\",SqueezedSauce)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.CataloguePrefabsHaveValidCollidersAndRuntimeBindings(\"SaladDressing\",\"salad-dressing\",SqueezedSauce)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.ParticlesAreBoundedAndUseSharedWorldCollision(\"SaltShaker\",768)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.ParticlesAreBoundedAndUseSharedWorldCollision(\"BlackPepperSauce\",160)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.PauseDisableAndDistanceStopDispensing",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.PinchIsNotBottleSqueeze",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.ProductionControllerStateUsesTriggerPressureWhileSelected",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.RealHandSelectionRequiresExtraSqueezeAndRestoresBottleOnRelease(\"BlackPepperSauce\")",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.RealHandSelectionRequiresExtraSqueezeAndRestoresBottleOnRelease(\"SaladDressing\")",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.RenderProductionMaterialsAndDispensingPreview",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.SaltStartsNearInversionAndUsesHysteresis",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.SavedMainSceneContainsAllThreeItems",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.CondimentAcceptance.TrackingLossAndTwoHandTransferCannotReusePreviousPressure",
+        "result": "Passed",
+        "failure": null
+      }
+    ]
+  },
+  "release": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_Condiments_20261028.apk",
+    "sha256": "26b3afec437e45cb59394fb3d991464de34d5d452b441e22e8a6e4e3106ad3b2",
+    "bytes": 167604969,
+    "seconds": 256.46,
+    "input_count": 1882,
+    "production_inputs_unchanged": true,
+    "crc": true,
+    "signature": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): false\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1",
+    "zipalign": true,
+    "generated_methods": [
+      "SeasoningDispenser_ReadSqueezePressure",
+      "SeasoningDispenser_Advance",
+      "PicoDirectHandInteractor_TryGetSqueezeStrength",
+      "PhysicsGrabInteractable_get_DrivingHand"
+    ],
+    "native_matches": true,
+    "installed": false
+  },
+  "apk_resources": {
+    "salt-shaker": [
+      "assets/bin/Data/sharedassets0.assets.split1182"
+    ],
+    "black-pepper-sauce": [
+      "assets/bin/Data/sharedassets0.assets.split1182"
+    ],
+    "salad-dressing": [
+      "assets/bin/Data/sharedassets0.assets.split1182"
+    ],
+    "MateSoul/Condiment Glass": [
+      "assets/bin/Data/globalgamemanagers",
+      "assets/bin/Data/sharedassets0.assets.split1152"
+    ],
+    "MateSoul/Sauce Particle": [
+      "assets/bin/Data/globalgamemanagers",
+      "assets/bin/Data/sharedassets0.assets.split1151"
+    ]
+  },
+  "assets": {
+    "ArtSource/Condiments/SaladDressing.blend": {
+      "bytes": 550817,
+      "sha256": "da20a9aadcc0757d9a0a95ab53fddbc1a23afc30ae27f03fa0c3d5ca71acfe51"
+    },
+    "ArtSource/Condiments/SaltShaker.blend": {
+      "bytes": 822173,
+      "sha256": "fd54430189e9fb7980ad3994db9be1a74428affa3a0844d640ac5baabedd624a"
+    },
+    "ArtSource/Condiments/BlackPepperSauce.blend": {
+      "bytes": 437216,
+      "sha256": "e508b11ca39ba3b693db6283b6c1c94b5b2bfce323481444dfd82c34d3df485f"
+    },
+    "MateSoul/Assets/MateSoul/Content/PropsSource/Condiments/BlackPepperSauce.fbx": {
+      "bytes": 171228,
+      "sha256": "790e463210b7cd8a70523b4b1eb9a328c97911c18829f051fa15ea38c5f3cebd"
+    },
+    "MateSoul/Assets/MateSoul/Content/PropsSource/Condiments/SaltShaker.fbx": {
+      "bytes": 207852,
+      "sha256": "d2dc944a0684cc59df3c776d7b8a4f073b6743910e579d537b0917b43db37a3d"
+    },
+    "MateSoul/Assets/MateSoul/Content/PropsSource/Condiments/SaladDressing.fbx": {
+      "bytes": 171292,
+      "sha256": "b0519c5c41f5f6665c4ea9a550c192aaa815701db0315d4661f04072d6bc5293"
+    },
+    "MateSoul/Assets/MateSoul/Content/PropsSource/Condiments/PepperSauce.png": {
+      "bytes": 251947,
+      "sha256": "d3c60bfa9c8b6aa6977bc9c26b8a1def7373426ae56c0b2e822b9c9ed1ddbd52"
+    },
+    "MateSoul/Assets/MateSoul/Content/PropsSource/Condiments/SaltGrain.png": {
+      "bytes": 372748,
+      "sha256": "1c9412b851772f1d136847db22a1369f57d443deffed8a2da1a01a451d1b242b"
+    },
+    "MateSoul/Assets/MateSoul/Content/PropsSource/Condiments/SaladSauce.png": {
+      "bytes": 365873,
+      "sha256": "5b7e20406dfc281205bd23cf22cc07712c31a15b0e7cfa8e60968ed2c774a56e"
+    },
+    "MateSoul/Assets/MateSoul/Content/PropsSource/Condiments/BrushedSteel.png": {
+      "bytes": 214167,
+      "sha256": "de88610026fd0af62a00172ea50750c4529fc950bb3982f8f044e7263cc97eea"
+    },
+    "MateSoul/Assets/MateSoul/Content/Props/SaltShaker.prefab": {
+      "bytes": 134450,
+      "sha256": "fa9e1caeb844a9a9d42c5c37d64c223048e72d477ed56e6c4e9f87dcd1ffea09"
+    },
+    "MateSoul/Assets/MateSoul/Content/Props/SaltShaker.asset": {
+      "bytes": 2151,
+      "sha256": "310543704165607a6ea1af923d3e7c3b298db7d2dfac9e67d856cc2e9dff3dce"
+    },
+    "MateSoul/Assets/MateSoul/Content/Props/BlackPepperSauce.prefab": {
+      "bytes": 144155,
+      "sha256": "0565ba4d60d45f56c1a559ec5c5d7171fa97b9fc81adbd0ddd7e710619589c3e"
+    },
+    "MateSoul/Assets/MateSoul/Content/Props/BlackPepperSauce.asset": {
+      "bytes": 2169,
+      "sha256": "aceea0f263b4e511a1c3222844eead35871c3f13d5ed57e1e6c37ad5aa04249f"
+    },
+    "MateSoul/Assets/MateSoul/Content/Props/SaladDressing.prefab": {
+      "bytes": 144187,
+      "sha256": "f83ce9d94e1efa73cd0979a0984a4c6bc820b0f82d71c7fb7aa00a503446ed50"
+    },
+    "MateSoul/Assets/MateSoul/Content/Props/SaladDressing.asset": {
+      "bytes": 2162,
+      "sha256": "291f33046e2b616ea99f6ceaa0dfcbdbd563fc0e03d57d525372ec405a25e1db"
+    }
+  },
+  "limits": {
+    "salt_particles": 768,
+    "sauce_particles_per_bottle": 160,
+    "salt_enter_degrees": 160,
+    "salt_exit_degrees": 150,
+    "max_collision_shapes": 16,
+    "distance_metres": 3
+  },
+  "device_validation": false,
+  "validation_media_kept": false,
+  "notes": [
+    "Input samples are injected; real XRI selection and rendering execute.",
+    "Earlier PlayMode frame wait stalled; owned Unity terminated and exit confirmed.",
+    "Unity metrics/config sandbox warnings occurred; final Unity tests/build exited 0."
+  ]
+}

@@ -1,0 +1,12 @@
+SUB 0 brow= mat=Assets/Study/EyeShapeReferenceV12DCCReal/Fix49/FaceSkin_Direct49.mat
+_MainTex Assets/Study/EyeShapeReferenceV12DCCReal/Fix49/Textures/Face_BaseColor_Direct49.png
+_ShadeTexture Assets/Study/EyeShapeReferenceV12DCCReal/Fix49/Textures/Face_Shade_Direct49.png
+SUB 1 brow= mat=Assets/Study/C_Materials/Eye_LengyueAdapted.mat
+_MainTex Assets/Study/Textures/Eye_BaseColor_LengyueAdapted.png
+_ShadeTexture Assets/Study/Textures/Eye_Shade_LengyueAdapted.png
+SUB 2 brow=1587,1586,1585,1588,1589,1590,1591,1592,1593,1594,1595,1596,1597,1598,1599,1600,1601,1602,1603,1604,1605,1606,1607,1608,1610,1609,1613,1612,1611,1614,1615,1616,1617,1618,1619,1620,1621,1622,1623,1624,1625,1626,1627,1628,1629,1630,1631,1632,1633,1634,1636,1635 mat=Assets/Study/EyeShapeReferenceV12DCCReal/Fix41/FaceExpression_Direct41.mat
+_MainTex Assets/Study/EyeShapeReferenceV12DCCReal/Fix41/Textures/Face_Expression_Direct41.png
+_ShadeTexture Assets/Study/A_ImportedResources/037_Texture2D.asset
+SUB 3 brow= mat=Assets/Study/EyeShapeReferenceV12DCCReal/Fix49/FaceOpaque_Direct49.mat
+_MainTex Assets/Study/EyeShapeReferenceV12DCCReal/Fix49/Textures/Face_Opaque_Direct49.png
+_ShadeTexture Assets/Study/EyeShapeReferenceV12DCCReal/Fix49/Textures/Face_Shade_Direct49.png

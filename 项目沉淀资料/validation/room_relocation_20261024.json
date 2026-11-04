@@ -1,0 +1,161 @@
+{
+  "date": "2026-10-24",
+  "platform": "Unity 2022.3.38f1 / URP 14.0.11 / PICO Unity SDK / Android ARM64 IL2CPP",
+  "gameBug": "An early empty SceneCapture query automatically opened room capture.",
+  "hypotheses": {
+    "A_early_empty_query_triggered_capture": "CONFIRMED",
+    "B_spatial_anchor_concurrency_cause": "INCONCLUSIVE; behavior not changed",
+    "C_snapshot_parse_triggered_original_capture": "REJECTED for original empty-query launch",
+    "D_system_boundary_before_bootstrap": "Observed in diagnostic PID2022; native 6DoF readiness followed by sleep"
+  },
+  "localizationTimeoutSeconds": 25,
+  "queryIntervalSeconds": 2,
+  "automaticCaptureRemoved": true,
+  "temporaryRoomProbeRemoved": true,
+  "replay": {
+    "passed": 14,
+    "results": [
+      "PASS already localized fast path elapsedMs=20 queries=1",
+      "PASS empty query then native update elapsedMs=194 queries=2",
+      "PASS event during provider startup elapsedMs=0 queries=1",
+      "PASS event during in-flight query elapsedMs=0 queries=2",
+      "PASS data appears without update event elapsedMs=2036 queries=2",
+      "PASS anchors exist before floor pose is valid elapsedMs=149 queries=2",
+      "PASS transient native runtime failure elapsedMs=149 queries=2",
+      "PASS permission query failure is immediate elapsedMs=0 queries=1",
+      "PASS startup failure releases subscription elapsedMs=0 queries=0",
+      "PASS pre-canceled caller does not start provider elapsedMs=0 queries=0",
+      "PASS caller cancels in-flight query elapsedMs=0 queries=1",
+      "PASS empty room times out without launching capture elapsedMs=25003 queries=13",
+      "PASS same provider retries after timeout elapsedMs=0 queries=1",
+      "PASS deadline cancels in-flight native query elapsedMs=25054 queries=1"
+    ],
+    "scope": "Production source classes with stubbed SDK inputs, running in isolated Unity",
+    "sourceChecksums": [
+      "Production RoomMapProviders.cs: 2b63efcc9a535976c7fd2241615c021e20be507823dfae7a8ac5163fdbedf815",
+      "Verbatim class excerpt: cae18d02926c76a089426bd152cf3dac3d2adfaf8c1cd3936c0c0a3f54407c91"
+    ]
+  },
+  "delivery": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RoomRelocation_20261024.apk",
+    "sha256": "39c2650539cc582f3909f45324dca150aadd4cf0e9a2fefba66001026026b150",
+    "bytes": 183925623,
+    "crcEntries": 1564,
+    "abis": [
+      "arm64-v8a"
+    ],
+    "il2cppMatchesBuild": true,
+    "signatureExit": 0,
+    "packageComMateSoul": true,
+    "protectedAssets": {
+      "Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+      "Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553"
+    },
+    "compiledSourceChecksums": {
+      "RoomNavigation/Runtime/RoomMapProviders.cs": {
+        "sha256": "2b63efcc9a535976c7fd2241615c021e20be507823dfae7a8ac5163fdbedf815",
+        "matchesPdb": true
+      },
+      "RoomNavigation/Runtime/RoomNavigationBootstrap.cs": {
+        "sha256": "6206d9139d67ddbc6c18fecb289a6857064d7c8570c649b8cc27c2ab0141c61f",
+        "matchesPdb": true
+      },
+      "RoomNavigation/Runtime/RuntimeRoomNavigation.cs": {
+        "sha256": "37d637d652d9751845b1ed206d415cb46032c92d0c81aa829a179d8f105fbe8e",
+        "matchesPdb": true
+      },
+      "Runtime/GameBootstrap.cs": {
+        "sha256": "b9b17a7915476dd9de2b9e0eda254ca5b2179f4ade9a3cba8da3cc353bdd087f",
+        "matchesPdb": true
+      },
+      "Runtime/GameHud.cs": {
+        "sha256": "c8ec814a6a0a25b7dcfad6e5fd79b73cce0d74171026aa21c993de2c31e5e5e5",
+        "matchesPdb": true
+      },
+      "Runtime/HudEyeHandInteractor.cs": {
+        "sha256": "d7ef300296f7b2a9eb12a61badf9752a225799be997110c8d417bfa0484780f1",
+        "matchesPdb": true
+      },
+      "Runtime/PicoHandPoke.cs": {
+        "sha256": "bb2decb1141bf5133189c57bb381a68b9d1347dbd1cedae8cd1e8a40e1694f13",
+        "matchesPdb": true
+      },
+      "Runtime/PicoTrackedHand.cs": {
+        "sha256": "45fcb76fe4d8b818092974859152293cecae4d272691c59b9f65844206c5e910",
+        "matchesPdb": true
+      },
+      "Runtime/PhysicalUiButton.cs": {
+        "sha256": "4149be5d4413e8b577d9d18b370477b8856cf74274e6e614a273f6abe23b179c",
+        "matchesPdb": true
+      },
+      "Runtime/RealityMeshSource.cs": {
+        "sha256": "5462d023e10b7dc2b50c39beb76d5634ce1fff06b66ebccabf61aab1e0c0afdf",
+        "matchesPdb": true
+      },
+      "Runtime/RealityOcclusionMeshRenderer.cs": {
+        "sha256": "8aac446e8f424e0a73911b34f0d5bc6d29c5b2c0bb99e72612f068e3e1493bf3",
+        "matchesPdb": true
+      }
+    }
+  },
+  "device": {
+    "device": "PB3A10MGL9220170B",
+    "pid": "3524",
+    "installExit": 0,
+    "localApkSha256": "39c2650539cc582f3909f45324dca150aadd4cf0e9a2fefba66001026026b150",
+    "deviceApkSha256": "39c2650539cc582f3909f45324dca150aadd4cf0e9a2fefba66001026026b150",
+    "saveBefore": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "saveAfterInstall": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "saveAfterRun": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "powerStates": [
+      {
+        "elapsedSeconds": 0.2,
+        "wake": "mWakefulness=Awake"
+      },
+      {
+        "elapsedSeconds": 5.3,
+        "wake": "mWakefulness=Awake"
+      },
+      {
+        "elapsedSeconds": 10.6,
+        "wake": "mWakefulness=Asleep"
+      },
+      {
+        "elapsedSeconds": 15.7,
+        "wake": "mWakefulness=Asleep"
+      },
+      {
+        "elapsedSeconds": 20.7,
+        "wake": "mWakefulness=Asleep"
+      },
+      {
+        "elapsedSeconds": 25.8,
+        "wake": "mWakefulness=Asleep"
+      },
+      {
+        "elapsedSeconds": 30.9,
+        "wake": "mWakefulness=Asleep"
+      },
+      {
+        "elapsedSeconds": 36.0,
+        "wake": "mWakefulness=Asleep"
+      },
+      {
+        "elapsedSeconds": 41.1,
+        "wake": "mWakefulness=Asleep"
+      }
+    ]
+  },
+  "runtime": {
+    "bootstrapRan": false,
+    "roomLoaded": false,
+    "ready": false,
+    "gameCaptureCallObserved": false,
+    "systemBoundaryObserved": true,
+    "systemWaitingStable6DoF": true,
+    "wearingAcceptance": "Pending when native system readiness or headset sleep prevents bootstrap"
+  },
+  "evidenceDirectory": "/tmp/matesoul-room-relocation-20261024",
+  "report": "/Users/bytedance/MateSoul/项目沉淀资料/真机验收/MateSoul_启动误入房间标定修复_20261024.md"
+}

@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-24",
+  "progress_status": "awaiting_user_reproduction",
+  "interactionFixImplemented": false,
+  "instrumentationOnly": true,
+  "historicalSourceLocated": true,
+  "oldVersionConflictFreeVerified": false,
+  "runtimeGestureVerified": false,
+  "hypotheses": {
+    "A_native_release_vs_custom_hysteresis": "INCONCLUSIVE",
+    "B_joint_or_closed_gate_rejects_ui": "INCONCLUSIVE",
+    "C_touch_capture_or_arbitration_stale": "INCONCLUSIVE",
+    "D_ui_transition_or_system_focus": "INCONCLUSIVE"
+  },
+  "historicalNativeProbe": {
+    "execution": "Empty Unity Play Mode scene, real SDK UpdateHand, BYTE processor, InputAction and ActionBasedController",
+    "exitCode": 0,
+    "seconds": 36.9,
+    "sampleCount": 6,
+    "samplesAreSynthetic": true,
+    "rawSamples": [
+      {"pinchValue": 0, "graspValue": 0, "nativePinch": false, "historicalUiSelect": false},
+      {"pinchValue": 0.9, "graspValue": 0.9, "nativePinch": true, "historicalUiSelect": true},
+      {"pinchValue": 0.7, "graspValue": 0.6, "nativePinch": false, "historicalUiSelect": false},
+      {"pinchValue": 0.9, "graspValue": 0.6, "nativePinch": true, "historicalUiSelect": true},
+      {"pinchValue": 0.7, "graspValue": 0.6, "nativePinch": false, "historicalUiSelect": false},
+      {"pinchValue": 0, "graspValue": 0, "nativePinch": false, "historicalUiSelect": false}
+    ],
+    "invalidEditorProbeAttemptsExcluded": 2
+  },
+  "build": {
+    "apk": "/tmp/matesoul-input-history-20261024/MateSoul_EyeHandHistory_PreFix_20261024.apk",
+    "sha256": "cf14cdf1c92ce476ac48cefb78c17b2c5f414b3870a3d8d8d5a760e7b2f6273b",
+    "bytes": 183925623,
+    "exitCode": 0,
+    "seconds": 148.1,
+    "zipEntryCount": 1564,
+    "crcVerified": true,
+    "signatureVerified": true,
+    "abi": "arm64-v8a",
+    "handEyeSpatialPermissionsVerified": true,
+    "instrumentationStringsVerifiedInAndroidMetadata": true,
+    "apkIl2cppMatchesBuild": true,
+    "currentRelatedSourcesMatchingAndroidPdb": 12,
+    "protectedSceneCharacterAnimatorUnchanged": true,
+    "latestRoomRelocationProductionLogicPreserved": true
+  },
+  "deployment": {
+    "device": "PB3A10MGL9220170B",
+    "installedApkSha256Matches": true,
+    "awakeAtDeployment": false,
+    "saveBeforeSha256": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "saveAfterSha256": "c32fb27b536e8eba8cf427f27cca2ba6056de9704cf8ab8108ce4756dbd84114",
+    "saveUnchangedByInstall": true
+  },
+  "evidence": {
+    "report": "/Users/bytedance/MateSoul/项目沉淀资料/真机验收/MateSoul_眼手冲突历史回查_20261024.md",
+    "debugRecord": "/tmp/matesoul-input-history-20261024/debug-eyehand-pointer-stall.md",
+    "nativeSamples": "/tmp/matesoul-input-history-20261024/historical-native-samples.ndjson",
+    "nativeProbeLog": "/tmp/matesoul-input-history-20261024/RawSamplesPlay.log",
+    "inputLog": "/tmp/matesoul-input-history-20261024/trae-debug-log-eyehand-pointer-stall.ndjson",
+    "server": "http://127.0.0.1:7789/event",
+    "serverPid": 17660,
+    "existingLocalFallback": "DeviceStartupLog: MATESOUL_INPUT_TRACE"
+  },
+  "cleanup": {
+    "ownEditorProbeLinkAndMetaRemoved": true,
+    "runtimeInstrumentationRetainedForUserReproduction": true,
+    "inputServerRetainedForUserReproduction": true,
+    "redundantServer7790Stopped": true,
+    "unrelatedCollectorsUntouched": true,
+    "userDeletedLegacyScriptsNotRecreated": true
+  }
+}

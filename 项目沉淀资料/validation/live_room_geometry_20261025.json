@@ -1,0 +1,124 @@
+{
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_LiveRoomGeometry_20261025.apk",
+  "bytes": 215489136,
+  "sha256": "5dfdefee9577bd43a82079a542e847d85c0306ca334687e71e1d424d9deaeb05",
+  "installedHash": "5dfdefee9577bd43a82079a542e847d85c0306ca334687e71e1d424d9deaeb05",
+  "saveBefore": "b956344702cc90fbd79e1678045d3dce4c60d60cb722dffe05ece88f042f21fa",
+  "saveAfter": "b956344702cc90fbd79e1678045d3dce4c60d60cb722dffe05ece88f042f21fa",
+  "zipEntries": 1563,
+  "crcPass": true,
+  "signaturePass": true,
+  "nativeMatches": true,
+  "mrSafeguard": 1,
+  "protectedAssetsUnchanged": true,
+  "playerSourceChecksums": {
+    "Assets/MateSoul/Runtime/PhysicsBody.cs": "d5321e9f5ea8c91da2952457397e8e3b9e2cac9f2571c90d60b52abc8f449363",
+    "Assets/MateSoul/Runtime/RealityOcclusionMeshRenderer.cs": "2203c9aac269a09a0490bd1d2b9850dde90b003706f70462c0626507e0190e74",
+    "Assets/MateSoul/Runtime/RealityMeshSource.cs": "c5e6d0d5e49d3c66bddceb99fb568931f17a6d60c3bc86974e0a6a3c9ff828ac",
+    "Assets/MateSoul/Runtime/GameSession.cs": "254fc1348560d11b9be0aed93904f2bb67c8a95086a2d43a6b54a55415a6c6a6",
+    "Assets/MateSoul/Runtime/PicoTrackedHand.cs": "021c160d3ca427cd92392a893c39cf48b3aa78a1843e436983a6647f1de0ece4",
+    "Assets/MateSoul/Runtime/PicoDirectHandInteractor.cs": "cc785ac9e5e499e6101e97919c5858a8f1f456324a74cf423895435c7e08001f",
+    "Assets/MateSoul/Runtime/TrackedHandPhysics.cs": "c48840a006efe9f62e83a314cde21872b127461b8ae32f28a0655e957af67879",
+    "Assets/MateSoul/Runtime/AvatarMotor.cs": "3661b7dc1bb0f60d873aa4185269354be150a9e00bea77c1bade6213789e441c",
+    "Assets/MateSoul/Runtime/HandHoldInteractable.cs": "fcff8523b442cba71d2f8dd0bc36b5c89559054fa9d909e06c7e95f5385ee6fe",
+    "Assets/MateSoul/Runtime/AvatarPhysicalInteraction.cs": "aef322ca54b893a4acdbe6183af7940120072cbfb8d41b595fd4c2247af2d303",
+    "Assets/MateSoul/RoomNavigation/Runtime/RuntimeRoomNavigation.cs": "d3d38b5e0736467a9fa14dce1ac6e33c53872cec435ff4b435234df03c1702c0",
+    "Assets/MateSoul/RoomNavigation/Runtime/LiveRoomSurface.cs": "0908d3a6ea78761b7d9b270c67ffecc5eb1573e71d78978c23d55d1be464d77e",
+    "../XR/Runtime/Scripts/SensePack/PXR_EnvironmentDepthManager.cs": "80d588548b1d8e003c782bfb2161c0d8c6d6fad9162862c4e0c684f118584436"
+  },
+  "collisionBefore": {
+    "floorInvisible": true,
+    "initialMode": "Discrete",
+    "controlledReleaseSpeed": 10,
+    "fell": true,
+    "finalY": -7.524663
+  },
+  "collisionAfter": {
+    "floorInvisible": true,
+    "initialMode": "ContinuousSpeculative",
+    "controlledReleaseSpeed": 10,
+    "fell": false,
+    "finalY": 0.0409244075
+  },
+  "depthBefore": {
+    "controlledSwapchainId": 42,
+    "staleIdAfterReset": true
+  },
+  "depthAfter": {
+    "controlledSwapchainId": 42,
+    "staleIdAfterReset": false
+  },
+  "navigation": {
+    "passed": true,
+    "controlledFixture": true,
+    "oldFootprintReleased": true,
+    "newFootprintBlocked": true,
+    "unchangedSkipped": true,
+    "removedReleased": true
+  },
+  "regression": {
+    "id": "2",
+    "testcasecount": "27",
+    "result": "Passed",
+    "total": "27",
+    "passed": "27",
+    "failed": "0",
+    "inconclusive": "0",
+    "skipped": "0",
+    "asserts": "0",
+    "engine-version": "3.5.0.0",
+    "clr-version": "4.0.30319.42000",
+    "start-time": "2026-10-24 16:36:05Z",
+    "end-time": "2026-10-24 16:36:05Z",
+    "duration": "0.0923438"
+  },
+  "buildProcess": {
+    "exitCode": 0,
+    "seconds": 210.146476875
+  },
+  "headsetVisualAcceptance": "pending",
+  "deviceObservation": {
+    "pid": "14459",
+    "samples": [
+      {
+        "seconds": 10,
+        "wakefulness": "Asleep",
+        "bytes": 17847,
+        "ready": false
+      },
+      {
+        "seconds": 20,
+        "wakefulness": "Asleep",
+        "bytes": 17847,
+        "ready": false
+      },
+      {
+        "seconds": 30,
+        "wakefulness": "Asleep",
+        "bytes": 17847,
+        "ready": false
+      },
+      {
+        "seconds": 40,
+        "wakefulness": "Asleep",
+        "bytes": 17847,
+        "ready": false
+      },
+      {
+        "seconds": 50,
+        "wakefulness": "Asleep",
+        "bytes": 17847,
+        "ready": false
+      }
+    ]
+  },
+  "finalInstalledHash": "5dfdefee9577bd43a82079a542e847d85c0306ca334687e71e1d424d9deaeb05",
+  "liveDeviceState": {
+    "nativeMeshes": 10,
+    "environmentDepthAvailable": true,
+    "rawTextureWidth": 512,
+    "processedTextureWidth": 512,
+    "businessReady": false,
+    "finalAcceptance": "requires_awake_headset"
+  }
+}

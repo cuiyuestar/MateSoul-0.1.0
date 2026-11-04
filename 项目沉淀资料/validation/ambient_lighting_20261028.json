@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-28",
+  "scope": "global_environment_brightness_and_tint",
+  "advanced_light_direction_estimation": false,
+  "configuration": {
+    "light_estimation": true,
+    "cubemap_size": 128,
+    "sample_interval_seconds": 0.5,
+    "gpu_sphere_samples": 64,
+    "cpu_readback_pixels": 1,
+    "minimum_valid_fraction": 0.75,
+    "brightness_multiplier_range": [0.4, 1.25],
+    "tint_blend": 0.3,
+    "adaptation_time_constant_seconds": 1.25,
+    "stale_sample_seconds": 5,
+    "perceptual_reference_luminance": 0.18
+  },
+  "acceptance": {
+    "unity_exit_code": 0,
+    "process_seconds": 36.39,
+    "lighting_checks": 16,
+    "existing_occlusion_checks": 15,
+    "passed": 31,
+    "failed": 0,
+    "skipped": 0,
+    "source_and_configuration_unchanged": true,
+    "actual_metal_hdr_shader_and_gpu_readback": true,
+    "temporary_project_test_source_removed": true
+  },
+  "validated_sha256": {
+    "RealityAmbientLighting.cs": "d681dd336cf1282bd4528d93beb01b58eb3fd1b640ce7070b6828c9a4a1dd091",
+    "AmbientReduction.shader": "1f84f72d1ad98e85d66ab47d8ed7960a345193604f306ad37a4dd8dad2f31dc8",
+    "PXR_ProjectSetting.asset": "650a4920e3de3fbc126dafd23222dffb70c1c2a2451a4c7be4a9ee096619f331",
+    "PXR_ProjectSetting.cs": "79a0eabc5595413fe35828678d0864d1ea936e70fc12d3f53afec0171411cb8c",
+    "PXR_Utils.cs": "c38241b9c7a1aecc69479a21f1ca8f4ac17fa9596ac07bcf137040a8feb3e75a",
+    "PXR_PortalEditor.cs": "870d7991f7228dee174eff9c6299d725a5717e01d28a8ec2722072f094de33e8"
+  },
+  "release": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_EnvironmentLighting_20261028.apk",
+    "sha256": "5900f92f6caa3a6615fc0df5994b0c9c2b3df533c2cf2d9aa4280bc645938f24",
+    "bytes": 165648273,
+    "unity_build_pipeline_seconds": 210.130189,
+    "recorded_inputs": 1829,
+    "production_inputs_unchanged": true,
+    "editor_only_input_change_count": 6,
+    "editor_tests_excluded_from_player": true,
+    "crc": true,
+    "signature_v2": true,
+    "zipalign": true,
+    "gradle_apk_matches": true,
+    "native_runtime_matches": true,
+    "generated_lighting_cpp": true,
+    "reduction_shader_asset": "assets/bin/Data/e61c4c0f03484cd098b02d8179b866a9",
+    "light_estimation_enabled": true,
+    "spatial_data_permission": true
+  },
+  "headset_installed": false,
+  "real_environment_visual_acceptance": false
+}

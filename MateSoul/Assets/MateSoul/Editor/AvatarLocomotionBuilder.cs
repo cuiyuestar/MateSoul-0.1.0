@@ -30,6 +30,12 @@ namespace MateSoul.Editor
             "Assets/MateSoul/Content/Locomotion/Lengyue_TurnRight_BodyOnly.anim";
         public const string SocialAttentionPath =
             Idle03Path;
+        public const string AngryPath =
+            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/" +
+            "Emotion/Angry/Lengyue_Angry01.anim";
+        public const string SadPath =
+            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/" +
+            "Emotion/Sad/Lengyue_Sad01.anim";
         private const string CharacterPrefabPath =
             "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Prefabs/" +
             "Lengyue_GameCharacter.prefab";
@@ -52,9 +58,13 @@ namespace MateSoul.Editor
             var idle03 = LoadClip(Idle03Path);
             var walk = LoadClip(WalkPath);
             var socialIdle = LoadClip(SocialAttentionPath);
+            var angry = LoadClip(AngryPath);
+            var sad = LoadClip(SadPath);
             BuildTurnClips(idle, walk, out var left, out var right);
             Configure(controller, idle, idle02, idle03, walk,
                 left, right, socialIdle);
+            ConfigureEmotionLayer(controller, angry);
+            ConfigureEmotionState(controller, ResponseEmotionAudio.SadStateName, sad);
         }
 
         private static void Configure(AnimatorController controller,
@@ -67,6 +77,10 @@ namespace MateSoul.Editor
                 rightTurn == null || socialIdle == null)
                 throw new ArgumentNullException("Locomotion content is incomplete.");
             EnsureFloatParameter(controller, "Speed");
+            EnsureFloatParameter(controller, "WalkPlaybackRate");
+            var parameters = controller.parameters;
+            parameters.Single(parameter => parameter.name == "WalkPlaybackRate").defaultFloat = 1;
+            controller.parameters = parameters;
             EnsureFloatParameter(controller, "TurnRate");
             EnsureParameter(controller, "IdleVariant",
                 AnimatorControllerParameterType.Int);
@@ -76,6 +90,8 @@ namespace MateSoul.Editor
                 AnimatorControllerParameterType.Trigger);
             EnsureParameter(controller, "TurnStepRight",
                 AnimatorControllerParameterType.Trigger);
+            EnsureParameter(controller, "TurnStepActive",
+                AnimatorControllerParameterType.Bool);
 
             var machine = controller.layers[0].stateMachine;
             var locomotion = machine.states.Select(child => child.state)
@@ -94,9 +110,11 @@ namespace MateSoul.Editor
             blend.children = new[]
             {
                 Child(idle, 0),
-                Child(walk, .9f)
+                Child(walk, AvatarMotor.FullWalkBlendSpeed)
             };
             locomotion.motion = blend;
+            locomotion.speedParameter = "WalkPlaybackRate";
+            locomotion.speedParameterActive = true;
             locomotion.writeDefaultValues = true;
 
             var attention = GetOrAddState(machine, "SocialAttention");
@@ -139,6 +157,10 @@ namespace MateSoul.Editor
                 "TurnStepLeft", AnimatorConditionMode.If, .14f);
             AddConditionTransition(attention, turnRight,
                 "TurnStepRight", AnimatorConditionMode.If, .14f);
+            AddTurnContinuation(turnLeft, turnLeft, "TurnStepLeft");
+            AddTurnContinuation(turnLeft, turnRight, "TurnStepRight");
+            AddTurnContinuation(turnRight, turnLeft, "TurnStepLeft");
+            AddTurnContinuation(turnRight, turnRight, "TurnStepRight");
             AddExitTransition(turnLeft, attention, true);
             AddExitTransition(turnLeft, locomotion, false);
             AddExitTransition(turnRight, attention, true);
@@ -152,6 +174,40 @@ namespace MateSoul.Editor
             EditorUtility.SetDirty(thirdIdle);
             EditorUtility.SetDirty(turnLeft);
             EditorUtility.SetDirty(turnRight);
+            EditorUtility.SetDirty(controller);
+        }
+
+        public static void ConfigureEmotionLayer(
+            AnimatorController controller, AnimationClip angry)
+            => ConfigureEmotionState(controller, ResponseEmotionAudio.AngryStateName, angry);
+
+        public static void ConfigureEmotionState(
+            AnimatorController controller, string stateName, AnimationClip clip)
+        {
+            var index = Array.FindIndex(controller.layers,
+                layer => layer.name == ResponseEmotionAudio.EmotionLayerName);
+            if (index < 0)
+            {
+                controller.AddLayer(ResponseEmotionAudio.EmotionLayerName);
+                index = controller.layers.Length - 1;
+            }
+            var layers = controller.layers;
+            var layer = layers[index];
+            layer.defaultWeight = 0;
+            layer.blendingMode = AnimatorLayerBlendingMode.Override;
+            layer.avatarMask = null;
+            var state = layer.stateMachine.states
+                .Select(child => child.state)
+                .FirstOrDefault(value =>
+                    value.name == stateName) ??
+                layer.stateMachine.AddState(stateName);
+            state.motion = clip;
+            state.speed = 0;
+            state.writeDefaultValues = false;
+            if (layer.stateMachine.defaultState == null)
+                layer.stateMachine.defaultState = state;
+            layers[index] = layer;
+            controller.layers = layers;
             EditorUtility.SetDirty(controller);
         }
 
@@ -434,15 +490,29 @@ namespace MateSoul.Editor
             AnimatorState destination, bool socialAttention)
         {
             var transition = source.AddTransition(destination);
-            transition.hasExitTime = true;
-            transition.exitTime = .96f;
+            // The motor releases ownership only after the step ends and facing
+            // settles, or when another action cancels turning.
+            transition.hasExitTime = false;
             transition.hasFixedDuration = true;
             transition.duration = .16f;
             transition.canTransitionToSelf = false;
+            transition.AddCondition(AnimatorConditionMode.IfNot, 0, "TurnStepActive");
             transition.AddCondition(socialAttention
                     ? AnimatorConditionMode.If
                     : AnimatorConditionMode.IfNot,
                 0, "SocialAttention");
+        }
+
+        private static void AddTurnContinuation(AnimatorState source,
+            AnimatorState destination, string trigger)
+        {
+            var transition = source.AddTransition(destination);
+            transition.hasExitTime = false;
+            transition.hasFixedDuration = true;
+            transition.duration = .14f;
+            transition.canTransitionToSelf = source == destination;
+            transition.AddCondition(AnimatorConditionMode.If, 0, "TurnStepActive");
+            transition.AddCondition(AnimatorConditionMode.If, 0, trigger);
         }
 
         private static void EnsureFloatParameter(

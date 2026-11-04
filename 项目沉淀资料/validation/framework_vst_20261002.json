@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-02",
+  "status": "passed_with_emulator_runtime_log_noise",
+  "device": "emulator-5554",
+  "package": "com.UnityTechnologies.com.unity.template.urpblank",
+  "sdkMode": "PICO Unity Integration SDK / PICO XR",
+  "visual": {
+    "passed": true,
+    "background": "PICO Emulator built-in bedroom VST scene",
+    "characterVisible": true,
+    "worldSpaceHudVisible": true,
+    "controllerRayVisible": true,
+    "blackBackground": false,
+    "captureResolution": "2160x2158",
+    "captureRetention": "deleted after visual inspection"
+  },
+  "runtimeEvidence": {
+    "extension": "XR_FB_passthrough Version=5",
+    "supportsColor": true,
+    "enableVideoSeeThrough": 1,
+    "passthroughLayerCreated": true,
+    "seethroughStateChanged": 3,
+    "readyAtDeviceLocal": "2026-10-02 18:47:44.570",
+    "source": "PICO Emulator Spatial Mesh",
+    "navMeshBuildMs": 37
+  },
+  "renderConfiguration": {
+    "cameraClear": "SolidColor RGBA(0,0,0,0)",
+    "xrCameraHdr": false,
+    "urpHdr": false,
+    "postProcessing": false
+  },
+  "knownEmulatorIssue": {
+    "message": "Passthrough effect data is NULL!",
+    "behavior": "Native emulator runtime logs this repeatedly while base VST remains visibly correct.",
+    "mitigation": "No application fallback or effect API was retained; physical headset validation remains required."
+  },
+  "apk": {
+    "path": "Builds/MateSoul_Framework.apk",
+    "bytes": 79907577,
+    "sha256": "a15c89e9feab53bf288a8d7e5b09b7112c4dd47ab0b9c8449c280497325528b5"
+  }
+}

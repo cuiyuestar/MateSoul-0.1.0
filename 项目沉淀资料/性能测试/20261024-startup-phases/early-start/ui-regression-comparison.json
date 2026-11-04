@@ -1,0 +1,19 @@
+{
+  "comparison": [
+    {
+      "run": "ui-regression",
+      "result": "Failed",
+      "message": "  Expected: True\n  But was:  False\n",
+      "stack": "at MateSoul.Tests.GameRuntimeTests+<ExerciseHud>d__94.MoveNext () [0x00996] in /Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Tests/Engine/GameRuntimeTests.cs:2435\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in ./Library/PackageCache/com.unity.test-framework@1.4.6/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:44\n"
+    },
+    {
+      "run": "ui-baseline",
+      "result": "Failed",
+      "message": "  Expected: True\n  But was:  False\n",
+      "stack": "at MateSoul.Tests.GameRuntimeTests+<ExerciseHud>d__94.MoveNext () [0x00996] in /Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Tests/Engine/GameRuntimeTests.cs:2435\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in ./Library/PackageCache/com.unity.test-framework@1.4.6/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:44\n"
+    }
+  ],
+  "sameFailureLocation": true,
+  "bufferedMessagesAndOrderReached": true,
+  "notificationAlphaReached": true
+}

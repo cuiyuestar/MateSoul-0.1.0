@@ -11,7 +11,7 @@ namespace MateSoul.Runtime
         Increase
     }
 
-    public sealed class HeatingBaseButton : Button
+    public sealed class HeatingBaseButton : PhysicalUiButton
     {
         [SerializeField] private HeatingBaseController controller;
         [SerializeField] private HeatingBaseButtonKind kind;

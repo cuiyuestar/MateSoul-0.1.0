@@ -1,0 +1,107 @@
+{
+  "unity": "2022.3.38f1",
+  "scope": "Exact production skeleton and controller; production speed-update methods replayed with Rigidbody velocity inputs. No headset or collision-simulation claim.",
+  "sourceSha256": "2ab851f68090ad30577ca2dca67ab9af3a060c827cab595155d00434ba9eb76b",
+  "cycleSeconds": 1.0666667222976685,
+  "sourceFrameRate": 30.0,
+  "strideMeters": 0.6636598706245422,
+  "referenceMetersPerSecond": 0.6221811175346375,
+  "defaultMetersPerSecond": 0.75,
+  "defaultPlaybackRate": 1.2054367753425863,
+  "mappedBones": 51,
+  "curveBindings": 207,
+  "legScale": 0.9145931005477905,
+  "maximumPelvisCorrectionMeters": 0.025020897388458252,
+  "maximumRetargetFootErrorMeters": 2.1348220968775422e-07,
+  "loopPositionErrorMeters": 5.960464477539063e-08,
+  "loopRotationErrorDegrees": 0.0,
+  "rootDriftMeters": 0.0,
+  "checks": {
+    "idle01Advances": true,
+    "idle02Advances": true,
+    "idle03Advances": true,
+    "turnRateUnaffected": true,
+    "rootMotionDisabled": true,
+    "clipGuidPreserved": true,
+    "missingBindings": []
+  },
+  "runs": [
+    {
+      "scenario": "constant",
+      "speedMetersPerSecond": 0.20000000298023224,
+      "parametersFollowPhysics": true,
+      "allFinite": true,
+      "fullWalkWeight": true,
+      "phaseRateErrorCyclesPerSecond": 2.0954756109858863e-05,
+      "supportSegments": 10,
+      "maximumSupportSlipMeters": 0.0010549895784529438,
+      "meanSupportSlipMeters": 0.0008478805013260422
+    },
+    {
+      "scenario": "constant",
+      "speedMetersPerSecond": 0.550000011920929,
+      "parametersFollowPhysics": true,
+      "allFinite": true,
+      "fullWalkWeight": true,
+      "phaseRateErrorCyclesPerSecond": 1.3913958355260547e-05,
+      "supportSegments": 10,
+      "maximumSupportSlipMeters": 0.000999689846808618,
+      "meanSupportSlipMeters": 0.0007694005955610883
+    },
+    {
+      "scenario": "constant",
+      "speedMetersPerSecond": 0.6221811175346375,
+      "parametersFollowPhysics": true,
+      "allFinite": true,
+      "fullWalkWeight": true,
+      "phaseRateErrorCyclesPerSecond": 0.0,
+      "supportSegments": 10,
+      "maximumSupportSlipMeters": 0.0009651993898374467,
+      "meanSupportSlipMeters": 0.000761937731543475
+    },
+    {
+      "scenario": "constant",
+      "speedMetersPerSecond": 0.75,
+      "parametersFollowPhysics": true,
+      "allFinite": true,
+      "fullWalkWeight": true,
+      "phaseRateErrorCyclesPerSecond": 2.156942900910508e-05,
+      "supportSegments": 10,
+      "maximumSupportSlipMeters": 0.0010345967469196878,
+      "meanSupportSlipMeters": 0.0007827769110851094
+    },
+    {
+      "scenario": "constant",
+      "speedMetersPerSecond": 1.100000023841858,
+      "parametersFollowPhysics": true,
+      "allFinite": true,
+      "fullWalkWeight": true,
+      "phaseRateErrorCyclesPerSecond": 2.7827916710521095e-05,
+      "supportSegments": 10,
+      "maximumSupportSlipMeters": 0.0010471157902118,
+      "meanSupportSlipMeters": 0.0007875537399916118
+    },
+    {
+      "scenario": "accelerate-brake-block-resume",
+      "speedMetersPerSecond": 1.100000023841858,
+      "parametersFollowPhysics": true,
+      "allFinite": true,
+      "fullWalkWeight": true,
+      "phaseRateErrorCyclesPerSecond": 0.0,
+      "supportSegments": 10,
+      "maximumSupportSlipMeters": 0.0010295324386300506,
+      "meanSupportSlipMeters": 0.0007812326066586349
+    }
+  ],
+  "maximumSupportSlipMeters": 0.0010549895784529438,
+  "passed": true,
+  "productionClipSha256": "8611994e7f3b130eff7bb7bf09832bd14a38a2af9eb26adf03cc483fa36b9914",
+  "productionSkeletonMatchesValidatedSkeleton": true,
+  "productionCompile": {
+    "unityExitCode": 0,
+    "result": "Tundra build success; full production scripts compiled and assets imported",
+    "outerToolRestriction": "Unity background metrics/cache writes were blocked by the sandbox; Unity itself exited successfully."
+  },
+  "productionControllerSha256": "ac9fac96030d6f77a923c51ec8a2a7e5c9b676675038538b11ff32bfad0bdc00",
+  "productionPrefabSha256": "11211e45bcb4f9d1af2221183d23f19c20d58d67545b4204e37cbacb30d98118"
+}

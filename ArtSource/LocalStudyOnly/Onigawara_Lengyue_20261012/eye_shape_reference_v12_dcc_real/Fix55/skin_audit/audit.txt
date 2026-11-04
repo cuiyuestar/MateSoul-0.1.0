@@ -1,0 +1,4 @@
+Body material=Assets/Study/EyeShapeReferenceV12DCCReal/Fix34/BodySkin_Direct34.mat base=Assets/Study/EyeShapeReferenceV12DCCReal/Fix34/Textures/Body_BaseColor_Direct34.png shade=Assets/Study/EyeShapeReferenceV12DCCReal/Fix34/Textures/Body_Shade_Direct34.png normal=Assets/Study/A_ImportedResources/040_Texture2D.asset
+Body material=Assets/Study/A_URPMaterials/07_Body_1.mat base=Assets/Study/A_ImportedResources/042_Texture2D.asset shade=Assets/Study/A_ImportedResources/044_Texture2D.asset normal=Assets/Study/A_ImportedResources/040_Texture2D.asset
+Body material=Assets/Study/B_Materials/Body_Purple.mat base=Assets/Study/Textures/Hair_BaseColor_LengyuePurple.png shade=Assets/Study/Textures/Hair_Shade_LengyuePurple.png normal=Assets/Study/A_ImportedResources/040_Texture2D.asset
+Source bytes unchanged; no model or materials saved. Debug clones removed.

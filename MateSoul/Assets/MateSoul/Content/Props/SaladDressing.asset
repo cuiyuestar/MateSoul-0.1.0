@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61a301beb053047f69bf1f51f6a8d579, type: 3}
+  m_Name: SaladDressing
+  m_EditorClassIdentifier: 
+  id: salad-dressing
+  displayName: "\u6C99\u62C9\u9171"
+  prefab: {fileID: 2281943191767704991, guid: 8482895ee54a042f9acbf7f0cb1ffabe, type: 3}
+  capabilities:
+  - visit
+  - seasoning-dispenser
+  approachOffset: {x: 0, y: 0, z: -0.65}
+  catalogVisible: 1
+  category: 3
+  footprint: {x: 0.07, y: 0.04}
+  placementHeight: 0.251
+  focusMaterial: {fileID: 2100000, guid: ba4a28338c39c4aa9bf425819dbfad5b, type: 2}
+  physics:
+    mass: 0.28
+    material: {fileID: 13400000, guid: 2d908caf1abfd4d48a4b497db7a3b835, type: 2}
+    linearDrag: 0.035
+    angularDrag: 0.08
+  allowSurfacePlacement: 1
+  inventoryLimit: 1
+  unlimitedInventory: 0
+  restockDaily: 0
+  fixedAfterPlacement: 0
+  placementPreview: 0
+  placementSurface: 0
+  immovableAfterPlacement: 0
+  placementFacingYaw: 0
+  minimumSurfaceSupportRatio: 1
+  breakable:
+    enabled: 0
+    lightForceThreshold: 0
+    heavyForceThreshold: 0
+    lightFragmentCount: 0
+    heavyFragmentCount: 0
+    debrisLifetime: 0
+    lightDebrisPrefab: {fileID: 0}
+    heavyDebrisPrefab: {fileID: 0}
+    breakSound: {fileID: 0}
+  impactSound:
+    enabled: 0
+    lightForceThreshold: 0
+    mediumForceThreshold: 0
+    heavyForceThreshold: 0
+    sound: {fileID: 0}
+  cooking:
+    enabled: 0
+    donenessPerDegreeSecond: 0
+  cuttable:
+    enabled: 0
+    interiorMaterial: {fileID: 0}
+    collisionProxy: {fileID: 0}
+    origin: {x: 0, y: 0, z: 0}
+    axis: {x: 0, y: 0, z: 0}
+    axisLength: 0
+    maximumRadius: 0
+    radiusProfile:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    maximumCutDepth: 0
+    minimumPieceVolumeRatio: 0
+  interaction: {fileID: 11400000, guid: 73b7cf4927b2140e19ffd19c4ea2cfd7, type: 2}
+  consumedProduct: 0
+  placementParts: []

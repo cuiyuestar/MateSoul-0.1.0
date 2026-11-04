@@ -1,0 +1,13 @@
+{
+  "name": "MateSoul.Tests.Engine",
+  "references": [
+    "MateSoul.Core", "MateSoul.Gameplay", "MateSoul.Runtime", "MateSoul.Character",
+    "MateSoul.RoomNavigation", "MateSoul.Editor", "Unity.Animation.Rigging", "Unity.InputSystem",
+    "Unity.XR.Interaction.Toolkit", "Unity.RenderPipelines.Universal.Runtime",
+    "UnityEngine.UI", "Unity.TextMeshPro", "ByteDance.PICO.XR"
+  ],
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll", "Newtonsoft.Json.dll"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}

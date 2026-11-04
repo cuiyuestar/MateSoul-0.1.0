@@ -1,0 +1,98 @@
+{
+  "userRetestBaseline": {
+    "previousArtifactSha256": "d5d0a9a9777fe6f432f1bb99863ee482fb4fcee329acb2988c69878d61f44237",
+    "avatarAndItemsLoaded": true,
+    "reportedIssues": [
+      "A transparent shape masks UI and virtual objects when looking down.",
+      "The world-space HUD remains too high."
+    ]
+  },
+  "rootCause": {
+    "status": "HUD_CODE_PATH_CONFIRMED_WORLD_CAUSE_NOT_PROVEN",
+    "hud": "Both HUD shaders used scene Z testing and multiplied alpha by Environment Depth.",
+    "world": "Native measured mesh renderers wrote invisible depth while Environment Depth also owned visual occlusion.",
+    "effect": "The HUD participated in real-world occlusion. The claimed stale mesh cause for virtual-object masks was not proven; disabling measured mesh then caused a user-confirmed loss of world occlusion."
+  },
+  "fix": {
+    "hudZTestAlways": true,
+    "hudEnvironmentDepthSamplingRemoved": true,
+    "hudVerticalOffsetMeters": -0.1,
+    "environmentDepthPrimaryWhenValid": true,
+    "measuredMeshVisualFallbackWhenDepthUnavailable": true,
+    "measuredMeshCollisionPreserved": true,
+    "sceneCaptureProxyVisualDepth": false
+  },
+  "tests": {
+    "suite": "MateSoul.Tests.RealityOcclusionTests",
+    "total": 11,
+    "passed": 11,
+    "failed": 0,
+    "results": "/Users/bytedance/MateSoul/.artifacts/occlusion-ui-lower-20261025/reality-occlusion-tests.xml",
+    "sandboxExitNote": "Unity produced a passing XML and exited; the wrapper returned non-zero only when CoreBusinessMetrics writes were denied."
+  },
+  "build": {
+    "result": "Succeeded",
+    "duration": "00:02:37.3011219",
+    "protectedFilesChanged": [],
+    "il2cppMarkersVerified": [
+      "GameHud.CalculateVisibleCenter",
+      "RealityOcclusionMeshRenderer.ApplyDepthRendering",
+      "RealityOcclusionMeshRenderer.ShouldRenderMeasuredMesh"
+    ],
+    "parallelDiagnosticSyntaxFix": "Removed one surplus JSON-closing brace from each of two DEVELOPMENT_BUILD logs in HandHoldInteractable.cs."
+  },
+  "artifact": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_OcclusionUiLowered_20261025.apk",
+    "bytes": 215331012,
+    "sha256": "6115c646a86f1a33f39374d684ff91d9690a18d4c53f33fe9d440892bf7b3c17",
+    "installedSha256": "6115c646a86f1a33f39374d684ff91d9690a18d4c53f33fe9d440892bf7b3c17",
+    "package": "com.matesoul.game",
+    "versionName": "0.1.0",
+    "versionCode": 1,
+    "zipEntries": 1564,
+    "crcPass": true,
+    "zipalignPass": true,
+    "signatureV2Pass": true,
+    "signerCertificateSha256": "0799ed95a5c84fcc7d5eb21dfa5e587dbc8650b1ac54dc50201de4540711ea97",
+    "abis": [
+      "arm64-v8a"
+    ],
+    "il2cpp": true
+  },
+  "saveProtection": {
+    "path": "/storage/emulated/0/Android/data/com.matesoul.game/files/matesoul-v1.json",
+    "beforeInstallSha256": "6952fb70e18fa32a3c25f3ed30e55c2836cd492a3994d6ebd970134e656bd3e3",
+    "afterInstallSha256": "6952fb70e18fa32a3c25f3ed30e55c2836cd492a3994d6ebd970134e656bd3e3",
+    "afterStartupSha256": "6952fb70e18fa32a3c25f3ed30e55c2836cd492a3994d6ebd970134e656bd3e3"
+  },
+  "devicePostInstall": {
+    "device": "PB3A10MGL9220170B",
+    "model": "B3110",
+    "coldStartActivityTotalMs": 262,
+    "nativeMeshes": 9,
+    "meshDepthEnabled": false,
+    "environmentDepthOwnsVisuals": true,
+    "environmentDepthAvailable": true,
+    "rawDepthWidth": 512,
+    "processedDepthWidth": 512,
+    "crashObserved": false,
+    "businessReadyObservedInUnattendedRun": false,
+    "lifecycleNote": "The headset backgrounded the unattended activity before room loading completed.",
+    "evidence": "/Users/bytedance/MateSoul/.artifacts/occlusion-ui-lower-20261025"
+  },
+  "sourceChecksums": {
+    "Assets/MateSoul/Runtime/GameHud.cs": "aa92371270605a9cfe75fadf4abc36429be1ffd54725e8125fb68e38d956204e",
+    "Assets/MateSoul/Runtime/RealityOcclusionMeshRenderer.cs": "dec1df7dc00afa93a0c66437b6bddd6d40016f15468fc67e8f3a8986793b94c0",
+    "Assets/MateSoul/Runtime/RealityEnvironmentOcclusionFeature.cs": "989e3974948fbfdb60d50f0cc95edd09f83cee137311607f0315f670f6b19c94",
+    "Assets/MateSoul/Runtime/Shaders/UiAlwaysOnTop.shader": "973c0880647af65d3eafbef655771538a280e34adbe6dfbc938b7af8c07eb2f6",
+    "Assets/MateSoul/Runtime/Shaders/SpatialUiSdf.shader": "c5ddef02d42afa815fdd83a0623692934a0f9c9f6a9ed101cb0d60b2cb6e0377"
+  },
+  "acceptance": {
+    "implementationAndPackage": "passed",
+    "installedArtifact": "passed",
+    "runtimeOcclusionOwnership": "rejected_user_confirmed_world_occlusion_regression",
+    "transparentMaskRemoved": "not_verified",
+    "hudHeight": "pending_user_visual_retest",
+    "supersededBy": "occlusion_restored_20261025.json"
+  }
+}

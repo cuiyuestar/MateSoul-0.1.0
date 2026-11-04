@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace MateSoul.Runtime
 {
-    public sealed class WaterDispenserButton : Button
+    public sealed class WaterDispenserButton : PhysicalUiButton
     {
         [SerializeField] private WaterDispenserController dispenser;
         [SerializeField] private Transform buttonPivot;

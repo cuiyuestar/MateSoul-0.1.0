@@ -76,6 +76,56 @@ namespace MateSoul.Runtime
                 {
                     var requested = DockForSide(point, side);
                     requested.y = Session.Navigation.FloorHeight;
+#region debug-point A-B-C-E:workspace-side-candidate
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    var debugSampledOk = Session.Navigation.TrySample(
+                        requested, .08f, out var debugSampled);
+                    Vector3[] debugCorners = null;
+                    var debugPathOk = debugSampledOk &&
+                                      Session.Navigation.TryPath(
+                                          Motor.Position, debugSampled,
+                                          out debugCorners);
+                    var debugTargetLocal = side < 0
+                        ? point
+                        : new Vector3(-point.x, point.y, -point.z);
+                    var debugTarget = Bindings["table"].View.transform
+                        .TransformPoint(debugTargetLocal);
+                    var debugDirection = Vector3.ProjectOnPlane(
+                        debugTarget - debugSampled, Vector3.up);
+                    var debugCanOccupy = debugSampledOk &&
+                                         debugDirection.sqrMagnitude >= .001f &&
+                                         Motor.Body.CanOccupy(new Pose(
+                                             debugSampled + Vector3.up * .025f,
+                                             Quaternion.LookRotation(debugDirection)));
+                    var debugCornerJson = debugCorners == null
+                        ? ""
+                        : string.Join(",", Array.ConvertAll(
+                            debugCorners, value => JsonUtility.ToJson(value)));
+                    var debugPayload =
+                        $"{{\"sessionId\":\"item-seat-navigation-fail\",\"runId\":\"post-fix\"," +
+                        $"\"hypothesisId\":\"A-B-C-E\",\"location\":\"CutFruitAction.TrySelectWorkspaceSide\"," +
+                        $"\"msg\":\"[DEBUG] workspace side candidate\",\"data\":{{" +
+                        $"\"frame\":{Time.frameCount},\"side\":{side}," +
+                        $"\"point\":{JsonUtility.ToJson(point)}," +
+                        $"\"tablePosition\":{JsonUtility.ToJson(Bindings["table"].View.transform.position)}," +
+                        $"\"tableRotation\":{JsonUtility.ToJson(Bindings["table"].View.transform.rotation)}," +
+                        $"\"origin\":{JsonUtility.ToJson(Motor.Position)}," +
+                        $"\"requested\":{JsonUtility.ToJson(requested)}," +
+                        $"\"sampledOk\":{debugSampledOk.ToString().ToLowerInvariant()}," +
+                        $"\"sampled\":{JsonUtility.ToJson(debugSampled)}," +
+                        $"\"sampleError\":{(debugSampledOk ? Vector3.Distance(debugSampled, requested) : -1)}," +
+                        $"\"pathOk\":{debugPathOk.ToString().ToLowerInvariant()}," +
+                        $"\"corners\":[{debugCornerJson}]," +
+                        $"\"directionSqr\":{debugDirection.sqrMagnitude}," +
+                        $"\"canOccupy\":{debugCanOccupy.ToString().ToLowerInvariant()}}}}}";
+                    var debugRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                        Application.isEditor
+                            ? "http://127.0.0.1:7780/event"
+                            : "http://127.0.0.1:7780/event",
+                        debugPayload, "application/json");
+                    debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
                     if (!Session.Navigation.TrySample(
                             requested, .08f, out var sampled) ||
                         Vector3.Distance(sampled, requested) > .08f ||
@@ -147,6 +197,27 @@ namespace MateSoul.Runtime
             var plateTarget = At(workspace.platePosition);
             var fruitTarget = At(workspace.workPosition);
             var knifeTarget = At(workspace.toolPosition);
+#region debug-point D:workspace-state
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            var debugWorkspacePayload =
+                $"{{\"sessionId\":\"item-action-jitter\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"D\",\"location\":\"CutFruitAction.BuildSteps\"," +
+                $"\"msg\":\"[DEBUG] workspace placement state\",\"data\":{{" +
+                $"\"workspaceSide\":{workspaceSide}," +
+                $"\"plateDistance\":{Vector3.Distance(Bindings["plate"].View.Body.Pose.position, plateTarget.position)}," +
+                $"\"plateAngle\":{Quaternion.Angle(Bindings["plate"].View.Body.Pose.rotation, plateTarget.rotation)}," +
+                $"\"fruitDistance\":{Vector3.Distance(Bindings["fruit"].View.Body.Pose.position, fruitTarget.position)}," +
+                $"\"fruitAngle\":{Quaternion.Angle(Bindings["fruit"].View.Body.Pose.rotation, fruitTarget.rotation)}," +
+                $"\"knifeDistance\":{Vector3.Distance(Bindings["knife"].View.Body.Pose.position, knifeTarget.position)}," +
+                $"\"knifeAngle\":{Quaternion.Angle(Bindings["knife"].View.Body.Pose.rotation, knifeTarget.rotation)}}}}}";
+            var debugWorkspaceRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                Application.isEditor
+                    ? "http://127.0.0.1:7781/event"
+                    : "http://127.0.0.1:7781/event",
+                debugWorkspacePayload, "application/json");
+            debugWorkspaceRequest.SendWebRequest().completed += _ => debugWorkspaceRequest.Dispose();
+#endif
+#endregion
             if (!IsAtWorkspace(Bindings["plate"], plateTarget))
                 yield return new ItemTransferStep("把盘子放到餐桌", Session, Rig,
                     Bindings["plate"], RunId, () => At(workspace.platePosition),
@@ -252,6 +323,30 @@ namespace MateSoul.Runtime
                 rig.GripForHeldPosition(target.position).position);
             var rotationDistance = Quaternion.Angle(
                 body.Pose.rotation, target.rotation);
+#region debug-point A-B:knife-move-gate
+#if UNITY_EDITOR
+            if (Time.unscaledTime >= debugNextPhaseState)
+            {
+                debugNextPhaseState = Time.unscaledTime + .25f;
+                var payload =
+                    $"{{\"sessionId\":\"wrist-grip-follow\",\"runId\":\"grip-redesign-phase\"," +
+                    $"\"hypothesisId\":\"A-B\",\"location\":\"KnifeCutStep.MoveKnife\"," +
+                    $"\"msg\":\"[DEBUG] knife move gate\",\"data\":{{\"phase\":{phase}," +
+                    $"\"phaseTime\":{time},\"positionDistance\":{positionDistance}," +
+                    $"\"gripDistance\":{gripDistance},\"gripTolerance\":{gripTolerance}," +
+                    $"\"rotationDistance\":{rotationDistance}," +
+                    $"\"bodyPosition\":{JsonUtility.ToJson(body.Pose.position)}," +
+                    $"\"targetPosition\":{JsonUtility.ToJson(target.position)}," +
+                    $"\"drivenPosition\":{JsonUtility.ToJson(drivenPose.position)}," +
+                    $"\"bodyRotation\":{JsonUtility.ToJson(body.Pose.rotation)}," +
+                    $"\"targetRotation\":{JsonUtility.ToJson(target.rotation)}," +
+                    $"\"contactError\":{rig.ContactError}}}}}";
+                var request = UnityEngine.Networking.UnityWebRequest.Post(
+                    "http://127.0.0.1:7786/event", payload, "application/json");
+                request.SendWebRequest().completed += _ => request.Dispose();
+            }
+#endif
+#endregion
             return positionDistance < gripTolerance;
         }
 
@@ -273,6 +368,24 @@ namespace MateSoul.Runtime
         public bool Tick(float dt)
         {
             time += dt;
+#region debug-point C:knife-phase-state
+#if UNITY_EDITOR
+            if (debugLastPhase != phase)
+            {
+                debugLastPhase = phase;
+                var phasePayload =
+                    $"{{\"sessionId\":\"wrist-grip-follow\",\"runId\":\"grip-redesign-phase\"," +
+                    $"\"hypothesisId\":\"C\",\"location\":\"KnifeCutStep.Tick\"," +
+                    $"\"msg\":\"[DEBUG] knife phase entered\",\"data\":{{\"phase\":{phase}," +
+                    $"\"phaseTime\":{time},\"bodyPosition\":" +
+                    $"{JsonUtility.ToJson(knife.View.Body.Pose.position)},\"restPosition\":" +
+                    $"{JsonUtility.ToJson(rest.position)}}}}}";
+                var phaseRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                    "http://127.0.0.1:7786/event", phasePayload, "application/json");
+                phaseRequest.SendWebRequest().completed += _ => phaseRequest.Dispose();
+            }
+#endif
+#endregion
             if (time > 20) throw new InvalidOperationException("切割步骤超时。");
             switch (phase)
             {
@@ -328,6 +441,24 @@ namespace MateSoul.Runtime
                     }
                     var raisedArrived = MoveKnife(
                         gestureRaised, dt, .04f);
+#region debug-point A-C:knife-prepare-gate
+#if UNITY_EDITOR
+                    if (raisedArrived || time >= 19.5f)
+                    {
+                        var preparePayload =
+                            $"{{\"sessionId\":\"wrist-grip-follow\",\"runId\":\"grip-redesign-phase\"," +
+                            $"\"hypothesisId\":\"A-C\",\"location\":\"KnifeCutStep.PrepareGate\"," +
+                            $"\"msg\":\"[DEBUG] knife prepare gate\",\"data\":{{\"phase\":{phase}," +
+                            $"\"phaseTime\":{time},\"prepareBody\":{prepareBody}," +
+                            $"\"raisedArrived\":{raisedArrived.ToString().ToLowerInvariant()}," +
+                            $"\"distance\":{Vector3.Distance(knife.View.Body.Pose.position, gestureRaised.position)}," +
+                            $"\"contactError\":{rig.ContactError}}}}}";
+                        var prepareRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                            "http://127.0.0.1:7786/event", preparePayload, "application/json");
+                        prepareRequest.SendWebRequest().completed += _ => prepareRequest.Dispose();
+                    }
+#endif
+#endregion
                     if (prepareBody < 1) return false;
                     Next(4);
                     break;
@@ -339,6 +470,27 @@ namespace MateSoul.Runtime
                         ((knife.Profile.bladeStart + knife.Profile.bladeEnd) * .5f);
                     var topOffset = Vector3.ProjectOnPlane(
                         topMidpoint - fruit.View.Body.Pose.position, Vector3.up);
+#region debug-point A-B-D:knife-top-alignment
+#if UNITY_EDITOR
+                    if (Time.unscaledTime >= debugNextTopAlignment)
+                    {
+                        debugNextTopAlignment = Time.unscaledTime + .25f;
+                        var topPayload =
+                            $"{{\"sessionId\":\"wrist-grip-follow\",\"runId\":\"grip-redesign\"," +
+                            $"\"hypothesisId\":\"A-B-D\",\"location\":\"KnifeCutStep.TopAlignment\"," +
+                            $"\"msg\":\"[DEBUG] single gesture apex\",\"data\":{{" +
+                            $"\"horizontal\":{topOffset.magnitude},\"contactError\":{rig.ContactError}," +
+                            $"\"actualPosition\":{JsonUtility.ToJson(topBlade.position)}," +
+                            $"\"targetPosition\":{JsonUtility.ToJson(gestureRaised.position)}," +
+                            $"\"actualRotation\":{JsonUtility.ToJson(topBlade.rotation)}," +
+                            $"\"targetRotation\":{JsonUtility.ToJson(gestureRaised.rotation)}}}}}";
+                        var topRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                            "http://127.0.0.1:7786/event",
+                            topPayload, "application/json");
+                        topRequest.SendWebRequest().completed += _ => topRequest.Dispose();
+                    }
+#endif
+#endregion
                     if (time < .2f) return false;
                     Next(5);
                     break;
@@ -357,6 +509,26 @@ namespace MateSoul.Runtime
                     var height = midpoint.y - fruitPosition.y;
                     var horizontalOffset = Vector3.ProjectOnPlane(
                         midpoint - fruitPosition, Vector3.up);
+#region debug-point E-F:knife-stroke-trajectory
+#if UNITY_EDITOR
+                    if (Time.unscaledTime >= debugNextStrokeState)
+                    {
+                        debugNextStrokeState = Time.unscaledTime + .1f;
+                        var strokeHorizontal = Vector3.ProjectOnPlane(
+                            midpoint - fruitPosition, Vector3.up).magnitude;
+                        var strokeGripDistance = Vector3.Distance(
+                            knife.Profile.WorldGrip(knife.View.Body.Pose).position,
+                            rig.GripForHeldPosition(strokePose.position).position);
+                        var strokeRotationDistance = Quaternion.Angle(
+                            knife.View.Body.Pose.rotation, strokePose.rotation);
+                        var strokePayload = FormattableString.Invariant(
+                            $"{{\"sessionId\":\"wrist-grip-follow\",\"runId\":\"single-cut-post-fix\",\"hypothesisId\":\"E-F\",\"location\":\"KnifeCutStep.StrokeTrajectory\",\"msg\":\"[DEBUG] single cut gesture\",\"data\":{{\"phaseTime\":{time},\"progress\":{cutProgress},\"commandHeight\":{commandHeight},\"bladeHeight\":{height},\"horizontal\":{strokeHorizontal},\"gripDistance\":{strokeGripDistance},\"rotationDistance\":{strokeRotationDistance}}}}}");
+                        var strokeRequest = UnityEngine.Networking.UnityWebRequest.Post(
+                            "http://127.0.0.1:7786/event", strokePayload, "application/json");
+                        strokeRequest.SendWebRequest().completed += _ => strokeRequest.Dispose();
+                    }
+#endif
+#endregion
                     if (cutProgress < 1) return false;
                     var origin = fruit.View.Body.Pose;
                     var poses = new Pose[4];
@@ -370,6 +542,13 @@ namespace MateSoul.Runtime
                     }
                     postCutRaised = knife.View.Body.Pose;
                     postCutRaised.position += Vector3.up * .12f;
+#region debug-point G:cut-gate
+#if UNITY_EDITOR
+                    var payload = FormattableString.Invariant($"{{\"sessionId\":\"wrist-grip-follow\",\"runId\":\"single-cut-post-fix\",\"hypothesisId\":\"A-B-D\",\"location\":\"KnifeCutStep.Tick\",\"msg\":\"[DEBUG] timed cut commit\",\"data\":{{\"gestureCompleted\":true,\"bladeHeight\":{height},\"horizontal\":{horizontalOffset.magnitude},\"contactError\":{rig.ContactError},\"wristCorrection\":{rig.WristCorrection},\"elbowAngle\":{rig.ElbowAngle},\"heldAlignmentError\":{rig.HeldAlignmentError},\"bladeMidpoint\":{JsonUtility.ToJson(midpoint)},\"fruit\":{JsonUtility.ToJson(fruitPosition)}}}}}");
+                    var request = UnityEngine.Networking.UnityWebRequest.Post("http://127.0.0.1:7786/event", payload, "application/json");
+                    request.SendWebRequest().completed += _ => request.Dispose();
+#endif
+#endregion
                     committed(session.CommitCut(fruit, poses, owner, run));
                     Next(6);
                     break;

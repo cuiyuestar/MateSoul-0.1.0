@@ -1,0 +1,391 @@
+{
+  "date": "2026-10-28",
+  "scope": "near eye clipping and reliable environment depth",
+  "unity": "2022.3.38f1",
+  "graphics_backend": "Metal",
+  "tests": {
+    "total": "48",
+    "passed": "48",
+    "failed": "0",
+    "skipped": "0",
+    "duration": "8.7417473"
+  },
+  "test_process": {
+    "exitCode": 0,
+    "seconds": 36.894832,
+    "sourcesUnchanged": true
+  },
+  "test_cases": [
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"foreground\",1.0f,0.0f,0.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"background\",3.0f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"coplanar\",2.0f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"uncertain-depth\",1.985f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"outside-frustum\",1.0f,2.2f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"filter-edge\",1.0f,1.95f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"inside-filter-border\",1.0f,1.7f,0.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"clear-zero\",1.0f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"clear-one\",1.0f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"not-finite\",1.0f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"hole-in-footprint\",1.0f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"near-eye\",0.03f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"behind-depth-camera\",1.0f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"occlusion-disabled\",1.0f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"outside-vertical-frustum\",1.0f,0.0f,1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.DynamicDepthGpu(\"valid-depth-edge\",1.0f,0.0f,-1.0f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NativeDescriptorBoundary(\"valid\",True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NativeDescriptorBoundary(\"invalid-near\",False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NativeDescriptorBoundary(\"infinite-far\",False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NativeDescriptorBoundary(\"invalid-pose\",False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NativeDescriptorBoundary(\"nan-position\",False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NativeDescriptorBoundary(\"flat-fov\",False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NativeDescriptorBoundary(\"invalid-fov\",False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NearClipGpuShowsThreeCentimeterObjectAtTwoCentimeters",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NearEyeMeshProtectsViewAndPreservesNormalWalls(0,0,0.03f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NearEyeMeshProtectsViewAndPreservesNormalWalls(70,0,0.03f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NearEyeMeshProtectsViewAndPreservesNormalWalls(50,45,0.03f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NearEyeMeshProtectsViewAndPreservesNormalWalls(0,0,0.5f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NearEyeMeshProtectsViewAndPreservesNormalWalls(70,0,0.5f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.NearEyeMeshProtectsViewAndPreservesNormalWalls(50,45,0.5f)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.PublishedFrameStopsAndResumesWithoutClearingWorldState",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.RemovedObservationKeepsMeasuredWorldUntilPositiveReplacement(False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.DepthFallbackAcceptance.RemovedObservationKeepsMeasuredWorldUntilPositiveReplacement(True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.CapturedFloorMismatchRequiresRebuildingFromMeasuredRoom",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.CapturedSurfaceMeshTakesPriorityOverCoarseRoomVolumes",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.CharacterSpawnWaitsForMeasuredFloorAfterFirstWallMesh",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker(\"swan_arm64\",False)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker(\"Pico-emulator\",True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker(\"Pico/swan/pico_spaceos_emulator_arm64:16/build\",True)",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.EveryQualityRendererContainsEnvironmentOcclusionFeature",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.HudShaderAlwaysRendersWithoutRealityOcclusion(\"Assets/MateSoul/Runtime/Shaders/UiAlwaysOnTop.shader\")",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.HudShaderAlwaysRendersWithoutRealityOcclusion(\"Assets/MateSoul/Runtime/Shaders/SpatialUiSdf.shader\")",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.HudVisibleCenterIncludesTwentyCentimeterDownwardOffset",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.MeasuredDepthHidesVirtualObjectButHudStillDraws",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.MeasuredMeshRendersWhenEnvironmentDepthIsUnavailable",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.MeasuredOcclusionRemainsEnabledWithAvailableEnvironmentDepth",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.MissingMeasuredMeshTimesOutAndCancellationStopsSpawnWait",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.RealityOcclusionTests.SnapshotWithoutMeasuredSurfaceBuildsNoRealityCollisionProxy",
+      "result": "Passed"
+    }
+  ],
+  "gpu_dynamic_visibility": [
+    {
+      "case": "foreground",
+      "visibility": 0.0,
+      "expected": 0.0
+    },
+    {
+      "case": "background",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "coplanar",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "uncertain-depth",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "outside-frustum",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "filter-edge",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "inside-filter-border",
+      "visibility": 0.0,
+      "expected": 0.0
+    },
+    {
+      "case": "clear-zero",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "clear-one",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "not-finite",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "hole-in-footprint",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "near-eye",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "behind-depth-camera",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "occlusion-disabled",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "outside-vertical-frustum",
+      "visibility": 1.0,
+      "expected": 1.0
+    },
+    {
+      "case": "valid-depth-edge",
+      "visibility": 0.5,
+      "expected": -1.0
+    }
+  ],
+  "gpu_near_eye_mesh": [
+    {
+      "pitch_degrees": 0.0,
+      "yaw_degrees": 0.0,
+      "distance_m": 0.03,
+      "red": 1.0,
+      "expected": 1.0
+    },
+    {
+      "pitch_degrees": 70.0,
+      "yaw_degrees": 0.0,
+      "distance_m": 0.03,
+      "red": 1.0,
+      "expected": 1.0
+    },
+    {
+      "pitch_degrees": 50.0,
+      "yaw_degrees": 45.0,
+      "distance_m": 0.03,
+      "red": 1.0,
+      "expected": 1.0
+    },
+    {
+      "pitch_degrees": 0.0,
+      "yaw_degrees": 0.0,
+      "distance_m": 0.5,
+      "red": 0.0,
+      "expected": 0.0
+    },
+    {
+      "pitch_degrees": 70.0,
+      "yaw_degrees": 0.0,
+      "distance_m": 0.5,
+      "red": 0.0,
+      "expected": 0.0
+    },
+    {
+      "pitch_degrees": 50.0,
+      "yaw_degrees": 45.0,
+      "distance_m": 0.5,
+      "red": 0.0,
+      "expected": 0.0
+    }
+  ],
+  "gpu_near_clip": {
+    "object_distance_m": 0.03,
+    "near_before_m": 0.05,
+    "near_after_m": 0.02,
+    "red_before": 0,
+    "red_after": 1
+  },
+  "cached_measured_mesh_and_collision_retained": true,
+  "positive_mesh_replacement_passed": true,
+  "normal_measured_occlusion_and_hud_passed": true,
+  "source_sha256": {
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/RealityEnvironmentOcclusionFeature.cs": "9b1eeeaaccc67295b980446bd8b8587d91b6f76ef8538890e06066e3bce11603",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/Resources/RealityOcclusion/SpatialMeshDepth.shader": "bab13928907f68050702d5a6cc92951feba9cccd062f299d6f03e9832b8ef841",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/Resources/RealityOcclusion/EnvironmentDepthComposite.shader": "efbf68a5164b64deefcf7a1310c9ab971c5cfce3de30e76e6fa62bc6dd7d7bd9",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/Shaders/RealityEnvironmentDepth.hlsl": "2431271d53d07f513032ba7a797b38d4476dd79d16e9480bc5bd1de6b46c5f72",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/RealityOcclusionMeshRenderer.cs": "8ac3f74a7085a75f769d8fb65e48b3159e5dc1feade3f1c54c194a6b2a4d92b6",
+    "/Users/bytedance/MateSoul/XR/Runtime/Scripts/SensePack/PXR_EnvironmentDepthManager.cs": "6701e4317f165ae4a38221f839852765afae801ad9fbbfddd510ac1ce6f72dd7",
+    "/Users/bytedance/MateSoul/XR/Assets/Resources/Shader/DepthPreprocessing.shader": "95af6eec2c17d08cc0d67b46adca6629d1dd7740bb710735b8e23724a085c7bb",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "3be1025fc1eefb6b3a4a04079fda131c1f8e448fd41385427ba9c81ae2c1c4bd",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/RoomNavigation/Editor/RoomNavigationSceneBuilder.cs": "5e10612e0097ec6a37f3872758c3c578213368d1f15dd69372e9f855f29bab4c"
+  },
+  "test_and_build_sources_match": true,
+  "build_process": {
+    "exitCode": 0,
+    "seconds": 119.4273805,
+    "sourcesUnchanged": true
+  },
+  "build_pass_line": "MATESOUL_BUILD_PASS path=/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk bytes=2338103766 duration=00:01:34.5310217",
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_DepthFallback_20261028.apk",
+  "bytes": 168074571,
+  "sha256": "536eb440aa82e95895121b4cd764f5adc236d6a94f10c6fdcd9f38121c138855",
+  "architectures": [
+    "arm64-v8a"
+  ],
+  "crc_passed": true,
+  "v2_signature_passed": true,
+  "zipalign_passed": true,
+  "native_library_matches_current_build": true,
+  "native_sha256": "19e813df24e65a9c3b363e45f68fae07b5187ab91333ffcc01c474c846968d48",
+  "generated_cpp_markers": {
+    "PXR_EnvironmentDepthManager_get_IsDepthFrameCurrent": true,
+    "PXR_EnvironmentDepthManager_IsFrameDescValid": true,
+    "PXR_EnvironmentDepthManager_TryGetFrameDesc": true,
+    "RealityEnvironmentOcclusionFeature_HasCurrentDepth": true
+  },
+  "device_installed": false,
+  "head_down_real_world_symptoms_verified": false,
+  "limitations": [
+    "GPU fixtures reproduce specified rendering inputs, not the original physical headset incident.",
+    "Native API exposes no capture timestamp; successful return of internally frozen sensor content cannot be distinguished.",
+    "Distant incorrect measured meshes require device evidence; only near-eye fragments are suppressed.",
+    "GPU cost and near-clip precision require PICO Release verification."
+  ]
+}

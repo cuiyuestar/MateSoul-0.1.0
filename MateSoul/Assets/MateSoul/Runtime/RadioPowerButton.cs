@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace MateSoul.Runtime
 {
     /// <summary>XR UI power switch; grip remains reserved for moving the whole radio.</summary>
-    public sealed class RadioPowerButton : Button
+    public sealed class RadioPowerButton : PhysicalUiButton
     {
         [SerializeField] private RadioController radio;
         [SerializeField] private Transform switchPivot;

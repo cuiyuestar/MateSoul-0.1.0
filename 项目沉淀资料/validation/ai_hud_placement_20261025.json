@@ -1,0 +1,128 @@
+{
+  "date": "2026-10-25",
+  "unityTests": {
+    "passed": 19,
+    "failed": 0,
+    "durationSeconds": 5.5303744
+  },
+  "gatewayTests": {
+    "passed": 21,
+    "failed": 0
+  },
+  "liveConfiguration": {
+    "http": 200,
+    "durationMs": 2058,
+    "body": {
+      "status": "ok"
+    }
+  },
+  "liveConversation": {
+    "http": 200,
+    "durationMs": 2189,
+    "body": {
+      "status": "ok",
+      "reply_text": "你好呀，我是冷月，很高兴见到你。",
+      "response_emotion": "happy",
+      "action": {
+        "id": "none",
+        "target_id": null
+      },
+      "mood_signals": []
+    }
+  },
+  "liveSpontaneousReply": {
+    "http": 200,
+    "durationMs": 1643,
+    "body": {
+      "status": "ok",
+      "reply_text": "我闻到煎牛排的香气了，是你在煎牛排吗？",
+      "response_emotion": "normal"
+    }
+  },
+  "installation": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_AiConfig_LowerHud_Placement_20261025.apk",
+    "bytes": 215392670,
+    "sha256": "183cf00823f0f8eb7b479392fd45ea07001ad3abe95a7843ebcf04d5d74840cc",
+    "zipCrc": true,
+    "arm64Only": true,
+    "keystoreClassInDex": true,
+    "installed": true,
+    "deviceSha256": "183cf00823f0f8eb7b479392fd45ea07001ad3abe95a7843ebcf04d5d74840cc",
+    "deviceMatches": true,
+    "saveBefore": "ea6aad38001a4e54046e096b723c39a81ce4912c2518078c22fadf4b7b2d13be",
+    "saveAfter": "ea6aad38001a4e54046e096b723c39a81ce4912c2518078c22fadf4b7b2d13be",
+    "saveUnchanged": true
+  },
+  "playerSourceChecks": {
+    "GameHud": {
+      "sha256": "ff7458b6df3f7bb4f8197c84da2f7af25f057955aa25cff6449c21ac4470a936",
+      "inPlayerPdb": true
+    },
+    "GameBootstrap": {
+      "sha256": "69a29b0c3460d70d6f8e29ffe547c15b408ff197b63ec99166a5ff2f64adf23a",
+      "inPlayerPdb": true
+    },
+    "HttpLLMProvider": {
+      "sha256": "d4a67500a615083427aa0e2cfc9ed99c9b8d3debef136b43c66e1116c0df580b",
+      "inPlayerPdb": true
+    },
+    "PlayerAIConfiguration": {
+      "sha256": "bf50e03e9d10b3f871dde1a53724319d0e3ac2a686501be20cbcfb8ba474c774",
+      "inPlayerPdb": true
+    },
+    "ItemPlacementPreviewController": {
+      "sha256": "eb71688c2ffcc038472480a23df792afe7495571e24fef29745a81a203abaf88",
+      "inPlayerPdb": true
+    },
+    "RealityOcclusionMeshRenderer": {
+      "sha256": "4092fd762c9ed98fca14238e5ffd8dcfd1f88d72f28e4fa1461e6cfa14bd6079",
+      "inPlayerPdb": true
+    },
+    "GameSession": {
+      "sha256": "5bec84bb457a292bf989b5f9b0077f51140d2a0a4c9f11dec7b3b7a260848c53",
+      "inPlayerPdb": true
+    }
+  },
+  "deviceVisualAcceptance": "Pending: headset asleep",
+  "keystoreDeviceAcceptance": "Pending: standalone app_process probe aborted before verification; Java compiled and DEX included",
+  "gateway": {
+    "localPort": 8787,
+    "launchdLabel": "com.matesoul.ai-gateway",
+    "adbReverse": true,
+    "cloudDeployment": false
+  },
+  "protectedFiles": {
+    "before": {
+      "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+      "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553",
+      "MateSoul/Assets/MateSoul/Runtime/RealityOcclusionMeshRenderer.cs": "4092fd762c9ed98fca14238e5ffd8dcfd1f88d72f28e4fa1461e6cfa14bd6079",
+      "MateSoul/Assets/MateSoul/Runtime/RealityEnvironmentOcclusionFeature.cs": "989e3974948fbfdb60d50f0cc95edd09f83cee137311607f0315f670f6b19c94",
+      "MateSoul/Assets/MateSoul/Runtime/Shaders/UiAlwaysOnTop.shader": "973c0880647af65d3eafbef655771538a280e34adbe6dfbc938b7af8c07eb2f6",
+      "MateSoul/Assets/Settings/URP-Performant.asset": "fbd8a75dd8a4a15c775bcacd9992ee3a6a31ebb71fbb0ffab86592f15812c761",
+      "MateSoul/Assets/Settings/URP-Balanced.asset": "3b02e2cc6b0d8ee8ffe22b18d1712517af7675358822b1020ae27108379f6dbe",
+      "MateSoul/Assets/Settings/URP-HighFidelity-Renderer.asset": "208a8b5bbca88eb93a5d7ad689ff4618caf63722a25f50a3cd14210c4737e304",
+      "MateSoul/Assets/Settings/URP-HighFidelity.asset": "f460bf7dcfb0daf7cf1fe81051607e393a2dc0bbe0aa6fd26bf84370e15567e7",
+      "MateSoul/Assets/Settings/URP-Performant-Renderer.asset": "c5536c531fd33ebe32c35286a09c247664e1785f9beafa89f6f17945c4944bc2",
+      "MateSoul/Assets/Settings/URP-Balanced-Renderer.asset": "dea8b599baed487335160edf0785eb6a84d27d6e47046572a0d781ac1aefef06"
+    },
+    "after": {
+      "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+      "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82",
+      "MateSoul/Assets/MateSoul/Content/Avatar.controller": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553",
+      "MateSoul/Assets/MateSoul/Runtime/RealityOcclusionMeshRenderer.cs": "127342cb749d1279014fa18e9314f8422cfcfc3a9e627988121287ff0e620302",
+      "MateSoul/Assets/MateSoul/Runtime/RealityEnvironmentOcclusionFeature.cs": "989e3974948fbfdb60d50f0cc95edd09f83cee137311607f0315f670f6b19c94",
+      "MateSoul/Assets/MateSoul/Runtime/Shaders/UiAlwaysOnTop.shader": "973c0880647af65d3eafbef655771538a280e34adbe6dfbc938b7af8c07eb2f6",
+      "MateSoul/Assets/Settings/URP-Performant.asset": "fbd8a75dd8a4a15c775bcacd9992ee3a6a31ebb71fbb0ffab86592f15812c761",
+      "MateSoul/Assets/Settings/URP-Balanced.asset": "3b02e2cc6b0d8ee8ffe22b18d1712517af7675358822b1020ae27108379f6dbe",
+      "MateSoul/Assets/Settings/URP-HighFidelity-Renderer.asset": "208a8b5bbca88eb93a5d7ad689ff4618caf63722a25f50a3cd14210c4737e304",
+      "MateSoul/Assets/Settings/URP-HighFidelity.asset": "f460bf7dcfb0daf7cf1fe81051607e393a2dc0bbe0aa6fd26bf84370e15567e7",
+      "MateSoul/Assets/Settings/URP-Performant-Renderer.asset": "c5536c531fd33ebe32c35286a09c247664e1785f9beafa89f6f17945c4944bc2",
+      "MateSoul/Assets/Settings/URP-Balanced-Renderer.asset": "dea8b599baed487335160edf0785eb6a84d27d6e47046572a0d781ac1aefef06"
+    },
+    "parallelChangesAfterBuild": [
+      "MateSoul/Assets/MateSoul/Runtime/RealityOcclusionMeshRenderer.cs"
+    ],
+    "changedByThisTask": []
+  }
+}

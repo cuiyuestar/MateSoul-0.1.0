@@ -1,0 +1,80 @@
+{
+  "pass": true,
+  "checks": {
+    "Body": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "dao": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "daoqiao": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "Face": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "Garments_Optimized_LOD0": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "Hair": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "Lash_Direct25": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "Lengyue_AdaptedGarments": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "pCube1": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "pCube5": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "pCylinder1": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "polySurface393": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "polySurface412": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "ShirtInnerFacing_Adaptation": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    },
+    "SupplementalArms_SourceCoverageGap": {
+      "protected": true,
+      "uv_topology_weights_materials_exact": true,
+      "all_shape_keys_exact": true
+    }
+  }
+}

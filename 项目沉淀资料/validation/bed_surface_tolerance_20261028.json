@@ -1,0 +1,228 @@
+{
+  "date": "2026-10-28",
+  "status": "passed_and_installed",
+  "platform": "Unity 2022.3.38f1 / PICO Unity SDK / Android ARM64 IL2CPP Release",
+  "parameters": {
+    "surface_height_rms_m": {
+      "before": 0.025,
+      "after": 0.06
+    },
+    "normal_vertical_component": {
+      "before": 0.9,
+      "after": 0.75
+    },
+    "surface_sample_coverage": {
+      "before": 0.9,
+      "after": 0.75
+    },
+    "surface_sample_count": 63,
+    "required_samples": 48,
+    "tolerated_bed_unknown_detail_height_m": 0.1,
+    "contact_extra_lift": "max(0, highest_torso_detail_y - fitted_surface_y - 0.03)",
+    "locked_contact_height_change_m": 0.035
+  },
+  "tests": {
+    "exit": 0,
+    "seconds": 40.32,
+    "source_unchanged": true,
+    "changed": [],
+    "tests": [
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.BedWithoutAnUnambiguousHeadEndUsesDefaultDirection",
+        "result": "Passed",
+        "duration": "0.031208",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.ExternalObjectAboveBodyLaneBlocksLying",
+        "result": "Passed",
+        "duration": "0.012426",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.ExtractsOneBedFromOverlappingFrameAndBlanket",
+        "result": "Passed",
+        "duration": "0.011416",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.MountCandidatesFollowObservedBedHeightAndFrameExtents(0.42f,0.95f,2.0f)",
+        "result": "Passed",
+        "duration": "0.013233",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.MountCandidatesFollowObservedBedHeightAndFrameExtents(0.84f,1.9f,2.3f)",
+        "result": "Passed",
+        "duration": "0.009528",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.PlannerUsesReachableSideAndFacesTowardBed",
+        "result": "Passed",
+        "duration": "0.013409",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.ScannerPublishesOneLieCapabilityAfterStableGeometry",
+        "result": "Passed",
+        "duration": "0.040556",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedInteractionTests.SideTransfersClearHeadboardAndRejectBlockedRoute",
+        "result": "Passed",
+        "duration": "4.208823",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.ChangedDetailHeightInvalidatesTheLockedContactPose",
+        "result": "Passed",
+        "duration": "0.020233",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.ContinuousBedRipplesRemainAvailable(0.06f)",
+        "result": "Passed",
+        "duration": "0.009211",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.ContinuousBedRipplesRemainAvailable(0.08f)",
+        "result": "Passed",
+        "duration": "0.010535",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.LowUnknownDetailPublishesLieAndLiftsContact(0.06f)",
+        "result": "Passed",
+        "duration": "0.032512",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.LowUnknownDetailPublishesLieAndLiftsContact(0.09f)",
+        "result": "Passed",
+        "duration": "0.028280",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.ModerateScanHolesPassButLargeHolesAndExtremeRippleFail",
+        "result": "Passed",
+        "duration": "0.012861",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.PillowStillSelectsHeadAndUncertainDirectionStaysStable(-1.0f)",
+        "result": "Passed",
+        "duration": "0.018551",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.PillowStillSelectsHeadAndUncertainDirectionStaysStable(1.0f)",
+        "result": "Passed",
+        "duration": "0.018038",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.RaisedFloatingPatchRemainsBlocked",
+        "result": "Passed",
+        "duration": "0.010006",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.RealMeshRippleAndClutterAllowFullLieAndRise",
+        "result": "Passed",
+        "duration": "8.149922",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.TallAndKnownObstructionsRemainBlocked(0.12f,Unknown,99)",
+        "result": "Passed",
+        "duration": "0.039042",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.TallAndKnownObstructionsRemainBlocked(0.2f,Unknown,99)",
+        "result": "Passed",
+        "duration": "0.038065",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.TallAndKnownObstructionsRemainBlocked(0.12f,Bed,10)",
+        "result": "Passed",
+        "duration": "0.036224",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.BedSurfaceAcceptance.TallAndKnownObstructionsRemainBlocked(0.06f,Chair,99)",
+        "result": "Passed",
+        "duration": "0.038145",
+        "failure": null
+      }
+    ],
+    "summary": {
+      "id": "2",
+      "testcasecount": "22",
+      "result": "Passed",
+      "total": "22",
+      "passed": "22",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-27 18:06:39Z",
+      "end-time": "2026-10-27 18:06:46Z",
+      "duration": "6.6226475"
+    }
+  },
+  "measurements": [
+    "rippleRange=0.060 rms=0.02007 lift=0.00000",
+    "rippleRange=0.080 rms=0.02675 lift=0.00759",
+    "detail=0.060 lift=0.03000 published=true",
+    "detail=0.090 lift=0.06000 published=true",
+    "physicsCycle=0 lift=0.00759 contactError=0.00000",
+    "physicsCycle=1 lift=0.03000 contactError=0.00000",
+    "physicsCycle=2 lift=0.06000 contactError=0.00000"
+  ],
+  "source_sha256_same_in_tests_build_and_current": {
+    "BedGeometry.cs": "3ec1a58a0a0957f9c3af86b5c5d79ea11e146cd28443060e8299937cb2f2d3b1",
+    "RealBedScanner.cs": "3ddbbd0dcbd62930449e351ac363dfb497facfdc235e692ec791bca7386db2d3"
+  },
+  "deployment": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_AllLatest_20261028-020752.apk",
+    "sha256": "a13745965d3c49e04dd6c0dcd154e78b960490a173cb2ce03965ad933aa6acc0",
+    "bytes": 165770689,
+    "serial": "PB3A10MGL9220170B",
+    "package": "com.matesoul.game",
+    "log": "/var/folders/mp/bbv_ln_177q9ss7dlmf6trmh0000gn/T/matesoul-headset-20261028-020752-f8e9pp8i/build.log",
+    "build_seconds": 73.99,
+    "source_inputs": 1815,
+    "source_unchanged": true,
+    "installed_sha256": "a13745965d3c49e04dd6c0dcd154e78b960490a173cb2ce03965ad933aa6acc0",
+    "save_before": "09c8f03cb1b44bbd0aa67f388ad55057a2c18a542b47fda2cae7149a55219f20  /sdcard/Android/data/com.matesoul.game/files/matesoul-v1.json",
+    "save_after": "09c8f03cb1b44bbd0aa67f388ad55057a2c18a542b47fda2cae7149a55219f20  /sdcard/Android/data/com.matesoul.game/files/matesoul-v1.json",
+    "activity": "com.matesoul.game/com.unity3d.player.UnityPlayerActivity",
+    "launch": "Starting: Intent { cmp=com.matesoul.game/com.unity3d.player.UnityPlayerActivity }\nStatus: ok\nLaunchState: UNKNOWN (0)\nActivity: com.matesoul.game/com.unity3d.player.UnityPlayerActivity\nWaitTime: 126\nComplete"
+  },
+  "build_receipt": "/var/folders/mp/bbv_ln_177q9ss7dlmf6trmh0000gn/T/matesoul-headset-20261028-020752-f8e9pp8i/result.json",
+  "temporary_test_entry_removed": true,
+  "limits": [
+    "22 selected tests only; not a full test suite result.",
+    "Physical room scan quality and visual fit require wearer evaluation.",
+    "Activity launch alone does not prove XR/business readiness."
+  ],
+  "headset_startup": {
+    "fresh_start_utc": "2026-10-27T18:09:40.3415350Z",
+    "business_ready_utc": "2026-10-27T18:10:32.6173680Z",
+    "business_ready": true,
+    "ready_marker": "MATESOUL_READY source=PICO Spatial Mesh items=0 itemState=ready navMs=3",
+    "capture_fallback": "Scene Capture query deadline exceeded.",
+    "activity_resumed": true,
+    "headset_awake_after_power_key": true,
+    "previous_sleep_state": "Asleep",
+    "old_startup_log_excluded": true,
+    "physical_bed_interaction_verified": false
+  }
+}

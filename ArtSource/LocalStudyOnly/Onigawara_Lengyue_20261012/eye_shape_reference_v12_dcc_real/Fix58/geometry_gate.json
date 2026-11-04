@@ -1,0 +1,21 @@
+{
+  "pass": true,
+  "geometry_source": "Direct55",
+  "complete_prefab_source": "Direct57",
+  "changed_vertices": 136,
+  "hair_groups": [
+    84,
+    225
+  ],
+  "max_displacement_mm": 6.4999982714653015,
+  "central_and_all_fringe_exact": true,
+  "all_hair_height_and_x_exact": true,
+  "non_target_hair_exact": true,
+  "non_hair_untouched": true,
+  "triangle_flips": 0,
+  "new_degenerate_triangles": 0,
+  "parameters": {
+    "84": 0.0065,
+    "225": -0.004
+  }
+}

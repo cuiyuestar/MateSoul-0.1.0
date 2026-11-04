@@ -1,0 +1,38 @@
+{
+    "passed": true,
+    "state": "Ready",
+    "source": "PICO Emulator Spatial Mesh",
+    "floorAreaM2": 55.89120101928711,
+    "obstacleCount": 14,
+    "surfaceMeshCount": 48,
+    "surfaceVertexCount": 75931,
+    "surfaceTriangleCount": 96358,
+    "floorCentroid": {
+        "x": 0.03522879630327225,
+        "y": 0.3912300765514374,
+        "z": 0.911366879940033
+    },
+    "mapBoundsCenter": {
+        "x": 0.5,
+        "y": 2.0464868545532228,
+        "z": 1.7494661808013917
+    },
+    "mapBoundsSize": {
+        "x": 11.260913848876954,
+        "y": 3.4318408966064455,
+        "z": 6.346405506134033
+    },
+    "finalCharacterPosition": {
+        "x": -3.1297876834869386,
+        "y": 0.41056662797927859,
+        "z": 3.315239667892456
+    },
+    "destinationsSelected": 2,
+    "destinationsReached": 1,
+    "distanceTravelledM": 9.58377456665039,
+    "outsideFloorFrames": 0,
+    "obstaclePenetrationFrames": 0,
+    "offNavMeshFrames": 0,
+    "error": "",
+    "unityVersion": "2022.3.38f1"
+}

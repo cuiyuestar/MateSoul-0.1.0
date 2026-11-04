@@ -1,0 +1,91 @@
+{
+  "feature": "coffee_bean_and_manual_grinding_system",
+  "date": "2026-10-17",
+  "coffee_bean_jar": {
+    "revision": "V002",
+    "dimensions_m": [0.12, 0.12, 0.194],
+    "interior_independent_model_count": 720,
+    "runtime_rendering": "gpu_instanced_independent_meshes",
+    "poured_independent_bean_capacity": 336,
+    "beans_per_release": 8,
+    "maximum_dynamic_beans_per_jar": 96,
+    "single_bean_dimensions_mm": [12.0, 7.1, 5.2775],
+    "single_bean_vertices": 86,
+    "single_bean_triangles": 168,
+    "single_bean_closed_manifold": true,
+    "ground_disappearance_delay_seconds": 1.5,
+    "ground_disappearance_duration_seconds": 6.0,
+    "empty_jar_spawns_replacement_beans": false,
+    "blend_sha256": "d1acf9056e841f4dd1c481dff8c3377e29eec1aad926b8db63ea761cb8105b43",
+    "jar_glb_sha256": "397dcd443bfbe4ffd30aad089950c775fdcbe031dcf955eb8001340e52610344",
+    "jar_fbx_sha256": "487e15da29d3adc9d534454e8eec8f9d11a882b3f5c091ef5eb020274a0ef40a",
+    "bean_glb_sha256": "c927c1cb7810bd72daa15d919da0e3ebe5a0ea692abf9bad994986aa8259c97a",
+    "bean_fbx_sha256": "5a454dd5c06f0c362d1a58eed48bb4ca05640cedb55a2cea41f35fc3c53256cf",
+    "prefab_sha256": "d611d4e43dba073c78b493aeb1147e63ca569db1d324423a567da5b4c204f99f",
+    "bean_prefab_sha256": "b380461a53c61598ea5fca33781d184491be6f6139a9b1e4949ad9bc21a14f36"
+  },
+  "coffee_grinder": {
+    "revision": "V001",
+    "mortar_dimensions_mm": [180.0, 183.47, 140.0],
+    "pestle_dimensions_mm": [52.0, 52.0, 255.0],
+    "powder_dimensions_mm": [126.0, 126.0, 28.0],
+    "mortar_vertices": 4799,
+    "mortar_triangles": 8092,
+    "mortar_structural_meshes_closed": true,
+    "pestle_closed_manifold": true,
+    "powder_closed_manifold": true,
+    "mortar_fbx_sha256": "f8ff939598b961d69a834e6c16299b94a7e1c20d02480eb951e942c48f125f5c",
+    "pestle_fbx_sha256": "55cd48c03134d81eb50ab87f9bab7ca038f27a332cebce01690f30990005d657",
+    "powder_fbx_sha256": "3b8a2efdbf40da47a6081ab13697bb707d02f35e00b1b35f2bae8c782247c736",
+    "blend_sha256": "10d0169265fdad48b373ceed3f9add535e5843bba9c14e7a674c9b2874e2be45",
+    "group": {
+      "id": "coffee-grinder",
+      "display_name": "咖啡研磨套装",
+      "category": "Kitchenware",
+      "inventory_limit": 1,
+      "placement_parts": [
+        "coffee-grinder-mortar",
+        "coffee-grinder-pestle"
+      ],
+      "place_and_recycle_as_one_unit": true,
+      "definition_guid": "ac0188a3a5c6a426b89407e3c476a019",
+      "definition_sha256": "04428bb4960d6cd76db98003bc759db112ecc7927566cdb9cd72070105cd4645"
+    },
+    "receiver": {
+      "exclusive_component": "CoffeeGrinderReceiver",
+      "captured_beans_disappear": false,
+      "visual_capacity": 336
+    },
+    "grinding": {
+      "required_active_stir_seconds": 4.0,
+      "minimum_tip_speed_meters_per_second": 0.035,
+      "completion_replaces_beans_with_powder": true,
+      "completion_particle_count": 72,
+      "completion_message": "咖啡粉磨制完成"
+    },
+    "mortar_prefab_sha256": "5c738ea6e3bd2bf828b20408aac02ef6a0e397d0a7e7629c4db77862274b5224",
+    "pestle_prefab_sha256": "6c47d103f69524c581a2af890cce98edca9aefa7e4e41cc5ca83014707a7edc0"
+  },
+  "unity": {
+    "version": "2022.3.38f1",
+    "scene_build_exit_code": 0,
+    "missing_script_count": 0,
+    "tests": {
+      "result": "Passed",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "results_file": ".artifacts/framework/unity-coffee-grinder-tests.xml"
+    }
+  },
+  "device_validation": {
+    "pico_hardware_completed": false,
+    "remaining_checks": [
+      "满罐 GPU 实例的透明玻璃排序",
+      "336 颗落豆时的设备帧率",
+      "研磨棒搅拌阈值与触觉手感",
+      "咖啡粉粒子在透视环境中的可见度"
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-24",
+  "package": "com.matesoul.game",
+  "previousPackage": "com.UnityTechnologies.com.unity.template.urpblank",
+  "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RealDevice_PackageFix_20261024.apk",
+  "bytes": 183001250,
+  "sha256": "53a8586b316556723b88926694f8b292d2f70b3cbfd77237746b8229e7c84a78",
+  "certificateSha256": "0799ed95a5c84fcc7d5eb21dfa5e587dbc8650b1ac54dc50201de4540711ea97",
+  "certificateUnchanged": true,
+  "build": {
+    "pid": 42020,
+    "exitCode": 0,
+    "seconds": 577.52,
+    "timeout": false,
+    "unityExited": true
+  },
+  "zipCrcPassed": true,
+  "signatureVerified": true,
+  "capabilities": {
+    "enable_vst": 1,
+    "enable_anchor": 1,
+    "enable_spatial_anchor": 1,
+    "enable_scene_anchor": 1,
+    "enable_mesh_anchor": 1,
+    "enable_plane_detection": 1,
+    "enable_environment_depth": 1
+  },
+  "protectedAssetsUnchanged": true,
+  "installedApkMatchesDelivery": true,
+  "device": {
+    "model": "B3110",
+    "product": "swan",
+    "androidVersion": "16"
+  },
+  "launchResult": "Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] cmp=com.matesoul.game/com.unity3d.player.UnityPlayerActivity }\nStatus: ok\nLaunchState: UNKNOWN (0)\nActivity: com.matesoul.game/com.unity3d.player.UnityPlayerActivity\nWaitTime: 242\nComplete",
+  "signatureErrorObserved": false,
+  "unityDeviceMarker": null,
+  "businessReadyMarker": null,
+  "launchTimeline": [],
+  "scope": "Package identity correction and normal launcher Activity verification; room scan requires user operation.",
+  "awakeLaunchVerification": {
+    "signatureErrorObserved": false,
+    "pid": "23107",
+    "powerState": "mWakefulness=Awake",
+    "permissionPromptObserved": true,
+    "permissionPrompt": "允许“MateSoul”获取视线追踪数据？",
+    "unityDeviceMarker": null,
+    "businessReadyMarker": null
+  },
+  "limitations": [
+    "Normal launch reached the eye-tracking permission prompt without a signature error.",
+    "Headset returned to sleep; complete Unity startup and Room Capture remain unverified.",
+    "The previous package remains installed; new application data is separate."
+  ]
+}

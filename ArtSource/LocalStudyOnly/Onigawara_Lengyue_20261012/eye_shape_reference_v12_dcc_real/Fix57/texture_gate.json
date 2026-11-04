@@ -1,0 +1,25 @@
+{
+  "pass": true,
+  "base_brow_rgb": [
+    51,
+    28,
+    77
+  ],
+  "shade_brow_rgb": [
+    40,
+    20,
+    63
+  ],
+  "textures": [
+    {
+      "kind": "BaseColor",
+      "outside_brows_exact": true,
+      "changed_pixels": 13933
+    },
+    {
+      "kind": "Shade",
+      "outside_brows_exact": true,
+      "changed_pixels": 465370
+    }
+  ]
+}

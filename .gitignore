@@ -7,6 +7,7 @@
 .dbg/
 .hairlab-unity/
 .trae/
+.tmp/
 .validation/
 .mcp.json
 adbkey
@@ -15,9 +16,8 @@ emu-last-feature-flags.protobuf
 
 # Local notes, diagnostics, and generated evidence.
 AGENTS.md
-ArtSource/
 /scripts/
-项目沉淀资料/
+真实切割系统可行性分析.md
 debug-*.md
 *.ndjson
 *.trace
@@ -48,62 +48,9 @@ UserSettings/
 .vs/
 .idea/
 
-# Unity test and validation content.
-MateSoul/Assets/MateSoul/Tests/
-MateSoul/Assets/MateSoul/Tests.meta
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Validation/
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Validation.meta
-MateSoul/Assets/Samples/
-MateSoul/Assets/Samples.meta
-
-# Standalone development probes, validation runners, and simulator helpers.
-MateSoul/Assets/Characters/SapphiArtCustom/Runtime/HairPerformanceProbe.cs
-MateSoul/Assets/Characters/SapphiArtCustom/Runtime/HairPerformanceProbe.cs.meta
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueAppearanceReview.cs
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueAppearanceReview.cs.meta
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueWardrobeValidation.cs
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueWardrobeValidation.cs.meta
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueYummyUnityReview.cs
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueYummyUnityReview.cs.meta
-MateSoul/Assets/MateSoul/Editor/BuildItemFocusDebugOnce.cs
-MateSoul/Assets/MateSoul/Editor/BuildItemFocusDebugOnce.cs.meta
-MateSoul/Assets/MateSoul/Editor/HandHoldSimulatorSetup.cs
-MateSoul/Assets/MateSoul/Editor/HandHoldSimulatorSetup.cs.meta
-MateSoul/Assets/MateSoul/Editor/SeatingWorkbench.cs
-MateSoul/Assets/MateSoul/Editor/SeatingWorkbench.cs.meta
-MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomEnvironmentCapabilityProbe.cs
-MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomEnvironmentCapabilityProbe.cs.meta
-MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomNavigationValidationProbe.cs
-MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomNavigationValidationProbe.cs.meta
-MateSoul/Assets/MateSoul/Runtime/BowlingGrabDeviceProbe.cs
-MateSoul/Assets/MateSoul/Runtime/BowlingGrabDeviceProbe.cs.meta
-MateSoul/Assets/MateSoul/Runtime/DevelopmentNavigationProbe.cs
-MateSoul/Assets/MateSoul/Runtime/DevelopmentNavigationProbe.cs.meta
-MateSoul/Assets/MateSoul/Runtime/DialogueDeviceProbe.cs
-MateSoul/Assets/MateSoul/Runtime/DialogueDeviceProbe.cs.meta
-MateSoul/Assets/MateSoul/Runtime/SeatingDeviceProbe.cs
-MateSoul/Assets/MateSoul/Runtime/SeatingDeviceProbe.cs.meta
-
-# PICO SDK samples are not required by the game runtime.
-XR/**/Sample/
-XR/**/Sample.meta
-XR/**/Samples/
-XR/**/Samples.meta
-XR/Samples~/
-XR/Assets/Debugger/
-XR/Assets/Debugger.meta
-XR/Editor/Debugger/
-XR/Editor/Debugger.meta
-XR/Runtime/Debugger/
-XR/Runtime/Debugger.meta
-MateSoul/Assets/Resources/PXR_*Debugger*
-MateSoul/Assets/Resources/PXR_PICODebugger*
-Dependencies/**/Samples/
-Dependencies/**/Samples.meta
-Dependencies/**/Samples~/
-Dependencies/**/Tests/
-Dependencies/**/Tests.meta
-Dependencies/**/Documentation~/
+# Test suites, validation scenes, probes, SDK samples and the vendored package
+# internals are versioned: a clone must be able to run the same editors, tests
+# and debug tooling as the machine the snapshot came from.
 
 # Blender local recovery files.
 *.blend1
@@ -117,23 +64,29 @@ mono_crash.*
 *.blend
 *.zip
 
-# Character authoring tools and standalone review scenes stay local.
-MateSoul/Assets/Characters/SapphiArtCustom/Editor/
-MateSoul/Assets/Characters/SapphiArtCustom/Editor.meta
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor/
-MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Editor.meta
-MateSoul/Assets/MateSoul/Editor/PublicationValidation.cs
-MateSoul/Assets/MateSoul/Editor/PublicationValidation.cs.meta
-MateSoul/Assets/MateSoul/Editor/BowlingAnimationValidation.cs
-MateSoul/Assets/MateSoul/Editor/BowlingAnimationValidation.cs.meta
-MateSoul/Assets/MateSoul/Editor/Idle02PlaybackValidation.cs
-MateSoul/Assets/MateSoul/Editor/Idle02PlaybackValidation.cs.meta
+# Shipped asset packages stay local; the plans and reports next to them are versioned.
+项目沉淀资料/资产交付/
+
+# Art source: only the current Lengyue production DCC chain is versioned.
+# Everything else under ArtSource (legacy projects, wardrobe history, EyeLab
+# experiments, delivery bundles) stays local.
+/ArtSource/*
+!/ArtSource/LocalStudyOnly/
+/ArtSource/LocalStudyOnly/*
+!/ArtSource/LocalStudyOnly/Onigawara_Lengyue_20261012/
+/ArtSource/LocalStudyOnly/Onigawara_Lengyue_20261012/*
+!/ArtSource/LocalStudyOnly/Onigawara_Lengyue_20261012/eye_shape_reference_v12_dcc_real/
+/ArtSource/LocalStudyOnly/Onigawara_Lengyue_20261012/eye_shape_reference_v12_dcc_real/*
+!/ArtSource/LocalStudyOnly/Onigawara_Lengyue_20261012/eye_shape_reference_v12_dcc_real/Fix5[4-9]/
+!/ArtSource/LocalStudyOnly/Onigawara_Lengyue_20261012/eye_shape_reference_v12_dcc_real/Fix5[4-9]/*.blend
+!/ArtSource/LocalStudyOnly/Lengyue_ProductionMerge_20261029/
+!/ArtSource/LocalStudyOnly/Lengyue_ProductionMerge_20261029/**
+
+# Symbol files are not required to compile the vendored PICO package.
 XR/**/*.pdb
 XR/**/*.pdb.meta
 
-# Node service dependencies, build output, and tests.
+# Node service dependencies and build output.
 node_modules/
 services/ai-gateway/dist/
 services/ai-gateway/coverage/
-services/ai-gateway/scripts/
-services/ai-gateway/tests/

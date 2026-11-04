@@ -1,0 +1,92 @@
+[
+  {
+    "path": "Onigawara_Lengyue_Direct55.blend",
+    "size": 34682966,
+    "sha256": "589355c3b5cc61642404dd27fdf8dcf96188a7acf4a70eee21861b1d8f4194b6"
+  },
+  {
+    "path": "冷月Direct55_刘海间隙精修.unitypackage",
+    "size": 39634540,
+    "sha256": "5ffa1113b62ad8360fdd6befdbd8066da7e605bfc17df6643689143e912cdafd"
+  },
+  {
+    "path": "预览/冷月Direct55_刘海间隙真实前后对照.png",
+    "size": 188818,
+    "sha256": "c82842cf83efb8ad9fc8a7ceda178b2f3887d309ed53a992fda5da9108a76306"
+  },
+  {
+    "path": "预览/冷月Direct55_刘海真实三视图.png",
+    "size": 955298,
+    "sha256": "fafde01d441a6d08dcfb3b6337508c9ecd251a0fc8078e8c776164925a060162"
+  },
+  {
+    "path": "交付说明.md",
+    "size": 852,
+    "sha256": "39eb69831422b457ab61fdb17d6a3b7fd2dc7a046f671ade198e5c24b6c5ecb3"
+  },
+  {
+    "path": "验证/geometry_gate.json",
+    "size": 682,
+    "sha256": "ac05b88647290047235f0758d31dc1f66de57973e9c07c5709e93de082c5390a"
+  },
+  {
+    "path": "验证/unity_gate.json",
+    "size": 205,
+    "sha256": "47ebb77e4ff9d4e5fa4cccdd1c44fd26f8c205c15f63b8b90f25f2d2794135f1"
+  },
+  {
+    "path": "验证/independent_blend_gate.json",
+    "size": 1968,
+    "sha256": "d9af6ae8a83ce52f22881eeb48c448702a2dcf954e890981fbc18cc623408974"
+  },
+  {
+    "path": "验证/package_gate.json",
+    "size": 83,
+    "sha256": "f7d5b4e1273a03ea8d5ac639a941bb8311f439efdf410f70a9613403db9875e8"
+  },
+  {
+    "path": "验证/gap_measurement.json",
+    "size": 3170,
+    "sha256": "e5c666664afbb31af45df26c09bd664b0643d805128ba13afaa9ee2c9fce9bd7"
+  },
+  {
+    "path": "复现/build_hair.py",
+    "size": 3377,
+    "sha256": "1b75e10e96ad5db4da381dd45cf80a742960f2d54d286fc3e7c1aa0207800615"
+  },
+  {
+    "path": "复现/verify_blend.py",
+    "size": 1852,
+    "sha256": "f818bbd372731991a10ac56ab0c09233b23966a9529881f257f9c8e51fd63a66"
+  },
+  {
+    "path": "复现/Hair_new.bin",
+    "size": 128916,
+    "sha256": "f363165c0af28289e3181251a70c445c4ae14cb8218216a86d558f0571703504"
+  },
+  {
+    "path": "复现/Hair_new_normals.bin",
+    "size": 128916,
+    "sha256": "3ccf79d66e74140ff3716661caeaed1ca91858fe0cfcbad7f07c19f20c2373bb"
+  },
+  {
+    "path": "复现/Hair_target.bin",
+    "size": 824,
+    "sha256": "679afb8721d7c0d646b0f8e845266e71d46c013b6109acc5740e3d8ae8827b80"
+  },
+  {
+    "path": "复现/central_hair_locked.bin",
+    "size": 2120,
+    "sha256": "d459e4751c273a62a1ffdcadf9439e832d89c9f50d55d00d96e7b3e8c8bfe6f5"
+  },
+  {
+    "path": "复现/Unity/Direct55Lines.cs",
+    "size": 2995,
+    "sha256": "6da1875d4e9326873ebf3497335105770068699586a04e7e7cbead884e103881"
+  },
+  {
+    "path": "复现/Unity/Direct55Build.cs",
+    "size": 6341,
+    "sha256": "0170bd23bbd3480535680c5cdf303f589bb2f53a5ad415e9e85654780b6eaaff"
+  }
+]

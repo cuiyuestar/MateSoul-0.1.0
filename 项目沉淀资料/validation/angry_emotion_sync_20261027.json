@@ -1,0 +1,108 @@
+{
+  "date": "2026-10-27",
+  "unity": "2022.3.38f1",
+  "source_fbx_sha256": "44fd9a8210c00669a47d8a7f64da38308d07760c084c59859e64de7cffbe6fab",
+  "production_clip": "/Users/bytedance/MateSoul/MateSoul/Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Emotion/Angry/Lengyue_Angry01.anim",
+  "production_clip_sha256": "19dcde79cb27104dee14fcf1cb82e2f3ca55bb9807efaef021f2fb84177fe856",
+  "production_clip_guid": "74856d42c549b41f188c5ce491b8072f",
+  "animation_seconds": 1.6333333,
+  "animation_frame_rate": 30,
+  "mapped_body_bones": 55,
+  "transform_bindings": 550,
+  "production_face_morphs": 61,
+  "active_production_face_ranges": [
+    {
+      "shape": "Fcl_BRW_Angry",
+      "minimum_weight": 0,
+      "maximum_weight": 35
+    },
+    {
+      "shape": "Fcl_EYE_Close_R",
+      "minimum_weight": 100,
+      "maximum_weight": 100
+    },
+    {
+      "shape": "Fcl_EYE_Close_L",
+      "minimum_weight": 100,
+      "maximum_weight": 100
+    },
+    {
+      "shape": "Fcl_MTH_Down",
+      "minimum_weight": 4.6296296,
+      "maximum_weight": 8.4362135
+    },
+    {
+      "shape": "Fcl_MTH_Angry",
+      "minimum_weight": 0,
+      "maximum_weight": 65
+    },
+    {
+      "shape": "Fcl_MTH_Small",
+      "minimum_weight": 0,
+      "maximum_weight": 35
+    },
+    {
+      "shape": "Fcl_MTH_U",
+      "minimum_weight": 0,
+      "maximum_weight": 12
+    }
+  ],
+  "hips_horizontal_endpoint_drift_metres": 0.003931996913113366,
+  "angry_audio": "Angry_Long.wav",
+  "angry_audio_seconds": 2.5,
+  "timing": "Start AudioSource and Emotion layer in one action Start; sample animation from timeSamples/frequency; retain last pose until audio ends; cancel and dispose stop both.",
+  "tests": [
+    {
+      "name": "MateSoul.Tests.AngrySynchronizationRegression.AIReplyClockOwnershipAndLifecycle",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.ResponseEmotionAudioTests.CompletedRepliesPlayOnlyFromTheirEmotionPool",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.ResponseEmotionAudioTests.MultiClipEmotionUsesRandomizedSelection",
+      "result": "Passed"
+    },
+    {
+      "name": "MateSoul.Tests.AngrySynchronizationRegression.AmbientPreemptionAndProductionFaceReset",
+      "result": "Passed"
+    }
+  ],
+  "sync_metrics": {
+    "assertions": 1952,
+    "clock_samples": 1929,
+    "max_normalized_clock_error": 5.96046448e-08
+  },
+  "preemption_metrics": {
+    "assertions": 8,
+    "face_eye_after_release": 0
+  },
+  "controller_matches_tested_objects": true,
+  "protected_assets_at_final_verification": {
+    "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "11211e45bcb4f9d1af2221183d23f19c20d58d67545b4204e37cbacb30d98118",
+    "Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+    "Assets/MateSoul/Content/Locomotion/Lengyue_TurnLeft_BodyOnly.anim": "601703fe623c919b47db4911d60df1fb0ca3b3feb200017d6a526e926454503f",
+    "Assets/MateSoul/Content/Locomotion/Lengyue_TurnRight_BodyOnly.anim": "7ab6e3f0b216b8c5fc2d71a7a0a7a9c19441e8bc4f8d7d641fabf42c17c2ea75"
+  },
+  "parallel_walk_update_verified": {
+    "production_speed_metres_per_second": 0.75,
+    "walk_clip_sha256": "2b9b94a8aa705cf61b98eae91e9eaa984b53d789aa44aa9e8bb4974bbc6b64bc",
+    "note": "The concurrent walk task changed only the prefab motor speed from 1.1 to .75; final emotion tests used the updated prefab, AvatarMotor and walk clip."
+  },
+  "tested_code_sha256": {
+    "Assets/Characters/SapphiArtCustom/Lengyue/Editor/AngryEmotionBuilder.cs": "ce1625932dcd9a49cfb9abb98e36a839569868287f937ee8ce877a1e89502c21",
+    "Assets/Characters/SapphiArtCustom/Lengyue/Editor/LengyueIdle01Builder.cs": "688c3a4beb5a3fac7635e7fb1dade9d10504bb7bd17dee2a8037e35c623ba704",
+    "Assets/MateSoul/Editor/AvatarLocomotionBuilder.cs": "fcb563cd1bc221fa025eeac421ebc398d0b86dfe1ac7cfa7f0330a1d48b8221b",
+    "Assets/MateSoul/Runtime/ResponseEmotionAudio.cs": "7faa950884a9fee4a9dacfa3b99805cff6eb437e866692b1fcf60eb49d21a458",
+    "Assets/MateSoul/Runtime/GameBootstrap.cs": "2447667dafa604fed99d3f46a85d91cd5fb723e6a3c44b302e8694cfdb584406",
+    "Assets/MateSoul/Runtime/AvatarMotor.cs": "29f4abcc9e746e87905d6dbe75abf70b3cfacf2b1ae7d187c8043a5de2207eef",
+    "Assets/MateSoul/Core/AvatarActionCoordinator.cs": "15821f97f03495607ceef6c17e0b738534c7db223a1fcde44f727bf2f11f0052"
+  },
+  "limits": [
+    "Cheek puff is represented by existing Small/U mouth morphs; the production 61-morph meshes remain unchanged.",
+    "Tested Unity audio-clock and Animator state synchronization; physical headset display/audio latency was not measured.",
+    "Unity imports and four tests passed; the shell wrapper reported restricted Unity metrics/config writes after successful processing.",
+    "No connected headset installation or APK rebuild in this task."
+  ]
+}

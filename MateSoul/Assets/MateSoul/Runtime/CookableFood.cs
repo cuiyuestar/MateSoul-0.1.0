@@ -1,4 +1,5 @@
 using System;
+using MateSoul.Gameplay;
 using UnityEngine;
 
 namespace MateSoul.Runtime
@@ -13,7 +14,7 @@ namespace MateSoul.Runtime
     }
 
     [DisallowMultipleComponent]
-    public sealed class CookableFood : MonoBehaviour
+    public sealed class CookableFood : MonoBehaviour, IRuntimeWorldFactSource
     {
         public const float AmbientTemperature = 20f;
         public const float MediumDoneness = 50f;
@@ -45,6 +46,22 @@ namespace MateSoul.Runtime
         public GameObject RawVisualRoot => rawVisualRoot;
         public GameObject CookedVisualRoot => cookedVisualRoot;
         public event Action<FoodDoneness> DonenessChanged;
+
+        public bool TryCaptureRuntimeWorldFact(
+            out RuntimeWorldFactSnapshot fact)
+        {
+            if (!IsHeating && stage == FoodDoneness.Raw)
+            {
+                fact = null;
+                return false;
+            }
+            fact = RuntimeWorldFact.Create(
+                this,
+                "cooking",
+                IsHeating ? "heating" : stage.ToString().ToLowerInvariant(),
+                $"doneness={Mathf.RoundToInt(doneness)}%");
+            return true;
+        }
 
         private Collider Shape
             => shape != null ? shape : shape = GetComponentInChildren<Collider>();

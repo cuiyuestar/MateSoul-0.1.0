@@ -1,0 +1,105 @@
+{
+  "feature": "coffee_bean_jar_virtual_item",
+  "date": "2026-10-16",
+  "asset_revision": "V001",
+  "asset": {
+    "name": "CoffeeBeanJar_120x120x194mm",
+    "dimensions_m": [0.12, 0.12, 0.194],
+    "mesh_count": 5,
+    "vertices": 32264,
+    "triangles": 61824,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "interior_visual_bean_count": 336,
+    "blend_sha256": "20c0ea90c9ecd2c0b0552568f519155c3e5076aaf6e7474441f9df49decd3ab9",
+    "glb_sha256": "eb686a9944ff67c531cdd5a9a9622fdb16d4ba69275b64e896e4a12d9ae797ba",
+    "fbx_sha256": "b9cc7ad1f659a4bc7d46802e247370fdf871aa94a22a08c718e929b962f29f29",
+    "unity_fbx_matches_export": true
+  },
+  "bean_cluster": {
+    "visual_bean_count": 28,
+    "dimensions_m": [0.0390621, 0.0400759, 0.0179312],
+    "vertices": 2352,
+    "triangles": 4480,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "renderer_count": 1,
+    "rigidbody_count": 1,
+    "collider_count": 1,
+    "glb_sha256": "9d70c135ae38e7dee084e658edc03ec77690de9b4569f1a9924f9d8ca16fae23",
+    "fbx_sha256": "d89be54ac2e2f686060bc844ac418a60d7b2164585a99076d212b5d286ce988a",
+    "unity_fbx_matches_export": true
+  },
+  "virtual_item": {
+    "id": "coffee-bean-jar",
+    "display_name": "咖啡豆罐",
+    "category": "Kitchenware",
+    "catalog_visible": true,
+    "inventory_limit": 2,
+    "footprint_m": [0.12, 0.12],
+    "placement_height_m": 0.194,
+    "allow_surface_placement": true,
+    "mass_kg": 1.05,
+    "definition_guid": "6ea233b589bcc4eeca4ee789486b7e94",
+    "prefab_guid": "a8643011a297e4dcb8e556e253961836",
+    "cluster_prefab_guid": "034cb954e9b9140b7b81d27446637aab",
+    "definition_sha256": "24c35d84089b309078edccb9d45dd7d5e9d4ad67361944526f72ebd955bd0f1f",
+    "prefab_sha256": "fbca8c78440be3853dff6be76244385eee906f0d7ecb828f4a0d0fa10865daaf",
+    "cluster_prefab_sha256": "b1e2008197a8d5365bee934c11fb1f76021f494d35fdbd361537f5b2e663b720",
+    "root_rigidbody_count": 1
+  },
+  "lid_interaction": {
+    "architecture": "single_root_rigidbody_with_child_lid_collider",
+    "open_angle_degrees": 108.0,
+    "opening_speed_degrees_per_second": 240.0,
+    "impulse_threshold": 0.12,
+    "pour_open_ratio_threshold": 0.85,
+    "physical_collider_is_trigger": false,
+    "xr_interaction_collider_is_trigger": true
+  },
+  "finite_capacity": {
+    "cluster_capacity": 12,
+    "visual_beans_per_cluster": 28,
+    "visual_poured_bean_equivalent": 336,
+    "interior_visual_bean_count": 336,
+    "release_interval_seconds": 0.11,
+    "pour_up_dot_threshold": 0.52,
+    "empty_jar_spawns_replacement_beans": false,
+    "fill_visual_after_five_clusters": 0.5833333,
+    "fill_visual_hidden_when_empty": true
+  },
+  "performance": {
+    "maximum_active_cluster_rigidbodies_per_jar": 12,
+    "maximum_active_cluster_rigidbodies_for_inventory_limit": 24,
+    "maximum_dynamic_seconds": 4.0,
+    "settle_quiet_seconds": 0.45,
+    "cleanup_seconds": 45.0,
+    "per_bean_rigidbody": false,
+    "per_bean_collider": false
+  },
+  "unity": {
+    "version": "2022.3.38f1",
+    "scene_build_exit_code": 0,
+    "tests": {
+      "result": "Passed",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "cases": [
+        "MateSoul.Tests.CoffeeBeanJarTests.LidForceOpensAndPouringStopsAtPhysicalCapacity",
+        "MateSoul.Tests.CoffeeBeanJarTests.ProductionAssetKeepsFiniteCapacityAndSingleBodyContracts",
+        "MateSoul.Tests.GameRuntimeTests.ProductionCatalogContainsEveryStandaloneProp"
+      ],
+      "results_file": ".artifacts/framework/unity-coffee-bean-jar-tests.xml"
+    }
+  },
+  "device_validation": {
+    "pico_hardware_completed": false,
+    "remaining_checks": [
+      "木盖受力阈值和直接选择手感",
+      "倾倒触发角度与豆簇视觉密度",
+      "双瓶同时倾倒时的帧率和透明材质表现"
+    ]
+  }
+}

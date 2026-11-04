@@ -16,6 +16,7 @@
         "Unity.XR.Hands",
         "Unity.XR.OpenXR",
         "Unity.XR.OpenXR.Editor",
+        "ByteDance.PICO.Debugger",
         "ByteDance.PICO.SptatialUI"
     ],
     "includePlatforms": [

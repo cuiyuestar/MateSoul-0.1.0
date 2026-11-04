@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace MateSoul.Runtime
@@ -22,6 +24,11 @@ namespace MateSoul.Runtime
 
         private Vector3 waterVisualScale;
         private bool initialized;
+        private static readonly HashSet<WaterReceiver> receivers = new HashSet<WaterReceiver>();
+        private FluidStream spill;
+        private PhysicsBody body;
+        private float dryMass;
+        public Color LiquidColor { get; set; } = new Color(.35f, .78f, .95f, .55f);
 
         public float CapacityLiters => capacityLiters;
         public float CurrentLiters => currentLiters;
@@ -60,6 +67,35 @@ namespace MateSoul.Runtime
         {
             ValidateConfiguration();
             InitializeVisual();
+            body = GetComponent<PhysicsBody>();
+            dryMass = body != null ? body.Rigidbody.mass : 0;
+        }
+
+        private void OnEnable() => receivers.Add(this);
+        private void OnDisable() => receivers.Remove(this);
+
+        public static WaterReceiver FindCrossedOpening(Vector3 from, Vector3 to,
+            WaterReceiver ignored, out Vector3 entry, out float fraction)
+        {
+            entry = default;
+            fraction = float.PositiveInfinity;
+            WaterReceiver best = null;
+            foreach (var receiver in receivers)
+            {
+                if (receiver == null || receiver == ignored) continue;
+                var opening = receiver.transform.TransformPoint(receiver.openingCenter);
+                var normal = receiver.transform.up;
+                var a = Vector3.Dot(from - opening, normal);
+                var b = Vector3.Dot(to - opening, normal);
+                if (a < 0 || b > 0 || a - b < .000001f) continue;
+                var amount = a / (a - b);
+                var point = Vector3.Lerp(from, to, amount);
+                if (amount >= fraction || !receiver.CanReceiveAt(point)) continue;
+                fraction = amount;
+                entry = point;
+                best = receiver;
+            }
+            return best;
         }
 
         private void ValidateConfiguration()
@@ -75,8 +111,43 @@ namespace MateSoul.Runtime
         {
             if (waterVisual == null) return;
             waterVisualScale = waterVisual.localScale;
+            // Imported vessels can be offset from the item root by handle-inclusive
+            // centering. Bind water to the actual vessel mesh, not a catalog offset.
+            var vessel = GetComponentsInChildren<Renderer>(true)
+                .Where(value => value.transform != waterVisual &&
+                    value.name.IndexOf("handle", StringComparison.OrdinalIgnoreCase) < 0 &&
+                    (value.name.IndexOf("body", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     value.name.IndexOf("cup", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     value.name.IndexOf("bowl", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     value.name.IndexOf("plate", StringComparison.OrdinalIgnoreCase) >= 0))
+                .OrderByDescending(value => value.bounds.size.x * value.bounds.size.z).FirstOrDefault();
+            if (vessel != null)
+            {
+                var center = transform.InverseTransformPoint(vessel.bounds.center);
+                openingCenter.x = fillCenter.x = center.x;
+                openingCenter.z = fillCenter.z = center.z;
+            }
             initialized = true;
             ApplyVisual();
+        }
+
+        private void Update()
+        {
+            if (currentLiters <= 0 || body != null && body.IsPaused ||
+                GetComponent<LiquidPourer>() != null) return;
+            var tilt = Vector3.Dot(transform.up, Vector3.up);
+            if (tilt >= Mathf.Cos(maximumTiltDegrees * Mathf.Deg2Rad)) return;
+            if (spill == null)
+            {
+                spill = GetComponent<FluidStream>() ?? gameObject.AddComponent<FluidStream>();
+                spill.Configure(waterVisual.GetComponent<Renderer>().sharedMaterial);
+            }
+            var downhill = Vector3.ProjectOnPlane(Vector3.down, transform.up).normalized;
+            if (downhill.sqrMagnitude < .01f) downhill = transform.forward;
+            var point = transform.TransformPoint(openingCenter) + downhill * openingRadius;
+            var amount = Mathf.Min(currentLiters, capacityLiters * (1f - Mathf.Max(0, tilt)) * Time.deltaTime);
+            var emitted = spill.Emit(point, downhill * .25f, amount, currentTemperatureCelsius, LiquidColor);
+            if (emitted > 0) Drain(emitted);
         }
 
         public bool CanReceiveAt(Vector3 worldPoint)
@@ -176,6 +247,12 @@ namespace MateSoul.Runtime
         {
             if (!initialized || waterVisual == null) return;
             var ratio = FillRatio;
+            if (body != null)
+            {
+                var item = GetComponent<GameItem>();
+                var emptyMass = item != null && item.Definition != null ? item.Definition.Physics.mass : dryMass;
+                if (emptyMass > 0) body.Rigidbody.mass = emptyMass + currentLiters;
+            }
             waterVisual.gameObject.SetActive(ratio > .0001f);
             if (ratio <= .0001f) return;
             var height = Mathf.Max(MinimumVisibleHeight, maximumWaterHeight * ratio);

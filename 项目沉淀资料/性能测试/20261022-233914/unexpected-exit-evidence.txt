@@ -1,0 +1,13 @@
+  1524.679   840  7166 I DumpUtils: pre_display_error: has lasted for 7.5s
+  1524.679   840  7166 I DumpUtils: error_prefix=LOADING
+  1524.683   840  7166 I DumpUtils: Raise Unity&UnrealLogLevel to 8
+  1524.684   840  7166 I DumpUtils: LastResumed 3D activityName=com.unity3d.player.UnityPlayerActivity
+  1524.684   840  7166 I DumpUtils: LastResumed 3D packageName=com.UnityTechnologies.com.unity.template.urpblank
+  1524.684   840  7166 I DumpUtils: clientPid=7715
+  1524.684   840  7166 I DumpUtils: clientPackageName=com.UnityTechnologies.com.unity.template.urpblank
+  1524.684   840  7166 I DumpUtils: dump java process is ProcessRecord{d7b1b0d 7715:com.UnityTechnologies.com.unity.template.urpblank/u0a108 PRSmt{8b6aac2 p:0 rp:7715 t:null sa:0 usps:2 sps:2 kt:0 fs:0 inSfile:false freezeBlockFlags:0 pendingInstallProviderCount:0 fm:INVALID}}
+  1524.684   840  7166 I DumpUtils: dump java process is ProcessRecord{a8abd5a 1296:com.pico.xr.openxr_runtime/1000 PRSmt{b9faf0d p:0 rp:1296 t:null sa:-800 usps:0 sps:0 kt:0 fs:0 inSfile:false freezeBlockFlags:0 pendingInstallProviderCount:0 fm:INVALID}}
+  1524.684   840  7166 I DumpUtils: dump java process is ProcessRecord{603b8b 1309:com.pico.spatial.runtime/1000 PRSmt{b7aec79 p:0 rp:1309 t:null sa:-800 usps:0 sps:0 kt:0 fs:0 inSfile:false freezeBlockFlags:0 pendingInstallProviderCount:0 fm:INVALID}}
+  1524.684   840  7166 I DumpUtils: dump java process is ProcessRecord{12b586f 840:system/1000 PRSmt{d98905 p:0 rp:840 t:null sa:-900 usps:0 sps:0 kt:0 fs:0 inSfile:false freezeBlockFlags:0 pendingInstallProviderCount:0 fm:INVALID}}
+  1524.684   840  7166 I DumpUtils: Collecting stacks for pid 7715
+  1524.716   840  6874 I ActivityManager: Process com.UnityTechnologies.com.unity.template.urpblank (pid 7715) has died: fg  TOP 

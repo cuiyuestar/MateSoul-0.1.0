@@ -69,43 +69,77 @@ namespace MateSoul.Runtime
         {
             var uuid = Guid.Parse(id);
             operations++;
+            var updateVersion = 0;
+            var dataUpdated = new TaskCompletionSource<bool>();
+            Action onDataUpdated = () =>
+            {
+                updateVersion++;
+                dataUpdated.TrySetResult(true);
+            };
+            // Subscribe before provider startup so an early data update cannot be missed.
+            PXR_Manager.SpatialAnchorDataUpdated += onDataUpdated;
+            var elapsed = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 await StartAsync(token);
+                var deadline = elapsed.Elapsed + TimeSpan.FromSeconds(2);
                 var lastFailure = "未查询到对应 UUID";
-                for (var attempt = 0; attempt < 6; attempt++)
+                var queryCount = 0;
+                while (true)
                 {
+                    dataUpdated = new TaskCompletionSource<bool>();
+                    var queriedVersion = updateVersion;
                     // PICO's own sample reloads all persisted anchors after the provider data update.
                     // Querying all also avoids an emulator race in the UUID-filtered query path.
                     var query = await PXR_MixedReality.QuerySpatialAnchorAsync(null, token);
-                    token.ThrowIfCancellationRequested();
+                    queryCount++;
+                    var located = false;
+                    var pose = Pose.identity;
                     if (query.result == PxrResult.SUCCESS)
                     {
                         lastFailure = "未查询到对应 UUID";
                         foreach (var handle in query.anchorHandleList)
                         {
                             var uuidResult = PXR_MixedReality.GetAnchorUuid(handle, out var found);
-                            if (uuidResult == PxrResult.SUCCESS && found == uuid)
+                            if (!located && uuidResult == PxrResult.SUCCESS && found == uuid)
                             {
                                 var locateResult = PXR_MixedReality.LocateAnchor(
                                     handle, out var position, out var rotation);
                                 if (locateResult == PxrResult.SUCCESS)
                                 {
                                     handles.Add(handle);
-                                    return new Pose(position, rotation);
+                                    pose = new Pose(position, rotation);
+                                    located = true;
+                                    continue;
                                 }
                                 lastFailure = locateResult.ToString();
                             }
-                            PXR_MixedReality.DestroyAnchor(handle);
+                            if (!handles.Contains(handle)) PXR_MixedReality.DestroyAnchor(handle);
                         }
                     }
                     else lastFailure = query.result.ToString();
-
-                    if (attempt < 5) await Task.Delay(400, token);
+                    token.ThrowIfCancellationRequested();
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    Debug.Log($"MATESOUL_ANCHOR query={queryCount} elapsedMs={elapsed.ElapsedMilliseconds} " +
+                              $"result={query.result} located={located} updates={updateVersion}");
+#endif
+                    if (located) return pose;
+                    var remaining = deadline - elapsed.Elapsed;
+                    if (remaining <= TimeSpan.Zero) break;
+                    if (queriedVersion != updateVersion) continue;
+                    // Empty results may mean the provider has not loaded persisted data yet.
+                    // Wake on a data update, with one final query when the bounded wait expires.
+                    await Task.WhenAny(dataUpdated.Task, Task.Delay(remaining, token));
+                    token.ThrowIfCancellationRequested();
                 }
                 throw new InvalidOperationException($"房间锚点尚未定位：{lastFailure}");
             }
-            finally { operations--; ReleaseIfDisposed(); }
+            finally
+            {
+                PXR_Manager.SpatialAnchorDataUpdated -= onDataUpdated;
+                operations--;
+                ReleaseIfDisposed();
+            }
         }
 
         private static void Check(PxrResult result)

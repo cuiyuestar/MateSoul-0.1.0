@@ -1,0 +1,59 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 1862259 Realtime: 1862259
+
+** MEMINFO in pid 12050 [com.UnityTechnologies.com.unity.template.urpblank] **
+                   Pss  Private  Private  SwapPss      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap    27136    27036        0    44812    31028   102476    91985     6119
+  Dalvik Heap      470      240        0      916     8264     4621     2311     2310
+ Dalvik Other     4383      132        0     1308     9296                           
+        Stack      904      904        0     1344      916                           
+       Ashmem    22478        0    20164        0    25644                           
+    Other dev       36        0       36        0      416                           
+     .so mmap    36133      608    28680     4500    92660                           
+    .jar mmap     2706        0      244        0    51360                           
+    .apk mmap     5892       20      772      520    18220                           
+    .dex mmap       77        0        0        0      924                           
+    .oat mmap       54        0        0        0     1920                           
+    .art mmap      936      504        0     6724    15608                           
+   Other mmap    12456        4    10276        0    15652                           
+      Unknown    45016    44748       12   787120    54516                           
+        TOTAL  1005921    74196    60184   847244   326424   107097    94296     8429
+ 
+** GPUMEM mapped include Gfx dev, Pss/Rss Total = others items(exclude Gfx dev) + GPUMEM mapped **
+ 
+ App Summary
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:      744                          23872
+         Native Heap:    27036                          31028
+                Code:    30324                         173564
+               Stack:      904                            916
+            Graphics:        0                              0
+       Private Other:    75372
+              System:   871541
+             Unknown:                                   97044
+ 
+           TOTAL PSS:  1005921            TOTAL RSS:   326424       TOTAL SWAP PSS:   847244
+ 
+** GPUMEM mapped include Gfx dev, Graphics = EGL mtrack + GL mtrack + GPUMEM mapped **
+ 
+ Objects
+               Views:        7         ViewRootImpl:        1
+         AppContexts:        6           Activities:        1
+              Assets:        9        AssetManagers:        0
+       Local Binders:       24        Proxy Binders:       80
+       Parcel memory:       12         Parcel count:       47
+    Death Recipients:        5             WebViews:        0
+ 
+ Native Allocations
+                         Count                       Total(kB)
+                        ------                         ------
+    Other (malloced):      313                             28
+ Other (nonmalloced):      106                             75
+ 
+ SQL
+         MEMORY_USED:        0
+  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+ 

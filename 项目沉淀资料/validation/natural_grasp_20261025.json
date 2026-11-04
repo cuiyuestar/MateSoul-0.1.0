@@ -1,0 +1,82 @@
+{
+  "date": "2026-10-25",
+  "platform": "Unity 2022.3.38f1 / PICO Unity SDK / Android ARM64 IL2CPP",
+  "acceptance": {
+    "passed": 32,
+    "failed": 0,
+    "controlledInputUpdateSeconds": 0.013,
+    "clearReleaseImmediate": true,
+    "ambiguousReleaseThresholdSeconds": 0.04,
+    "ambiguousReleaseObservedSeconds": 0.052,
+    "trackingLossRetainedAtSeconds": 0.08,
+    "trackingLossReleasedAtSeconds": 0.11,
+    "repeatPinchWithOtherFingersCurled": true,
+    "graspAttachOnSurface": true,
+    "farClenchCannotVacuum": true,
+    "followComparison": {
+      "controlledTargetSpeedMetersPerSecond": 0.5,
+      "oldErrorMeters": 0.02126253,
+      "newErrorMeters": 0.009987473,
+      "stoppedAtCollision": true,
+      "collisionStopX": 0.61
+    },
+    "visualLeftAndRight": {
+      "controlledWristCorrectionMeters": 0.025,
+      "controlledPalmPenetrationMeters": 0.0015,
+      "palmCorrectionMeters": 0.0025,
+      "fingerPreventedClosingDegrees": 43.38542,
+      "finalFingerPoseOutsideObstacle": true,
+      "rawInputUnaffected": true
+    },
+    "fixedBodyRemainsFixed": true,
+    "trackingLossDiscardsVelocity": true,
+    "userSaveTouched": false
+  },
+  "regression": {
+    "passed": 28,
+    "failed": 0,
+    "skipped": 0,
+    "suites": [
+      "HandHoldTests",
+      "GripGrabTests",
+      "PhysicsRuntimeTests",
+      "RealityOcclusionTests",
+      "RoomNavigationSurfaceMeshTests"
+    ]
+  },
+  "render": {
+    "officialHandRendered": true,
+    "contactCorrectionVisible": true,
+    "controlledIndexCorrectionDegrees": 46.25001,
+    "shaderErrors": 0,
+    "temporaryImagesKeptInWorkspace": false
+  },
+  "apk": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_NaturalGrasp_20261025.apk",
+    "bytes": 195593241,
+    "sha256": "e2335100b7793251079306ea47ee1f2c10a50522816efb2db6aeb5946e6b8ef9",
+    "buildDuration": "00:00:46.3827405",
+    "signatureV2Verified": true,
+    "zipCRC": true,
+    "zipEntries": 1564,
+    "arm64": true,
+    "il2cppMetadata": true,
+    "nativeMatchesBuild": true,
+    "currentPlayerSourceChecksumsVerified": 15,
+    "includesCurrentHandsHudRoomAndSdkDepth": true,
+    "protectedAssetsUnchanged": true,
+    "protectedAssetCount": 25
+  },
+  "installed": true,
+  "installation": {
+    "device": "PB3A10MGL9220170B",
+    "package": "com.matesoul.game",
+    "installedSha256": "e2335100b7793251079306ea47ee1f2c10a50522816efb2db6aeb5946e6b8ef9",
+    "previousInstalledSha256": "4f24c35e3b287c4ce9abd2713d0e07ac2935384db2a8ae65a34e0d683d154f8f",
+    "saveBefore": "d583d595759ecedaf70b2cdd68700a07113d99577a486df3ebfde99c98463540",
+    "saveAfter": "d583d595759ecedaf70b2cdd68700a07113d99577a486df3ebfde99c98463540",
+    "saveUnchanged": true,
+    "launched": false
+  },
+  "humanFeelAcceptance": "pending"
+}

@@ -1,0 +1,46 @@
+{
+  "pass": true,
+  "source": "Direct54",
+  "changed_vertices": 206,
+  "hair_groups": [
+    4,
+    8,
+    12,
+    20,
+    28
+  ],
+  "max_displacement_mm": 1.478745842091553,
+  "central_four_groups_exact": true,
+  "all_hair_height_and_depth_exact": true,
+  "non_target_hair_exact": true,
+  "non_hair_untouched": true,
+  "triangle_flips": 0,
+  "new_degenerate_triangles": 0,
+  "parameters": {
+    "4": [
+      0.00025,
+      0.94,
+      1.466
+    ],
+    "8": [
+      -0.0001,
+      0.95,
+      1.474
+    ],
+    "12": [
+      -0.00015,
+      0.88,
+      1.475
+    ],
+    "20": [
+      -0.0001,
+      0.9,
+      1.475
+    ],
+    "28": [
+      0.0001,
+      0.94,
+      1.466
+    ]
+  }
+}

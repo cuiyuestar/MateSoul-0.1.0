@@ -1,0 +1,213 @@
+{
+  "date": "2026-10-28",
+  "project": "/Users/bytedance/MateSoul/MateSoul",
+  "feature": "床房间标定辅助实时精细识别",
+  "unity_version": "2022.3.38f1",
+  "unity_exit_code": 0,
+  "duration_seconds": 69.902753625,
+  "test_summary": {
+    "id": "2",
+    "testcasecount": "30",
+    "result": "Passed",
+    "total": "30",
+    "passed": "30",
+    "failed": "0",
+    "inconclusive": "0",
+    "skipped": "0",
+    "asserts": "0",
+    "engine-version": "3.5.0.0",
+    "clr-version": "4.0.30319.42000",
+    "start-time": "2026-10-28 14:55:18Z",
+    "end-time": "2026-10-28 14:55:28Z",
+    "duration": "9.8452842"
+  },
+  "test_groups": {
+    "MateSoul.Tests.BedInteractionTests": 7,
+    "MateSoul.Tests.CalibrationBedActionReplayTests": 2,
+    "MateSoul.Tests.CalibrationBedTests": 21
+  },
+  "cases": [
+    {
+      "name": "MateSoul.Tests.BedInteractionTests.BedWithoutAnUnambiguousHeadEndUsesDefaultDirection",
+      "result": "Passed",
+      "duration_seconds": 0.027867
+    },
+    {
+      "name": "MateSoul.Tests.BedInteractionTests.ExternalObjectAboveBodyLaneBlocksLying",
+      "result": "Passed",
+      "duration_seconds": 0.008882
+    },
+    {
+      "name": "MateSoul.Tests.BedInteractionTests.ExtractsOneBedFromOverlappingFrameAndBlanket",
+      "result": "Passed",
+      "duration_seconds": 0.011961
+    },
+    {
+      "name": "MateSoul.Tests.BedInteractionTests.MountCandidatesFollowObservedBedHeightAndFrameExtents(0.42f,0.95f,2.0f)",
+      "result": "Passed",
+      "duration_seconds": 0.009625
+    },
+    {
+      "name": "MateSoul.Tests.BedInteractionTests.MountCandidatesFollowObservedBedHeightAndFrameExtents(0.84f,1.9f,2.3f)",
+      "result": "Passed",
+      "duration_seconds": 0.010226
+    },
+    {
+      "name": "MateSoul.Tests.BedInteractionTests.PlannerUsesReachableSideAndFacesTowardBed",
+      "result": "Passed",
+      "duration_seconds": 0.009684
+    },
+    {
+      "name": "MateSoul.Tests.BedInteractionTests.ScannerPublishesOneLieCapabilityAfterStableGeometry",
+      "result": "Passed",
+      "duration_seconds": 0.037236
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedActionReplayTests.SideTransfersClearHeadboardAndRejectBlockedRoute",
+      "result": "Passed",
+      "duration_seconds": 4.101385
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedActionReplayTests.WalkLieRiseAndTargetLossRestoreStandingBody",
+      "result": "Passed",
+      "duration_seconds": 11.708573
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.BlockingStatusIsDifferentFromInsufficientMeasurement",
+      "result": "Passed",
+      "duration_seconds": 0.004699
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.CalibratedYawGuidesRotatedMeasuredSurface(37.0f)",
+      "result": "Passed",
+      "duration_seconds": 0.001203
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.CalibratedYawGuidesRotatedMeasuredSurface(90.0f)",
+      "result": "Passed",
+      "duration_seconds": 0.000907
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.CalibratedYawGuidesRotatedMeasuredSurface(143.0f)",
+      "result": "Passed",
+      "duration_seconds": 0.000942
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.DisconnectedChunksAndSeventyFivePercentCoverageAreAccepted",
+      "result": "Passed",
+      "duration_seconds": 0.002554
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.EmptyMeshKeepsLocatedStatusWithoutPublishingCapability",
+      "result": "Passed",
+      "duration_seconds": 0.000478
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.ExplicitOtherFurnitureSemanticIsNotRelabelled(Table)",
+      "result": "Passed",
+      "duration_seconds": 0.000135
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.ExplicitOtherFurnitureSemanticIsNotRelabelled(Chair)",
+      "result": "Passed",
+      "duration_seconds": 4.4e-05
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.ExternalBlockerInSameUnknownMeshBlockStillBlocksMount",
+      "result": "Passed",
+      "duration_seconds": 0.001292
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.FloorAtOldBedLocationCannotBecomeMattress",
+      "result": "Passed",
+      "duration_seconds": 0.004833
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.LowClutterLiftsContactAndHighClutterStillBlocks",
+      "result": "Passed",
+      "duration_seconds": 0.001236
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.NativeBedOutsideOldCalibrationStillWorks",
+      "result": "Passed",
+      "duration_seconds": 0.008926
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.NativeSemanticWinsAndCalibrationDoesNotDuplicateIt",
+      "result": "Passed",
+      "duration_seconds": 0.010455
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.OldCalibrationDoesNotFindMovedUnknownBedOutsideItsRegion",
+      "result": "Passed",
+      "duration_seconds": 0.000323
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.SparseCentralPatchIsNotEnoughForAWholeBed",
+      "result": "Passed",
+      "duration_seconds": 0.00029
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.SpatialMeshAabbIsNotTreatedAsRoomCalibration",
+      "result": "Passed",
+      "duration_seconds": 0.000612
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.StableConfirmationAndNativeHandoverKeepTheSameInteractionId",
+      "result": "Passed",
+      "duration_seconds": 0.009987
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.TallHeadboardBoxIsRefinedToMeasuredMattressHeight(0.46f)",
+      "result": "Passed",
+      "duration_seconds": 0.001126
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.TallHeadboardBoxIsRefinedToMeasuredMattressHeight(0.62f)",
+      "result": "Passed",
+      "duration_seconds": 0.000917
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.TallHeadboardBoxIsRefinedToMeasuredMattressHeight(0.84f)",
+      "result": "Passed",
+      "duration_seconds": 0.000892
+    },
+    {
+      "name": "MateSoul.Tests.CalibrationBedTests.UnknownRequiresCalibration",
+      "result": "Passed",
+      "duration_seconds": 0.001045
+    }
+  ],
+  "input_count": 142,
+  "test_inputs_unchanged": true,
+  "final_inputs_unchanged": true,
+  "input_manifest_sha256": "dadfca640d8e24ea71665e0cd631253aa6e1b36ab1678f3824903b5769b6d668",
+  "production_sha256": {
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/RealBedScanner.cs": "d5063faea7bfdec30563deed561f4b7a00b98ea5d2d37eaba4435bf3b2e70a3d",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/BedGeometry.cs": "64d8d4983a2bedf66e41c7b72556841efb9e1d84b7d905efa91f05e0f0adc2c9",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "3be1025fc1eefb6b3a4a04079fda131c1f8e448fd41385427ba9c81ae2c1c4bd",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Avatar.controller": "91a35d663ca1fc1a51239ae5d2976e17596490243d15ea1155b08330623a17c4",
+    "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/RoomNavigation/Runtime/RoomMapSnapshot.cs": "2194fd356f48a96e9c939cf01b828d6c7963831cb417e916f1957aaab108f74d"
+  },
+  "xml_sha256": "74678d4602a701ea2228626315972923884a962c2ddbcbdb4523ce7b647c678d",
+  "unity_log_sha256": "ad6abf0c646e75181b5b52c6d01a90c233b888e3bf5a16246e4f832d38f53192",
+  "xml_original_path": "/private/tmp/matesoul-bed-calibration-20261028-2255/test-225419.xml",
+  "action_phase_evidence": [
+    "MATESOUL_BED phase=walking id=real-bed-d4f091dd231542aa9dddef40392dd55d center=(0.000, 0.827, 0.000) width=1.900 length=2.100 height=0.827 edge=Foot dock=(0.000, 0.010, -1.410) planeError=0.0110",
+    "MATESOUL_BED phase=docking",
+    "MATESOUL_BED phase=mounting",
+    "MATESOUL_BED phase=lying",
+    "MATESOUL_BED phase=rising",
+    "MATESOUL_BED phase=walking id=real-bed-d4f091dd231542aa9dddef40392dd55d center=(0.000, 0.827, 0.000) width=1.900 length=2.100 height=0.827 edge=Foot dock=(0.000, 0.010, -1.410) planeError=0.0110",
+    "MATESOUL_BED phase=docking",
+    "MATESOUL_BED phase=mounting",
+    "MATESOUL_BED phase=lying",
+    "MATESOUL_BED phase=rising"
+  ],
+  "temporary_engine_entries_remaining": [],
+  "apk_built": false,
+  "installed": false,
+  "device_acceptance": false,
+  "sandbox_wrapper_status": "failed: Unity CoreBusinessMetrics user-level database write restricted; native Unity exit 0 and unique test XML Passed recorded separately"
+}

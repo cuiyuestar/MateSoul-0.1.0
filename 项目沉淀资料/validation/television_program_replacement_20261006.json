@@ -1,0 +1,77 @@
+{
+  "task": "replace_television_program",
+  "date": "2026-10-06",
+  "source": {
+    "path": "/Users/bytedance/Downloads/Q版角色太空横版像素游戏视频生成.mp4",
+    "sha256": "c55bdafdcc691236eccb0c3639b2eb044d487eb6d19f6e7538c5e381879f0079"
+  },
+  "unity_asset": {
+    "path": "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Video/PixelSpaceGameProgram.mp4",
+    "guid": "d46263424b4b94293a866c1f1af847bb",
+    "sha256": "c55bdafdcc691236eccb0c3639b2eb044d487eb6d19f6e7538c5e381879f0079",
+    "video": {
+      "codec": "h264",
+      "profile": "High",
+      "pixel_format": "yuv420p",
+      "width": 1280,
+      "height": 720,
+      "fps": 24
+    },
+    "audio": {
+      "codec": "aac",
+      "profile": "LC",
+      "sample_rate_hz": 44100,
+      "channels": 2
+    },
+    "duration_seconds": 15.071995,
+    "size_bytes": 3427040
+  },
+  "tests": {
+    "television_without_diagnostic_copy": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 1,
+      "skip_reason": "optional diagnostic media absent"
+    },
+    "television_with_exact_program_decode": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "checks": [
+        "program metadata and prefab binding",
+        "video reaches Playing",
+        "decoded render texture is non-black",
+        "loop callback occurs after the full program",
+        "power-off releases playback and render texture"
+      ]
+    },
+    "full_unity_suite": {
+      "passed": 109,
+      "failed": 0,
+      "skipped": 1,
+      "skip_reason": "optional diagnostic media absent during the independent full run"
+    }
+  },
+  "android_apk": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+    "size_bytes": 92856132,
+    "sha256": "731a6caa1b8abfb03096548d815069b4e4c0493b02bc9b633488e8934e666ed1",
+    "signature": "APK Signature Scheme v2 verified",
+    "abi": [
+      "arm64-v8a"
+    ]
+  },
+  "pico_emulator": {
+    "device": "emulator-5554",
+    "installed_apk_sha256": "731a6caa1b8abfb03096548d815069b4e4c0493b02bc9b633488e8934e666ed1",
+    "activity": "com.UnityTechnologies.com.unity.template.urpblank/com.unity3d.player.UnityPlayerActivity",
+    "foreground": true,
+    "permissions_granted": [
+      "com.picovr.permission.EYE_TRACKING",
+      "com.picovr.permission.HAND_TRACKING",
+      "com.picovr.permission.SPATIAL_DATA"
+    ],
+    "runtime_ready": "MATESOUL_READY source=PICO Emulator Spatial Mesh items=4 itemState=ready navMs=82",
+    "startup_video_errors": 0
+  }
+}

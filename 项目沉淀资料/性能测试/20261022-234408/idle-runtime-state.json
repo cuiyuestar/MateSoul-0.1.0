@@ -1,0 +1,12 @@
+{
+  "source": "PICO Emulator Spatial Mesh",
+  "triangleCount": 86323,
+  "time": 126.5677719116211,
+  "action": "Succeeded",
+  "error": "",
+  "commandError": "",
+  "fullBodyOwned": false,
+  "capsuleEnabled": true,
+  "seat_count": 1,
+  "bed_count": 1
+}

@@ -1,0 +1,1298 @@
+{
+  "date": "2026-10-27",
+  "session": "knife-swing-stutter",
+  "requestScope": "Analyze large held-knife swing stutter; no gameplay changes or APK installation requested.",
+  "progress_status": "analyzed",
+  "actualHeadsetStutterRootCause": "INCONCLUSIVE",
+  "controlledPerformanceMechanismsConfirmed": [
+    "Stable follow repeats collider queries for every pose subdivision; per-frame displacement and rotation increase work.",
+    "Broad spherical bounds query nearby surfaces repeatedly even when the knife does not physically overlap them.",
+    "Successful and spatially rejected cuts synchronously slice/spawn/cook; only successful cutting triggers the tool cooldown."
+  ],
+  "context": {
+    "unity": "2022.3.38f1",
+    "measurementPlatform": "macOS Unity Editor CPU; no rendering",
+    "shapeCount": 3,
+    "shapeTypes": [
+      "BoxCollider"
+    ],
+    "fixedTimestepSeconds": 0.02,
+    "samplesFormula": "Clamp(Ceil(Max(per-frame distance/0.025m, per-frame rotation/10deg)),1,60)",
+    "surfaceScenarios": {
+      "empty": {
+        "colliders": 0
+      },
+      "one-low-poly-mesh": {
+        "colliders": 1,
+        "trianglesPerMesh": 2
+      },
+      "one-dense-mesh": {
+        "colliders": 1,
+        "trianglesPerMesh": 32768
+      },
+      "twelve-dense-meshes": {
+        "colliders": 12,
+        "trianglesPerMesh": 8192
+      }
+    },
+    "surfacesPhysicallyContactKnife": false,
+    "timingNetworkCallsExcluded": true,
+    "followCountersCollectedSeparatelyFromTiming": true,
+    "followTimingSamplesPerScenario": 120,
+    "knifeSetup": "Production prefab, GameItem.Bind and actual PicoDirectHandInteractor XRI stable-grip selection.",
+    "extremeScenarioWarning": "1.2m is a single-frame target displacement stress case, not a normal complete swing amplitude.",
+    "airSearchTimingIncludesReflectionDispatch": true,
+    "cutSaveSink": "Isolated memory save; excludes real storage latency",
+    "cutFailureScenario": "20 direct TryCutItem calls with a blocking destination, before deferred object destruction; not 20 observed device calls in one frame.",
+    "allocationCounterCalibrationFailed": true
+  },
+  "hypotheses": [
+    {
+      "id": "A",
+      "controlledConclusion": "CONFIRMED",
+      "hypothesis": "Pose subdivision amplifies held-knife CPU work",
+      "actualStutterAttribution": "INCONCLUSIVE"
+    },
+    {
+      "id": "B",
+      "controlledConclusion": "CONFIRMED",
+      "hypothesis": "Repeated loose broad-phase queries amplify work with nearby surface collider count",
+      "caveat": "Single mesh triangle density was not consistently correlated with greater time.",
+      "actualStutterAttribution": "INCONCLUSIVE"
+    },
+    {
+      "id": "C",
+      "controlledConclusion": "CONFIRMED",
+      "hypothesis": "Synchronous cut commit or rejected cut preparation creates main-thread spikes",
+      "actualStutterAttribution": "INCONCLUSIVE"
+    },
+    {
+      "id": "D",
+      "controlledConclusion": "INCONCLUSIVE",
+      "hypothesis": "GC or live-room updates caused this device stutter",
+      "reason": "Allocation counter failed calibration; device logs lacked knife reproduction and frame-correlated room updates.",
+      "actualStutterAttribution": "INCONCLUSIVE"
+    }
+  ],
+  "device": {
+    "serial": "PB3A10MGL9220170B",
+    "model": "B3110",
+    "pid": 15651,
+    "package": "com.matesoul.game",
+    "installedApk": "/Users/bytedance/MateSoul/Builds/MateSoul_AllLatest_20261027-214501.apk",
+    "buildType": "Release",
+    "sha256": "ec688c81ede38991ddde33fe259d998065289806da78aef579f36755d115af85",
+    "observedDeviceEvents": [
+      {
+        "sourceLine": 44,
+        "event": "10-27 21:57:09.746 15651 15651 W Activity: onPause com.unity3d.player.UnityPlayerActivity@59539ca"
+      },
+      {
+        "sourceLine": 1314,
+        "event": "10-27 21:58:01.123 15651 15837 I PxrMetric: FPS=0/90,MTP=-498.77ms,AppSW=off,FrmEarly=0,FrmLate=0,FrmCpu=13.31ms,FrmGpu=4.39ms,FrmTime=34.84ms,ATWGPU=0.00ms,VsyncDelay=0,GPU=0%/0Mhz,GPUTemp=0.0C,LayerCnt=0,Stuck=0,Pkg=com.matesoul.game,FrmId=1,Skip=0"
+      },
+      {
+        "sourceLine": 1633,
+        "event": "10-27 21:58:02.134 15651 15837 I PxrMetric: FPS=0/90,MTP=35.32ms,AppSW=off,FrmEarly=0,FrmLate=0,FrmCpu=2.50ms,FrmGpu=5.75ms,FrmTime=9.14ms,ATWGPU=2.55ms,VsyncDelay=2,GPU=71%/342Mhz,GPUTemp=47.1C,LayerCnt=2,Stuck=0,Pkg=com.matesoul.game,FrmId=39,Skip=0"
+      },
+      {
+        "sourceLine": 2012,
+        "event": "10-27 21:58:03.141 15651 15837 I PxrMetric: FPS=39/90,MTP=34.24ms,AppSW=off,FrmEarly=2,FrmLate=2,FrmCpu=2.08ms,FrmGpu=5.82ms,FrmTime=8.75ms,ATWGPU=3.32ms,VsyncDelay=2,GPU=85%/578Mhz,GPUTemp=45.9C,LayerCnt=3,Stuck=0,Pkg=com.matesoul.game,FrmId=130,Skip=0"
+      },
+      {
+        "sourceLine": 2263,
+        "event": "10-27 21:58:04.147 15651 15837 I PxrMetric: FPS=90/90,MTP=31.15ms,AppSW=off,FrmEarly=0,FrmLate=0,FrmCpu=2.66ms,FrmGpu=8.30ms,FrmTime=11.72ms,ATWGPU=2.57ms,VsyncDelay=2,GPU=83%/646Mhz,GPUTemp=47.5C,LayerCnt=2,Stuck=0,Pkg=com.matesoul.game,FrmId=220,Skip=0"
+      },
+      {
+        "sourceLine": 2440,
+        "event": "10-27 21:58:04.877 15651 15651 W Activity: onPause com.unity3d.player.UnityPlayerActivity@59539ca"
+      }
+    ],
+    "knifeStutterReproducedInCapturedLog": false,
+    "note": "Captured process was paused after a brief startup interval. Current sleeping thread/memory snapshots are not active-stutter evidence."
+  },
+  "recommendations": [
+    "Gather collision candidates once for the swept volume, reuse them across subdivision samples, and cache stable shape/component metadata.",
+    "Treat failed cutting attempts as costly work: add bounded retry timing and perform cheap destination checks before slicing/spawning.",
+    "Measure successful cutting and collider cooking with an explicit frame budget; stage costly operations at their owning boundary.",
+    "Capture actual device knife frame timestamps, CPU/GPU timing, cut results and room-update timestamps before identifying the device root cause."
+  ],
+  "productionGameplayChanges": false,
+  "apkBuiltOrInstalled": false,
+  "profilingInstrumentationRemoved": true,
+  "temporaryProjectTestEntryRemoved": true,
+  "physicsBodySha256AfterCleanup": "9dbf037602879bc15e28743164f2028df779540dc1440b51f32c307d5953d23a",
+  "physicsBodyBusinessBaselineMatchesEarlierSession": true,
+  "tests": {
+    "profile": {
+      "summary": {
+        "id": "2",
+        "testcasecount": "2",
+        "result": "Passed",
+        "total": "2",
+        "passed": "2",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-10-27 14:05:21Z",
+        "end-time": "2026-10-27 14:05:24Z",
+        "duration": "3.1183858"
+      },
+      "cases": [
+        {
+          "name": "MateSoul.Tests.KnifeSwingProfileReplay.AirStrokeAndActualCutCosts",
+          "result": "Passed"
+        },
+        {
+          "name": "MateSoul.Tests.KnifeSwingProfileReplay.HeldKnifeQueryCosts",
+          "result": "Passed"
+        }
+      ]
+    },
+    "blocked-cut": {
+      "summary": {
+        "id": "2",
+        "testcasecount": "1",
+        "result": "Passed",
+        "total": "1",
+        "passed": "1",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-10-27 14:07:53Z",
+        "end-time": "2026-10-27 14:07:59Z",
+        "duration": "6.0931533"
+      },
+      "cases": [
+        {
+          "name": "MateSoul.Tests.KnifeSwingProfileReplay.FailedCutsAndAllocationCounterCalibration",
+          "result": "Passed"
+        }
+      ]
+    }
+  },
+  "runners": {
+    "profile": {
+      "exitCode": 0,
+      "timeout": false,
+      "seconds": 42.59,
+      "protectedAssetsUnchanged": true,
+      "protectedAssets": {
+        "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+        "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "11211e45bcb4f9d1af2221183d23f19c20d58d67545b4204e37cbacb30d98118",
+        "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Avatar.controller": "ac9fac96030d6f77a923c51ec8a2a7e5c9b676675038538b11ff32bfad0bdc00",
+        "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/Resources/MateSoulHands/TrackedHand.shader": "a4ac23e85baef7482ddca60158d1e039b6fb29965ed1df12a28e34fe0ef75ad9"
+      }
+    },
+    "blocked-cut": {
+      "exitCode": 0,
+      "timeout": false,
+      "seconds": 94.61,
+      "protectedAssetsUnchanged": true,
+      "protectedAssets": {
+        "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543",
+        "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "3f2cfe8344fe695290ad17a27094e75b770d97f50854454ae38385e02d604a14",
+        "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Avatar.controller": "1c76115215d51fb77b41b974a34040242beb30e87051813b5707ca05aadbf017",
+        "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/Resources/MateSoulHands/TrackedHand.shader": "a4ac23e85baef7482ddca60158d1e039b6fb29965ed1df12a28e34fe0ef75ad9"
+      }
+    }
+  },
+  "limitations": [
+    "Computer CPU durations cannot be used as measured headset CPU durations.",
+    "Cached shape subdivisions stress per-frame target displacement; large total swing amplitude alone does not imply 48 samples.",
+    "GC byte fields are explicitly invalidated after failed calibration.",
+    "Main test starts encountered a temporary unrelated missing pickup type; successful replay ran after it became available without diagnostic changes.",
+    "Each successful run preserved protected assets within that run. Other parallel work changed character/controller between runs.",
+    "Tool wrapper rejected nonessential Unity metrics database writes; NUnit evidence and Unity exit 0 were independently verified."
+  ],
+  "events": [
+    {
+      "originalEvidenceLine": 2,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.AirCutSearch",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.0014916666666666665,
+          "medianMs": 0.0015,
+          "p95Ms": 0.0016,
+          "maximumMs": 0.0028,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        }
+      },
+      "ts": 1793109918161,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 3,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.MeshSlicing",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 0,
+        "milliseconds": 11.5618,
+        "visualVertices": 418,
+        "collisionVertices": 86,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918201,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 4,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.ActualCutCommit",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 0,
+        "success": true,
+        "milliseconds": 9.2063,
+        "pieces": 2,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918224,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 5,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.MeshSlicing",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 1,
+        "milliseconds": 3.1205,
+        "visualVertices": 418,
+        "collisionVertices": 86,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918243,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 6,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.ActualCutCommit",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 1,
+        "success": true,
+        "milliseconds": 4.0407,
+        "pieces": 2,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918258,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 7,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.MeshSlicing",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 2,
+        "milliseconds": 6.5281,
+        "visualVertices": 418,
+        "collisionVertices": 86,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918277,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 8,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.ActualCutCommit",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 2,
+        "success": true,
+        "milliseconds": 5.0299,
+        "pieces": 2,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918289,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 9,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.MeshSlicing",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 3,
+        "milliseconds": 2.9342,
+        "visualVertices": 418,
+        "collisionVertices": 86,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918303,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 10,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.ActualCutCommit",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 3,
+        "success": true,
+        "milliseconds": 3.8097,
+        "pieces": 2,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918318,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 11,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.MeshSlicing",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 4,
+        "milliseconds": 2.9947,
+        "visualVertices": 418,
+        "collisionVertices": 86,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918331,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 12,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C-D",
+      "location": "KnifeSwingProfileReplay.ActualCutCommit",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "repeat": 4,
+        "success": true,
+        "milliseconds": 3.7022,
+        "pieces": 2,
+        "rawUnreliableAllocatedBytes": 0
+      },
+      "ts": 1793109918342,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 13,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B",
+      "location": "KnifeSwingProfileReplay.ProductionShapes",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "shapes": [
+          {
+            "type": "BoxCollider",
+            "name": "Knife_DarkBrownHandle",
+            "size": [
+              0.0328020379,
+              0.02399993,
+              0.1325
+            ],
+            "radius": 0.333046883,
+            "vertices": 0
+          },
+          {
+            "type": "BoxCollider",
+            "name": "Knife_HiddenTang",
+            "size": [
+              0.012,
+              0.003000021,
+              0.06999999
+            ],
+            "radius": 0.0355422236,
+            "vertices": 0
+          },
+          {
+            "type": "BoxCollider",
+            "name": "Knife_MetalBlade",
+            "size": [
+              0.0499996729,
+              0.003000021,
+              0.2
+            ],
+            "radius": 0.203268349,
+            "vertices": 0
+          }
+        ]
+      },
+      "ts": 1793109922528,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 14,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "empty",
+        "distance": 0.0,
+        "degrees": 0.0,
+        "shapeCount": 3,
+        "expectedSamples": 1,
+        "actualDisplacement": 1.49011612e-08,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.00987166666666666,
+          "medianMs": 0.0093,
+          "p95Ms": 0.014,
+          "maximumMs": 0.0172,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 1.1954,
+          "debugKnifeSweepTicks": 0.0256,
+          "debugKnifeOverlapTicks": 0.0801,
+          "debugKnifePenetrationTicks": 0.0,
+          "debugKnifeSamples": 1.0,
+          "debugKnifeOverlapQueries": 3.0,
+          "debugKnifeCandidates": 0.0,
+          "debugKnifePenetrations": 0.0,
+          "debugKnifeSweepQueries": 0.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109922570,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 15,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "empty",
+        "distance": 0.02,
+        "degrees": 5.0,
+        "shapeCount": 3,
+        "expectedSamples": 1,
+        "actualDisplacement": 0.01999998,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.010722499999999994,
+          "medianMs": 0.0102,
+          "p95Ms": 0.0153,
+          "maximumMs": 0.0182,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 1.3267,
+          "debugKnifeSweepTicks": 0.1545,
+          "debugKnifeOverlapTicks": 0.0663,
+          "debugKnifePenetrationTicks": 0.0,
+          "debugKnifeSamples": 1.0,
+          "debugKnifeOverlapQueries": 3.0,
+          "debugKnifeCandidates": 0.0,
+          "debugKnifePenetrations": 0.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109922584,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 16,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "empty",
+        "distance": 0.08,
+        "degrees": 15.0,
+        "shapeCount": 3,
+        "expectedSamples": 4,
+        "actualDisplacement": 0.07999998,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.03855583333333332,
+          "medianMs": 0.0377,
+          "p95Ms": 0.043,
+          "maximumMs": 0.0518,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 4.6192,
+          "debugKnifeSweepTicks": 0.1643,
+          "debugKnifeOverlapTicks": 0.2546,
+          "debugKnifePenetrationTicks": 0.0,
+          "debugKnifeSamples": 4.0,
+          "debugKnifeOverlapQueries": 12.0,
+          "debugKnifeCandidates": 0.0,
+          "debugKnifePenetrations": 0.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109922602,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 17,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "empty",
+        "distance": 0.3,
+        "degrees": 45.0,
+        "shapeCount": 3,
+        "expectedSamples": 12,
+        "actualDisplacement": 0.3,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.1042841666666667,
+          "medianMs": 0.1037,
+          "p95Ms": 0.1115,
+          "maximumMs": 0.1332,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 12.2572,
+          "debugKnifeSweepTicks": 0.1609,
+          "debugKnifeOverlapTicks": 0.7486,
+          "debugKnifePenetrationTicks": 0.0,
+          "debugKnifeSamples": 12.0,
+          "debugKnifeOverlapQueries": 36.0,
+          "debugKnifeCandidates": 0.0,
+          "debugKnifePenetrations": 0.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109922637,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 18,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "empty",
+        "distance": 1.2,
+        "degrees": 90.0,
+        "shapeCount": 3,
+        "expectedSamples": 48,
+        "actualDisplacement": 1.2,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.45634166666666665,
+          "medianMs": 0.413,
+          "p95Ms": 0.6943,
+          "maximumMs": 1.2697,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 58.2262,
+          "debugKnifeSweepTicks": 0.2589,
+          "debugKnifeOverlapTicks": 2.8518,
+          "debugKnifePenetrationTicks": 0.0,
+          "debugKnifeSamples": 48.0,
+          "debugKnifeOverlapQueries": 144.0,
+          "debugKnifeCandidates": 0.0,
+          "debugKnifePenetrations": 0.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109922768,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 19,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-low-poly-mesh",
+        "distance": 0.0,
+        "degrees": 0.0,
+        "shapeCount": 3,
+        "expectedSamples": 1,
+        "actualDisplacement": 1.49011612e-08,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.018034999999999978,
+          "medianMs": 0.0144,
+          "p95Ms": 0.0197,
+          "maximumMs": 0.2095,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 2.2927,
+          "debugKnifeSweepTicks": 0.0249,
+          "debugKnifeOverlapTicks": 0.1031,
+          "debugKnifePenetrationTicks": 0.1292,
+          "debugKnifeSamples": 1.0,
+          "debugKnifeOverlapQueries": 3.0,
+          "debugKnifeCandidates": 2.0,
+          "debugKnifePenetrations": 2.0,
+          "debugKnifeSweepQueries": 0.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109922783,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 20,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-low-poly-mesh",
+        "distance": 0.02,
+        "degrees": 5.0,
+        "shapeCount": 3,
+        "expectedSamples": 1,
+        "actualDisplacement": 0.01999998,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.015905833333333348,
+          "medianMs": 0.0151,
+          "p95Ms": 0.0193,
+          "maximumMs": 0.0224,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 1.9295,
+          "debugKnifeSweepTicks": 0.1644,
+          "debugKnifeOverlapTicks": 0.0856,
+          "debugKnifePenetrationTicks": 0.133,
+          "debugKnifeSamples": 1.0,
+          "debugKnifeOverlapQueries": 3.0,
+          "debugKnifeCandidates": 2.0,
+          "debugKnifePenetrations": 2.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109922795,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 21,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-low-poly-mesh",
+        "distance": 0.08,
+        "degrees": 15.0,
+        "shapeCount": 3,
+        "expectedSamples": 4,
+        "actualDisplacement": 0.07999998,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.05503083333333332,
+          "medianMs": 0.0545,
+          "p95Ms": 0.0585,
+          "maximumMs": 0.095,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 6.677,
+          "debugKnifeSweepTicks": 0.1651,
+          "debugKnifeOverlapTicks": 0.3433,
+          "debugKnifePenetrationTicks": 0.5121,
+          "debugKnifeSamples": 4.0,
+          "debugKnifeOverlapQueries": 12.0,
+          "debugKnifeCandidates": 8.0,
+          "debugKnifePenetrations": 8.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109922821,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 22,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-low-poly-mesh",
+        "distance": 0.3,
+        "degrees": 45.0,
+        "shapeCount": 3,
+        "expectedSamples": 12,
+        "actualDisplacement": 0.3,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.17293416666666667,
+          "medianMs": 0.1639,
+          "p95Ms": 0.2425,
+          "maximumMs": 0.3258,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 22.7868,
+          "debugKnifeSweepTicks": 0.2093,
+          "debugKnifeOverlapTicks": 1.0441,
+          "debugKnifePenetrationTicks": 1.5718,
+          "debugKnifeSamples": 12.0,
+          "debugKnifeOverlapQueries": 36.0,
+          "debugKnifeCandidates": 24.0,
+          "debugKnifePenetrations": 24.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109922880,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 23,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-low-poly-mesh",
+        "distance": 1.2,
+        "degrees": 90.0,
+        "shapeCount": 3,
+        "expectedSamples": 48,
+        "actualDisplacement": 1.2,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.6974533333333334,
+          "medianMs": 0.6757,
+          "p95Ms": 0.8228,
+          "maximumMs": 1.2445,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 73.6676,
+          "debugKnifeSweepTicks": 0.1916,
+          "debugKnifeOverlapTicks": 3.6166,
+          "debugKnifePenetrationTicks": 5.7791,
+          "debugKnifeSamples": 48.0,
+          "debugKnifeOverlapQueries": 144.0,
+          "debugKnifeCandidates": 96.0,
+          "debugKnifePenetrations": 96.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923060,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 24,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-dense-mesh",
+        "distance": 0.0,
+        "degrees": 0.0,
+        "shapeCount": 3,
+        "expectedSamples": 1,
+        "actualDisplacement": 1.49011612e-08,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.013679999999999982,
+          "medianMs": 0.0135,
+          "p95Ms": 0.0149,
+          "maximumMs": 0.0159,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 1.6887,
+          "debugKnifeSweepTicks": 0.0226,
+          "debugKnifeOverlapTicks": 0.1085,
+          "debugKnifePenetrationTicks": 0.1185,
+          "debugKnifeSamples": 1.0,
+          "debugKnifeOverlapQueries": 3.0,
+          "debugKnifeCandidates": 2.0,
+          "debugKnifePenetrations": 2.0,
+          "debugKnifeSweepQueries": 0.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923095,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 25,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-dense-mesh",
+        "distance": 0.02,
+        "degrees": 5.0,
+        "shapeCount": 3,
+        "expectedSamples": 1,
+        "actualDisplacement": 0.01999998,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.05399249999999999,
+          "medianMs": 0.0146,
+          "p95Ms": 0.0179,
+          "maximumMs": 4.63,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 1.6793,
+          "debugKnifeSweepTicks": 0.1381,
+          "debugKnifeOverlapTicks": 0.0888,
+          "debugKnifePenetrationTicks": 0.1121,
+          "debugKnifeSamples": 1.0,
+          "debugKnifeOverlapQueries": 3.0,
+          "debugKnifeCandidates": 2.0,
+          "debugKnifePenetrations": 2.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923111,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 26,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-dense-mesh",
+        "distance": 0.08,
+        "degrees": 15.0,
+        "shapeCount": 3,
+        "expectedSamples": 4,
+        "actualDisplacement": 0.07999998,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.076695,
+          "medianMs": 0.0611,
+          "p95Ms": 0.1507,
+          "maximumMs": 0.1735,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 7.3719,
+          "debugKnifeSweepTicks": 0.158,
+          "debugKnifeOverlapTicks": 0.3742,
+          "debugKnifePenetrationTicks": 0.4691,
+          "debugKnifeSamples": 4.0,
+          "debugKnifeOverlapQueries": 12.0,
+          "debugKnifeCandidates": 8.0,
+          "debugKnifePenetrations": 8.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923137,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 27,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-dense-mesh",
+        "distance": 0.3,
+        "degrees": 45.0,
+        "shapeCount": 3,
+        "expectedSamples": 12,
+        "actualDisplacement": 0.3,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.39430333333333345,
+          "medianMs": 0.1638,
+          "p95Ms": 0.8609,
+          "maximumMs": 8.3796,
+          "gen0Collections": 1,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 18.0367,
+          "debugKnifeSweepTicks": 0.1516,
+          "debugKnifeOverlapTicks": 1.1365,
+          "debugKnifePenetrationTicks": 1.341,
+          "debugKnifeSamples": 12.0,
+          "debugKnifeOverlapQueries": 36.0,
+          "debugKnifeCandidates": 24.0,
+          "debugKnifePenetrations": 24.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923219,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 28,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "one-dense-mesh",
+        "distance": 1.2,
+        "degrees": 90.0,
+        "shapeCount": 3,
+        "expectedSamples": 48,
+        "actualDisplacement": 1.2,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.5298750000000002,
+          "medianMs": 0.5243,
+          "p95Ms": 0.5877,
+          "maximumMs": 0.7063,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 61.8175,
+          "debugKnifeSweepTicks": 0.158,
+          "debugKnifeOverlapTicks": 4.3241,
+          "debugKnifePenetrationTicks": 5.0938,
+          "debugKnifeSamples": 48.0,
+          "debugKnifeOverlapQueries": 144.0,
+          "debugKnifeCandidates": 96.0,
+          "debugKnifePenetrations": 96.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923364,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 29,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "twelve-dense-meshes",
+        "distance": 0.0,
+        "degrees": 0.0,
+        "shapeCount": 3,
+        "expectedSamples": 1,
+        "actualDisplacement": 1.49011612e-08,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.04693666666666671,
+          "medianMs": 0.0465,
+          "p95Ms": 0.0496,
+          "maximumMs": 0.0585,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 5.8614,
+          "debugKnifeSweepTicks": 0.0187,
+          "debugKnifeOverlapTicks": 0.3442,
+          "debugKnifePenetrationTicks": 1.1739,
+          "debugKnifeSamples": 1.0,
+          "debugKnifeOverlapQueries": 3.0,
+          "debugKnifeCandidates": 24.0,
+          "debugKnifePenetrations": 24.0,
+          "debugKnifeSweepQueries": 0.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923390,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 30,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "twelve-dense-meshes",
+        "distance": 0.02,
+        "degrees": 5.0,
+        "shapeCount": 3,
+        "expectedSamples": 1,
+        "actualDisplacement": 0.01999998,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.05232250000000002,
+          "medianMs": 0.051,
+          "p95Ms": 0.0569,
+          "maximumMs": 0.0663,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 6.2696,
+          "debugKnifeSweepTicks": 0.1285,
+          "debugKnifeOverlapTicks": 0.3286,
+          "debugKnifePenetrationTicks": 1.1873,
+          "debugKnifeSamples": 1.0,
+          "debugKnifeOverlapQueries": 3.0,
+          "debugKnifeCandidates": 24.0,
+          "debugKnifePenetrations": 24.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923417,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 31,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "twelve-dense-meshes",
+        "distance": 0.08,
+        "degrees": 15.0,
+        "shapeCount": 3,
+        "expectedSamples": 4,
+        "actualDisplacement": 0.07999998,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.20650333333333334,
+          "medianMs": 0.2095,
+          "p95Ms": 0.2151,
+          "maximumMs": 0.2434,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 24.2053,
+          "debugKnifeSweepTicks": 0.1346,
+          "debugKnifeOverlapTicks": 1.2572,
+          "debugKnifePenetrationTicks": 4.9341,
+          "debugKnifeSamples": 4.0,
+          "debugKnifeOverlapQueries": 12.0,
+          "debugKnifeCandidates": 96.0,
+          "debugKnifePenetrations": 96.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923480,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 32,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "twelve-dense-meshes",
+        "distance": 0.3,
+        "degrees": 45.0,
+        "shapeCount": 3,
+        "expectedSamples": 12,
+        "actualDisplacement": 0.3,
+        "performance": {
+          "frames": 120,
+          "meanMs": 0.5583608333333332,
+          "medianMs": 0.5571,
+          "p95Ms": 0.6004,
+          "maximumMs": 0.63,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 68.1008,
+          "debugKnifeSweepTicks": 0.149,
+          "debugKnifeOverlapTicks": 3.7258,
+          "debugKnifePenetrationTicks": 13.6783,
+          "debugKnifeSamples": 12.0,
+          "debugKnifeOverlapQueries": 36.0,
+          "debugKnifeCandidates": 288.0,
+          "debugKnifePenetrations": 288.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109923635,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 33,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "A-B-D",
+      "location": "KnifeSwingProfileReplay.Follow",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "scene": "twelve-dense-meshes",
+        "distance": 1.2,
+        "degrees": 90.0,
+        "shapeCount": 3,
+        "expectedSamples": 48,
+        "actualDisplacement": 1.2,
+        "performance": {
+          "frames": 120,
+          "meanMs": 2.240789166666666,
+          "medianMs": 2.2044,
+          "p95Ms": 2.4071,
+          "maximumMs": 2.4968,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "counters": {
+          "debugKnifeFollowTicks": 284.131,
+          "debugKnifeSweepTicks": 0.2756,
+          "debugKnifeOverlapTicks": 15.9603,
+          "debugKnifePenetrationTicks": 54.9651,
+          "debugKnifeSamples": 48.0,
+          "debugKnifeOverlapQueries": 144.0,
+          "debugKnifeCandidates": 1152.0,
+          "debugKnifePenetrations": 1152.0,
+          "debugKnifeSweepQueries": 1.0,
+          "debugKnifeSweepHits": 0.0
+        }
+      },
+      "ts": 1793109924272,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 34,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "D",
+      "location": "KnifeSwingProfileReplay.AllocationCalibration",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "requestedBytes": 32768,
+        "observedBytes": 0,
+        "reliable": false
+      },
+      "ts": 1793110074666,
+      "allocationMeasurementUsable": false
+    },
+    {
+      "originalEvidenceLine": 35,
+      "sessionId": "knife-swing-stutter",
+      "runId": "measured",
+      "hypothesisId": "C",
+      "location": "KnifeSwingProfileReplay.RepeatedBlockedCuts",
+      "msg": "[DEBUG] knife swing profile",
+      "data": {
+        "attempts": 20,
+        "succeeded": 0,
+        "performance": {
+          "frames": 20,
+          "meanMs": 9.46008,
+          "medianMs": 7.6092,
+          "p95Ms": 14.2008,
+          "maximumMs": 38.5228,
+          "gen0Collections": 0,
+          "rawUnreliableAllocatedBytes": 0,
+          "rawUnreliableAllocatedBytesPerFrame": 0.0
+        },
+        "temporaryObjectsBeforeDeferredDestroy": 41,
+        "originalItemStillRegistered": true,
+        "failureNotice": "???????",
+        "note": "Direct production TryCutItem repetitions test work per failure; RuntimeCuttingTool schedules retries with no failed-attempt cooldown."
+      },
+      "ts": 1793110078593,
+      "allocationMeasurementUsable": false
+    }
+  ]
+}

@@ -57,6 +57,10 @@ Shader "PICO/EnvironmentDepth/Preprocessing"
               {
                 float2 uvSample = uv + (offsets[i] + 0.5f) * onePixelOffset;
                 float4 g = _EnvironmentDepthTexture.Gather(sampler_EnvironmentDepthTexture, float3(uvSample.x, uvSample.y, slice));
+                // Mark the entire filter footprint unmeasured if any source
+                // sample is a clear value, outside [0,1], or NaN.
+                if (!(all(g > 0.0f) && all(g < 1.0f)))
+                  return float4(0.0f, 0.0f, 0.0f, -1.0f);
                 gathered[i] = g;
 
                 depthSum  += dot(g, quarter);

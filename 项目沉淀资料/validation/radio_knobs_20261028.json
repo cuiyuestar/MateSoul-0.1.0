@@ -1,0 +1,152 @@
+{
+  "date": "2026-10-28",
+  "acceptance": {
+    "exit": 0,
+    "seconds": 51.24,
+    "source_unchanged": true,
+    "source_before": {
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PicoHandPoke.cs": "8556d0bae4e0fa06f7c944e10da03bf93fecedecfdcaf93477b2411a3b24a493",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/RadioKnobControl.cs": "5579bd7ccbe4a3f951e7aed8fd653abe707be97ef98049abcc77e6f066b5f02c",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Runtime/PicoDirectHandInteractor.cs": "28f2ec429add38e160d0d5884ba3faced3ab6c6baa8d4a1e5471fb4e78901612",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Props/Radio.prefab": "4b6cfa70df9eae2b2ac6685e4b73ca68a87da2d0e4e3d30ac102e7ca1a1168fa",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Content/Avatar.controller": "175119629f0667255f5242a1b3fb777685fe6d4640057da8efc31222dee1dd23",
+      "/Users/bytedance/MateSoul/MateSoul/Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543"
+    },
+    "tests": [
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.AButtonStillClicksOnceOnContactAndRearmsAfterRetreat",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.BehindTheCaseOrAcrossAnObstacleCannotCaptureTheKnob",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.CaptureCannotSwitchToTheAdjacentKnobUntilPinchIsReleased",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.ContactAtTheCenterCanStartThenMoveToTheRingWithoutJumping",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.CrossingQuaternionWrapAndReversingAtTheStopRemainResponsive",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.FingertipDragStaysPressedAndMovesAcrossManyUiUpdates",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.KnobCapturePreventsWholeRadioAcquisitionByTheOperatingHand",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.PointerOwnershipPreventsTheOtherHandFromReleasingAnActiveDrag",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.ReleasingPinchPreservesValueAndAllowsTheNextHandToAcquire",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.StationaryPinchAndWristTurnDriveTheProductionKnob(Tuning)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.StationaryPinchAndWristTurnDriveTheProductionKnob(Volume)",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.TrackingLossAndDisableReleaseWithoutJumpOrSilentRecapture",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioKnobAcceptance.WristSwingAndHeadMovementDoNotChangeTheValue",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioTests.ControlsMoveContinuouslyTowardAuthoredTargetsAndStayInsideFrames",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioTests.ItemCenterFocusTargetsEveryRadioControlAtOnce",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioTests.PowerVolumeAndStationControlsOwnOneRadioInstance",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioTests.ProductionAssetHasThreeStreamingStationsAndCompleteXrControls",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioTests.TrackEndCrossfadesIntoItsOwnBeginningBeforeStoppingOldChannel",
+        "result": "Passed",
+        "failure": null
+      },
+      {
+        "name": "MateSoul.Tests.RadioTests.TuningTraversesAdjacentStationsAndMixesStaticAtEachStep",
+        "result": "Passed",
+        "failure": null
+      }
+    ],
+    "summary": {
+      "id": "2",
+      "testcasecount": "19",
+      "result": "Passed",
+      "total": "19",
+      "passed": "19",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-28 08:12:24Z",
+      "end-time": "2026-10-28 08:12:26Z",
+      "duration": "1.449145"
+    }
+  },
+  "release": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RadioKnobs_20261028.apk",
+    "sha256": "fc4ae1ba4c070c0e2c5fa4055eb15856f86f48711be7ab7d8964506b5aee53e1",
+    "bytes": 165650833,
+    "seconds": 194.75,
+    "source_inputs": 1820,
+    "production_inputs_unchanged": true,
+    "editor_only_changes": [],
+    "crc": true,
+    "signature": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): false\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1",
+    "zipalign": true,
+    "generated_rotary_methods": [
+      "RadioKnobControl_BeginHandTurn",
+      "RadioKnobControl_UpdateHandTurn",
+      "PicoHandPoke_UpdateHandTurn",
+      "PicoHandPoke_get_HasControlCapture"
+    ],
+    "native_matches": true,
+    "installed": false
+  },
+  "device_connected": false,
+  "human_hand_feel_verified": false
+}

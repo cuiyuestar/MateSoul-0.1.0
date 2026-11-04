@@ -1,0 +1,77 @@
+{
+  "feature": "reality-item-modularization",
+  "completed_at": "2026-10-04T11:12:00+08:00",
+  "result": "passed_with_emulator_scope",
+  "catalog": {
+    "pico_semantics_covered": 23,
+    "reality_item_definitions": 15,
+    "interaction_mappings": {
+      "Chair": ["sit"],
+      "Bed": ["lie"]
+    }
+  },
+  "runtime_policy": {
+    "observed_items_are_automatically_actionable": false,
+    "capability_requires_validated_interaction_target": true,
+    "bed_lie_executor_implemented": false,
+    "chair_sit_executor_implemented": true
+  },
+  "tests": {
+    "total": 60,
+    "passed": 60,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 11.739218,
+    "xml": "/Users/bytedance/MateSoul/.artifacts/framework/unity-tests.xml"
+  },
+  "build": {
+    "apk": "/Users/bytedance/MateSoul/Builds/MateSoul_RealChair_Development.apk",
+    "canonical_apk": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+    "bytes": 82312193,
+    "sha256": "bff6959e693877386377151e82b9183f39d7a11848fdaded5ff682ed0b0813d4",
+    "signature": "APK Signature Scheme v2 verified"
+  },
+  "emulator": {
+    "source": "PICO Emulator Spatial Mesh",
+    "mesh_triangles": 86323,
+    "observed_reality_items": 28,
+    "semantic_counts": {
+      "Bed": 2,
+      "Cabinet": 3,
+      "Chair": 2,
+      "Curtain": 3,
+      "Door": 1,
+      "Lamp": 8,
+      "Plant": 6,
+      "WallArt": 1,
+      "Window": 2
+    },
+    "beds": {
+      "count": 2,
+      "declared_interactions": ["lie"],
+      "available_interactions": []
+    },
+    "validated_chair_targets": {
+      "count": 1,
+      "semantic": "Chair",
+      "geometry_inferred": true,
+      "declared_interactions": ["sit"],
+      "available_interactions": ["sit"]
+    },
+    "sit_stand_regression": {
+      "sit": "passed",
+      "seated_rig_weight": 1.0,
+      "seated_capsule_enabled": false,
+      "seated_full_body_owned": true,
+      "stand": "passed",
+      "standing_rig_weight": 0.0,
+      "standing_capsule_enabled": true,
+      "standing_full_body_owned": false
+    }
+  },
+  "remaining_work": [
+    "Implement a bed target resolver that derives safe approach and lying poses.",
+    "Implement LieOnBedAction and the corresponding full-body animation or procedural rig.",
+    "Validate Scene Capture observations and interactions on a physical PICO headset."
+  ]
+}

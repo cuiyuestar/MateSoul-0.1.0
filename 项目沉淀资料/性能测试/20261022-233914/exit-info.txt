@@ -1,0 +1,68 @@
+ACTIVITY MANAGER PROCESS EXIT INFO (dumpsys activity exit-info)
+Last Timestamp of Persistence Into Persistent Storage: 2026-10-22 23:44:38.754
+  package: com.UnityTechnologies.com.unity.template.urpblank
+    Historical Process Exit for uid=10108
+        ApplicationExitInfo #0:
+          timestamp=2026-10-22 23:51:16.070 pid=12556 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 14170 from uid 0 state=empty trace=null
+        ApplicationExitInfo #1:
+          timestamp=2026-10-22 23:45:32.960 pid=12050 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 12516 from uid 0 state=empty trace=null
+        ApplicationExitInfo #2:
+          timestamp=2026-10-22 23:45:03.278 pid=11644 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 12026 from uid 0 state=empty trace=null
+        ApplicationExitInfo #3:
+          timestamp=2026-10-22 23:44:38.892 pid=11222 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 11619 from uid 0 state=empty trace=null
+        ApplicationExitInfo #4:
+          timestamp=2026-10-22 23:42:53.379 pid=10422 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 10879 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #5:
+          timestamp=2026-10-22 23:42:23.346 pid=9919 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 10397 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #6:
+          timestamp=2026-10-22 23:41:52.975 pid=9463 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 9892 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #7:
+          timestamp=2026-10-22 23:41:26.005 pid=9014 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 9413 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #8:
+          timestamp=2026-10-22 23:41:01.799 pid=8605 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 8990 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #9:
+          timestamp=2026-10-22 23:40:37.831 pid=8099 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 8577 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #10:
+          timestamp=2026-10-22 23:39:55.159 pid=7715 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=2 (SIGNALED) subreason=0 (UNKNOWN) status=3
+          importance=100 pss=0.00 rss=0.00 description=null state=empty trace=null
+        ApplicationExitInfo #11:
+          timestamp=2026-10-22 23:39:43.380 pid=7251 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 7687 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #12:
+          timestamp=2026-10-22 23:39:15.699 pid=6961 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 7157 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #13:
+          timestamp=2026-10-22 23:38:49.483 pid=6627 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 6863 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #14:
+          timestamp=2026-10-22 23:38:03.758 pid=3033 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=10 (USER REQUESTED) subreason=21 (FORCE STOP) status=0
+          importance=100 pss=0.00 rss=378MB description=stop com.UnityTechnologies.com.unity.template.urpblank due to from pid 6534 from uid 2000 state=empty trace=null
+        ApplicationExitInfo #15:
+          timestamp=2026-10-22 13:28:36.452 pid=17385 realUid=10108 packageUid=10108 definingUid=10108 user=0
+          process=com.UnityTechnologies.com.unity.template.urpblank reason=16 (PACKAGE UPDATED) subreason=0 (UNKNOWN) status=0
+          importance=100 pss=0.00 rss=0.00 description=stop com.UnityTechnologies.com.unity.template.urpblank due to installPackageLI state=empty trace=null

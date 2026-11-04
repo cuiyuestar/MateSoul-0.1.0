@@ -1,0 +1,27 @@
+PASS production fitted contact set parts=69 fitMs=67
+PASS head follows actual head bone headCenter=(0.00, 1.43, -0.01)
+PASS small physical contact offset 
+PASS two original IK selection spheres 
+PASS session restore admits physical actions 
+PASS gentle touch bends skeleton without root step bendDegrees=1.455861 rootDelta=3.617536E-07
+PASS strong sustained contact admits one step 
+PASS step stays small and each foot lifts rootDelta=0.02474829 leftLift=0.02496773 rightLift=0.02496642
+PASS existing body action blocks competing reaction 
+PASS ambient attention yields its bones to physical contact 
+PASS restored selection drives the production IK action 
+PASS held arm keeps IK ownership while free arm reacts 
+PASS all hand segments are sensors 
+PASS relaxed near grip selects near=True contact=True registered=True
+PASS relaxed grip stays selected 
+PASS brief tracking loss holds last pose 
+PASS long tracking loss safely releases 
+PASS near pinch can pick small item 
+PASS single open flicker does not drop 
+PASS clear open releases after dwell 
+PASS distant clench never vacuums on approach 
+PASS gentle push does not fling light item speed=0.0479808
+PASS fast tracked hand force remains bounded speed=0.54978
+PASS immovable contact body stays fixed 
+PASS real penetrations aggregate once per target 
+PASS 17 hand sensors produce one bounded impulse speed=0.04998
+PASS all acceptance checks=26

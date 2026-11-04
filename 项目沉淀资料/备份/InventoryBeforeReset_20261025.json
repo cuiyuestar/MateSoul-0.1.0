@@ -1,0 +1,304 @@
+{
+    "version": 1,
+    "outfitId": "lavender-casual",
+    "subtitles": true,
+    "roomAnchorId": "c6ea6133-29a4-5f4d-9416-15b95a06c069",
+    "hasRoomAnchorPose": true,
+    "roomX": 0.04780353605747223,
+    "roomY": 1.2364147901535035,
+    "roomZ": 0.5606240034103394,
+    "roomQx": 0.0,
+    "roomQy": 0.01357478927820921,
+    "roomQz": 0.0,
+    "roomQw": 0.9999078512191773,
+    "personality": {
+        "selections": [
+            {
+                "trait_id": "extraversion",
+                "option_id": "balanced"
+            },
+            {
+                "trait_id": "conscientiousness",
+                "option_id": "flexible"
+            },
+            {
+                "trait_id": "openness",
+                "option_id": "pragmatic"
+            },
+            {
+                "trait_id": "agreeableness",
+                "option_id": "warm"
+            },
+            {
+                "trait_id": "emotional_stability",
+                "option_id": "natural"
+            }
+        ]
+    },
+    "mood": {
+        "meters": [
+            {
+                "id": "sadness",
+                "value": 0.0
+            },
+            {
+                "id": "anger",
+                "value": 0.0
+            },
+            {
+                "id": "sweet",
+                "value": 0.0
+            },
+            {
+                "id": "happy",
+                "value": 0.0
+            }
+        ],
+        "activeId": "",
+        "level": 0,
+        "remainingSeconds": 0.0
+    },
+    "items": [
+        {
+            "instanceId": "3fedc7e4-d812-4cb1-ad6f-c897467923dd",
+            "definitionId": "coffee-bean-jar",
+            "inventoryDefinitionId": "coffee-bean-jar",
+            "inventoryUnitId": "4b34f301-bcdb-4f14-8d7e-e22d908d2ee2",
+            "stateId": "default",
+            "x": 0.1981750726699829,
+            "y": -0.7182306051254273,
+            "z": -0.27382692694664,
+            "qx": -0.5833956003189087,
+            "qy": 0.1213429644703865,
+            "qz": -0.40066471695899966,
+            "qw": 0.6959837675094605,
+            "needsGravitySettling": false,
+            "cutState": {
+                "version": 1,
+                "planes": []
+            }
+        },
+        {
+            "instanceId": "82fc2bfb-dd62-471f-8740-ef135b32417a",
+            "definitionId": "water-dispenser",
+            "inventoryDefinitionId": "water-dispenser",
+            "inventoryUnitId": "0af65918-baa1-4c07-a635-fdc9c711e726",
+            "stateId": "default",
+            "x": -0.6503150463104248,
+            "y": -0.296250581741333,
+            "z": -1.1856837272644044,
+            "qx": 0.0,
+            "qy": -0.01357478927820921,
+            "qz": 0.0,
+            "qw": 0.9999078512191773,
+            "needsGravitySettling": false,
+            "cutState": {
+                "version": 1,
+                "planes": []
+            }
+        },
+        {
+            "instanceId": "5378462a-da46-490e-a396-8b280ce453e1",
+            "definitionId": "plate-large",
+            "inventoryDefinitionId": "plate-large",
+            "inventoryUnitId": "ad48d216-e2f1-432c-bc5f-70c979fea45c",
+            "stateId": "default",
+            "x": -0.29075151681900027,
+            "y": -0.7639513611793518,
+            "z": -0.3194138705730438,
+            "qx": -0.0039013808127492668,
+            "qy": 0.29016056656837466,
+            "qz": 0.01912738010287285,
+            "qw": -0.9567789435386658,
+            "needsGravitySettling": false,
+            "cutState": {
+                "version": 1,
+                "planes": []
+            }
+        },
+        {
+            "instanceId": "eb390a61-9083-4537-86ae-952f0d25ce39",
+            "definitionId": "plate-medium",
+            "inventoryDefinitionId": "plate-medium",
+            "inventoryUnitId": "990bb159-6964-4feb-b9c5-dbd48af9f7f4",
+            "stateId": "default",
+            "x": -0.08447534590959549,
+            "y": -0.7710407972335815,
+            "z": 0.034253496676683429,
+            "qx": 0.00003673564060591161,
+            "qy": 0.002664572559297085,
+            "qz": -0.0019180719973519445,
+            "qw": 0.9999946355819702,
+            "needsGravitySettling": false,
+            "cutState": {
+                "version": 1,
+                "planes": []
+            }
+        },
+        {
+            "instanceId": "5b099d48-f654-4843-a0e0-adf58ec2d7d9",
+            "definitionId": "plate-medium",
+            "inventoryDefinitionId": "plate-medium",
+            "inventoryUnitId": "3d275e30-bc40-4ac7-b4d1-a3d8cbe6d452",
+            "stateId": "default",
+            "x": -0.32778552174568179,
+            "y": -0.7222718596458435,
+            "z": -0.8111637234687805,
+            "qx": 0.6731373071670532,
+            "qy": -0.004689006134867668,
+            "qz": -0.7392592430114746,
+            "qw": -0.01897791214287281,
+            "needsGravitySettling": false,
+            "cutState": {
+                "version": 1,
+                "planes": []
+            }
+        },
+        {
+            "instanceId": "ef3a7d7c-7720-4f78-8f03-ae00a4966b24",
+            "definitionId": "bowl",
+            "inventoryDefinitionId": "bowl",
+            "inventoryUnitId": "3f876673-fe7a-4dad-b953-e159809880e0",
+            "stateId": "default",
+            "x": -0.07490436732769013,
+            "y": -0.7398451566696167,
+            "z": 0.005049518309533596,
+            "qx": 0.00023838868946768343,
+            "qy": 0.1383577585220337,
+            "qz": 0.0022526176180690529,
+            "qw": -0.9903797507286072,
+            "needsGravitySettling": false,
+            "cutState": {
+                "version": 1,
+                "planes": []
+            }
+        }
+    ],
+    "inventory": [
+        {
+            "definitionId": "table",
+            "remaining": 1
+        },
+        {
+            "definitionId": "water-dispenser",
+            "remaining": 0
+        },
+        {
+            "definitionId": "chair",
+            "remaining": 1
+        },
+        {
+            "definitionId": "television",
+            "remaining": 1
+        },
+        {
+            "definitionId": "radio",
+            "remaining": 1
+        },
+        {
+            "definitionId": "plate",
+            "remaining": 1
+        },
+        {
+            "definitionId": "plate-medium",
+            "remaining": 0
+        },
+        {
+            "definitionId": "plate-large",
+            "remaining": 1
+        },
+        {
+            "definitionId": "mug",
+            "remaining": 1
+        },
+        {
+            "definitionId": "bowl",
+            "remaining": 1
+        },
+        {
+            "definitionId": "bowl-medium",
+            "remaining": 2
+        },
+        {
+            "definitionId": "bowl-large",
+            "remaining": 2
+        },
+        {
+            "definitionId": "playing-cards",
+            "remaining": 1
+        },
+        {
+            "definitionId": "spoon",
+            "remaining": 2
+        },
+        {
+            "definitionId": "chopsticks",
+            "remaining": 2
+        },
+        {
+            "definitionId": "knife",
+            "remaining": 1
+        },
+        {
+            "definitionId": "clock",
+            "remaining": 1
+        },
+        {
+            "definitionId": "heating-base",
+            "remaining": 1
+        },
+        {
+            "definitionId": "electric-kettle",
+            "remaining": 1
+        },
+        {
+            "definitionId": "frying-pan",
+            "remaining": 1
+        },
+        {
+            "definitionId": "coffee-bean-jar",
+            "remaining": 1
+        },
+        {
+            "definitionId": "coffee-grinder",
+            "remaining": 1
+        },
+        {
+            "definitionId": "cupcake",
+            "remaining": 1
+        },
+        {
+            "definitionId": "cookie",
+            "remaining": 1
+        },
+        {
+            "definitionId": "apple",
+            "remaining": 5
+        },
+        {
+            "definitionId": "carrot",
+            "remaining": 5
+        },
+        {
+            "definitionId": "dartboard",
+            "remaining": 1
+        },
+        {
+            "definitionId": "bowling-ball",
+            "remaining": 1
+        },
+        {
+            "definitionId": "bowling-pin",
+            "remaining": 1
+        },
+        {
+            "definitionId": "plush-doll",
+            "remaining": 1
+        },
+        {
+            "definitionId": "remote-control",
+            "remaining": 1
+        }
+    ],
+    "dailyInventoryDate": "2026-10-25"
+}

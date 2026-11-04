@@ -1,0 +1,291 @@
+{
+  "date": "2026-10-23",
+  "environment": "PICO OS 6.2 emulator, Android 16, Unity 2022.3.38f1, Development ARM64 IL2CPP",
+  "samples_per_variant": 5,
+  "warmups_excluded": 2,
+  "groups": {
+    "baseline": {
+      "count": 5,
+      "survived_settle": 5,
+      "saved_identity_preserved": true,
+      "all_restored_12_items": true,
+      "diagnostic_writes": 5,
+      "ready_elapsed_s": {
+        "values": [
+          14.221000000000004,
+          11.714999999999918,
+          20.31499999999994,
+          18.91999999999996,
+          15.138000000000034
+        ],
+        "median": 15.138000000000034,
+        "min": 11.714999999999918,
+        "max": 20.31499999999994
+      },
+      "mesh_to_ready_s": {
+        "values": [
+          2.9160000000000537,
+          2.701999999999998,
+          5.589999999999918,
+          4.730000000000018,
+          3.600999999999999
+        ],
+        "median": 3.600999999999999,
+        "min": 2.701999999999998,
+        "max": 5.589999999999918
+      },
+      "TotalTime_ms": {
+        "values": [
+          199,
+          819,
+          1293,
+          922,
+          1076
+        ],
+        "median": 922,
+        "min": 199,
+        "max": 1293
+      },
+      "Pss_sampled_peak_mib": {
+        "values": [
+          1240.2880859375,
+          1340.71484375,
+          1330.615234375,
+          1338.3623046875,
+          1016.392578125
+        ],
+        "median": 1330.615234375,
+        "min": 1016.392578125,
+        "max": 1340.71484375
+      },
+      "Pss_last5_median_mib": {
+        "values": [
+          1018.0498046875,
+          1020.1123046875,
+          1022.0625,
+          1019.431640625,
+          1016.341796875
+        ],
+        "median": 1019.431640625,
+        "min": 1016.341796875,
+        "max": 1022.0625
+      },
+      "SwapPss_last5_median_mib": {
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      }
+    },
+    "optimized": {
+      "count": 5,
+      "survived_settle": 5,
+      "saved_identity_preserved": true,
+      "all_restored_12_items": true,
+      "diagnostic_writes": 0,
+      "ready_elapsed_s": {
+        "values": [
+          12.101999999999975,
+          10.230999999999995,
+          10.259999999999991,
+          10.295999999999935,
+          12.27699999999993
+        ],
+        "median": 10.295999999999935,
+        "min": 10.230999999999995,
+        "max": 12.27699999999993
+      },
+      "mesh_to_ready_s": {
+        "values": [
+          0.36199999999996635,
+          0.2459999999999809,
+          0.9710000000000036,
+          0.30599999999992633,
+          0.25299999999992906
+        ],
+        "median": 0.30599999999992633,
+        "min": 0.2459999999999809,
+        "max": 0.9710000000000036
+      },
+      "TotalTime_ms": {
+        "values": [
+          190,
+          731,
+          1097,
+          672,
+          710
+        ],
+        "median": 710,
+        "min": 190,
+        "max": 1097
+      },
+      "Pss_sampled_peak_mib": {
+        "values": [
+          926.109375,
+          1090.1962890625,
+          1371.1181640625,
+          1273.3779296875,
+          1281.369140625
+        ],
+        "median": 1273.3779296875,
+        "min": 926.109375,
+        "max": 1371.1181640625
+      },
+      "Pss_last5_median_mib": {
+        "values": [
+          914.9921875,
+          909.8330078125,
+          920.3935546875,
+          920.7265625,
+          920.1396484375
+        ],
+        "median": 920.1396484375,
+        "min": 909.8330078125,
+        "max": 920.7265625
+      },
+      "SwapPss_last5_median_mib": {
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "start_to_bootstrap_s": {
+        "values": [
+          5.727999999999952,
+          7.824000000000069,
+          8.192999999999984,
+          6.775999999999954,
+          7.767999999999915
+        ],
+        "median": 7.767999999999915,
+        "min": 5.727999999999952,
+        "max": 8.192999999999984
+      },
+      "engine_to_bootstrap_s": {
+        "values": [
+          5.126999999999953,
+          4.8530000000000655,
+          4.91700000000003,
+          4.852999999999952,
+          4.858999999999924
+        ],
+        "median": 4.858999999999924,
+        "min": 4.852999999999952,
+        "max": 5.126999999999953
+      },
+      "bootstrap_to_room_loaded_s": {
+        "values": [
+          6.015,
+          2.163,
+          1.099,
+          3.215,
+          4.258
+        ],
+        "median": 3.215,
+        "min": 1.099,
+        "max": 6.015
+      },
+      "room_loaded_to_ready_s": {
+        "values": [
+          0.359,
+          0.243,
+          0.967,
+          0.303,
+          0.251
+        ],
+        "median": 0.303,
+        "min": 0.243,
+        "max": 0.967
+      }
+    }
+  },
+  "limitations": [
+    "Two APKs include other pre-existing workspace changes; total-time delta is a bundle observation.",
+    "Host memory and scheduling noise remain. No true-headset Release results.",
+    "Saved-anchor-unavailable path and one empty native data-update event tested; located real anchors and nonempty updates not exercised.",
+    "Unity endCameraRendering is not XR compositor displayed-first-frame evidence.",
+    "No memory leak test or first-install cache reset in this follow-up."
+  ],
+  "ready_elapsed_s_median_delta_s": 4.842000000000098,
+  "ready_elapsed_s_median_reduction_pct": 31.985731272295464,
+  "mesh_to_ready_s_median_delta_s": 3.2950000000000728,
+  "mesh_to_ready_s_median_reduction_pct": 91.50236045543109,
+  "apk": {
+    "baseline": {
+      "path": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework_Baseline_20261022.apk",
+      "sha256": "146a7fcf7d765412b702f74aa34bfb12c72286b42d0a35b3f8e3c3385dea7501",
+      "bytes": 182880466,
+      "mib": 174.40840339660645,
+      "compressed_payload_mib": 174.1558485031128,
+      "container_overhead_mib": 0.25255489349365234,
+      "uncompressed_entries_mib": 1374.8212432861328
+    },
+    "optimized": {
+      "path": "/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk",
+      "sha256": "86a9d240f933d60f7df47aa548eed310692663d11f09fe4def3e3471b56a9892",
+      "bytes": 202173203,
+      "mib": 192.807391166687,
+      "compressed_payload_mib": 174.23846626281738,
+      "container_overhead_mib": 18.56892490386963,
+      "uncompressed_entries_mib": 1375.199083328247
+    }
+  },
+  "optimized_stage_medians_ms": {
+    "bootstrap_start": 0,
+    "save_loaded": 6,
+    "anchor_start": 7,
+    "room_load_start": 12,
+    "mesh_subsystem_wait_start": 13,
+    "mesh_subsystem_available": 13,
+    "mesh_subsystem_started": 24,
+    "mesh_query_1_start": 24,
+    "first_main_camera_render": 37,
+    "mesh_query_1_done": 29,
+    "mesh_query_2_start": 539,
+    "mesh_query_2_done": 556,
+    "mesh_query_3_start": 1069,
+    "mesh_query_3_done": 1086,
+    "mesh_query_4_start": 1595.5,
+    "mesh_query_4_done": 1612.5,
+    "anchor_unavailable": 2053,
+    "mesh_query_5_start": 2126.0,
+    "mesh_query_5_done": 2143.5,
+    "mesh_query_6_start": 2653,
+    "mesh_query_6_done": 2669,
+    "mesh_query_7_start": 3185,
+    "mesh_query_7_done": 3201,
+    "mesh_query_8_start": 3745.5,
+    "mesh_query_8_done": 3762.0,
+    "mesh_query_9_start": 4277.0,
+    "mesh_query_9_done": 4294.0,
+    "mesh_query_10_start": 4843,
+    "mesh_query_10_done": 4860,
+    "mesh_query_11_start": 5376,
+    "mesh_query_11_done": 5393,
+    "mesh_query_12_start": 5905,
+    "mesh_query_12_done": 5997,
+    "mesh_snapshot_12_built": 6011,
+    "room_loaded": 3215,
+    "occlusion_applied": 3222,
+    "navmesh_built": 3257,
+    "avatar_bound": 3263,
+    "session_created": 3355,
+    "audio_bound": 3355,
+    "world_configured": 3504,
+    "item_restore_start": 3505,
+    "items_restored": 3518,
+    "business_ready": 3518
+  }
+}

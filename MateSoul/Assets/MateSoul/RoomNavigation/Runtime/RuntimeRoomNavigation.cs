@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using Debug = UnityEngine.Debug;
@@ -17,11 +18,10 @@ namespace MateSoul.RoomNavigation
     [DisallowMultipleComponent]
     public sealed class RuntimeRoomNavigation : MonoBehaviour
     {
-        public const float CharacterRadius = 0.25f;
+        public const float CharacterRadius = 0.18f;
+        public const float NavigationRadius = 0.16f;
         public const float CharacterHeight = 1.65f;
-
-        [SerializeField, Min(0f)]
-        private float obstacleSafetyMargin = 0.08f;
+        public const float NavigationObstacleInset = 0.06f;
 
         [SerializeField, Min(0.1f)]
         private float sampleDistance = 0.75f;
@@ -29,6 +29,29 @@ namespace MateSoul.RoomNavigation
         private readonly List<UnityEngine.Object> ownedObjects = new List<UnityEngine.Object>();
         private NavMeshDataInstance navMeshInstance;
         private GameObject geometryRoot;
+        private BoxCollider measuredGroundSupport;
+        private Bounds measuredGroundBounds;
+        private NavMeshData navMeshData;
+        private NavMeshBuildSettings buildSettings;
+        private Bounds buildBounds;
+        private readonly List<NavMeshBuildSource> stableFloorSources = new List<NavMeshBuildSource>();
+        private readonly Dictionary<RoomObstacle, NavMeshBuildSource> calibratedObstacles =
+            new Dictionary<RoomObstacle, NavMeshBuildSource>();
+        private readonly Dictionary<string, LiveRoomSurface> liveSurfaces =
+            new Dictionary<string, LiveRoomSurface>(StringComparer.Ordinal);
+        private readonly RaycastHit[] supportHits = new RaycastHit[24];
+        private AsyncOperation liveBuild;
+        private bool liveDirty;
+        private float nextLiveBuild;
+        private Stopwatch liveBuildWatch;
+#region debug-point A-C:spawn-probe-rate
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private float nextSpawnProbeReport;
+#endif
+#endregion
+        public int LiveRevision { get; private set; }
+        public int LiveObstacleCells { get; private set; }
+        public int RetiredCalibratedObstacles { get; private set; }
 
         public RoomMapSnapshot Snapshot { get; private set; }
         public bool IsReady => navMeshInstance.valid && Snapshot != null;
@@ -38,8 +61,10 @@ namespace MateSoul.RoomNavigation
         {
             Clear();
 
-            var validation = snapshot?.Validate() ??
-                             RoomMapValidationResult.Invalid("Room map snapshot is null.");
+            var validation = PicoSpatialMeshRoomMapProvider.IsSource(snapshot?.Source)
+                ? PicoSpatialMeshRoomMapProvider.ValidateSnapshot(snapshot)
+                : snapshot?.Validate() ??
+                  RoomMapValidationResult.Invalid("Room map snapshot is null.");
             if (!validation.IsValid)
             {
                 throw new InvalidOperationException(validation.Error);
@@ -57,7 +82,7 @@ namespace MateSoul.RoomNavigation
 
             var floorSources = new List<NavMeshBuildSource>();
             var obstacleSources = new List<NavMeshBuildSource>();
-            var surfaceSources = new List<NavMeshBuildSource>();
+            var surfaceSourceCount = snapshot.SurfaceMeshes.Count;
             var usesSurfaceMeshes = snapshot.SurfaceMeshes.Count > 0;
             foreach (var floor in snapshot.Floors)
             {
@@ -78,50 +103,53 @@ namespace MateSoul.RoomNavigation
             var notWalkableArea = NavMesh.GetAreaFromName("Not Walkable");
             foreach (var obstacle in snapshot.Obstacles)
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                Debug.Log(
+                    $"[RoomNavigation] obstacle id={obstacle.Id} kind={obstacle.Kind} " +
+                    $"center={obstacle.Center} rotation={obstacle.Rotation.eulerAngles} " +
+                    $"size={obstacle.Size} floorY={snapshot.MainFloor.Centroid.y:F3} " +
+                    $"source={snapshot.Source}");
+#endif
                 if (usesSurfaceMeshes &&
                     !IsReliableSpatialObstacle(
                         obstacle, snapshot.MainFloor.Centroid.y))
                     continue;
+                // NavMesh already erodes walkable space by agentRadius. Inset the
+                // coarse semantic volume; live Spatial Mesh owns physical collision.
                 var size = obstacle.Size;
-                size.x += obstacleSafetyMargin * 2f;
-                size.z += obstacleSafetyMargin * 2f;
-                obstacleSources.Add(new NavMeshBuildSource
+                size.x = Mathf.Max(.05f,
+                    size.x - NavigationObstacleInset * 2f);
+                size.z = Mathf.Max(.05f,
+                    size.z - NavigationObstacleInset * 2f);
+                var obstacleSource = new NavMeshBuildSource
                 {
                     shape = NavMeshBuildSourceShape.Box,
                     transform = Matrix4x4.TRS(obstacle.Center, obstacle.Rotation, Vector3.one),
                     size = size,
                     area = notWalkableArea
-                });
-                CreateObstacleGeometry(obstacle, showDebugGeometry);
-            }
-
-            foreach (var surface in snapshot.SurfaceMeshes)
-            {
-                var surfaceMesh = CreateSurfaceMesh(surface);
-                ownedObjects.Add(surfaceMesh);
-                surfaceSources.Add(new NavMeshBuildSource
-                {
-                    shape = NavMeshBuildSourceShape.Mesh,
-                    sourceObject = surfaceMesh,
-                    transform = Matrix4x4.identity,
-                    area = 0
-                });
-                var colliderObject = new GameObject($"Surface_{surface.Id}");
-                colliderObject.transform.SetParent(geometryRoot.transform, false);
-                colliderObject.AddComponent<MeshCollider>().sharedMesh = surfaceMesh;
-                colliderObject.AddComponent<RoomSurfaceCollider>().Bind(surface.SourceId);
+                };
+                obstacleSources.Add(obstacleSource);
+                calibratedObstacles.Add(obstacle, obstacleSource);
+                CreateObstacleGeometry(obstacle, size, showDebugGeometry);
             }
 
             var settings = NavMesh.GetSettingsByIndex(0);
-            settings.agentRadius = CharacterRadius;
+            settings.agentRadius = NavigationRadius;
             settings.agentHeight = CharacterHeight;
             settings.agentClimb = 0.2f;
             settings.agentSlope = 45f;
-            settings.minRegionArea = 0.25f;
+            // A small room can have a safe standing island after agent-radius erosion.
+            // Keep it regardless of whether it crosses a voxel tile boundary.
+            settings.minRegionArea = 0f;
             settings.overrideVoxelSize = true;
-            settings.voxelSize = 0.08f;
+            settings.voxelSize = 0.02f;
+            settings.overrideTileSize = true;
+            settings.tileSize = 64;
             var bounds = snapshot.Bounds;
             bounds.Expand(new Vector3(2f, 4f, 2f));
+            stableFloorSources.AddRange(floorSources);
+            buildSettings = settings;
+            buildBounds = bounds;
             var sources = new List<NavMeshBuildSource>(floorSources);
             sources.AddRange(obstacleSources);
 
@@ -135,8 +163,9 @@ namespace MateSoul.RoomNavigation
                 Debug.LogWarning(
                     $"[RoomNavigation] Full build produced no sample. " +
                     $"vertices={triangulation.vertices.Length} floorSources={floorSources.Count} " +
-                    $"obstacleSources={obstacleSources.Count} surfaceSources={surfaceSources.Count} " +
-                    $"bounds={bounds} " +
+                    $"obstacleSources={obstacleSources.Count} surfaceSources={surfaceSourceCount} " +
+                    $"source={snapshot.Source} floorArea={validation.FloorArea:F2}m2 " +
+                    $"floorCenter={snapshot.MainFloor.Centroid} bounds={bounds} " +
                     $"agentType={settings.agentTypeID} radius={settings.agentRadius:F2} " +
                     $"height={settings.agentHeight:F2} slope={settings.agentSlope:F1}");
 
@@ -190,31 +219,148 @@ namespace MateSoul.RoomNavigation
                    obstacle.Size.z <= 3.5f;
         }
 
-        private static Mesh CreateSurfaceMesh(RoomSurfaceMesh surface)
+        public void SetLiveSurfaceSources(ISet<int> sourceIds)
         {
-            var vertices = new Vector3[surface.Vertices.Count];
-            for (var i = 0; i < vertices.Length; i++)
-            {
-                vertices[i] = surface.Vertices[i];
-            }
+            // Live Spatial Mesh owns detailed reality collision. The calibrated
+            // floor stays collidable across missing or updating live mesh blocks.
+        }
 
-            var indices = new int[surface.Indices.Count];
-            for (var i = 0; i < indices.Length; i++)
-            {
-                indices[i] = surface.Indices[i];
-            }
+        public void UpdateLiveSurface(string id, Mesh mesh, Matrix4x4 world)
+        {
+            if (!IsReady) return;
+            ExpandMeasuredGroundSupport(mesh.bounds, world);
+            var watch = Stopwatch.StartNew();
+            var surface = new LiveRoomSurface(
+                mesh, world, Snapshot.MainFloor.Centroid.y, Snapshot.Bounds);
+            if (liveSurfaces.TryGetValue(id, out var previous) &&
+                previous.Occupied.SetEquals(surface.Occupied) &&
+                previous.Covered.SetEquals(surface.Covered)) return;
+            liveSurfaces[id] = surface;
+            liveDirty = true;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            Debug.Log($"MATESOUL_LIVE_NAV block={id} cells={liveSurfaces[id].Occupied.Count} " +
+                      $"projectMs={watch.Elapsed.TotalMilliseconds:F2}");
+#endif
+        }
 
-            var mesh = new Mesh
+        public void RemoveLiveSurface(string id)
+        {
+            if (liveSurfaces.Remove(id)) liveDirty = true;
+        }
+
+        public void ClearLiveSurfaces()
+        {
+            if (liveSurfaces.Count == 0) return;
+            liveSurfaces.Clear();
+            liveDirty = true;
+        }
+
+        private void Update()
+        {
+            if (liveBuild != null)
             {
-                name = $"Surface_{surface.Id}",
-                indexFormat = vertices.Length > ushort.MaxValue
-                    ? UnityEngine.Rendering.IndexFormat.UInt32
-                    : UnityEngine.Rendering.IndexFormat.UInt16,
-                vertices = vertices,
-                triangles = indices
-            };
-            mesh.RecalculateBounds();
-            return mesh;
+                if (!liveBuild.isDone) return;
+                liveBuild = null;
+                liveBuildWatch.Stop();
+                LiveRevision++;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                Debug.Log($"MATESOUL_LIVE_NAV revision={LiveRevision} " +
+                          $"cells={LiveObstacleCells} retired={RetiredCalibratedObstacles} " +
+                          $"asyncMs={liveBuildWatch.Elapsed.TotalMilliseconds:F2}");
+#endif
+            }
+            if (!IsReady || !liveDirty || Time.unscaledTime < nextLiveBuild) return;
+            var occupied = new HashSet<Vector2Int>();
+            var covered = new HashSet<Vector2Int>();
+            foreach (var surface in liveSurfaces.Values)
+            {
+                occupied.UnionWith(surface.Occupied);
+                covered.UnionWith(surface.Covered);
+            }
+            var sources = new List<NavMeshBuildSource>(stableFloorSources);
+            RetiredCalibratedObstacles = 0;
+            foreach (var pair in calibratedObstacles)
+            {
+                if (CanReplaceCalibration(pair.Key, covered))
+                {
+                    RetiredCalibratedObstacles++;
+                    continue;
+                }
+                sources.Add(pair.Value);
+            }
+            // Stable row order and merged adjacent cells keep source hashing useful.
+            foreach (var row in occupied.GroupBy(cell => cell.y).OrderBy(row => row.Key))
+            {
+                var xs = row.Select(cell => cell.x).OrderBy(x => x).ToArray();
+                for (var i = 0; i < xs.Length; i++)
+                {
+                    var first = xs[i];
+                    var last = first;
+                    while (i + 1 < xs.Length && xs[i + 1] == last + 1) last = xs[++i];
+                    var cellSize = LiveRoomSurface.CellSize;
+                    sources.Add(new NavMeshBuildSource
+                    {
+                        shape = NavMeshBuildSourceShape.Box,
+                        transform = Matrix4x4.TRS(new Vector3(
+                            (first + last + 1) * cellSize * .5f,
+                            Snapshot.MainFloor.Centroid.y + CharacterHeight * .5f,
+                            (row.Key + .5f) * cellSize), Quaternion.identity, Vector3.one),
+                        size = new Vector3((last - first + 1) * cellSize, CharacterHeight, cellSize),
+                        area = NavMesh.GetAreaFromName("Not Walkable")
+                    });
+                }
+            }
+            LiveObstacleCells = occupied.Count;
+            liveDirty = false;
+            nextLiveBuild = Time.unscaledTime + .25f;
+            liveBuildWatch = Stopwatch.StartNew();
+            liveBuild = NavMeshBuilder.UpdateNavMeshDataAsync(
+                navMeshData, buildSettings, sources, buildBounds);
+        }
+
+        private void ExpandMeasuredGroundSupport(Bounds localBounds, Matrix4x4 world)
+        {
+            if (measuredGroundSupport == null) return;
+            // Retain observed coverage during block replacement. Only a room
+            // rebuild resets it; navigation continues using its original floor.
+            for (var corner = 0; corner < 8; corner++)
+            {
+                var offset = new Vector3(
+                    (corner & 1) == 0 ? -localBounds.extents.x : localBounds.extents.x,
+                    (corner & 2) == 0 ? -localBounds.extents.y : localBounds.extents.y,
+                    (corner & 4) == 0 ? -localBounds.extents.z : localBounds.extents.z);
+                measuredGroundBounds.Encapsulate(
+                    world.MultiplyPoint3x4(localBounds.center + offset));
+            }
+            measuredGroundSupport.transform.position = new Vector3(
+                measuredGroundBounds.center.x, Snapshot.MainFloor.Centroid.y - .05f,
+                measuredGroundBounds.center.z);
+            measuredGroundSupport.size = new Vector3(
+                measuredGroundBounds.size.x, .1f, measuredGroundBounds.size.z);
+        }
+
+        private static bool CanReplaceCalibration(RoomObstacle obstacle, ISet<Vector2Int> covered)
+        {
+            if (obstacle.Kind == RoomObstacleKind.Wall ||
+                obstacle.Kind == RoomObstacleKind.VirtualWall) return false;
+            var footprint = RoomGeometry.CreateObstacleFootprintXZ(obstacle);
+            var min = footprint.Aggregate(Vector3.Min);
+            var max = footprint.Aggregate(Vector3.Max);
+            var samples = 0;
+            var measured = 0;
+            for (var x = Mathf.FloorToInt(min.x / LiveRoomSurface.CellSize);
+                 x <= Mathf.FloorToInt(max.x / LiveRoomSurface.CellSize); x++)
+                for (var z = Mathf.FloorToInt(min.z / LiveRoomSurface.CellSize);
+                     z <= Mathf.FloorToInt(max.z / LiveRoomSurface.CellSize); z++)
+                {
+                    var cell = new Vector2Int(x, z);
+                    var point = new Vector3((x + .5f) * LiveRoomSurface.CellSize, 0,
+                        (z + .5f) * LiveRoomSurface.CellSize);
+                    if (!RoomGeometry.ContainsPointXZ(footprint, point)) continue;
+                    samples++;
+                    if (covered.Contains(cell)) measured++;
+                }
+            return samples > 0 && measured == samples;
         }
 
         public bool TrySamplePosition(Vector3 desiredPosition, float maxDistance, out Vector3 sampledPosition)
@@ -231,6 +377,130 @@ namespace MateSoul.RoomNavigation
 
             sampledPosition = default;
             return false;
+        }
+
+        public bool TryFindSpawnPosition(Vector3 desiredPosition, out Vector3 spawnPosition)
+        {
+            spawnPosition = default;
+            if (!IsReady) return false;
+            Physics.SyncTransforms();
+            var best = Vector3.zero;
+            var bestDistance = float.PositiveInfinity;
+#region debug-point A-C:spawn-rejection
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            var candidateCount = 0;
+            var noSupportCount = 0;
+            var outsideCount = 0;
+            var overlapCount = 0;
+            var blockingCollider = "";
+#endif
+#endregion
+            var searchDistance = Vector3.Distance(desiredPosition, Snapshot.Bounds.center) +
+                                 Snapshot.Bounds.extents.magnitude;
+            if (TrySamplePosition(desiredPosition, searchDistance, out var nearest))
+                Consider(nearest);
+            var mesh = NavMesh.CalculateTriangulation();
+            for (var i = 0; i < mesh.indices.Length; i += 3)
+                Consider((mesh.vertices[mesh.indices[i]] +
+                          mesh.vertices[mesh.indices[i + 1]] +
+                          mesh.vertices[mesh.indices[i + 2]]) / 3f);
+#region debug-point A-C:spawn-rejection-result
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (Time.realtimeSinceStartup >= nextSpawnProbeReport ||
+                !float.IsPositiveInfinity(bestDistance))
+            {
+                nextSpawnProbeReport = Time.realtimeSinceStartup + 1f;
+                Debug.Log($"MATESOUL_SPAWN_PROBE run=post-fix candidates={candidateCount} " +
+                    $"noSupport={noSupportCount} outside={outsideCount} overlap={overlapCount} " +
+                    $"liveBlocks={liveSurfaces.Count} navVertices={mesh.vertices.Length} " +
+                    $"blocker={blockingCollider} found={!float.IsPositiveInfinity(bestDistance)}");
+            }
+#endif
+#endregion
+            if (float.IsPositiveInfinity(bestDistance)) return false;
+            spawnPosition = best;
+            return true;
+
+            void Consider(Vector3 point)
+            {
+#region debug-point A-C:spawn-candidate-count
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                candidateCount++;
+#endif
+#endregion
+                if (liveSurfaces.Count > 0)
+                {
+                    if (!TryGetMeasuredFloorHeight(point, out var measuredY))
+                    {
+#region debug-point A:missing-measured-support
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                        noSupportCount++;
+#endif
+#endregion
+                        return;
+                    }
+                    // The persistent floor collider remains present between
+                    // mesh updates. Spawn above both supports when measurement
+                    // is a few centimetres below its calibrated top.
+                    point.y = Mathf.Max(measuredY, Snapshot.MainFloor.Centroid.y);
+                }
+                var distance = (point - desiredPosition).sqrMagnitude;
+                if (distance >= bestDistance) return;
+                if (!RoomGeometry.ContainsPointXZ(Snapshot.MainFloor.Vertices, point))
+                {
+#region debug-point C:spawn-outside-floor
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    outsideCount++;
+#endif
+#endregion
+                    return;
+                }
+                var lower = point + Vector3.up * (CharacterRadius + .03f);
+                var upper = point + Vector3.up * (CharacterHeight - CharacterRadius + .03f);
+                foreach (var collider in Physics.OverlapCapsule(
+                             lower, upper, CharacterRadius, ~0, QueryTriggerInteraction.Ignore))
+                    if (collider.transform.IsChildOf(geometryRoot.transform) ||
+                        collider.GetComponent<RoomSurfaceCollider>() != null)
+                    {
+#region debug-point B:spawn-blocking-collider
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                        overlapCount++;
+                        blockingCollider = $"{collider.name}:{collider.bounds}";
+#endif
+#endregion
+                        return;
+                    }
+                best = point;
+                bestDistance = distance;
+            }
+        }
+
+        private bool TryGetMeasuredFloorHeight(
+            Vector3 point, out float floorHeight)
+        {
+            floorHeight = 0;
+            var count = Physics.RaycastNonAlloc(
+                point + Vector3.up * .35f,
+                Vector3.down,
+                supportHits,
+                .7f,
+                Physics.AllLayers,
+                QueryTriggerInteraction.Ignore);
+            if (count == supportHits.Length) return false;
+            var bestDistance = float.PositiveInfinity;
+            for (var index = 0; index < count; index++)
+            {
+                var hit = supportHits[index];
+                if (hit.collider == null ||
+                    hit.normal.y < .7f ||
+                    hit.collider.GetComponent<RoomSurfaceCollider>() == null ||
+                    Mathf.Abs(hit.point.y - point.y) > .15f ||
+                    hit.distance >= bestDistance)
+                    continue;
+                bestDistance = hit.distance;
+                floorHeight = hit.point.y;
+            }
+            return !float.IsPositiveInfinity(bestDistance);
         }
 
         public bool TryGetRandomReachablePoint(
@@ -276,6 +546,14 @@ namespace MateSoul.RoomNavigation
 
         public void Clear()
         {
+            if (navMeshData != null) NavMeshBuilder.Cancel(navMeshData);
+            liveBuild = null;
+            navMeshData = null;
+            liveSurfaces.Clear();
+            stableFloorSources.Clear();
+            calibratedObstacles.Clear();
+            liveDirty = false;
+            LiveRevision = LiveObstacleCells = RetiredCalibratedObstacles = 0;
             RemoveNavMeshInstance();
 
             if (geometryRoot != null)
@@ -284,6 +562,8 @@ namespace MateSoul.RoomNavigation
                 geometryRoot = null;
             }
 
+            measuredGroundSupport = null;
+            measuredGroundBounds = default;
             foreach (var ownedObject in ownedObjects)
             {
                 if (ownedObject != null)
@@ -302,7 +582,7 @@ namespace MateSoul.RoomNavigation
             List<NavMeshBuildSource> sources,
             Bounds bounds)
         {
-            var navMeshData = NavMeshBuilder.BuildNavMeshData(
+            navMeshData = NavMeshBuilder.BuildNavMeshData(
                 settings,
                 sources,
                 bounds,
@@ -339,8 +619,26 @@ namespace MateSoul.RoomNavigation
             floorObject.transform.SetParent(geometryRoot.transform, false);
             var filter = floorObject.AddComponent<MeshFilter>();
             filter.sharedMesh = floorMesh;
-            var collider = floorObject.AddComponent<MeshCollider>();
-            collider.sharedMesh = floorMesh;
+            floorObject.layer = LayerMask.NameToLayer("RealitySurface");
+            floorObject.AddComponent<MeshCollider>().sharedMesh = floorMesh;
+            if (PicoSpatialMeshRoomMapProvider.IsSource(Snapshot.Source) &&
+                ReferenceEquals(floor, Snapshot.MainFloor))
+            {
+                // Navigation selects a connected visible floor patch, often much
+                // smaller than the measured room because furniture hides the floor.
+                // Support dropped items across the measured room footprint at the
+                // measured floor height. This finite base has no renderer or NavMesh.
+                measuredGroundBounds = Snapshot.Bounds;
+                var support = new GameObject("Measured Room Ground Support");
+                support.transform.SetParent(floorObject.transform, false);
+                support.layer = floorObject.layer;
+                support.transform.position = new Vector3(
+                    measuredGroundBounds.center.x, floor.Centroid.y - .05f,
+                    measuredGroundBounds.center.z);
+                measuredGroundSupport = support.AddComponent<BoxCollider>();
+                measuredGroundSupport.size = new Vector3(
+                    measuredGroundBounds.size.x, .1f, measuredGroundBounds.size.z);
+            }
 
             if (!showDebugGeometry)
             {
@@ -353,30 +651,27 @@ namespace MateSoul.RoomNavigation
                 $"FloorMaterial_{floor.Id}");
         }
 
-        private void CreateObstacleGeometry(RoomObstacle obstacle, bool showDebugGeometry)
+        private void CreateObstacleGeometry(
+            RoomObstacle obstacle,
+            Vector3 navigationSize,
+            bool showDebugGeometry)
         {
-            GameObject obstacleObject;
-            if (showDebugGeometry)
-            {
-                obstacleObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                var renderer = obstacleObject.GetComponent<MeshRenderer>();
-                var isWall = obstacle.Kind == RoomObstacleKind.Wall ||
-                             obstacle.Kind == RoomObstacleKind.VirtualWall;
-                renderer.sharedMaterial = CreateMaterial(
-                    GetObstacleColor(obstacle.Kind),
-                    $"ObstacleMaterial_{obstacle.Id}",
-                    isWall);
-            }
-            else
-            {
-                obstacleObject = new GameObject();
-                obstacleObject.AddComponent<BoxCollider>();
-            }
+            if (!showDebugGeometry) return;
+            var obstacleObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var collider = obstacleObject.GetComponent<Collider>();
+            if (collider != null) DestroyOwnedObject(collider);
+            var renderer = obstacleObject.GetComponent<MeshRenderer>();
+            var isWall = obstacle.Kind == RoomObstacleKind.Wall ||
+                         obstacle.Kind == RoomObstacleKind.VirtualWall;
+            renderer.sharedMaterial = CreateMaterial(
+                GetObstacleColor(obstacle.Kind),
+                $"ObstacleMaterial_{obstacle.Id}",
+                isWall);
 
             obstacleObject.name = $"{obstacle.Kind}_{obstacle.Id}";
             obstacleObject.transform.SetParent(geometryRoot.transform, false);
             obstacleObject.transform.SetPositionAndRotation(obstacle.Center, obstacle.Rotation);
-            obstacleObject.transform.localScale = obstacle.Size;
+            obstacleObject.transform.localScale = navigationSize;
         }
 
         private Material CreateMaterial(

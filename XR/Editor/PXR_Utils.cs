@@ -760,6 +760,11 @@ namespace ByteDance.PICO.XR.Editor
         }
 
         [InitializeOnLoadMethod]
+        private static void ScheduleDefaultDefineSymbols()
+        {
+            EditorApplication.delayCall += SetDefaultDefineSymbols;
+        }
+
         public static void SetDefaultDefineSymbols()
         {
             var buildTarget = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);

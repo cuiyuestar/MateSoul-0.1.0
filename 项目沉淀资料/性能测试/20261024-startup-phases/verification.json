@@ -1,0 +1,50 @@
+{
+  "apkBytes": 214636370,
+  "apkSha256": "5042d715237c6a02db5e5c8f035d4483f6bd62018f5971934d7fefccb26b07cf",
+  "protectedAssets": [
+    {
+      "path": "MateSoul/ProjectSettings/ProjectSettings.asset",
+      "unchanged": true,
+      "sha256": "a912dcd37bcc1d102f0c90e7f02313ce8e77cacc89824396df11de1d993eedde"
+    },
+    {
+      "path": "MateSoul/Assets/MateSoul/Scenes/MateSoul.unity",
+      "unchanged": true,
+      "sha256": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543"
+    },
+    {
+      "path": "MateSoul/Assets/MateSoul/Content/Lengyue_Runtime.prefab",
+      "unchanged": true,
+      "sha256": "a3a303409db04a59198ea041df071d91985d0fdfcdc2a7ac6e7552e48569eb82"
+    },
+    {
+      "path": "MateSoul/Assets/MateSoul/Content/Avatar.controller",
+      "unchanged": true,
+      "sha256": "5cd94b7ccd7b5f229c9c7af27648a8c1f548495c33527787e901c9def8005553"
+    }
+  ],
+  "zipCrcPass": true,
+  "unityExited": true,
+  "editorCompilePass": true,
+  "runtimeRuns": 7,
+  "runtimeStatus": "passed",
+  "defaultApkRestored": true,
+  "defaultApkSha256": "86a9d240f933d60f7df47aa548eed310692663d11f09fe4def3e3471b56a9892",
+  "deviceDataModified": true,
+  "emulatorErrors": [
+    "HVF error: HV_DENIED",
+    "2026-10-24T01:00:49.930276+08 qemu-system-aarch64: failed to initialize HVF: Invalid argument",
+    "01:00:50.021 INFO         | Emulator process termination status: 1"
+  ],
+  "unityAndQemuExited": true,
+  "formalRuns": 5,
+  "warmupRuns": 1,
+  "profileRuns": 1,
+  "deviceDataRestored": true,
+  "startupOverlapStatus": "source_changed_pending_build_and_retest",
+  "profileExportPass": true,
+  "profileFrameRange": [
+    0,
+    404
+  ]
+}

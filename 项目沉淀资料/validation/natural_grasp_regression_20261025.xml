@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="28" result="Passed" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-25 09:06:37Z" end-time="2026-10-25 09:06:38Z" duration="0.4658689">
+  <test-suite type="TestSuite" id="1000" name="MateSoul" fullname="MateSoul" runstate="Runnable" testcasecount="244" result="Passed" start-time="2026-10-25 09:06:37Z" end-time="2026-10-25 09:06:38Z" duration="0.465869" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1293" name="MateSoul.Tests.Engine.dll" fullname="/Users/bytedance/MateSoul/MateSoul/Library/ScriptAssemblies/MateSoul.Tests.Engine.dll" runstate="Runnable" testcasecount="192" result="Passed" start-time="2026-10-25 09:06:38Z" end-time="2026-10-25 09:06:38Z" duration="0.119106" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="82153" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1294" name="MateSoul" fullname="MateSoul" runstate="Runnable" testcasecount="192" result="Passed" start-time="2026-10-25 09:06:38Z" end-time="2026-10-25 09:06:38Z" duration="0.117821" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1295" name="Tests" fullname="MateSoul.Tests" runstate="Runnable" testcasecount="192" result="Passed" start-time="2026-10-25 09:06:38Z" end-time="2026-10-25 09:06:38Z" duration="0.116646" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1168" name="GripGrabTests" fullname="MateSoul.Tests.GripGrabTests" classname="MateSoul.Tests.GripGrabTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-25 09:06:38Z" end-time="2026-10-25 09:06:38Z" duration="0.003321" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1169" name="ControllerGripDrivesSelectionFollowAndReleaseThroughRealRay" fullname="MateSoul.Tests.GripGrabTests.ControllerGripDrivesSelectionFollowAndReleaseThroughRealRay" methodname="ControllerGripDrivesSelectionFollowAndReleaseThroughRealRay" classname="MateSoul.Tests.GripGrabTests" runstate="Runnable" seed="1839127182" result="Passed" start-time="2026-10-25 09:06:04Z" end-time="2026-10-25 09:06:08Z" duration="3.440442" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[Reference frame of the curve not set and XROrigin is not found, using global up as default.
+Reference frame of the curve not set and XROrigin is not found, using global up as default.
+MATESOUL_INPUT mode=Controller directHands=False
+MATESOUL_INPUT directHandsInstalled=true officialVisuals=true reach=0.09 physicalSegments=17
+GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1170" name="DigitalGripWithNoAnalogValueStillGrabsAndReleases" fullname="MateSoul.Tests.GripGrabTests.DigitalGripWithNoAnalogValueStillGrabsAndReleases" methodname="DigitalGripWithNoAnalogValueStillGrabsAndReleases" classname="MateSoul.Tests.GripGrabTests" runstate="Runnable" seed="130845200" result="Passed" start-time="2026-10-25 09:06:08Z" end-time="2026-10-25 09:06:11Z" duration="3.204259" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[Reference frame of the curve not set and XROrigin is not found, using global up as default.
+Reference frame of the curve not set and XROrigin is not found, using global up as default.
+MATESOUL_INPUT mode=Controller directHands=False
+MATESOUL_INPUT directHandsInstalled=true officialVisuals=true reach=0.09 physicalSegments=17
+GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1171" name="HandHoldTests" fullname="MateSoul.Tests.HandHoldTests" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-25 09:06:38Z" end-time="2026-10-25 09:06:38Z" duration="0.001249" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1178" name="ControllerHoldRangeUsesTrackedControllerInsteadOfRayReach" fullname="MateSoul.Tests.HandHoldTests.ControllerHoldRangeUsesTrackedControllerInsteadOfRayReach" methodname="ControllerHoldRangeUsesTrackedControllerInsteadOfRayReach" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" seed="1385759817" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:11Z" duration="0.001544" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1177" name="DeviceSimulatorIsEnabledOnlyForEditorPlayMode" fullname="MateSoul.Tests.HandHoldTests.DeviceSimulatorIsEnabledOnlyForEditorPlayMode" methodname="DeviceSimulatorIsEnabledOnlyForEditorPlayMode" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" seed="1557849398" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:11Z" duration="0.014501" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1179" name="EyeHandHoldRangeUsesPinchPoseInsteadOfAimOrigin" fullname="MateSoul.Tests.HandHoldTests.EyeHandHoldRangeUsesPinchPoseInsteadOfAimOrigin" methodname="EyeHandHoldRangeUsesPinchPoseInsteadOfAimOrigin" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" seed="372859276" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:11Z" duration="0.001418" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1176" name="ProductionPrefabContainsTwoConstrainedSelectableHands" fullname="MateSoul.Tests.HandHoldTests.ProductionPrefabContainsTwoConstrainedSelectableHands" methodname="ProductionPrefabContainsTwoConstrainedSelectableHands" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" seed="1753766723" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:11Z" duration="0.476593" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1172" name="ReachUsesSoftTensionAndNeverExceedsHardLength" fullname="MateSoul.Tests.HandHoldTests.ReachUsesSoftTensionAndNeverExceedsHardLength" methodname="ReachUsesSoftTensionAndNeverExceedsHardLength" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" seed="1850785745" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:11Z" duration="0.000417" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1180" name="SelectedHandUsesLargerExitRange" fullname="MateSoul.Tests.HandHoldTests.SelectedHandUsesLargerExitRange" methodname="SelectedHandUsesLargerExitRange" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" seed="917397034" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:11Z" duration="0.000688" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1175" name="TractionNeverExceedsConfiguredSpeedOrAcceleration" fullname="MateSoul.Tests.HandHoldTests.TractionNeverExceedsConfiguredSpeedOrAcceleration" methodname="TractionNeverExceedsConfiguredSpeedOrAcceleration" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" seed="1446570127" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:11Z" duration="0.001228" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1174" name="TractionUsesDwellAndLowerReleaseThreshold" fullname="MateSoul.Tests.HandHoldTests.TractionUsesDwellAndLowerReleaseThreshold" methodname="TractionUsesDwellAndLowerReleaseThreshold" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" seed="35726526" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:11Z" duration="0.000321" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1173" name="WristConstraintProjectsCombinedSwingIntoErgonomicEnvelope" fullname="MateSoul.Tests.HandHoldTests.WristConstraintProjectsCombinedSwingIntoErgonomicEnvelope" methodname="WristConstraintProjectsCombinedSwingIntoErgonomicEnvelope" classname="MateSoul.Tests.HandHoldTests" runstate="Runnable" seed="910865518" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:11Z" duration="0.001070" asserts="0">
+              <properties />
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1204" name="PhysicsRuntimeTests" fullname="MateSoul.Tests.PhysicsRuntimeTests" classname="MateSoul.Tests.PhysicsRuntimeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-25 09:06:38Z" end-time="2026-10-25 09:06:38Z" duration="0.002343" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1206" name="CompoundCollidersShareOneMaterialAndRejectNestedBodies" fullname="MateSoul.Tests.PhysicsRuntimeTests.CompoundCollidersShareOneMaterialAndRejectNestedBodies" methodname="CompoundCollidersShareOneMaterialAndRejectNestedBodies" classname="MateSoul.Tests.PhysicsRuntimeTests" runstate="Runnable" seed="1020811639" result="Passed" start-time="2026-10-25 09:06:11Z" end-time="2026-10-25 09:06:14Z" duration="2.335672" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1209" name="FrictionStopsSlidingAndFastObjectDoesNotTunnelThroughFloor" fullname="MateSoul.Tests.PhysicsRuntimeTests.FrictionStopsSlidingAndFastObjectDoesNotTunnelThroughFloor" methodname="FrictionStopsSlidingAndFastObjectDoesNotTunnelThroughFloor" classname="MateSoul.Tests.PhysicsRuntimeTests" runstate="Runnable" seed="564119345" result="Passed" start-time="2026-10-25 09:06:14Z" end-time="2026-10-25 09:06:17Z" duration="3.369589" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1205" name="GravityImpulseAndSleepUseRealMassAndRejectInvalidInput" fullname="MateSoul.Tests.PhysicsRuntimeTests.GravityImpulseAndSleepUseRealMassAndRejectInvalidInput" methodname="GravityImpulseAndSleepUseRealMassAndRejectInvalidInput" classname="MateSoul.Tests.PhysicsRuntimeTests" runstate="Runnable" seed="47861229" result="Passed" start-time="2026-10-25 09:06:17Z" end-time="2026-10-25 09:06:23Z" duration="5.979248" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1207" name="HeldBodyCannotCrossThinWallAndReleaseKeepsResolvedMomentum" fullname="MateSoul.Tests.PhysicsRuntimeTests.HeldBodyCannotCrossThinWallAndReleaseKeepsResolvedMomentum" methodname="HeldBodyCannotCrossThinWallAndReleaseKeepsResolvedMomentum" classname="MateSoul.Tests.PhysicsRuntimeTests" runstate="Runnable" seed="1208300595" result="Passed" start-time="2026-10-25 09:06:23Z" end-time="2026-10-25 09:06:26Z" duration="2.965212" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1208" name="PauseFreezesFallingBodyAndRestoresVelocityWithoutCatchup" fullname="MateSoul.Tests.PhysicsRuntimeTests.PauseFreezesFallingBodyAndRestoresVelocityWithoutCatchup" methodname="PauseFreezesFallingBodyAndRestoresVelocityWithoutCatchup" classname="MateSoul.Tests.PhysicsRuntimeTests" runstate="Runnable" seed="586105256" result="Passed" start-time="2026-10-25 09:06:26Z" end-time="2026-10-25 09:06:29Z" duration="2.576028" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1221" name="RealityOcclusionTests" fullname="MateSoul.Tests.RealityOcclusionTests" classname="MateSoul.Tests.RealityOcclusionTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-25 09:06:38Z" end-time="2026-10-25 09:06:38Z" duration="0.001229" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1223" name="CapturedSurfaceMeshTakesPriorityOverCoarseRoomVolumes" fullname="MateSoul.Tests.RealityOcclusionTests.CapturedSurfaceMeshTakesPriorityOverCoarseRoomVolumes" methodname="CapturedSurfaceMeshTakesPriorityOverCoarseRoomVolumes" classname="MateSoul.Tests.RealityOcclusionTests" runstate="Runnable" seed="80573227" result="Passed" start-time="2026-10-25 09:06:29Z" end-time="2026-10-25 09:06:29Z" duration="0.009739" asserts="0">
+              <properties />
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1229" name="EmulatorIdentityRequiresExplicitEmulatorMarker" fullname="MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker" classname="MateSoul.Tests.RealityOcclusionTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-25 09:06:38Z" end-time="2026-10-25 09:06:38Z" duration="0.000437" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1226" name="EmulatorIdentityRequiresExplicitEmulatorMarker(&quot;swan_arm64&quot;,False)" fullname="MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker(&quot;swan_arm64&quot;,False)" methodname="EmulatorIdentityRequiresExplicitEmulatorMarker" classname="MateSoul.Tests.RealityOcclusionTests" runstate="Runnable" seed="1050003794" result="Passed" start-time="2026-10-25 09:06:29Z" end-time="2026-10-25 09:06:29Z" duration="0.001244" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="1227" name="EmulatorIdentityRequiresExplicitEmulatorMarker(&quot;Pico-emulator&quot;,True)" fullname="MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker(&quot;Pico-emulator&quot;,True)" methodname="EmulatorIdentityRequiresExplicitEmulatorMarker" classname="MateSoul.Tests.RealityOcclusionTests" runstate="Runnable" seed="551960598" result="Passed" start-time="2026-10-25 09:06:29Z" end-time="2026-10-25 09:06:29Z" duration="0.000108" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="1228" name="EmulatorIdentityRequiresExplicitEmulatorMarker(&quot;Pico/swan/pico_spaceos_emulator_arm64:16/build&quot;,True)" fullname="MateSoul.Tests.RealityOcclusionTests.EmulatorIdentityRequiresExplicitEmulatorMarker(&quot;Pico/swan/pico_spaceos_emulator_arm64:16/build&quot;,True)" methodname="EmulatorIdentityRequiresExplicitEmulatorMarker" classname="MateSoul.Tests.RealityOcclusionTests" runstate="Runnable" seed="2112179407" result="Passed" start-time="2026-10-25 09:06:29Z" end-time="2026-10-25 09:06:29Z" duration="0.000079" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-case id="1225" name="EveryQualityRendererContainsEnvironmentOcclusionFeature" fullname="MateSoul.Tests.RealityOcclusionTests.EveryQualityRendererContainsEnvironmentOcclusionFeature" methodname="EveryQualityRendererContainsEnvironmentOcclusionFeature" classname="MateSoul.Tests.RealityOcclusionTests" runstate="Runnable" seed="2099939962" result="Passed" start-time="2026-10-25 09:06:29Z" end-time="2026-10-25 09:06:29Z" duration="0.002287" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1224" name="MeasuredMeshRemainsVisualDepthFallbackWithEnvironmentDepth" fullname="MateSoul.Tests.RealityOcclusionTests.MeasuredMeshRemainsVisualDepthFallbackWithEnvironmentDepth" methodname="MeasuredMeshRemainsVisualDepthFallbackWithEnvironmentDepth" classname="MateSoul.Tests.RealityOcclusionTests" runstate="Runnable" seed="719485847" result="Passed" start-time="2026-10-25 09:06:29Z" end-time="2026-10-25 09:06:29Z" duration="0.004576" asserts="0">
+              <properties />
+              <output><![CDATA[[RealityGeometry] liveMeshColliders=1 snapshotDepthMeshes=0 meshDepthEnabled=True semanticDepthBoxes=0
+]]></output>
+            </test-case>
+            <test-case id="1222" name="SnapshotWithoutMeasuredSurfaceBuildsNoRealityCollisionProxy" fullname="MateSoul.Tests.RealityOcclusionTests.SnapshotWithoutMeasuredSurfaceBuildsNoRealityCollisionProxy" methodname="SnapshotWithoutMeasuredSurfaceBuildsNoRealityCollisionProxy" classname="MateSoul.Tests.RealityOcclusionTests" runstate="Runnable" seed="1217935516" result="Passed" start-time="2026-10-25 09:06:29Z" end-time="2026-10-25 09:06:29Z" duration="0.000676" asserts="0">
+              <properties />
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1233" name="RoomNavigationSurfaceMeshTests" fullname="MateSoul.Tests.RoomNavigationSurfaceMeshTests" classname="MateSoul.Tests.RoomNavigationSurfaceMeshTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-25 09:06:38Z" end-time="2026-10-25 09:06:38Z" duration="0.088546" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1238" name="FurnitureSurfaceMeshDoesNotReplaceWalkableFloor" fullname="MateSoul.Tests.RoomNavigationSurfaceMeshTests.FurnitureSurfaceMeshDoesNotReplaceWalkableFloor" methodname="FurnitureSurfaceMeshDoesNotReplaceWalkableFloor" classname="MateSoul.Tests.RoomNavigationSurfaceMeshTests" runstate="Runnable" seed="1755979891" result="Passed" start-time="2026-10-25 09:06:29Z" end-time="2026-10-25 09:06:31Z" duration="2.357015" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1234" name="SpatialMeshFloorKeepsMeasuredConcavity" fullname="MateSoul.Tests.RoomNavigationSurfaceMeshTests.SpatialMeshFloorKeepsMeasuredConcavity" methodname="SpatialMeshFloorKeepsMeasuredConcavity" classname="MateSoul.Tests.RoomNavigationSurfaceMeshTests" runstate="Runnable" seed="204877624" result="Passed" start-time="2026-10-25 09:06:31Z" end-time="2026-10-25 09:06:31Z" duration="0.009669" asserts="0">
+              <properties />
+            </test-case>
+            <test-case id="1236" name="SpatialMeshUsesGroundedFurnitureAsNavigationObstacle" fullname="MateSoul.Tests.RoomNavigationSurfaceMeshTests.SpatialMeshUsesGroundedFurnitureAsNavigationObstacle" methodname="SpatialMeshUsesGroundedFurnitureAsNavigationObstacle" classname="MateSoul.Tests.RoomNavigationSurfaceMeshTests" runstate="Runnable" seed="482737800" result="Passed" start-time="2026-10-25 09:06:31Z" end-time="2026-10-25 09:06:33Z" duration="1.955289" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[[RoomNavigation] obstacle id=bed kind=Bed center=(0.00, 0.50, 0.00) rotation=(0.00, 0.00, 0.00) size=(1.00, 1.00, 1.00) floorY=0.000 source=test
+GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1237" name="SpawnProbeDoesNotIgnoreSiblingRoomGeometry" fullname="MateSoul.Tests.RoomNavigationSurfaceMeshTests.SpawnProbeDoesNotIgnoreSiblingRoomGeometry" methodname="SpawnProbeDoesNotIgnoreSiblingRoomGeometry" classname="MateSoul.Tests.RoomNavigationSurfaceMeshTests" runstate="Runnable" seed="2057227060" result="Passed" start-time="2026-10-25 09:06:33Z" end-time="2026-10-25 09:06:35Z" duration="2.307056" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+              </properties>
+              <output><![CDATA[GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+]]></output>
+            </test-case>
+            <test-case id="1235" name="SpawnRequiresMeasuredFloorSupportWhenLiveMeshExists" fullname="MateSoul.Tests.RoomNavigationSurfaceMeshTests.SpawnRequiresMeasuredFloorSupportWhenLiveMeshExists" methodname="SpawnRequiresMeasuredFloorSupportWhenLiveMeshExists" classname="MateSoul.Tests.RoomNavigationSurfaceMeshTests" runstate="Runnable" seed="477973178" result="Passed" start-time="2026-10-25 09:06:35Z" end-time="2026-10-25 09:06:38Z" duration="2.464629" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[MATESOUL_LIVE_NAV block=left-floor cells=0 projectMs=1.65
+GfxDevice renderer is null. Unity cannot update the Ambient Probe and Reflection Probes that the SkyManager generates. Run the Editor without the -nographics argument or generate lighting for your scene.
+Saving results to: /tmp/matesoul-natural-grasp-20261025/regression.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

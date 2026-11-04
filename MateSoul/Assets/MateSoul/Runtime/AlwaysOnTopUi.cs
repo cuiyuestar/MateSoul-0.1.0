@@ -10,9 +10,9 @@ namespace MateSoul.Runtime
 {
     public static class AlwaysOnTopUi
     {
-        public const int SortingOrder = 32760;
+        public const int SortingOrder = 10;
         public const float DynamicPixelsPerUnit = 8f;
-        public const string TextShaderName = "TextMeshPro/Mobile/Distance Field Overlay";
+        public const string TextShaderName = "MateSoul/Spatial UI SDF";
         private const string MaterialResourcePath = "MateSoulUI/AlwaysOnTop";
         private const string FontResourcePath = "MateSoulUI/NotoSansCJKsc-SDF";
         private const string DynamicFontResourcePath = "MateSoulUI/NotoSansCJKsc-Dynamic-SDF";
@@ -34,7 +34,7 @@ namespace MateSoul.Runtime
                 throw new InvalidOperationException($"{MaterialResourcePath} material is missing.");
             return new Material(template)
             {
-                name = "MateSoul UI Always On Top",
+                name = "MateSoul Spatial UI",
                 hideFlags = HideFlags.DontSave
             };
         }
@@ -74,6 +74,29 @@ namespace MateSoul.Runtime
                     !TMP_Settings.fallbackFontAssets.Contains(dynamicFallback))
                     throw new InvalidOperationException(
                         "TMP global default and fallback fonts are not configured for MateSoul.");
+#region debug-point C-D:font-runtime
+                const string probe = "对话网关地址必须使用HTTPS开发包仅允许显式配置的本机HTTP地址龘曌喆";
+                var probeCovered = template.HasCharacters(
+                    probe, out uint[] missingCharacters, true, true);
+                var missingCodes = missingCharacters == null
+                    ? "" : string.Join(",", missingCharacters);
+                var defaultFont = TMP_Settings.defaultFontAsset;
+                var fallbackCount = TMP_Settings.fallbackFontAssets?.Count ?? 0;
+                var debugPayload = $"{{\"sessionId\":\"dialogue-font-tofu\",\"runId\":\"post-fix\"," +
+                                   $"\"hypothesisId\":\"C-D\",\"location\":\"AlwaysOnTopUi.TextFont\"," +
+                                   $"\"msg\":\"[DEBUG] TMP font runtime state\",\"data\":{{" +
+                                   $"\"font\":\"{template.name}\",\"populationMode\":\"{template.atlasPopulationMode}\"," +
+                                   $"\"sourceFontAvailable\":{(template.sourceFontFile != null).ToString().ToLowerInvariant()}," +
+                                   $"\"dynamicSourceFontAvailable\":{(dynamicFallback.sourceFontFile != null).ToString().ToLowerInvariant()}," +
+                                   $"\"dynamicAtlasCount\":{dynamicFallback.atlasTextureCount}," +
+                                   $"\"atlasCount\":{template.atlasTextureCount}," +
+                                   $"\"characterCount\":{template.characterTable?.Count ?? -1}," +
+                                   $"\"probeCovered\":{probeCovered.ToString().ToLowerInvariant()}," +
+                                   $"\"missingCodes\":\"{missingCodes}\",\"defaultFont\":\"{defaultFont?.name ?? "none"}\"," +
+                                   $"\"globalFallbackCount\":{fallbackCount}}}}}";
+                UnityWebRequest.Post("http://127.0.0.1:7785/event", debugPayload, "application/json")
+                    .SendWebRequest();
+#endregion
                 textFont = template;
                 textFont.name = "MateSoul UI SDF";
                 return textFont;
@@ -103,7 +126,7 @@ namespace MateSoul.Runtime
         {
             text.font = TextFont;
             text.fontSharedMaterial = TextMaterial;
-            text.isOverlay = true;
+            text.isOverlay = false;
             text.raycastTarget = false;
             return text;
         }

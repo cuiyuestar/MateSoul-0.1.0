@@ -1,0 +1,140 @@
+{
+  "pid": "9919",
+  "top_maps_kib": [
+    {
+      "name": "(unnamed anonymous mapping)",
+      "Size": 7931084,
+      "Rss": 644892,
+      "Pss": 636843,
+      "SwapPss": 0,
+      "Anonymous": 644892,
+      "count": 1057
+    },
+    {
+      "name": "/data/app/~~53Fls1-U304pMF8VqBc1pg==/com.UnityTechnologies.com.unity.template.urpblank-qVj3RugoWtaOQ3zTZKoFFQ==/lib/arm64/libil2cpp.so",
+      "Size": 128796,
+      "Rss": 40380,
+      "Pss": 39520,
+      "SwapPss": 0,
+      "Anonymous": 4484,
+      "count": 5
+    },
+    {
+      "name": "[anon:scudo:secondary]",
+      "Size": 40564,
+      "Rss": 27648,
+      "Pss": 26756,
+      "SwapPss": 0,
+      "Anonymous": 27648,
+      "count": 110
+    },
+    {
+      "name": "/data/app/~~53Fls1-U304pMF8VqBc1pg==/com.UnityTechnologies.com.unity.template.urpblank-qVj3RugoWtaOQ3zTZKoFFQ==/lib/arm64/libunity.so",
+      "Size": 52592,
+      "Rss": 20584,
+      "Pss": 19064,
+      "SwapPss": 0,
+      "Anonymous": 452,
+      "count": 5
+    },
+    {
+      "name": "[anon:scudo:primary]",
+      "Size": 26368,
+      "Rss": 21688,
+      "Pss": 18676,
+      "SwapPss": 16,
+      "Anonymous": 21688,
+      "count": 52
+    },
+    {
+      "name": "/storage/emulated/0/Android/data/com.UnityTechnologies.com.unity.template.urpblank/files/il2cpp/Metadata/global-metadata.dat",
+      "Size": 10156,
+      "Rss": 10028,
+      "Pss": 10028,
+      "SwapPss": 0,
+      "Anonymous": 0,
+      "count": 1
+    },
+    {
+      "name": "[anon:dalvik-/data/misc/apexdata/com.android.art/dalvik-cache/boot.art]",
+      "Size": 22192,
+      "Rss": 22180,
+      "Pss": 7656,
+      "SwapPss": 0,
+      "Anonymous": 22180,
+      "count": 1
+    },
+    {
+      "name": "/product/priv-app/XRRuntime/XRRuntime.apk",
+      "Size": 26664,
+      "Rss": 16556,
+      "Pss": 5682,
+      "SwapPss": 0,
+      "Anonymous": 628,
+      "count": 50
+    },
+    {
+      "name": "/memfd:jit-cache (deleted)",
+      "Size": 98304,
+      "Rss": 8312,
+      "Pss": 4220,
+      "SwapPss": 0,
+      "Anonymous": 0,
+      "count": 2
+    },
+    {
+      "name": "[anon:dalvik-main space]",
+      "Size": 786432,
+      "Rss": 3248,
+      "Pss": 3248,
+      "SwapPss": 44,
+      "Anonymous": 3248,
+      "count": 2
+    },
+    {
+      "name": "[anon:.bss]",
+      "Size": 9200,
+      "Rss": 3752,
+      "Pss": 2921,
+      "SwapPss": 0,
+      "Anonymous": 3752,
+      "count": 172
+    },
+    {
+      "name": "[anon_shmem:dalvik-jit-code-cache]",
+      "Size": 32768,
+      "Rss": 4232,
+      "Pss": 2116,
+      "SwapPss": 0,
+      "Anonymous": 0,
+      "count": 1
+    },
+    {
+      "name": "/system/framework/framework.jar",
+      "Size": 47508,
+      "Rss": 34044,
+      "Pss": 1879,
+      "SwapPss": 0,
+      "Anonymous": 0,
+      "count": 7
+    },
+    {
+      "name": "/data/app/~~53Fls1-U304pMF8VqBc1pg==/com.UnityTechnologies.com.unity.template.urpblank-qVj3RugoWtaOQ3zTZKoFFQ==/lib/arm64/libPicoAudioSDKUnityNativePlugin.so",
+      "Size": 7928,
+      "Rss": 1796,
+      "Pss": 1796,
+      "SwapPss": 0,
+      "Anonymous": 88,
+      "count": 3
+    },
+    {
+      "name": "/data/app/~~53Fls1-U304pMF8VqBc1pg==/com.UnityTechnologies.com.unity.template.urpblank-qVj3RugoWtaOQ3zTZKoFFQ==/lib/arm64/libPxrPlatform.so",
+      "Size": 3384,
+      "Rss": 1632,
+      "Pss": 1416,
+      "SwapPss": 0,
+      "Anonymous": 56,
+      "count": 4
+    }
+  ]
+}

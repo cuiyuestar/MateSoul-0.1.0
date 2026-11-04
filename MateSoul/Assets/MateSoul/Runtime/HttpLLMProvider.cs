@@ -1,189 +1,191 @@
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MateSoul.Gameplay;
-using UnityEngine;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEngine.Networking;
 
 namespace MateSoul.Runtime
 {
-    // The application talks to a project-controlled gateway. Provider credentials
-    // and vendor-specific protocols stay on that server, outside the APK.
+    // Model protocol, tools and validation run in the APK. Read credentials once per turn.
     public sealed class HttpLLMProvider : ILLMProvider, ISpontaneousReplyProvider
     {
-        private readonly string endpoint;
-        private readonly string spontaneousReplyEndpoint;
-        private readonly int timeoutSeconds;
-        private readonly bool allowLocalHttpInDevelopment;
-        private readonly string sessionId = Guid.NewGuid().ToString("N");
+        private readonly ModelConnectionSettings settings;
+        private readonly Func<PlayerAIConfiguration> configuration;
+        private readonly AIWebTools webTools = new AIWebTools();
+        private int TimeoutSeconds => Math.Min(25, settings == null ? 25 : settings.TimeoutSeconds);
 
-        public HttpLLMProvider(ConversationGatewaySettings settings)
+        public HttpLLMProvider(ModelConnectionSettings settings,
+            Func<PlayerAIConfiguration> playerConfiguration = null)
         {
-            endpoint = settings == null ? null : settings.Endpoint;
-            spontaneousReplyEndpoint = BuildSpontaneousReplyEndpoint(endpoint);
-            timeoutSeconds = settings == null ? 60 : settings.TimeoutSeconds;
-            allowLocalHttpInDevelopment = settings != null && settings.AllowLocalHttpInDevelopment;
+            this.settings = settings;
+            configuration = playerConfiguration;
         }
 
-        [Serializable] private sealed class ActionInfo
+        private PlayerAIConfiguration ReadConfiguration()
         {
-            public string id, description, target_capability;
-        }
-        [Serializable] private sealed class TargetInfo
-        {
-            public string id, name, state;
-            public string[] capabilities;
-        }
-        [Serializable] private sealed class RequestData
-        {
-            public string session_id;
-            public string request_id;
-            public string input;
-            public DialogueMessage[] history;
-            public ActionInfo[] actions;
-            public TargetInfo[] targets;
-            public string[] moods;
-            public CharacterPersonaSnapshot persona;
-            public CharacterRuntimeSnapshot runtime;
-        }
-        [Serializable] private sealed class ErrorInfo
-        {
-            public string code, message, request_id;
-        }
-        [Serializable] private sealed class ErrorData
-        {
-            public ErrorInfo error;
+            var player = configuration?.Invoke();
+            if (player == null || !player.IsConfigured)
+                throw new InvalidOperationException("先配置ai才能激活对话功能");
+            return PlayerAIConfiguration.Validate(player.endpoint, player.model, player.apiKey,
+                settings != null && settings.AllowLocalHttpInDevelopment);
         }
 
         public async Task<ConversationReply> CompleteAsync(ConversationRequest request, CancellationToken token)
         {
-            if (string.IsNullOrWhiteSpace(endpoint))
-                throw new InvalidOperationException("AI 服务未连接。请在 GameBootstrap 中设置对话网关地址。");
-            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) ||
-                !IsAllowedEndpoint(uri))
-                throw new InvalidOperationException(
-                    "对话网关地址必须使用 HTTPS；开发包仅允许显式配置的本机 HTTP 地址。");
+            var player = ReadConfiguration();
+            var messages = ModelReplyProtocol.ConversationMessages(request);
             var requestId = Guid.NewGuid().ToString("N");
-            var data = new RequestData
-            {
-                session_id = sessionId,
-                request_id = requestId,
-                input = request.Input, history = request.History.ToArray(),
-                actions = request.Actions.Select(a => new ActionInfo
-                {
-                    id = a.Id, description = a.Description, target_capability = a.TargetCapability
-                }).ToArray(),
-                targets = request.Targets.Select(t => new TargetInfo
-                {
-                    id = t.Id, name = t.DisplayName, state = t.StateId, capabilities = t.Capabilities.ToArray()
-                }).ToArray(),
-                moods = request.Moods.ToArray(),
-                persona = request.CharacterContext.persona,
-                runtime = request.CharacterContext.runtime
-            };
-            var payload = Encoding.UTF8.GetBytes(JsonUtility.ToJson(data));
-            UnityEngine.Debug.Log(
-                $"AI_CONTEXT_CAPTURED revision={data.runtime.revision} " +
-                $"captureMs={request.ContextCaptureMilliseconds:F3} payloadBytes={payload.Length}");
             var elapsed = Stopwatch.StartNew();
-            using (var web = new UnityWebRequest(endpoint, "POST"))
+            UnityEngine.Debug.Log($"AI_CONTEXT_CAPTURED revision={request.CharacterContext.runtime.revision} " +
+                $"captureMs={request.ContextCaptureMilliseconds:F3} promptCharacters={messages.ToString(Formatting.None).Length}");
+            using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(token))
             {
-                web.uploadHandler = new UploadHandlerRaw(payload);
-                web.downloadHandler = new DownloadHandlerBuffer();
-                web.SetRequestHeader("Content-Type", "application/json");
-                web.SetRequestHeader("X-Request-ID", requestId);
-                web.timeout = timeoutSeconds;
-                token.ThrowIfCancellationRequested();
-                var operation = web.SendWebRequest();
-                while (!operation.isDone)
+                deadline.CancelAfter(TimeSpan.FromSeconds(TimeoutSeconds));
+                for (var round = 0; round <= 4; round++)
                 {
-                    if (token.IsCancellationRequested)
+                    var completion = await SendModelAsync(player, messages, AIWebTools.Definitions, deadline.Token);
+                    var calls = completion["tool_calls"] as JArray;
+                    if (calls == null || calls.Count == 0)
                     {
-                        web.Abort();
-                        token.ThrowIfCancellationRequested();
+                        var reply = await ValidatedReplyAsync(player, messages, completion,
+                            text => ModelReplyProtocol.Conversation(text, request), deadline.Token);
+                        deadline.Token.ThrowIfCancellationRequested();
+                        UnityEngine.Debug.Log($"AI_REQUEST_COMPLETED requestId={requestId} route=direct " +
+                            $"durationMs={elapsed.ElapsedMilliseconds} toolRounds={round}");
+                        return reply;
                     }
-                    await Task.Yield();
+                    if (round == 4 || calls.Count > 8)
+                        throw new InvalidOperationException("AI 联网查询超过本轮次数限制，请缩小问题范围。");
+                    messages.Add(completion);
+                    foreach (var call in calls)
+                    {
+                        if (call["id"]?.Type != JTokenType.String || call["function"]?["name"]?.Type != JTokenType.String ||
+                            call["function"]?["arguments"]?.Type != JTokenType.String)
+                            throw new InvalidOperationException("模型返回了无效的工具请求。");
+                        var name = (string)call["function"]["name"];
+                        var result = await webTools.CallAsync(name, (string)call["function"]["arguments"], deadline.Token);
+                        messages.Add(new JObject { ["role"] = "tool", ["tool_call_id"] = (string)call["id"], ["content"] = result });
+                        UnityEngine.Debug.Log($"AI_WEB_TOOL_COMPLETED requestId={requestId} " +
+                            $"tool={(name == "web_search" || name == "web_fetch" ? name : "unknown")} resultCharacters={result.Length}");
+                    }
                 }
-                token.ThrowIfCancellationRequested();
-                if (web.result != UnityWebRequest.Result.Success)
-                {
-                    var gatewayError = string.IsNullOrEmpty(web.downloadHandler.text)
-                        ? null : JsonUtility.FromJson<ErrorData>(web.downloadHandler.text);
-                    var detail = gatewayError?.error?.message ?? web.error;
-                    throw new InvalidOperationException(
-                        $"对话网关请求失败：HTTP {web.responseCode} / {detail}");
-                }
-                var reply = JsonUtility.FromJson<ConversationReply>(web.downloadHandler.text);
-                UnityEngine.Debug.Log($"AI_REQUEST_COMPLETED sessionId={sessionId} requestId={requestId} " +
-                                      $"durationMs={elapsed.ElapsedMilliseconds}");
-                return reply;
+            }
+            throw new InvalidOperationException("AI 未返回最终回复。");
+        }
+
+        public async Task<SpontaneousReplyResult> CompleteSpontaneousAsync(SpontaneousReplyRequest request, CancellationToken token)
+        {
+            var player = ReadConfiguration();
+            var messages = ModelReplyProtocol.SpontaneousMessages(request);
+            using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(token))
+            {
+                deadline.CancelAfter(TimeSpan.FromSeconds(TimeoutSeconds));
+                var completion = await SendModelAsync(player, messages, null, deadline.Token);
+                return await ValidatedReplyAsync(player, messages, completion, ModelReplyProtocol.Spontaneous, deadline.Token);
             }
         }
 
-        public async Task<SpontaneousReplyResult> CompleteSpontaneousAsync(
-            SpontaneousReplyRequest request, CancellationToken token)
+        private static async Task<T> ValidatedReplyAsync<T>(PlayerAIConfiguration player, JArray messages,
+            JObject completion, Func<string, T> parse, CancellationToken token)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
-            if (string.IsNullOrWhiteSpace(spontaneousReplyEndpoint) ||
-                !Uri.TryCreate(spontaneousReplyEndpoint, UriKind.Absolute, out var uri) ||
-                !IsAllowedEndpoint(uri))
-                throw new InvalidOperationException(
-                    "系统性自发回复网关地址必须使用 HTTPS；开发包仅允许显式配置的本机 HTTP 地址。");
-            var payload = Encoding.UTF8.GetBytes(JsonUtility.ToJson(request));
-            using (var web = new UnityWebRequest(spontaneousReplyEndpoint, "POST"))
+            var content = completion["content"]?.Type == JTokenType.String ? (string)completion["content"] : "{}";
+            try
             {
-                web.uploadHandler = new UploadHandlerRaw(payload);
-                web.downloadHandler = new DownloadHandlerBuffer();
-                web.SetRequestHeader("Content-Type", "application/json");
-                web.SetRequestHeader("X-Request-ID", request.request_id);
-                web.timeout = timeoutSeconds;
-                token.ThrowIfCancellationRequested();
-                var operation = web.SendWebRequest();
-                while (!operation.isDone)
-                {
-                    if (token.IsCancellationRequested)
-                    {
-                        web.Abort();
-                        token.ThrowIfCancellationRequested();
-                    }
-                    await Task.Yield();
-                }
-                token.ThrowIfCancellationRequested();
-                if (web.result != UnityWebRequest.Result.Success)
-                {
-                    var gatewayError = string.IsNullOrEmpty(web.downloadHandler.text)
-                        ? null : JsonUtility.FromJson<ErrorData>(web.downloadHandler.text);
-                    var detail = gatewayError?.error?.message ?? web.error;
-                    throw new InvalidOperationException(
-                        $"系统性自发回复请求失败：HTTP {web.responseCode} / {detail}");
-                }
-                return JsonUtility.FromJson<SpontaneousReplyResult>(
-                    web.downloadHandler.text);
+                if ((completion["tool_calls"] as JArray)?.Count > 0) throw new FormatException("Tools are not allowed in the final reply.");
+                return parse(content);
+            }
+            catch (Exception error) when (error is JsonException || error is FormatException)
+            {
+                messages.Add(ModelReplyProtocol.Message("assistant", content));
+                messages.Add(ModelReplyProtocol.Message("user",
+                    "The previous response failed JSON protocol validation: " + error.Message +
+                    " Return one corrected JSON object only. Do not use tools."));
+                UnityEngine.Debug.Log("AI_REPLY_REPAIR_REQUESTED");
+                var repaired = await SendModelAsync(player, messages, null, token);
+                if ((repaired["tool_calls"] as JArray)?.Count > 0)
+                    throw new InvalidOperationException("模型未返回有效的修正回复。");
+                try { return parse((string)repaired["content"]); }
+                catch (Exception invalid) when (invalid is JsonException || invalid is FormatException)
+                { throw new InvalidOperationException("模型回复格式无效，请重试。"); }
             }
         }
 
-
-        private bool IsAllowedEndpoint(Uri uri)
+        private static async Task<JObject> SendModelAsync(PlayerAIConfiguration player, JArray messages,
+            JArray tools, CancellationToken token, int maxTokens = 2048)
         {
-            if (uri.Scheme == Uri.UriSchemeHttps) return true;
-            return allowLocalHttpInDevelopment && UnityEngine.Debug.isDebugBuild &&
-                   uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback;
-        }
-
-        private static string BuildSpontaneousReplyEndpoint(string conversationEndpoint)
-        {
-            if (!Uri.TryCreate(conversationEndpoint, UriKind.Absolute, out var uri))
-                return null;
-            var builder = new UriBuilder(uri)
+            var body = new JObject
             {
-                Path = "/v1/system-replies/generate",
-                Query = string.Empty,
-                Fragment = string.Empty
+                ["model"] = player.model, ["messages"] = messages.DeepClone(),
+                ["stream"] = false, ["max_tokens"] = maxTokens, ["temperature"] = .7,
+                ["response_format"] = new JObject { ["type"] = "json_object" }
             };
-            return builder.Uri.AbsoluteUri;
+            // DeepSeek reasoning is unnecessary for short in-world remarks and consumes the turn budget.
+            if (new Uri(player.endpoint).Host.Equals("api.deepseek.com", StringComparison.OrdinalIgnoreCase))
+                body["thinking"] = new JObject { ["type"] = "disabled" };
+            if (tools != null && tools.Count > 0)
+            { body["tools"] = tools; body["tool_choice"] = "auto"; }
+            using (var request = new UnityWebRequest(player.endpoint, "POST"))
+            {
+                request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(body.ToString(Formatting.None)));
+                request.downloadHandler = new AIBoundedDownload(262144);
+                request.redirectLimit = 0; // Credentials must never follow a provider redirect.
+                request.timeout = 25;
+                request.SetRequestHeader("Content-Type", "application/json");
+                player.ApplyHeaders(request);
+                await AIBoundedDownload.SendAsync(request, token);
+                var download = (AIBoundedDownload)request.downloadHandler;
+                if (download.TooLarge) throw new InvalidOperationException("AI 回复超过接收大小限制。");
+                if (request.result != UnityWebRequest.Result.Success)
+                    throw new InvalidOperationException(ModelError(request.responseCode));
+                try
+                {
+                    var envelope = ModelReplyProtocol.ParseObject(download.Text);
+                    var choice = envelope["choices"]?[0] as JObject;
+                    if (!(choice?["message"] is JObject message) ||
+                        (string)choice["finish_reason"] == "length")
+                        throw new FormatException("Missing or truncated model response.");
+                    // Only retain fields supported by the next chat-completions request.
+                    return new JObject
+                    {
+                        ["role"] = "assistant", ["content"] = message["content"]?.DeepClone(),
+                        ["tool_calls"] = message["tool_calls"]?.DeepClone()
+                    };
+                }
+                catch (Exception error) when (error is JsonException || error is FormatException ||
+                                              error is ArgumentException || error is InvalidOperationException)
+                { throw new InvalidOperationException("供应商未返回有效的模型回复，请检查 API 地址与模型名称。"); }
+            }
+        }
+
+        private static string ModelError(long code)
+        {
+            if (code == 401 || code == 403) return "API Key 无效或无访问权限，请检查 AI 配置。";
+            if (code == 402) return "AI 账户余额不足，请充值后重试。";
+            if (code == 429) return "AI 请求过于频繁或额度不足，请稍后重试。";
+            if (code == 400 || code == 404 || code == 422) return $"AI 地址、模型或协议不匹配（HTTP {code}），请检查配置。";
+            return $"无法连接 AI 供应商（HTTP {code}），请检查网络或稍后重试。";
+        }
+
+        public static async Task CheckConfigurationAsync(PlayerAIConfiguration player, CancellationToken token)
+        {
+            player = PlayerAIConfiguration.Validate(player.endpoint, player.model, player.apiKey);
+            using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(token))
+            {
+                deadline.CancelAfter(TimeSpan.FromSeconds(20));
+                var result = await SendModelAsync(player, new JArray(ModelReplyProtocol.Message("user",
+                    "Return exactly this JSON: {\"status\":\"ok\"}")), null, deadline.Token, 64);
+                try
+                {
+                    if ((string)ModelReplyProtocol.ParseObject((string)result["content"])["status"] != "ok")
+                        throw new FormatException();
+                }
+                catch (Exception error) when (error is JsonException || error is FormatException)
+                { throw new InvalidOperationException("模型未返回有效的连接测试结果。"); }
+            }
         }
     }
 }

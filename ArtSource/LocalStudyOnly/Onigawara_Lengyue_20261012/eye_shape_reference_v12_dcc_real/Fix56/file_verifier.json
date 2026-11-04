@@ -1,0 +1,212 @@
+[
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — image size=1668725",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_高清全身三视图.png",
+        "kind": "image",
+        "size": 1668725,
+        "note": "kind=image: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_高清全身三视图.png",
+          "quote": "image size=1668725"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — image size=1668725"
+    }
+  },
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — image size=768493",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_全身正面_高清原图.png",
+        "kind": "image",
+        "size": 768493,
+        "note": "kind=image: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_全身正面_高清原图.png",
+          "quote": "image size=768493"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — image size=768493"
+    }
+  },
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — image size=582885",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_全身右侧面_高清原图.png",
+        "kind": "image",
+        "size": 582885,
+        "note": "kind=image: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_全身右侧面_高清原图.png",
+          "quote": "image size=582885"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — image size=582885"
+    }
+  },
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — image size=737297",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_全身背面_高清原图.png",
+        "kind": "image",
+        "size": 737297,
+        "note": "kind=image: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_全身背面_高清原图.png",
+          "quote": "image size=737297"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — image size=737297"
+    }
+  },
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — image size=1430962",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_右后侧头发近景_高清原图.png",
+        "kind": "image",
+        "size": 1430962,
+        "note": "kind=image: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_右后侧头发近景_高清原图.png",
+          "quote": "image size=1430962"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — image size=1430962"
+    }
+  },
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — image size=1337792",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_后脑头发近景_高清原图.png",
+        "kind": "image",
+        "size": 1337792,
+        "note": "kind=image: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_后脑头发近景_高清原图.png",
+          "quote": "image size=1337792"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — image size=1337792"
+    }
+  },
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — image size=1491739",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_左后侧头发近景_高清原图.png",
+        "kind": "image",
+        "size": 1491739,
+        "note": "kind=image: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_左后侧头发近景_高清原图.png",
+          "quote": "image size=1491739"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — image size=1491739"
+    }
+  },
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — image size=86332",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_拇指暗纹真实前后对照.png",
+        "kind": "image",
+        "size": 86332,
+        "note": "kind=image: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_拇指暗纹真实前后对照.png",
+          "quote": "image size=86332"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — image size=86332"
+    }
+  },
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — unknown size=39643694",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_拇指暗纹修复.unitypackage",
+        "kind": "unknown",
+        "size": 39643694,
+        "note": "kind=unknown: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_拇指暗纹修复.unitypackage",
+          "quote": "unknown size=39643694"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — unknown size=39643694"
+    }
+  },
+  {
+    "ok": true,
+    "tool": "rubric.check-file-format",
+    "result": {
+      "passed": true,
+      "evidence_quote": "OK — binary size=47347855",
+      "detail": {
+        "path": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_高清视图与拇指修复资产.zip",
+        "kind": "binary",
+        "size": 47347855,
+        "note": "kind=binary: no validator available; file exists and is readable",
+        "_evidence": {
+          "file": "/Users/bytedance/DoubaoWork/chats/2026-10-19/new-chat/冷月Direct56_高清视图与拇指修复资产.zip",
+          "quote": "binary size=47347855"
+        }
+      }
+    },
+    "evidence": {
+      "quote": "OK — binary size=47347855"
+    }
+  }
+]

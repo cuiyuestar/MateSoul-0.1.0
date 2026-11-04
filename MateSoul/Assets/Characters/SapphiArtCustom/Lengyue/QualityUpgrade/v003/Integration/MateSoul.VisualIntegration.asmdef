@@ -1,0 +1,9 @@
+{
+  "name": "MateSoul.VisualIntegration",
+  "rootNamespace": "MateSoul.CharacterVisual",
+  "references": [
+    "MateSoul.CharacterVisual",
+    "MateSoul.Core",
+    "MateSoul.Runtime"
+  ]
+}

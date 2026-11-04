@@ -1,6 +1,7 @@
 using System;
 using MateSoul.Core;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace MateSoul.Runtime
 {
@@ -54,6 +55,18 @@ namespace MateSoul.Runtime
             previousPlayerPosition = playerHead != null ? playerHead.position : pose.position;
             previousExtension = 0;
             Debug.Log($"MATESOUL_HAND_HOLD phase=holding side={request.Side.ToString().ToLowerInvariant()}");
+#region debug-point D:handhold-action-start
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload = $"{{\"sessionId\":\"movement-handhold-stall\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"D\",\"location\":\"HandHoldAction.Start\"," +
+                $"\"msg\":\"[DEBUG] handhold action started\",\"data\":{{" +
+                $"\"side\":\"{request.Side}\",\"pose\":{JsonUtility.ToJson(pose.position)}," +
+                $"\"motorPosition\":{JsonUtility.ToJson(motor.Position)}}}}}";
+            var debugRequest = UnityWebRequest.Post(
+                "http://127.0.0.1:7781/event", payload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
         }
 
         public ActionProgress Tick(float deltaSeconds)
@@ -167,6 +180,19 @@ namespace MateSoul.Runtime
             traction.Reset();
             if (endSelection) request.EndSelection();
             Debug.Log($"MATESOUL_HAND_HOLD phase=releasing reason={reason}");
+#region debug-point D:handhold-action-exit
+#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+            var payload = $"{{\"sessionId\":\"movement-handhold-stall\",\"runId\":\"post-fix\"," +
+                $"\"hypothesisId\":\"D\",\"location\":\"HandHoldAction.BeginExit\"," +
+                $"\"msg\":\"[DEBUG] handhold action exiting\",\"data\":{{" +
+                $"\"side\":\"{request.Side}\",\"reason\":\"{reason}\"," +
+                $"\"blocked\":{blocked.ToString().ToLowerInvariant()}," +
+                $"\"endSelection\":{endSelection.ToString().ToLowerInvariant()}}}}}";
+            var debugRequest = UnityWebRequest.Post(
+                "http://127.0.0.1:7781/event", payload, "application/json");
+            debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
+#endif
+#endregion
         }
 
         public void Cancel(ActionStopReason reason)

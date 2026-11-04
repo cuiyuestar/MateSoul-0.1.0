@@ -1,0 +1,272 @@
+{
+  "date": "2026-10-28",
+  "change": "冷月拾取兜底范围与接近站位容差",
+  "settingsMeters": {
+    "primarySnap": 0.25,
+    "fallbackSnap": 0.65,
+    "approachSample": 0.18,
+    "approachOverlap": 0.04,
+    "approachArrival": 0.18,
+    "itemDock": 0.15,
+    "heightMargin": 0.35,
+    "authoredHandCorrection": 0.15
+  },
+  "authoredSearch": {
+    "rings": 7,
+    "directionsPerRing": 16,
+    "ringSpacingMeters": 0.075,
+    "maximumOffsetMeters": 0.45,
+    "repathWhenItemMovesMeters": 0.15
+  },
+  "dockFailureBeforeFinalTolerance": {
+    "supportHeightMeters": 1.10581,
+    "positionErrorMeters": 0.1198183,
+    "yawErrorDegrees": 0,
+    "phase": "Dock",
+    "source": "/tmp/matesoul-pickup-tolerance-20261028/height_diagnostic_result.json"
+  },
+  "validation": {
+    "summary": {
+      "id": "2",
+      "testcasecount": "6",
+      "result": "Passed",
+      "total": "6",
+      "passed": "6",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-10-27 17:58:55Z",
+      "end-time": "2026-10-27 17:58:57Z",
+      "duration": "1.8466133"
+    },
+    "cases": [
+      {
+        "id": "1214",
+        "name": "CancellationAndPauseReleaseEveryItemAndRestorePhysics",
+        "fullname": "MateSoul.Tests.ItemActionRuntimeTests.CancellationAndPauseReleaseEveryItemAndRestorePhysics",
+        "methodname": "CancellationAndPauseReleaseEveryItemAndRestorePhysics",
+        "classname": "MateSoul.Tests.ItemActionRuntimeTests",
+        "runstate": "Runnable",
+        "seed": "1455092836",
+        "result": "Passed",
+        "start-time": "2026-10-27 17:58:24Z",
+        "end-time": "2026-10-27 17:58:31Z",
+        "duration": "6.332210",
+        "asserts": "0",
+        "failure": null
+      },
+      {
+        "id": "1239",
+        "name": "AuthoredPickupUsesExpandedFallbackAndRejectsOutsideIt",
+        "fullname": "MateSoul.Tests.PickupToleranceAcceptance.AuthoredPickupUsesExpandedFallbackAndRejectsOutsideIt",
+        "methodname": "AuthoredPickupUsesExpandedFallbackAndRejectsOutsideIt",
+        "classname": "MateSoul.Tests.PickupToleranceAcceptance",
+        "runstate": "Runnable",
+        "seed": "1516040513",
+        "result": "Passed",
+        "start-time": "2026-10-27 17:58:31Z",
+        "end-time": "2026-10-27 17:58:37Z",
+        "duration": "6.187024",
+        "asserts": "0",
+        "failure": null
+      },
+      {
+        "id": "1240",
+        "name": "ExpandedApproachSearchKeepsStableRouteAndCompletesPickup",
+        "fullname": "MateSoul.Tests.PickupToleranceAcceptance.ExpandedApproachSearchKeepsStableRouteAndCompletesPickup",
+        "methodname": "ExpandedApproachSearchKeepsStableRouteAndCompletesPickup",
+        "classname": "MateSoul.Tests.PickupToleranceAcceptance",
+        "runstate": "Runnable",
+        "seed": "1636091017",
+        "result": "Passed",
+        "start-time": "2026-10-27 17:58:37Z",
+        "end-time": "2026-10-27 17:58:42Z",
+        "duration": "5.006930",
+        "asserts": "0",
+        "failure": null
+      },
+      {
+        "id": "1241",
+        "name": "FourHeightsUseAuthoredPickupAndPauseRestoresControl",
+        "fullname": "MateSoul.Tests.PickupToleranceAcceptance.FourHeightsUseAuthoredPickupAndPauseRestoresControl",
+        "methodname": "FourHeightsUseAuthoredPickupAndPauseRestoresControl",
+        "classname": "MateSoul.Tests.PickupToleranceAcceptance",
+        "runstate": "Runnable",
+        "seed": "1723785434",
+        "result": "Passed",
+        "start-time": "2026-10-27 17:58:42Z",
+        "end-time": "2026-10-27 17:58:53Z",
+        "duration": "11.255912",
+        "asserts": "0",
+        "failure": null
+      },
+      {
+        "id": "1237",
+        "name": "NearArrivalStopsButDefaultMoveAndIncompleteRoutesRemainStrict",
+        "fullname": "MateSoul.Tests.PickupToleranceAcceptance.NearArrivalStopsButDefaultMoveAndIncompleteRoutesRemainStrict",
+        "methodname": "NearArrivalStopsButDefaultMoveAndIncompleteRoutesRemainStrict",
+        "classname": "MateSoul.Tests.PickupToleranceAcceptance",
+        "runstate": "Runnable",
+        "seed": "1689037955",
+        "result": "Passed",
+        "start-time": "2026-10-27 17:58:53Z",
+        "end-time": "2026-10-27 17:58:53Z",
+        "duration": "0.099745",
+        "asserts": "0",
+        "failure": null
+      },
+      {
+        "id": "1238",
+        "name": "ShallowOverlapAndLooseDockAllowSmallErrorsButRejectSolidBlockers",
+        "fullname": "MateSoul.Tests.PickupToleranceAcceptance.ShallowOverlapAndLooseDockAllowSmallErrorsButRejectSolidBlockers",
+        "methodname": "ShallowOverlapAndLooseDockAllowSmallErrorsButRejectSolidBlockers",
+        "classname": "MateSoul.Tests.PickupToleranceAcceptance",
+        "runstate": "Runnable",
+        "seed": "1204762015",
+        "result": "Passed",
+        "start-time": "2026-10-27 17:58:53Z",
+        "end-time": "2026-10-27 17:58:57Z",
+        "duration": "3.359571",
+        "asserts": "0",
+        "failure": null
+      }
+    ],
+    "elapsed": 43.342604458,
+    "inputs": {
+      "Assets/MateSoul/Runtime/ItemTransferStep.cs": "e081e588cf56c141824624711177991706a6fff7e52cd9562cb5cdcad29cb250",
+      "Assets/MateSoul/Runtime/PickupAnimationSet.cs": "402d184dd13b0cc85fe01a93a4688dac2287b8d297074af5aa0bef615868cac5",
+      "Assets/MateSoul/Runtime/AvatarMotor.cs": "007f6f8b55007ea603a74b702f1128108dfe897e989b318bbc559dcfe3aec5f2",
+      "Assets/MateSoul/Runtime/CharacterActions.cs": "118722862e17503015b66b2c33b6d4cbba64f1e5d3ad005292ca84ca4983801f",
+      "Assets/MateSoul/Content/Lengyue_Runtime.prefab": "c62d5890dfa8c98890dbd9de5a5d97f0fc654d92784de840696d0355c6fd19bd",
+      "Assets/MateSoul/Scenes/MateSoul.unity": "47254905abfbe9c3fa0c481d2e6b6f317eade366b046837b9da0522aeaaba543"
+    },
+    "changedInputs": [],
+    "launcherExit": 0
+  },
+  "heights": [
+    {
+      "supportHeight": "0",
+      "targetGripHeight": "0.124",
+      "pickupSeconds": "6.117081",
+      "alignmentError": "2.230202E-07"
+    },
+    {
+      "supportHeight": "0.35",
+      "targetGripHeight": "0.474",
+      "pickupSeconds": "2.939121",
+      "alignmentError": "2.731428E-07"
+    },
+    {
+      "supportHeight": "0.78",
+      "targetGripHeight": "0.904",
+      "pickupSeconds": "2.564217",
+      "alignmentError": "1.3328E-07"
+    },
+    {
+      "supportHeight": "1.10581",
+      "targetGripHeight": "1.22981",
+      "pickupSeconds": "3.553138",
+      "alignmentError": "2.384186E-07"
+    }
+  ],
+  "snap": [
+    {
+      "acceptedResidual": ".55",
+      "rejectedResidual": ".651",
+      "heldAlignmentError": "7.450581E-08"
+    }
+  ],
+  "overlap": [
+    {
+      "shallowOverlap": "0.02999994",
+      "acceptedTolerance": "0.04",
+      "dockError": "0.12"
+    }
+  ],
+  "approach": [
+    {
+      "minimumCandidateRadius": "0.5600398",
+      "sampleOffset": ".12",
+      "pathRequests": "3"
+    }
+  ],
+  "editorBurstJitDuringValidation": false,
+  "nativePlayerChecks": {
+    "ItemTransferStep_CanSnapPickup": {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__6.cpp",
+      "verifiedValues": [
+        0.65
+      ]
+    },
+    "ItemTransferStep_FindApproach": {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__6.cpp",
+      "verifiedValues": [
+        0.18,
+        0.04,
+        0.075
+      ]
+    },
+    "ItemTransferStep_BeginWalk": {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__6.cpp",
+      "verifiedValues": [
+        0.18
+      ]
+    },
+    "ItemTransferStep_Tick": {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__6.cpp",
+      "verifiedValues": [
+        0.15
+      ]
+    },
+    "PickupAnimationSet_Select": {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__7.cpp",
+      "verifiedValues": [
+        0.35
+      ]
+    },
+    "AvatarMotor_Dock": {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime.cpp",
+      "toleranceAndStop": true
+    },
+    "AvatarMotor_UpdateFacing": {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime.cpp",
+      "smallAngleDockCompletion": true
+    },
+    "MoveAction_Tick": {
+      "file": "/Users/bytedance/MateSoul/MateSoul/Library/Bee/artifacts/Android/il2cppOutput/cpp/MateSoul.Runtime__2.cpp",
+      "arrivalAndStop": true
+    }
+  },
+  "earlierBuild": {
+    "compiledSuccessfully": true,
+    "acceptedForDelivery": false,
+    "reason": "构建期间并行窗口修改两个躺床脚本，输入一致性校验拒绝交付。",
+    "changedInputs": [
+      "Assets/MateSoul/Runtime/BedGeometry.cs",
+      "Assets/MateSoul/Runtime/RealBedScanner.cs"
+    ],
+    "log": "/tmp/matesoul-pickup-tolerance-20261028/build_before_bed_update.log"
+  },
+  "releasePackage": {
+    "path": "/Users/bytedance/MateSoul/Builds/MateSoul_PickupTolerance_20261028.apk",
+    "bytes": 165770689,
+    "sha256": "a13745965d3c49e04dd6c0dcd154e78b960490a173cb2ce03965ad933aa6acc0",
+    "buildSeconds": 149.866414083,
+    "sourceInputs": 1815,
+    "changedInputs": [],
+    "launcherExit": 0,
+    "crc": "passed",
+    "arm64Libraries": 18,
+    "nativeSha256": "1b3b5719311ac7d34dfacab17845251945f02b56f560c41bd63370132d6ce4fb",
+    "currentGradleOutput": true,
+    "fourAuthoredAnimations": true,
+    "signature": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): false\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1",
+    "zipalign": "passed",
+    "buildPass": "MATESOUL_BUILD_PASS path=/Users/bytedance/MateSoul/Builds/MateSoul_Framework.apk bytes=2335495814 duration=00:01:58.0185868"
+  },
+  "headsetInstalledThisTask": false,
+  "temporaryEngineTestEntryRemoved": true
+}

@@ -508,6 +508,10 @@ namespace MateSoul.Runtime
                     Quaternion.Inverse(grip.rotation) * item.rotation);
             }
             heldBody = body;
+            // Cookware keeps its colliders while held so food can be dropped into it,
+            // but that also made the carried item collide with her own torso and push
+            // her across the room. The holder and the held item must never collide.
+            IgnoreHeldCollisions(true);
             SyncHeldBody();
             BeginHandGesture();
 #region debug-point A-C:attach-transform
@@ -581,6 +585,7 @@ namespace MateSoul.Runtime
                     rightFingerChains, rightFingerBaseRotations);
             RestoreFingerPose(
                 leftFingerChains, leftFingerBaseRotations);
+            IgnoreHeldCollisions(false);
             heldBody = null;
             heldProfile = null;
             rightHeldFingerRotations = null;
@@ -596,6 +601,18 @@ namespace MateSoul.Runtime
             PalmClearance = 0;
             MinimumPowerGripMcpFlexion = 0;
             MaximumPowerGripMcpSpread = 0;
+        }
+
+        // Physics.IgnoreCollision is a per-pair flag, so it is raised on attach and
+        // cleared on detach; the carried item keeps colliding with the rest of the world.
+        private void IgnoreHeldCollisions(bool ignored)
+        {
+            if (heldBody == null) return;
+            var itemColliders = heldBody.GetComponentsInChildren<Collider>(true);
+            var ownColliders = GetComponentsInChildren<Collider>(true);
+            foreach (var item in itemColliders)
+                foreach (var own in ownColliders)
+                    Physics.IgnoreCollision(item, own, ignored);
         }
 
         public void ClearReach()

@@ -1,4 +1,4 @@
-using System;
+﻿﻿﻿﻿using System;
 using System.IO;
 using System.Linq;
 using ByteDance.PICO.XR;
@@ -26,11 +26,11 @@ namespace MateSoul.Editor
         private enum CatalogColliderShape { Box, Sphere, Capsule }
 
         public const string ScenePath = "Assets/MateSoul/Scenes/MateSoul.unity";
-        public const string CharacterPath = "Assets/MateSoul/Content/Lengyue_Runtime.prefab";
+        public const string CharacterPath = "Assets/MateSoul/Content/lengyue_avatar_runtime.prefab";
         public const string PersonaPath = "Assets/MateSoul/Content/LengyuePersona.json";
         private const string Content = "Assets/MateSoul/Content";
         private const string ModelConnectionPath = Content + "/ModelConnection.asset";
-        private const string Source = "Assets/Characters/SapphiArtCustom/Lengyue/Runtime";
+        private const string Source = "Assets/Characters/LengyueCharacter/Lengyue/Runtime";
 
         [MenuItem("MateSoul/Game/Build Game Scene")]
         public static void BuildScene()
@@ -168,12 +168,12 @@ namespace MateSoul.Editor
                 }
                 finally { PrefabUtility.UnloadPrefabContents(contents); }
             }
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>(Source + "/Prefabs/Lengyue_GameCharacter.prefab");
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(Source + "/Prefabs/lengyue_character.prefab");
             if (source == null) throw new InvalidOperationException("Production character prefab is missing.");
             var character = (GameObject)PrefabUtility.InstantiatePrefab(source);
             try
             {
-                character.name = "Lengyue_Runtime";
+                character.name = "lengyue_avatar_root";
                 foreach (var guard in character.GetComponentsInChildren<HeadPoseGuard>(true)) guard.enabled = false;
                 var animator = character.GetComponentInChildren<Animator>(true);
                 animator.runtimeAnimatorController = BuildAnimator();
@@ -190,10 +190,10 @@ namespace MateSoul.Editor
         {
             var transforms = character.GetComponentInChildren<Animator>(true)
                 .GetComponentsInChildren<Transform>(true);
-            var names = new[] { "Hips", "Spine", "Leg_L", "Knee_L", "Foot_L", "Toe_L",
-                "Leg_R", "Knee_R", "Foot_R", "Toe_R", "UpperArm_L", "Forearm_L", "Hand_L",
-                "UpperArm_R", "Forearm_R", "Hand_R", "Index_01_L", "Middle_01_L", "Pinky_01_L",
-                "Index_01_R", "Middle_01_R", "Pinky_01_R" };
+            var names = new[] { "lengyue_hips", "lengyue_spine", "lengyue_thigh_l", "lengyue_shin_l", "lengyue_foot_l", "lengyue_toe_l",
+                "lengyue_thigh_r", "lengyue_shin_r", "lengyue_foot_r", "lengyue_toe_r", "lengyue_upper_arm_l", "lengyue_forearm_l", "lengyue_hand_l",
+                "lengyue_upper_arm_r", "lengyue_forearm_r", "lengyue_hand_r", "lengyue_index_01_l", "lengyue_middle_01_l", "lengyue_little_01_l",
+                "lengyue_index_01_r", "lengyue_middle_01_r", "lengyue_little_01_r" };
             var binding = names.Select(name => transforms.Single(item => item.name == name)).ToArray();
             var seating = character.GetComponent<AvatarSeatingRig>() ??
                           character.AddComponent<AvatarSeatingRig>();
@@ -212,7 +212,7 @@ namespace MateSoul.Editor
         public static void ConfigureBowlingCharacter(GameObject character)
         {
             var motion = AssetDatabase.LoadAssetAtPath<BowlingMotion>(
-                "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Bowling/BowlingMotion.asset");
+                "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/Bowling/lengyue_motion_bowling.asset");
             if (!motion) throw new InvalidOperationException("请先导入冷月保龄球动画。");
             var animator = character.GetComponentInChildren<Animator>(true);
             var controller = animator.runtimeAnimatorController as AnimatorController;
@@ -232,7 +232,7 @@ namespace MateSoul.Editor
             layers[index] = layer;
             controller.layers = layers;
             var hand = animator.GetComponentsInChildren<Transform>(true)
-                .Single(bone => bone.name == "Hand_R");
+                .Single(bone => bone.name == "lengyue_hand_r");
             var rig = character.GetComponent<AvatarBowlingRig>() ?? character.AddComponent<AvatarBowlingRig>();
             rig.Configure(animator, hand, motion);
             EditorUtility.SetDirty(controller);
@@ -244,20 +244,20 @@ namespace MateSoul.Editor
             Transform Bone(string name) => transforms.Single(item => item.name == name);
             var animator = character.GetComponentInChildren<Animator>(true);
             var handRig = GetOrAdd<HandIKRig>(character);
-            var rigRoot = FindOrCreate(character.transform, "HandHold Animation Rig");
+            var rigRoot = FindOrCreate(character.transform, "lengyue_rig_handhold");
             var rig = GetOrAdd<Rig>(rigRoot.gameObject);
             rig.weight = 1;
-            var targets = FindOrCreate(character.transform, "HandHold World Targets");
+            var targets = FindOrCreate(character.transform, "lengyue_rig_handhold_targets");
             var material = BuildHandHoldLimitMaterial();
 
             ConfigureHandArm(handRig, rigRoot, targets, AvatarHandSide.Left,
-                Bone("UpperArm_L"), Bone("Forearm_L"), Bone("Hand_L"),
-                Bone("Index_01_L"), Bone("Middle_01_L"), Bone("Pinky_01_L"),
-                Bone("ForearmTwist_L"), material);
+                Bone("lengyue_upper_arm_l"), Bone("lengyue_forearm_l"), Bone("lengyue_hand_l"),
+                Bone("lengyue_index_01_l"), Bone("lengyue_middle_01_l"), Bone("lengyue_little_01_l"),
+                Bone("lengyue_forearm_twist_l"), material);
             ConfigureHandArm(handRig, rigRoot, targets, AvatarHandSide.Right,
-                Bone("UpperArm_R"), Bone("Forearm_R"), Bone("Hand_R"),
-                Bone("Index_01_R"), Bone("Middle_01_R"), Bone("Pinky_01_R"),
-                Bone("ForearmTwist_R"), material);
+                Bone("lengyue_upper_arm_r"), Bone("lengyue_forearm_r"), Bone("lengyue_hand_r"),
+                Bone("lengyue_index_01_r"), Bone("lengyue_middle_01_r"), Bone("lengyue_little_01_r"),
+                Bone("lengyue_forearm_twist_r"), material);
             handRig.Configure(targets, HandHoldTuning.Default);
 
             var builder = GetOrAdd<RigBuilder>(animator.gameObject);
@@ -286,8 +286,8 @@ namespace MateSoul.Editor
 
             var controller = GetOrAdd<AvatarTurnFootPlantRig>(character);
             controller.Configure(animator, motor, character.transform,
-                Bone("Leg_L"), Bone("Knee_L"), Bone("Foot_L"),
-                Bone("Leg_R"), Bone("Knee_R"), Bone("Foot_R"));
+                Bone("lengyue_thigh_l"), Bone("lengyue_shin_l"), Bone("lengyue_foot_l"),
+                Bone("lengyue_thigh_r"), Bone("lengyue_shin_r"), Bone("lengyue_foot_r"));
             EditorUtility.SetDirty(builder);
             EditorUtility.SetDirty(controller);
         }
@@ -628,7 +628,7 @@ namespace MateSoul.Editor
                     new Vector3(.121f, .38f, .121f), 1.55f, PhysicsContentBuilder.BowlingPin,
                     false, focusMaterial, ItemCategory.Toy, CatalogColliderShape.Capsule),
                 BuildCatalogProp("plush-doll", "冷月玩偶",
-                    Content + "/PropsSource/PlushDoll/Lengyue_PlushDoll_300mm.fbx",
+                    Content + "/PropsSource/PlushDoll/lengyue_plush_doll_300mm.fbx",
                     new Vector3(.2116f, .3f, .2015f), .38f, PhysicsContentBuilder.Fabric, true,
                     focusMaterial, ItemCategory.Toy),
                 BuildCatalogProp("remote-control", "遥控器",
@@ -1148,6 +1148,7 @@ namespace MateSoul.Editor
                     ItemCategory.Furniture);
                 definition.ConfigurePhysics(physics);
                 definition.ConfigurePlacementParts();
+                definition.ConfigurePlacementSurface(true);
                 EditorUtility.SetDirty(definition);
                 return definition;
             }
@@ -1213,6 +1214,7 @@ namespace MateSoul.Editor
                     ItemCategory.Furniture);
                 definition.ConfigurePhysics(physics);
                 definition.ConfigurePlacementParts();
+                definition.ConfigurePlacementSurface(true);
                 EditorUtility.SetDirty(definition);
                 return definition;
             }
@@ -1563,6 +1565,10 @@ namespace MateSoul.Editor
             var development = (options & BuildOptions.Development) != 0;
             ValidateModelConnectionForBuild(development);
             ConfigureInteractionCapabilities();
+            // The saved scene ships as-is here, so the locomotion builder above does
+            // not run. Register the side-sleep loop directly or the lying rig finds
+            // no "Lying" layer at runtime and keeps the frozen stand pose.
+            SleepAnimationBuilder.PrepareForBuild();
             var path = Path.GetFullPath(Path.Combine(
                 Application.dataPath, "../../Builds/MateSoul_Framework.apk"));
             Directory.CreateDirectory(Path.GetDirectoryName(path));

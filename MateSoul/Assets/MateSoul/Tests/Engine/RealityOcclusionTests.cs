@@ -145,7 +145,7 @@ namespace MateSoul.Tests
         }
 
         [Test]
-        public void MeasuredDepthHidesVirtualObjectButHudStillDraws()
+        public void MeasuredDepthHidesVirtualObjectAndHudBehindIt()
         {
             Assert.That(SystemInfo.graphicsDeviceType, Is.Not.EqualTo(GraphicsDeviceType.Null),
                 "This regression requires actual GPU rendering.");
@@ -216,11 +216,11 @@ namespace MateSoul.Tests
                 camera.Render();
                 RenderTexture.active = target;
                 pixels.ReadPixels(new Rect(0, 0, 64, 64), 0, 0);
-                var hudVisible = pixels.GetPixel(32, 32);
-                Assert.That(hudVisible.g, Is.GreaterThan(.9f),
-                    "HUD must render despite the nearer real-world depth surface.");
+                var hudHidden = pixels.GetPixel(32, 32);
+                Assert.That(hudHidden.g, Is.LessThan(.05f),
+                    "HUD overlay must honour depth so virtual hands can occlude it.");
                 Debug.Log($"MATESOUL_OCCLUSION_PIXELS before={visible} " +
-                    $"worldOccluded={hidden} hudVisible={hudVisible}");
+                    $"worldOccluded={hidden} hudOccluded={hudHidden}");
             }
             finally
             {
@@ -238,11 +238,12 @@ namespace MateSoul.Tests
 
         [TestCase("Assets/MateSoul/Runtime/Shaders/UiAlwaysOnTop.shader")]
         [TestCase("Assets/MateSoul/Runtime/Shaders/SpatialUiSdf.shader")]
-        public void HudShaderAlwaysRendersWithoutRealityOcclusion(string path)
+        public void HudShadersHonourDepthSoVirtualHandsOccludeHud(string path)
         {
             var source = File.ReadAllText(path);
 
-            Assert.That(source, Does.Contain("ZTest Always"));
+            Assert.That(source, Does.Contain("ZTest LEqual"));
+            Assert.That(source, Does.Not.Contain("ZTest Always"));
             Assert.That(source, Does.Not.Contain("MateSoulEnvironmentOcclusion"));
             Assert.That(source, Does.Not.Contain("_EnvironmentOcclusionEnabled"));
         }
@@ -462,6 +463,40 @@ namespace MateSoul.Tests
 
             Assert.That(method, Is.Not.Null);
             Assert.That(method.Invoke(null, new object[] { identity }), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void UnobservedMeasuredMeshExpiresInsteadOfWritingDepthForever()
+        {
+            var retention = new MeasuredMeshRetention();
+            var block = new PxrSpatialMeshInfo
+            {
+                uuid = Guid.NewGuid(),
+                position = Vector3.zero,
+                rotation = Quaternion.identity,
+                vertices = new[]
+                {
+                    new Vector3(-.6f, -.6f, 0),
+                    new Vector3(-.6f, .6f, 0),
+                    new Vector3(.6f, .6f, 0),
+                    new Vector3(.6f, -.6f, 0)
+                }
+            };
+            retention.Observe(block, 0f);
+            retention.MarkUnobserved(block.uuid, 1f);
+
+            var expired = new List<Guid>();
+            retention.Expire(5f, 10f, expired);
+            Assert.That(expired, Is.Empty,
+                "A briefly unobserved block must keep occluding.");
+
+            // Removed is re-reported on every cache refresh and must not push the
+            // expiry deadline forward.
+            retention.MarkUnobserved(block.uuid, 5f);
+            retention.Expire(11f, 10f, expired);
+            Assert.That(expired, Is.EquivalentTo(new[] { block.uuid }),
+                "Stale room geometry must stop writing depth after re-calibration.");
+            Assert.That(retention.RetainedCount, Is.Zero);
         }
 
         private void AddMeasuredMesh()

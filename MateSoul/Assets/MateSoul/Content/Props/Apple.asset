@@ -74,5 +74,8 @@ MonoBehaviour:
     maximumCutDepth: 0
     minimumPieceVolumeRatio: 0
   interaction: {fileID: 11400000, guid: 972857d6f88d748c6bcfa6fb623e9949, type: 2}
+  useAnimation: {fileID: 0}
+  allowAutonomousUse: 0
+  edible: 1
   consumedProduct: 0
   placementParts: []

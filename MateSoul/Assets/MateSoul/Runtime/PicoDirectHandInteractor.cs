@@ -8,7 +8,7 @@ namespace MateSoul.Runtime
     /// <summary>Near-only grasp input; XRI owns selection and PhysicsBody owns object motion.</summary>
     public sealed class PicoDirectHandInteractor : XRBaseInteractor, IHandHoldPoseProvider
     {
-        private const float TrackingGraceSeconds = .15f;
+        private const float TrackingGraceSeconds = .08f;
         private const float GrabRecoverySeconds = .35f;
         private const float RecoveryDistance = .12f;
         private const float RecoveryAngle = 45f;
@@ -22,6 +22,7 @@ namespace MateSoul.Runtime
         private readonly List<IXRInteractable> registeredTargets = new List<IXRInteractable>();
         private Transform graspAttach;
         private Vector3 surfaceOffset;
+        private Vector3 pendingSnap;
         private Pose previousGrasp;
         private bool candidatePinch, activePinch;
         private int gripFingers;
@@ -30,6 +31,9 @@ namespace MateSoul.Runtime
         private bool wasGripping, wasPinching, pinchArmed;
         private bool previouslyTracked;
         private bool requireOpenAfterTrackingLoss;
+        private bool requireOpenAfterRelease;
+        private string releaseReason = "none";
+        private float nextRejectLog;
         private float trackingSuspendedAt = -1;
         private IXRSelectInteractable recoveryCandidate;
         private bool recoveryPinch;
@@ -110,8 +114,10 @@ namespace MateSoul.Runtime
                 candidate is Component component &&
                 component.TryGetComponent<ItemGripAnchor>(out var anchor) &&
                 anchor.IsInRange(hand.Palm.position);
-            var gripping = hand.WorldGrip >= (assisted ? .32f : .42f);
-            var clearlyOpen = hand.WorldGrip <= .22f && !hand.NativePinching;
+            // A loose curl has to stay a loose curl: only a real grasp closes the
+            // hand far enough to pick something up.
+            var gripping = hand.WorldGrip >= (assisted ? .45f : .55f);
+            var clearlyOpen = hand.WorldGrip <= .35f && !hand.NativePinching;
             if (hand.Tracked && !hand.NativePinching) pinchArmed = true;
             if (hasSelection)
             {
@@ -119,21 +125,36 @@ namespace MateSoul.Runtime
                 var signalValid = activePinch
                     ? hand.NativeTracked
                     : hand.TryGetGripStrength(gripFingers, out strength);
+                // The held item can occlude the fingers that were captured at grab
+                // time. Fall back to the aggregate grip instead of holding the
+                // release back until those joints are visible again.
+                if (!signalValid && hand.Tracked && !activePinch)
+                {
+                    strength = hand.WorldGrip;
+                    signalValid = true;
+                }
                 var closed = activePinch ? hand.NativePinching : strength >= .26f;
                 // A fresh release is never delayed by pose recovery or the grace timer.
-                if (signalValid && !closed)
+                if (hand.Tracked && signalValid && !closed)
                 {
                     trackingSuspendedAt = -1;
                     IntentionalRelease = true;
                     armed = true;
+                    requireOpenAfterRelease = true;
+                    releaseReason = activePinch ? "pinch-open" : "grip-open";
                     wasGripping = gripping;
                     wasPinching = hand.NativePinching;
                     acquisitionSeconds = 0;
+                    Debug.Log($"MATESOUL_GRAB_RELEASE hand={name} item={SelectedName()} " +
+                              $"reason={releaseReason} strength={strength:F2} " +
+                              $"grip={hand.WorldGrip:F2} pinch={hand.NativePinching} " +
+                              $"motion={hand.MotionValid}");
                     return;
                 }
                 if (!hand.Tracked || !signalValid ||
                     !hand.TryGetGraspPose(activePinch, out var grasp))
                 {
+                    releaseReason = "tracking-gap";
                     KeepSelectionDuringTrackingGap(now);
                     return;
                 }
@@ -143,13 +164,8 @@ namespace MateSoul.Runtime
                         Vector3.Distance(previousGrasp.position, grasp.position) > RecoveryDistance ||
                         Quaternion.Angle(previousGrasp.rotation, grasp.rotation) > RecoveryAngle)
                     {
+                        releaseReason = "tracking-timeout";
                         ReportTrackingRecovery("canceled");
-                        return;
-                    }
-                    // The first restored sample has no trustworthy velocity.
-                    if (!hand.MotionValid)
-                    {
-                        KeepSelectionDuringTrackingGap(now);
                         return;
                     }
                     ReportTrackingRecovery("resumed");
@@ -186,7 +202,8 @@ namespace MateSoul.Runtime
                 requireOpenAfterTrackingLoss = false;
                 ClearGrabRecovery();
             }
-            if (requireOpenAfterTrackingLoss) return;
+            if (!gripping && !hand.NativePinching) requireOpenAfterRelease = false;
+            if (requireOpenAfterTrackingLoss || requireOpenAfterRelease) return;
             if (recoveryCandidate != null)
             {
                 if (candidate != null && !ReferenceEquals(candidate, recoveryCandidate))
@@ -206,12 +223,37 @@ namespace MateSoul.Runtime
                     }
                 }
             }
-            if (hand.NativePinching && !wasPinching && pinchArmed ||
-                gripping && !wasGripping && armed)
+            // A pinch that lands on a radio knob belongs to the knob. Without this
+            // guard the same gesture picked the radio up and the knob could never
+            // be turned while it sat on a table.
+            if (hand.NativePinching && PinchTurnsKnob())
+            {
+                armed = false;
+                pinchArmed = false;
+                wasGripping = gripping;
+                wasPinching = true;
+                acquisitionSeconds = 0;
+                return;
+            }
+            // The player is usually already half-closed when the hand reaches an
+            // item, so a held pickup gesture on contact is the grab intent. It still
+            // has to follow a relaxed hand: a hand that stays curled and merely
+            // drifts past something must not snap it up.
+            var holding = (gripping || hand.NativePinching) && candidate != null &&
+                          (armed || assisted) && HasGripContact(candidate);
+            var pinchEdge = hand.NativePinching && !wasPinching && pinchArmed;
+            var gripEdge = gripping && !wasGripping && armed;
+            if (pinchEdge || gripEdge || holding)
             {
                 acquisitionSeconds = .22f;
                 armed = false;
                 pinchArmed = false;
+                var reason = pinchEdge ? "pinch-edge" : gripEdge ? "grip-edge" : "hold-contact";
+                var target = candidate as Component;
+                Debug.Log($"MATESOUL_GRAB_TRIGGER hand={Side} " +
+                          $"item={(target == null ? "none" : target.name)} reason={reason} " +
+                          $"grip={hand.WorldGrip:F2} pinch={hand.NativePinching} " +
+                          $"assisted={assisted}");
             }
             wasGripping = gripping;
             wasPinching = hand.NativePinching;
@@ -246,6 +288,12 @@ namespace MateSoul.Runtime
             => Debug.Log($"MATESOUL_GRAB_TRACKING hand={name} phase={phase} " +
                          $"gapMs={(Time.unscaledTime - trackingSuspendedAt) * 1000:F0}");
 
+        private string SelectedName()
+            => interactablesSelected.Count > 0 ? NameOf(interactablesSelected[0]) : "none";
+
+        private static string NameOf(IXRSelectInteractable value)
+            => value is Component component ? component.name : "none";
+
         // UI runs before the XRI manager; use this frame's palm when arbitrating a pinch.
         public void RefreshProximity()
         {
@@ -271,6 +319,7 @@ namespace MateSoul.Runtime
             if (count == overlaps.Length) return;
             var nearest = float.PositiveInfinity;
             var nearestItem = float.PositiveInfinity;
+            var rejected = "none";
             for (var i = 0; i < count; i++)
             {
                 var shape = overlaps[i];
@@ -281,29 +330,38 @@ namespace MateSoul.Runtime
                 var offset = point - grasp.position;
                 var distance = offset.sqrMagnitude;
                 if (distance > reach * reach) continue;
-                // A tabletop/wall between the palm and an item must block selection.
-                if (offset.sqrMagnitude > .000001f &&
-                    Physics.Raycast(grasp.position, offset.normalized, out var hit,
-                        offset.magnitude, InteractionPhysicsLayers.DirectSelectionMask,
-                        QueryTriggerInteraction.Ignore) &&
-                    hit.collider != shape && (shape.attachedRigidbody == null ||
-                    hit.collider.attachedRigidbody != shape.attachedRigidbody))
-                    continue;
                 var item = shape.GetComponentInParent<GameItem>();
                 if (item != null && !item.IsHeld && !item.IsReserved && distance < nearestItem)
                 {
+                    // Record the hint before occlusion filtering so an item sunk
+                    // into a scanned table can still report why it is unreachable.
                     NearbyItem = item;
                     nearestItem = distance;
                 }
+                // A tabletop/wall between the palm and an item must block
+                // selection, unless the item is embedded in that surface.
+                if (IsOccluded(grasp.position, shape, offset))
+                {
+                    rejected = "occluded";
+                    continue;
+                }
                 if (!interactionManager.TryGetInteractableForCollider(shape, out var interactable) ||
                     !(interactable is IXRSelectInteractable selectable) ||
-                    !interactionManager.IsSelectPossible(this, selectable)) continue;
+                    !interactionManager.IsSelectPossible(this, selectable))
+                {
+                    rejected = "not-selectable";
+                    continue;
+                }
                 if (considered.Contains(selectable)) continue;
                 considered.Add(selectable);
                 // Filter grasp compatibility before ranking: an unsuitable nearer object
                 // must not conceal a valid grasp behind it.
                 if (!(selectable is XRBaseInteractable target) ||
-                    !HasContact(target, pinch, grasp.position)) continue;
+                    !HasContact(target, pinch, grasp.position))
+                {
+                    rejected = "no-contact";
+                    continue;
+                }
                 if (!HandGripEvaluator.TryClosestPoint(grasp.position, target.colliders, out point))
                     continue;
                 var score = Vector3.Distance(grasp.position, point);
@@ -338,6 +396,13 @@ namespace MateSoul.Runtime
                 candidate = target;
                 candidatePinch = pinch;
                 nearest = score;
+            }
+            if (candidate == null && NearbyItem != null && Time.unscaledTime >= nextRejectLog)
+            {
+                nextRejectLog = Time.unscaledTime + .5f;
+                Debug.Log($"MATESOUL_GRAB_REJECT hand={name} item={NearbyItem.name} " +
+                          $"reason={rejected} grip={hand.WorldGrip:F2} " +
+                          $"pinch={hand.NativePinching} overlaps={count}");
             }
             previousCandidate = candidate;
 #region debug-point C:handhold-candidate
@@ -383,6 +448,29 @@ namespace MateSoul.Runtime
 #endregion
         }
 
+        // Scanned room surfaces are coarse: a small item can sit slightly inside a
+        // tabletop. Do not let that static surface hide an item that is already
+        // touching or embedded in it, otherwise the item becomes ungrabble.
+        private static bool IsOccluded(Vector3 origin, Collider shape, Vector3 offset)
+        {
+            var distance = offset.magnitude;
+            if (distance <= .000001f) return false;
+            if (!Physics.Raycast(origin, offset / distance, out var hit, distance,
+                    InteractionPhysicsLayers.DirectSelectionMask, QueryTriggerInteraction.Ignore))
+                return false;
+            if (hit.collider == shape) return false;
+            if (shape.attachedRigidbody != null &&
+                hit.collider.attachedRigidbody == shape.attachedRigidbody) return false;
+            // A movable blocker is real geometry, not a coarse scan artefact.
+            if (hit.collider.attachedRigidbody != null) return true;
+            if (distance <= .06f) return false;
+            var convex = shape is BoxCollider || shape is SphereCollider ||
+                         shape is CapsuleCollider || shape is MeshCollider mesh && mesh.convex;
+            return !(convex && Physics.ComputePenetration(shape, shape.transform.position,
+                       shape.transform.rotation, hit.collider, hit.collider.transform.position,
+                       hit.collider.transform.rotation, out _, out var depth) && depth > .001f);
+        }
+
         private IXRSelectInteractable previousCandidate;
 
         public override bool isSelectActive => selecting;
@@ -417,11 +505,22 @@ namespace MateSoul.Runtime
             if (target is HandHoldInteractable socket) return socket.IsWithinHoldRange(this);
             if (target.TryGetComponent<ItemGripAnchor>(out var anchor) &&
                 anchor.IsInRange(hand.Palm.position)) return true;
-            return pinch
-                ? HandGripEvaluator.Distance(point, target.colliders) <= .075f
-                : hand.EvaluateGrip(target.colliders, .03f).IsGrip &&
-                  HandGripEvaluator.Distance(point, target.colliders) <= .095f;
+            // The fingers decide what is being picked up, not the palm: at least two
+            // contact points (a finger plus the thumb or the palm) have to sit on the
+            // item itself. That is what stops a loosely curled hand from snapping up
+            // whatever happens to be next to it.
+            var distance = HandGripEvaluator.Distance(point, target.colliders);
+            if (pinch) return distance <= .075f;
+            var contact = hand.EvaluateGrip(target.colliders);
+            return contact.IsGrip && contact.ContactCount >= 2 && distance <= .09f;
         }
+
+        // A pinching hand over a radio knob is turning it, not picking the radio up.
+        private bool PinchTurnsKnob()
+            => hand != null && hand.TryGetGraspPose(true, out var pinch) &&
+               RadioKnobControl.FindNearby(pinch.position, -1) != null;
+
+        private string Side => hand != null && hand.IsLeft ? "Left" : "Right";
 
         public override Transform GetAttachTransform(IXRInteractable interactable)
             => interactable is HandHoldInteractable || graspAttach == null
@@ -435,14 +534,22 @@ namespace MateSoul.Runtime
             gripFingers = hand == null ? 0 : hand.CaptureGripFingers();
             surfaceOffset = Vector3.zero;
             IntentionalRelease = false;
+            releaseReason = "none";
             if (hand != null) hand.TryGetGraspPose(activePinch, out previousGrasp);
             UpdateAttach();
             base.OnSelectEntering(args);
+            Debug.Log($"MATESOUL_GRAB_SELECT hand={name} item={NameOf(args.interactableObject)} " +
+                      $"pinch={activePinch} grip={(hand == null ? 0 : hand.WorldGrip):F2} " +
+                      $"stable={stableGrip != null} tracked={hand != null && hand.Tracked}");
         }
 
         protected override void OnSelectExited(SelectExitEventArgs args)
         {
+            var suspended = IsTrackingSuspended;
             base.OnSelectExited(args);
+            Debug.Log($"MATESOUL_GRAB_EXIT hand={name} item={NameOf(args.interactableObject)} " +
+                      $"reason={releaseReason} intentional={IntentionalRelease} " +
+                      $"suspended={suspended}");
             if (IsTrackingSuspended && !IntentionalRelease)
             {
                 requireOpenAfterTrackingLoss = true;
@@ -479,11 +586,20 @@ namespace MateSoul.Runtime
                 hand.TryGetStableGripPose(out var grip);
                 stableFrame = Quaternion.Inverse(hand.Palm.rotation) * grip.rotation;
                 surfaceOffset = Vector3.zero;
+                pendingSnap = Vector3.zero;
                 UpdateAttach();
                 return new Pose(graspAttach.position, graspAttach.rotation);
             }
             stableGrip = null;
-            hand.TryGetGraspPose(activePinch, out var raw);
+            pendingSnap = Vector3.zero;
+            // Without a live grasp pose there is nothing to align to; never derive a
+            // snap from a default pose or the item would fly to the world origin.
+            if (!hand.TryGetGraspPose(activePinch, out var raw))
+            {
+                surfaceOffset = Vector3.zero;
+                UpdateAttach();
+                return new Pose(graspAttach.position, graspAttach.rotation);
+            }
             var point = raw.position;
             HandGripEvaluator.TryClosestPoint(raw.position, body.Shapes, out point);
             if (profile != null && profile.gripKind != ItemGripKind.Generic)
@@ -493,17 +609,71 @@ namespace MateSoul.Runtime
                     HandGripEvaluator.TryClosestPoint(preferred, body.Shapes, out var onSurface))
                     point = onSurface;
             }
-            // Align the hand to a nearby surface; preserve the item's initial world pose.
-            surfaceOffset = Quaternion.Inverse(raw.rotation) * (point - raw.position);
+            // Pickup pulls the item into the hand instead of asking the fingers to
+            // reach out to it: the grabbed surface point lands on the grip point and
+            // the item keeps its world orientation. The frozen relative pose is what
+            // the hand then carries, so no per-frame fitting is needed. The actual
+            // move is deferred until the hand ignores the body, otherwise the hand's
+            // own colliders read as blockers.
+            pendingSnap = body.IsFollowing ? Vector3.zero : raw.position - point;
+            surfaceOffset = Vector3.zero;
             UpdateAttach();
             return new Pose(graspAttach.position, graspAttach.rotation);
         }
 
+        /// <summary>Pull the grabbed item into the hand after the hand ignores it.</summary>
+        public void ApplyPendingSnap(PhysicsBody body)
+        {
+            var snap = pendingSnap;
+            pendingSnap = Vector3.zero;
+            if (body == null || body.IsFollowing || snap.sqrMagnitude <= .000001f) return;
+            var snapped = new Pose(body.Pose.position + snap, body.Pose.rotation);
+            // A coarse room scan can sink an item into a table. A blocked
+            // destination is only rejected when the item is not already blocked
+            // where it stands, so an embedded item can still be lifted out.
+            if (!body.CanOccupy(snapped) && body.CanOccupy(body.Pose)) return;
+            body.Place(snapped);
+            Debug.Log($"MATESOUL_GRAB_SNAP hand={name} item={body.name} " +
+                      $"offset={snap.magnitude:F3}");
+        }
+
         public void GetFollowMotion(Vector3 itemPosition, out Vector3 velocity, out Vector3 angular)
         {
-            angular = HasFreshMotion ? hand.PalmAngularVelocity : Vector3.zero;
-            velocity = HasFreshMotion ? hand.PalmVelocity +
-                Vector3.Cross(angular, itemPosition - hand.Palm.position) : Vector3.zero;
+            if (HasFreshMotion)
+            {
+                angular = hand.PalmAngularVelocity;
+                velocity = hand.PalmVelocity + Vector3.Cross(
+                    angular, itemPosition - hand.Palm.position);
+                return;
+            }
+            // A dropped tracking sample must not freeze the held item mid-air.
+            if (hand != null && hand.TryGetRecentMotion(.1f, out var recent, out var recentAngular))
+            {
+                angular = recentAngular;
+                velocity = recent + Vector3.Cross(angular, itemPosition - hand.Palm.position);
+                return;
+            }
+            velocity = angular = Vector3.zero;
+        }
+
+        /// <summary>Release motion, including the last trustworthy sample before a tracking gap.</summary>
+        public bool TryGetReleaseMotion(Vector3 itemPosition,
+            out Vector3 velocity, out Vector3 angular)
+        {
+            velocity = angular = Vector3.zero;
+            if (hand == null) return false;
+            // The throw speed comes from a short recency-weighted window, not the
+            // single release frame, so a swing keeps its real momentum.
+            if (hand.TryGetThrowMotion(out velocity, out angular))
+            {
+                velocity += Vector3.Cross(angular, itemPosition - hand.Palm.position);
+                return true;
+            }
+            if (!hand.TryGetRecentMotion(.18f, out var recent, out var recentAngular))
+                return false;
+            angular = recentAngular;
+            velocity = recent + Vector3.Cross(angular, itemPosition - hand.Palm.position);
+            return true;
         }
 
         public bool IsTouching(
@@ -534,6 +704,8 @@ namespace MateSoul.Runtime
             wasGripping = wasPinching = pinchArmed = false;
             previouslyTracked = false;
             requireOpenAfterTrackingLoss = false;
+            requireOpenAfterRelease = false;
+            releaseReason = "none";
             trackingSuspendedAt = -1;
             ClearGrabRecovery();
             acquisitionSeconds = 0;

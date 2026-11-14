@@ -52,6 +52,14 @@ namespace MateSoul.Runtime
             RegisterForeignColliders();
         }
 
+        public bool IsProxy(Collider shape)
+        {
+            if (shape == null) return false;
+            for (var i = 0; i < proxies.Count; i++)
+                if (Array.IndexOf(proxies[i].Shapes, shape) >= 0) return true;
+            return false;
+        }
+
         public void Sync()
         {
             foreach (var proxy in proxies)

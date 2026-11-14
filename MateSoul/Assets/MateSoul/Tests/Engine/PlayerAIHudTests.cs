@@ -52,6 +52,12 @@ namespace MateSoul.Tests
             Assert.That(Field<Button>(hud, "sendButton").interactable, Is.False);
             var dialogueInput = Field<TMP_InputField>(hud, "input");
             dialogueInput.text = "保留这段草稿";
+            var mic = Field<Button>(hud, "micButton");
+            Assert.That(mic, Is.Not.Null);
+            Assert.That(mic.GetComponentInChildren<TMP_Text>().text, Is.EqualTo("语音"));
+            Assert.That(((RectTransform)mic.transform).anchoredPosition.x,
+                Is.LessThan(((RectTransform)dialogueInput.transform).anchoredPosition.x),
+                "语音按钮必须位于输入框最左侧。");
             var configure = hint.GetComponentInChildren<Button>();
             Assert.That(configure.GetComponentInChildren<TMP_Text>().text, Is.EqualTo("点此配置ai"));
             configure.onClick.Invoke();
@@ -59,7 +65,9 @@ namespace MateSoul.Tests
             Assert.That(Field<RectTransform>(hud, "contentRoot")
                 .GetComponentsInChildren<TMP_Text>().Any(text => text.text == "AI配置"), Is.True);
             Assert.That(Field<TMP_InputField>(hud, "aiKey").contentType,
-                Is.EqualTo(TMP_InputField.ContentType.Password));
+                Is.EqualTo(TMP_InputField.ContentType.Standard));
+            Assert.That(host.GetComponentsInChildren<Button>(true).Any(
+                button => button.name == "AI配置/粘贴"), Is.True);
             var tutorial = host.GetComponentsInChildren<Button>(true).Single(
                 button => button.GetComponentInChildren<TMP_Text>(true).text == "如何配置AI");
             tutorial.onClick.Invoke();

@@ -87,26 +87,26 @@ namespace MateSoul.Runtime
             bones = animator.GetComponentsInChildren<Transform>(true)
                 .GroupBy(item => item.name).ToDictionary(group => group.Key, group => group.First());
             // Face is a renderer at the character root; Head 1 is the actual moving head bone.
-            foreach (var name in new[] { "Hips", "Spine", "Chest", "Neck", "Head 1",
-                "UpperArm_L", "Forearm_L", "Hand_L", "Leg_L", "Knee_L", "Foot_L", "Toe_L",
-                "UpperArm_R", "Forearm_R", "Hand_R", "Leg_R", "Knee_R", "Foot_R", "Toe_R" })
+            foreach (var name in new[] { "lengyue_hips", "lengyue_spine", "lengyue_chest", "lengyue_neck", "lengyue_head_01",
+                "lengyue_upper_arm_l", "lengyue_forearm_l", "lengyue_hand_l", "lengyue_thigh_l", "lengyue_shin_l", "lengyue_foot_l", "lengyue_toe_l",
+                "lengyue_upper_arm_r", "lengyue_forearm_r", "lengyue_hand_r", "lengyue_thigh_r", "lengyue_shin_r", "lengyue_foot_r", "lengyue_toe_r" })
                 if (!bones.ContainsKey(name))
                     throw new InvalidOperationException($"Physical response bone is missing: {name}.");
             var locomotion = GetComponent<CapsuleCollider>();
             if (locomotion == null) throw new InvalidOperationException("Physical response requires a locomotion capsule.");
             locomotion.gameObject.layer = InteractionPhysicsLayers.AvatarLocomotion;
             CacheSkin();
-            AddTorso(bones["Hips"], bones["Spine"]);
-            AddTorso(bones["Spine"], bones["Chest"]);
-            AddTorso(bones["Chest"], bones["Neck"]);
-            AddFittedBox(bones["Head 1"], AvatarBodyRegion.Head, AvatarBodySide.Center,
+            AddTorso(bones["lengyue_hips"], bones["lengyue_spine"]);
+            AddTorso(bones["lengyue_spine"], bones["lengyue_chest"]);
+            AddTorso(bones["lengyue_chest"], bones["lengyue_neck"]);
+            AddFittedBox(bones["lengyue_head_01"], AvatarBodyRegion.Head, AvatarBodySide.Center,
                 new Vector3(.13f, .18f, .14f));
-            AddSide(AvatarBodySide.Left, "_L", 1);
-            AddSide(AvatarBodySide.Right, "_R", 2);
-            AddSpring(0, "Spine", 5f);
-            AddSpring(0, "Chest", 5f);
-            AddSpring(0, "Neck", 4f);
-            AddSpring(0, "Head 1", 4f);
+            AddSide(AvatarBodySide.Left, "_l", 1);
+            AddSide(AvatarBodySide.Right, "_r", 2);
+            AddSpring(0, "lengyue_spine", 5f);
+            AddSpring(0, "lengyue_chest", 5f);
+            AddSpring(0, "lengyue_neck", 4f);
+            AddSpring(0, "lengyue_head_01", 4f);
             foreach (var socket in GetComponentsInChildren<HandHoldInteractable>(true))
                 socket.Configure(socket.Side, GetComponent<HandIKRig>());
             var body = GetComponent<PhysicsBody>();
@@ -121,7 +121,7 @@ namespace MateSoul.Runtime
             foreach (var renderer in GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 // Fit anatomical contact to the skin, avoiding hair, skirt and loose sleeves.
-                if (renderer.name != "Body" && renderer.name != "Face") continue;
+                if (renderer.name != "lengyue_body_root" && renderer.name != "lengyue_face_root") continue;
                 var mesh = new Mesh();
                 try
                 {
@@ -156,13 +156,13 @@ namespace MateSoul.Runtime
 
         private void AddSide(AvatarBodySide side, string suffix, int group)
         {
-            AddLimb(bones["UpperArm" + suffix], bones["Forearm" + suffix], .03f,
+            AddLimb(bones["lengyue_upper_arm" + suffix], bones["lengyue_forearm" + suffix], .03f,
                 AvatarBodyRegion.UpperArm, side);
-            AddLimb(bones["Forearm" + suffix], bones["Hand" + suffix], .025f,
+            AddLimb(bones["lengyue_forearm" + suffix], bones["lengyue_hand" + suffix], .025f,
                 AvatarBodyRegion.Forearm, side);
-            AddFittedBox(bones["Hand" + suffix], AvatarBodyRegion.Hand, side,
+            AddFittedBox(bones["lengyue_hand" + suffix], AvatarBodyRegion.Hand, side,
                 new Vector3(.055f, .023f, .075f));
-            foreach (var finger in new[] { "Thumb", "Index", "Middle", "Ring", "Pinky" })
+            foreach (var finger in new[] { "lengyue_thumb", "lengyue_index", "lengyue_middle", "lengyue_ring", "lengyue_little" })
             {
                 for (var segment = 1; segment < 3; segment++)
                 {
@@ -180,28 +180,28 @@ namespace MateSoul.Runtime
                 AddFittedBox(bones[finger + "_03" + suffix], AvatarBodyRegion.Hand,
                     side, new Vector3(.01f, .012f, .014f));
             }
-            AddLimb(bones["Leg" + suffix], bones["Knee" + suffix], .055f,
+            AddLimb(bones["lengyue_thigh" + suffix], bones["lengyue_shin" + suffix], .055f,
                 AvatarBodyRegion.UpperLeg, side);
-            AddLimb(bones["Knee" + suffix], bones["Foot" + suffix], .035f,
+            AddLimb(bones["lengyue_shin" + suffix], bones["lengyue_foot" + suffix], .035f,
                 AvatarBodyRegion.LowerLeg, side);
-            AddFittedBox(bones["Foot" + suffix], AvatarBodyRegion.Foot, side,
+            AddFittedBox(bones["lengyue_foot" + suffix], AvatarBodyRegion.Foot, side,
                 new Vector3(.075f, .05f, .16f));
-            AddSpring(group, "UpperArm" + suffix, 9f);
-            AddSpring(group, "Forearm" + suffix, 12f);
-            AddSpring(group, "Hand" + suffix, 10f);
-            AddSpring(0, "Leg" + suffix, 4f);
-            AddSpring(0, "Knee" + suffix, 6f);
+            AddSpring(group, "lengyue_upper_arm" + suffix, 9f);
+            AddSpring(group, "lengyue_forearm" + suffix, 12f);
+            AddSpring(group, "lengyue_hand" + suffix, 10f);
+            AddSpring(0, "lengyue_thigh" + suffix, 4f);
+            AddSpring(0, "lengyue_shin" + suffix, 6f);
         }
 
         private void AddSpring(int group, string bone, float limit)
         {
             var joint = bones[bone];
             var spring = new JointSpring(joint, limit);
-            if (bone.StartsWith("Forearm") || bone.StartsWith("Knee"))
+            if (bone.StartsWith("lengyue_forearm") || bone.StartsWith("lengyue_shin"))
             {
-                var suffix = bone.EndsWith("_L") ? "_L" : "_R";
-                var upper = bones[(bone.StartsWith("Forearm") ? "UpperArm" : "Leg") + suffix];
-                var end = bones[(bone.StartsWith("Forearm") ? "Hand" : "Foot") + suffix];
+                var suffix = bone.EndsWith("_l") ? "_l" : "_r";
+                var upper = bones[(bone.StartsWith("lengyue_forearm") ? "lengyue_upper_arm" : "lengyue_thigh") + suffix];
+                var end = bones[(bone.StartsWith("lengyue_forearm") ? "lengyue_hand" : "lengyue_foot") + suffix];
                 var first = joint.position - upper.position;
                 var second = end.position - joint.position;
                 var axis = Vector3.Cross(first.normalized, second.normalized);
@@ -329,15 +329,15 @@ namespace MateSoul.Runtime
                 if (arm)
                     influence = spring.Bone == part.transform.parent ||
                         part.Region == AvatarBodyRegion.Hand &&
-                        spring.Bone == bones[part.Side == AvatarBodySide.Left ? "Hand_L" : "Hand_R"]
+                        spring.Bone == bones[part.Side == AvatarBodySide.Left ? "lengyue_hand_l" : "lengyue_hand_r"]
                         ? 1 : .35f;
-                else if (spring.Bone.name.StartsWith("Leg") || spring.Bone.name.StartsWith("Knee"))
+                else if (spring.Bone.name.StartsWith("lengyue_thigh") || spring.Bone.name.StartsWith("lengyue_shin"))
                     influence = (part.Region == AvatarBodyRegion.UpperLeg ||
                         part.Region == AvatarBodyRegion.LowerLeg || part.Region == AvatarBodyRegion.Foot) &&
-                        spring.Bone.name.EndsWith(part.Side == AvatarBodySide.Left ? "_L" : "_R") ? .8f : 0;
+                        spring.Bone.name.EndsWith(part.Side == AvatarBodySide.Left ? "_l" : "_r") ? .8f : 0;
                 else if (part.Region == AvatarBodyRegion.Head)
-                    influence = spring.Bone == bones["Head 1"] ? 1 : .3f;
-                else if (spring.Bone == bones["Head 1"] || spring.Bone == bones["Neck"])
+                    influence = spring.Bone == bones["lengyue_head_01"] ? 1 : .3f;
+                else if (spring.Bone == bones["lengyue_head_01"] || spring.Bone == bones["lengyue_neck"])
                     influence = .2f;
                 var lever = point - spring.Bone.position;
                 if (lever.sqrMagnitude < .0001f) lever = transform.up * .1f;
@@ -349,7 +349,7 @@ namespace MateSoul.Runtime
             {
                 lastContact[0] = Time.time;
                 foreach (var spring in groups[0])
-                    if (spring.Bone == bones["Chest"])
+                    if (spring.Bone == bones["lengyue_chest"])
                         spring.Target = spring.Bone.InverseTransformDirection(
                             Vector3.Cross(transform.up, direction)) * (strength * .18f);
             }
@@ -403,8 +403,8 @@ namespace MateSoul.Runtime
         private void CaptureBalanceFeet()
         {
             stepOrigin = motor.Position;
-            leftFootAnchor = new Pose(bones["Foot_L"].position, bones["Foot_L"].rotation);
-            rightFootAnchor = new Pose(bones["Foot_R"].position, bones["Foot_R"].rotation);
+            leftFootAnchor = new Pose(bones["lengyue_foot_l"].position, bones["lengyue_foot_l"].rotation);
+            rightFootAnchor = new Pose(bones["lengyue_foot_r"].position, bones["lengyue_foot_r"].rotation);
         }
 
         private void ApplyBalanceFeet()
@@ -412,17 +412,17 @@ namespace MateSoul.Runtime
             var progress = motor.PhysicalStepProgress;
             var displacement = motor.Position - stepOrigin;
             // Transfer support once per foot; the opposite foot stays planted in world space.
-            ApplyFoot("_L", leftFootAnchor, Mathf.Clamp01(progress * 2), displacement);
-            ApplyFoot("_R", rightFootAnchor, Mathf.Clamp01(progress * 2 - 1), displacement);
+            ApplyFoot("_l", leftFootAnchor, Mathf.Clamp01(progress * 2), displacement);
+            ApplyFoot("_r", rightFootAnchor, Mathf.Clamp01(progress * 2 - 1), displacement);
         }
 
         private void ApplyFoot(string suffix, Pose anchor, float progress, Vector3 displacement)
         {
             var target = anchor.position + displacement * Mathf.SmoothStep(0, 1, progress);
             target.y += Mathf.Sin(progress * Mathf.PI) * .025f;
-            AvatarSeatingRig.Solve(bones["Leg" + suffix], bones["Knee" + suffix],
-                bones["Foot" + suffix], target, transform.forward);
-            bones["Foot" + suffix].rotation = anchor.rotation;
+            AvatarSeatingRig.Solve(bones["lengyue_thigh" + suffix], bones["lengyue_shin" + suffix],
+                bones["lengyue_foot" + suffix], target, transform.forward);
+            bones["lengyue_foot" + suffix].rotation = anchor.rotation;
         }
 
         private sealed class ReactionAction : IAvatarAction

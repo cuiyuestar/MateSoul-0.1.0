@@ -76,33 +76,56 @@ namespace MateSoul.Runtime
                 body.BeginFollow(target);
                 return;
             }
+            if (directHand != null)
+            {
+                directHand.SetHeldBody(body);
+                // Snap after the hand has been told to ignore this body, otherwise
+                // the hand's own colliders veto the destination.
+                directHand.ApplyPendingSnap(body);
+            }
             localAttach = stableGrip != null ? stableGrip.Profile.Grip :
                 new Pose(transform.InverseTransformPoint(attach.position),
                     Quaternion.Inverse(transform.rotation) * attach.rotation);
-            directHand?.SetHeldBody(body);
 #region debug-point C:grip-grab-regression
 #if UNITY_EDITOR
             try { using (var client = new System.Net.WebClient()) client.UploadString("http://127.0.0.1:7790/event", "{\"sessionId\":\"grip-grab-regression\",\"runId\":\"pre-fix\",\"hypothesisId\":\"C\",\"msg\":\"[DEBUG] grab attach\",\"data\":{\"body\":" + JsonUtility.ToJson(body.Pose.position) + ",\"localAttach\":" + JsonUtility.ToJson(localAttach.position) + ",\"interactorAttach\":" + JsonUtility.ToJson(interactor.GetAttachTransform(this).position) + "}}"); } catch (System.Net.WebException) { }
 #endif
 #endregion
-            body.BeginFollow(body.Pose, stableGrip != null,
+            // A direct hand holds the body rigidly: it is placed on the hand
+            // target every frame instead of being pulled by a spring. That removes
+            // the hand/item chase and the perceived delay between opening the hand
+            // and the item falling.
+            var rigid = directHand != null || stableGrip != null;
+            body.BeginFollow(body.Pose, rigid,
                 stableGrip != null && stableGrip.Profile.capability == "cutting-tool");
+            Debug.Log($"MATESOUL_GRAB_HOLD item={name} rigid={rigid} " +
+                      $"anchor={stableGrip != null} " +
+                      $"hand={(directHand == null ? "none" : directHand.name)}");
         }
 
         protected override void Drop()
         {
             if (body != null && body.IsFollowing)
             {
-                if (directHand == null) body.EndFollow();
-                else if (!directHand.IntentionalRelease || !directHand.HasFreshMotion)
-                    body.EndFollow(true);
+                // Selection exits before this frame's held-body update. Read the
+                // release packet directly instead of averaging old body motion.
+                // A tracking hiccup on the release frame falls back to the last
+                // trustworthy sample so a thrown item keeps its momentum.
+                if (directHand != null && directHand.IntentionalRelease &&
+                    directHand.TryGetReleaseMotion(body.Rigidbody.worldCenterOfMass,
+                        out var velocity, out var angular))
+                {
+                    body.EndHandFollow(velocity, angular);
+                    Debug.Log($"MATESOUL_GRAB_THROW item={name} speed={velocity.magnitude:F2} " +
+                              $"angular={angular.magnitude:F2} {ReleasePose()}");
+                }
                 else
                 {
-                    // Selection exits before this frame's held-body update. Read
-                    // the release packet directly instead of averaging old body motion.
-                    directHand.GetFollowMotion(body.Rigidbody.worldCenterOfMass,
-                        out var velocity, out var angular);
-                    body.EndHandFollow(velocity, angular);
+                    body.EndFollow(true);
+                    Debug.Log($"MATESOUL_GRAB_THROW item={name} speed=0 reason=" +
+                              (directHand == null ? "no-hand" : directHand.IntentionalRelease
+                                  ? "no-motion" : "not-intentional") +
+                              " " + ReleasePose());
                 }
             }
             directHand?.SetHeldBody(null);
@@ -111,6 +134,14 @@ namespace MateSoul.Runtime
             directHand = null;
             drivingHand = null;
             stableGrip = null;
+        }
+
+        private string ReleasePose()
+        {
+            var pose = body.Pose;
+            var up = pose.rotation * Vector3.up;
+            return $"pos=({pose.position.x:F2},{pose.position.y:F2},{pose.position.z:F2}) " +
+                   $"up=({up.x:F2},{up.y:F2},{up.z:F2})";
         }
 
         protected override void OnSelectEntering(SelectEnterEventArgs args)

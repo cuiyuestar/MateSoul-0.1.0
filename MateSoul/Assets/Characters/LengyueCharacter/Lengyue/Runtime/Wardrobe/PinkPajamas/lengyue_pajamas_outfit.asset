@@ -1,0 +1,555 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fc84019860724145a6610f54841fda2, type: 3}
+  m_Name: lengyue_pajamas_outfit
+  m_EditorClassIdentifier: 
+  outfitId: pink-pajamas
+  displayName: "\u7C89\u683C\u7761\u8863\u4E0E\u7761\u5E3D"
+  enableSleeveCloth: 0
+  enableSkirtPoseGuard: 0
+  parts:
+  - partName: lengyue_pajamas_garments_mesh
+    role: 0
+    mesh: {fileID: 4300000, guid: 42f50350c7ff44a0e8c92d50c8578bdb, type: 2}
+    materials:
+    - {fileID: 2100000, guid: b0fd76746f09d40f895832611484e403, type: 2}
+    - {fileID: 2100000, guid: 406503c2b7d1e4e73ac7552e7e17b2a9, type: 2}
+    - {fileID: 2100000, guid: b63b99fb25ad940feaa14453cc58cdbd, type: 2}
+    - {fileID: 2100000, guid: 5d226ddba5eeb449e972bcc9cd1be798, type: 2}
+    rootBoneName: lengyue_pelvis_root
+    boneNames:
+    - lengyue_pelvis_root
+    - lengyue_hips
+    - lengyue_skirt_front_01
+    - lengyue_skirt_front_02
+    - lengyue_skirt_frontside_01_l
+    - lengyue_skirt_frontside_02_l
+    - lengyue_skirt_side_01_l
+    - lengyue_skirt_side_02_l
+    - lengyue_skirt_backside_01_l
+    - lengyue_skirt_backside_02_l
+    - lengyue_skirt_back_01
+    - lengyue_skirt_back_02
+    - lengyue_skirt_frontside_01_r
+    - lengyue_skirt_frontside_02_r
+    - lengyue_skirt_side_01_r
+    - lengyue_skirt_side_02_r
+    - lengyue_skirt_backside_01_r
+    - lengyue_skirt_backside_02_r
+    - lengyue_thigh_l
+    - lengyue_shin_l
+    - lengyue_foot_l
+    - lengyue_toe_l
+    - lengyue_mech_out_l
+    - lengyue_mech_in_l
+    - lengyue_mech_cover_l
+    - lengyue_thigh_r
+    - lengyue_shin_r
+    - lengyue_foot_r
+    - lengyue_toe_r
+    - lengyue_mech_out_r
+    - lengyue_mech_in_r
+    - lengyue_mech_cover_r
+    - lengyue_outer_skirt_front_01_l
+    - lengyue_outer_skirt_front_02_l
+    - lengyue_outer_skirt_side_01_l
+    - lengyue_outer_skirt_side_02_l
+    - lengyue_outer_skirt_back_01_l
+    - lengyue_outer_skirt_back_02_l
+    - lengyue_outer_skirt_back_03_l
+    - lengyue_outer_skirt_front_01_r
+    - lengyue_outer_skirt_front_02_r
+    - lengyue_outer_skirt_side_01_r
+    - lengyue_outer_skirt_side_02_r
+    - lengyue_outer_skirt_back_01_r
+    - lengyue_outer_skirt_back_02_r
+    - lengyue_outer_skirt_back_03_r
+    - lengyue_spine
+    - lengyue_chest
+    - lengyue_neck
+    - lengyue_head_01
+    - lengyue_head_tip
+    - lengyue_hair_side_01_r
+    - lengyue_hair_front_01_r
+    - lengyue_hair_front_02_r
+    - lengyue_hair_front_01_l
+    - lengyue_hair_front_02_l
+    - lengyue_hair_side_01_l
+    - lengyue_hair_side_02_l
+    - lengyue_hair_back_01_l
+    - lengyue_hair_back_02_l
+    - lengyue_hair_back_03_l
+    - lengyue_hair_back_04_l
+    - lengyue_hair_back_05_l
+    - lengyue_hair_back_01_r
+    - lengyue_hair_back_02_r
+    - lengyue_hair_back_03_r
+    - lengyue_hair_back_04_r
+    - lengyue_hair_back_05_r
+    - lengyue_eye_l
+    - lengyue_eye_r
+    - lengyue_clavicle_l
+    - lengyue_upper_arm_l
+    - lengyue_forearm_l
+    - lengyue_hand_l
+    - lengyue_index_01_l
+    - lengyue_index_02_l
+    - lengyue_index_03_l
+    - lengyue_middle_01_l
+    - lengyue_middle_02_l
+    - lengyue_middle_03_l
+    - lengyue_ring_01_l
+    - lengyue_ring_02_l
+    - lengyue_ring_03_l
+    - lengyue_little_01_l
+    - lengyue_little_02_l
+    - lengyue_little_03_l
+    - lengyue_thumb_01_l
+    - lengyue_thumb_02_l
+    - lengyue_thumb_03_l
+    - lengyue_forearm_twist_l
+    - lengyue_upper_arm_twist_l
+    - lengyue_breast_l
+    - lengyue_breast_tip_l
+    - lengyue_breast_r
+    - lengyue_breast_tip_r
+    - lengyue_clavicle_r
+    - lengyue_upper_arm_r
+    - lengyue_forearm_r
+    - lengyue_hand_r
+    - lengyue_index_01_r
+    - lengyue_index_02_r
+    - lengyue_index_03_r
+    - lengyue_middle_01_r
+    - lengyue_middle_02_r
+    - lengyue_middle_03_r
+    - lengyue_ring_01_r
+    - lengyue_ring_02_r
+    - lengyue_ring_03_r
+    - lengyue_little_01_r
+    - lengyue_little_02_r
+    - lengyue_little_03_r
+    - lengyue_thumb_01_r
+    - lengyue_thumb_02_r
+    - lengyue_thumb_03_r
+    - lengyue_forearm_twist_r
+    - lengyue_upper_arm_twist_r
+    localPosition: {x: 0, y: 0, z: 0}
+    localRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+    localScale: {x: 1, y: 1, z: 1}
+    localBounds:
+      m_Center: {x: 0.00000008940697, y: 0.6825303, z: -0.0015636012}
+      m_Extent: {x: 0.5477371, y: 0.77476346, z: 0.1833216}
+    skinQuality: 4
+    updateWhenOffscreen: 1
+    shadowCastingMode: 1
+    receiveShadows: 1
+  - partName: lengyue_pajamas_hands_mesh
+    role: 1
+    mesh: {fileID: 4300000, guid: 5f55303570e65430b98bdba9e5631606, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 3f81cda9b84b840faa9d8120c937b4e4, type: 2}
+    rootBoneName: lengyue_pelvis_root
+    boneNames:
+    - lengyue_pelvis_root
+    - lengyue_hips
+    - lengyue_skirt_front_01
+    - lengyue_skirt_front_02
+    - lengyue_skirt_frontside_01_l
+    - lengyue_skirt_frontside_02_l
+    - lengyue_skirt_side_01_l
+    - lengyue_skirt_side_02_l
+    - lengyue_skirt_backside_01_l
+    - lengyue_skirt_backside_02_l
+    - lengyue_skirt_back_01
+    - lengyue_skirt_back_02
+    - lengyue_skirt_frontside_01_r
+    - lengyue_skirt_frontside_02_r
+    - lengyue_skirt_side_01_r
+    - lengyue_skirt_side_02_r
+    - lengyue_skirt_backside_01_r
+    - lengyue_skirt_backside_02_r
+    - lengyue_thigh_l
+    - lengyue_shin_l
+    - lengyue_foot_l
+    - lengyue_toe_l
+    - lengyue_mech_out_l
+    - lengyue_mech_in_l
+    - lengyue_mech_cover_l
+    - lengyue_thigh_r
+    - lengyue_shin_r
+    - lengyue_foot_r
+    - lengyue_toe_r
+    - lengyue_mech_out_r
+    - lengyue_mech_in_r
+    - lengyue_mech_cover_r
+    - lengyue_outer_skirt_front_01_l
+    - lengyue_outer_skirt_front_02_l
+    - lengyue_outer_skirt_side_01_l
+    - lengyue_outer_skirt_side_02_l
+    - lengyue_outer_skirt_back_01_l
+    - lengyue_outer_skirt_back_02_l
+    - lengyue_outer_skirt_back_03_l
+    - lengyue_outer_skirt_front_01_r
+    - lengyue_outer_skirt_front_02_r
+    - lengyue_outer_skirt_side_01_r
+    - lengyue_outer_skirt_side_02_r
+    - lengyue_outer_skirt_back_01_r
+    - lengyue_outer_skirt_back_02_r
+    - lengyue_outer_skirt_back_03_r
+    - lengyue_spine
+    - lengyue_chest
+    - lengyue_neck
+    - lengyue_head_01
+    - lengyue_head_tip
+    - lengyue_hair_side_01_r
+    - lengyue_hair_front_01_r
+    - lengyue_hair_front_02_r
+    - lengyue_hair_front_01_l
+    - lengyue_hair_front_02_l
+    - lengyue_hair_side_01_l
+    - lengyue_hair_side_02_l
+    - lengyue_hair_back_01_l
+    - lengyue_hair_back_02_l
+    - lengyue_hair_back_03_l
+    - lengyue_hair_back_04_l
+    - lengyue_hair_back_05_l
+    - lengyue_hair_back_01_r
+    - lengyue_hair_back_02_r
+    - lengyue_hair_back_03_r
+    - lengyue_hair_back_04_r
+    - lengyue_hair_back_05_r
+    - lengyue_eye_l
+    - lengyue_eye_r
+    - lengyue_clavicle_l
+    - lengyue_upper_arm_l
+    - lengyue_forearm_l
+    - lengyue_hand_l
+    - lengyue_index_01_l
+    - lengyue_index_02_l
+    - lengyue_index_03_l
+    - lengyue_middle_01_l
+    - lengyue_middle_02_l
+    - lengyue_middle_03_l
+    - lengyue_ring_01_l
+    - lengyue_ring_02_l
+    - lengyue_ring_03_l
+    - lengyue_little_01_l
+    - lengyue_little_02_l
+    - lengyue_little_03_l
+    - lengyue_thumb_01_l
+    - lengyue_thumb_02_l
+    - lengyue_thumb_03_l
+    - lengyue_forearm_twist_l
+    - lengyue_upper_arm_twist_l
+    - lengyue_breast_l
+    - lengyue_breast_tip_l
+    - lengyue_breast_r
+    - lengyue_breast_tip_r
+    - lengyue_clavicle_r
+    - lengyue_upper_arm_r
+    - lengyue_forearm_r
+    - lengyue_hand_r
+    - lengyue_index_01_r
+    - lengyue_index_02_r
+    - lengyue_index_03_r
+    - lengyue_middle_01_r
+    - lengyue_middle_02_r
+    - lengyue_middle_03_r
+    - lengyue_ring_01_r
+    - lengyue_ring_02_r
+    - lengyue_ring_03_r
+    - lengyue_little_01_r
+    - lengyue_little_02_r
+    - lengyue_little_03_r
+    - lengyue_thumb_01_r
+    - lengyue_thumb_02_r
+    - lengyue_thumb_03_r
+    - lengyue_forearm_twist_r
+    - lengyue_upper_arm_twist_r
+    localPosition: {x: 0.0000000023725442, y: 1.6875151e-17, z: 2.2351818e-10}
+    localRotation: {x: -0.000000037748947, y: -1.469402e-39, z: -0, w: 1}
+    localScale: {x: 0.01, y: 0.01, z: 0.01}
+    localBounds:
+      m_Center: {x: 0.000000029802322, y: 1.3470826, z: 0.0093709305}
+      m_Extent: {x: 0.6930429, y: 0.030900478, z: 0.04429509}
+    skinQuality: 4
+    updateWhenOffscreen: 1
+    shadowCastingMode: 1
+    receiveShadows: 1
+  - partName: lengyue_pajamas_sleepcap_mesh
+    role: 4
+    mesh: {fileID: 4300000, guid: 794e0b0d5151c4403bb98f1d97a87c66, type: 2}
+    materials:
+    - {fileID: 2100000, guid: b0fd76746f09d40f895832611484e403, type: 2}
+    - {fileID: 2100000, guid: b63b99fb25ad940feaa14453cc58cdbd, type: 2}
+    rootBoneName: lengyue_pelvis_root
+    boneNames:
+    - lengyue_pelvis_root
+    - lengyue_hips
+    - lengyue_skirt_front_01
+    - lengyue_skirt_front_02
+    - lengyue_skirt_frontside_01_l
+    - lengyue_skirt_frontside_02_l
+    - lengyue_skirt_side_01_l
+    - lengyue_skirt_side_02_l
+    - lengyue_skirt_backside_01_l
+    - lengyue_skirt_backside_02_l
+    - lengyue_skirt_back_01
+    - lengyue_skirt_back_02
+    - lengyue_skirt_frontside_01_r
+    - lengyue_skirt_frontside_02_r
+    - lengyue_skirt_side_01_r
+    - lengyue_skirt_side_02_r
+    - lengyue_skirt_backside_01_r
+    - lengyue_skirt_backside_02_r
+    - lengyue_thigh_l
+    - lengyue_shin_l
+    - lengyue_foot_l
+    - lengyue_toe_l
+    - lengyue_mech_out_l
+    - lengyue_mech_in_l
+    - lengyue_mech_cover_l
+    - lengyue_thigh_r
+    - lengyue_shin_r
+    - lengyue_foot_r
+    - lengyue_toe_r
+    - lengyue_mech_out_r
+    - lengyue_mech_in_r
+    - lengyue_mech_cover_r
+    - lengyue_outer_skirt_front_01_l
+    - lengyue_outer_skirt_front_02_l
+    - lengyue_outer_skirt_side_01_l
+    - lengyue_outer_skirt_side_02_l
+    - lengyue_outer_skirt_back_01_l
+    - lengyue_outer_skirt_back_02_l
+    - lengyue_outer_skirt_back_03_l
+    - lengyue_outer_skirt_front_01_r
+    - lengyue_outer_skirt_front_02_r
+    - lengyue_outer_skirt_side_01_r
+    - lengyue_outer_skirt_side_02_r
+    - lengyue_outer_skirt_back_01_r
+    - lengyue_outer_skirt_back_02_r
+    - lengyue_outer_skirt_back_03_r
+    - lengyue_spine
+    - lengyue_chest
+    - lengyue_neck
+    - lengyue_head_01
+    - lengyue_head_tip
+    - lengyue_hair_side_01_r
+    - lengyue_hair_front_01_r
+    - lengyue_hair_front_02_r
+    - lengyue_hair_front_01_l
+    - lengyue_hair_front_02_l
+    - lengyue_hair_side_01_l
+    - lengyue_hair_side_02_l
+    - lengyue_hair_back_01_l
+    - lengyue_hair_back_02_l
+    - lengyue_hair_back_03_l
+    - lengyue_hair_back_04_l
+    - lengyue_hair_back_05_l
+    - lengyue_hair_back_01_r
+    - lengyue_hair_back_02_r
+    - lengyue_hair_back_03_r
+    - lengyue_hair_back_04_r
+    - lengyue_hair_back_05_r
+    - lengyue_eye_l
+    - lengyue_eye_r
+    - lengyue_clavicle_l
+    - lengyue_upper_arm_l
+    - lengyue_forearm_l
+    - lengyue_hand_l
+    - lengyue_index_01_l
+    - lengyue_index_02_l
+    - lengyue_index_03_l
+    - lengyue_middle_01_l
+    - lengyue_middle_02_l
+    - lengyue_middle_03_l
+    - lengyue_ring_01_l
+    - lengyue_ring_02_l
+    - lengyue_ring_03_l
+    - lengyue_little_01_l
+    - lengyue_little_02_l
+    - lengyue_little_03_l
+    - lengyue_thumb_01_l
+    - lengyue_thumb_02_l
+    - lengyue_thumb_03_l
+    - lengyue_forearm_twist_l
+    - lengyue_upper_arm_twist_l
+    - lengyue_breast_l
+    - lengyue_breast_tip_l
+    - lengyue_breast_r
+    - lengyue_breast_tip_r
+    - lengyue_clavicle_r
+    - lengyue_upper_arm_r
+    - lengyue_forearm_r
+    - lengyue_hand_r
+    - lengyue_index_01_r
+    - lengyue_index_02_r
+    - lengyue_index_03_r
+    - lengyue_middle_01_r
+    - lengyue_middle_02_r
+    - lengyue_middle_03_r
+    - lengyue_ring_01_r
+    - lengyue_ring_02_r
+    - lengyue_ring_03_r
+    - lengyue_little_01_r
+    - lengyue_little_02_r
+    - lengyue_little_03_r
+    - lengyue_thumb_01_r
+    - lengyue_thumb_02_r
+    - lengyue_thumb_03_r
+    - lengyue_forearm_twist_r
+    - lengyue_upper_arm_twist_r
+    localPosition: {x: 0, y: 0, z: 0}
+    localRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+    localScale: {x: 1, y: 1, z: 1}
+    localBounds:
+      m_Center: {x: -0.033000007, y: 1.6969794, z: -0.010000214}
+      m_Extent: {x: 0.16900012, y: 0.15397954, z: 0.14800003}
+    skinQuality: 4
+    updateWhenOffscreen: 1
+    shadowCastingMode: 1
+    receiveShadows: 1
+  - partName: lengyue_pajamas_neckfill_mesh
+    role: 2
+    mesh: {fileID: 4300000, guid: f91a219041d184186a2cd3d00ca98dad, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 7007d1c56eeeb4817b019becd3471820, type: 2}
+    rootBoneName: lengyue_pelvis_root
+    boneNames:
+    - lengyue_pelvis_root
+    - lengyue_hips
+    - lengyue_skirt_front_01
+    - lengyue_skirt_front_02
+    - lengyue_skirt_frontside_01_l
+    - lengyue_skirt_frontside_02_l
+    - lengyue_skirt_side_01_l
+    - lengyue_skirt_side_02_l
+    - lengyue_skirt_backside_01_l
+    - lengyue_skirt_backside_02_l
+    - lengyue_skirt_back_01
+    - lengyue_skirt_back_02
+    - lengyue_skirt_frontside_01_r
+    - lengyue_skirt_frontside_02_r
+    - lengyue_skirt_side_01_r
+    - lengyue_skirt_side_02_r
+    - lengyue_skirt_backside_01_r
+    - lengyue_skirt_backside_02_r
+    - lengyue_thigh_l
+    - lengyue_shin_l
+    - lengyue_foot_l
+    - lengyue_toe_l
+    - lengyue_mech_out_l
+    - lengyue_mech_in_l
+    - lengyue_mech_cover_l
+    - lengyue_thigh_r
+    - lengyue_shin_r
+    - lengyue_foot_r
+    - lengyue_toe_r
+    - lengyue_mech_out_r
+    - lengyue_mech_in_r
+    - lengyue_mech_cover_r
+    - lengyue_outer_skirt_front_01_l
+    - lengyue_outer_skirt_front_02_l
+    - lengyue_outer_skirt_side_01_l
+    - lengyue_outer_skirt_side_02_l
+    - lengyue_outer_skirt_back_01_l
+    - lengyue_outer_skirt_back_02_l
+    - lengyue_outer_skirt_back_03_l
+    - lengyue_outer_skirt_front_01_r
+    - lengyue_outer_skirt_front_02_r
+    - lengyue_outer_skirt_side_01_r
+    - lengyue_outer_skirt_side_02_r
+    - lengyue_outer_skirt_back_01_r
+    - lengyue_outer_skirt_back_02_r
+    - lengyue_outer_skirt_back_03_r
+    - lengyue_spine
+    - lengyue_chest
+    - lengyue_neck
+    - lengyue_head_01
+    - lengyue_head_tip
+    - lengyue_hair_side_01_r
+    - lengyue_hair_front_01_r
+    - lengyue_hair_front_02_r
+    - lengyue_hair_front_01_l
+    - lengyue_hair_front_02_l
+    - lengyue_hair_side_01_l
+    - lengyue_hair_side_02_l
+    - lengyue_hair_back_01_l
+    - lengyue_hair_back_02_l
+    - lengyue_hair_back_03_l
+    - lengyue_hair_back_04_l
+    - lengyue_hair_back_05_l
+    - lengyue_hair_back_01_r
+    - lengyue_hair_back_02_r
+    - lengyue_hair_back_03_r
+    - lengyue_hair_back_04_r
+    - lengyue_hair_back_05_r
+    - lengyue_eye_l
+    - lengyue_eye_r
+    - lengyue_clavicle_l
+    - lengyue_upper_arm_l
+    - lengyue_forearm_l
+    - lengyue_hand_l
+    - lengyue_index_01_l
+    - lengyue_index_02_l
+    - lengyue_index_03_l
+    - lengyue_middle_01_l
+    - lengyue_middle_02_l
+    - lengyue_middle_03_l
+    - lengyue_ring_01_l
+    - lengyue_ring_02_l
+    - lengyue_ring_03_l
+    - lengyue_little_01_l
+    - lengyue_little_02_l
+    - lengyue_little_03_l
+    - lengyue_thumb_01_l
+    - lengyue_thumb_02_l
+    - lengyue_thumb_03_l
+    - lengyue_forearm_twist_l
+    - lengyue_upper_arm_twist_l
+    - lengyue_breast_l
+    - lengyue_breast_tip_l
+    - lengyue_breast_r
+    - lengyue_breast_tip_r
+    - lengyue_clavicle_r
+    - lengyue_upper_arm_r
+    - lengyue_forearm_r
+    - lengyue_hand_r
+    - lengyue_index_01_r
+    - lengyue_index_02_r
+    - lengyue_index_03_r
+    - lengyue_middle_01_r
+    - lengyue_middle_02_r
+    - lengyue_middle_03_r
+    - lengyue_ring_01_r
+    - lengyue_ring_02_r
+    - lengyue_ring_03_r
+    - lengyue_little_01_r
+    - lengyue_little_02_r
+    - lengyue_little_03_r
+    - lengyue_thumb_01_r
+    - lengyue_thumb_02_r
+    - lengyue_thumb_03_r
+    - lengyue_forearm_twist_r
+    - lengyue_upper_arm_twist_r
+    localPosition: {x: 0, y: 0, z: 0}
+    localRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+    localScale: {x: 1, y: 1, z: 1}
+    localBounds:
+      m_Center: {x: -0.0000000037252903, y: 1.3951844, z: -0.00036429614}
+      m_Extent: {x: 0.054471344, y: 0.044795513, z: 0.050635893}
+    skinQuality: 4
+    updateWhenOffscreen: 1
+    shadowCastingMode: 1
+    receiveShadows: 1

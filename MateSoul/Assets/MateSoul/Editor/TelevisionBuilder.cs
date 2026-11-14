@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using MateSoul.Runtime;
@@ -57,7 +57,7 @@ namespace MateSoul.Editor
             Directory.CreateDirectory(Source);
             Directory.CreateDirectory(Materials);
             var art = Path.GetFullPath(Path.Combine(Application.dataPath,
-                "../../ArtSource/SapphiArt/Props/Television"));
+                "../../ArtSource/Lengyue/Props/Television"));
             CopyIfMissing(Path.Combine(art, "exports/LavenderRetroTV_480x450x420mm.fbx"),
                 Source + "/LavenderRetroTV_480x450x420mm.fbx");
             foreach (var name in new[] { "electronics_atlas.png", "screen_basecolor.png" })

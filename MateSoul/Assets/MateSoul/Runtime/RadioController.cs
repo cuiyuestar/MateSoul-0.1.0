@@ -52,7 +52,7 @@ namespace MateSoul.Runtime
         public int DesiredStationIndex => desiredStationIndex;
         public float Tuning => tuning;
         public float Volume => volume;
-        public float OutputVolume => Mathf.Pow(volume, 2f) * .9f;
+        public float OutputVolume => Mathf.Pow(volume, 1.2f);
         public IReadOnlyList<AudioClip> Stations => stations;
         public AudioSource ActiveChannel => activeChannel;
         public AudioSource TransitionChannel => transitionTo;
@@ -167,6 +167,8 @@ namespace MateSoul.Runtime
             tuning = Mathf.Clamp01(value);
             desiredStationIndex = Mathf.Clamp(
                 Mathf.RoundToInt(tuning * (stations.Length - 1)), 0, stations.Length - 1);
+            // Keep the physical knob in sync when a scripted action turns it.
+            if (tuningKnob != null) tuningKnob.SetNormalizedValue(tuning, false);
             if (!powered)
             {
                 stationIndex = desiredStationIndex;
@@ -351,8 +353,8 @@ namespace MateSoul.Runtime
             source.dopplerLevel = 0;
             source.spread = 35f;
             source.rolloffMode = AudioRolloffMode.Logarithmic;
-            source.minDistance = .45f;
-            source.maxDistance = 9f;
+            source.minDistance = 1f;
+            source.maxDistance = 12f;
             source.volume = 0;
         }
 

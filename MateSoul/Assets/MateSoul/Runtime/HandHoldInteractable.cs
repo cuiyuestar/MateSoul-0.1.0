@@ -46,7 +46,13 @@ namespace MateSoul.Runtime
     public sealed class HandHoldInteractable : XRSimpleInteractable
     {
         public const float DefaultEntryDistance = .10f;
-        public const float DefaultExitDistance = .16f;
+        // XRI re-validates IsSelectableBy every frame for a selected interactable,
+        // so this is the radius at which a live hold is abandoned, not a hover
+        // hysteresis. The character arm lags behind the player's palm while the
+        // pair walks, and the hand-hold action owns the real release distance
+        // (HandHoldTuning.maximumTargetSeparation), so the guard has to stay
+        // well clear of that budget or it silently cancels the follow.
+        public const float DefaultExitDistance = .70f;
 
         [SerializeField] private AvatarHandSide side;
         [SerializeField] private HandIKRig owner;
@@ -158,6 +164,8 @@ namespace MateSoul.Runtime
         public bool IsWithinHoldRange(IXRSelectInteractor interactor)
         {
             if (!HandHoldPose.TryGet(interactor, out var pose)) return false;
+            // XRI re-runs this every frame through IsSelectableBy while the socket is
+            // selected, so the held radius is a hold-abandon distance, not hysteresis.
             var distance = IsHeldBy(interactor) ? exitDistance : entryDistance;
             return (pose.position - transform.position).sqrMagnitude <= distance * distance;
         }

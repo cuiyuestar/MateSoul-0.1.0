@@ -1098,7 +1098,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1515785894417849, guid: b62edb46b12e444e5953050e8431e291, type: 3}
       propertyPath: m_Name
-      value: Lengyue_Runtime
+      value: lengyue_avatar_root
       objectReference: {fileID: 0}
     - target: {fileID: 1515785894417849, guid: b62edb46b12e444e5953050e8431e291, type: 3}
       propertyPath: m_IsActive

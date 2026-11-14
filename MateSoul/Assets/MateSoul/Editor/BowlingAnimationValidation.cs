@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -39,7 +39,7 @@ namespace MateSoul.Editor
             if (string.IsNullOrEmpty(SceneManager.GetActiveScene().path))
                 UnityEditor.SceneManagement.EditorSceneManager.OpenScene(GameSceneBuilder.ScenePath);
             var motion = AssetDatabase.LoadAssetAtPath<BowlingMotion>(
-                "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Bowling/BowlingMotion.asset");
+                "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/Bowling/lengyue_motion_bowling.asset");
             motion.Validate();
             var report = new Report
             {
@@ -85,7 +85,7 @@ namespace MateSoul.Editor
             body.Initialize();
             var animator = character.GetComponentInChildren<Animator>(true);
             var rig = character.GetComponent<AvatarBowlingRig>();
-            var boneNames = new[] { "Hips", "Spine", "UpperArm_R", "Forearm_R", "Hand_R", "Leg_R" };
+            var boneNames = new[] { "lengyue_hips", "lengyue_spine", "lengyue_upper_arm_r", "lengyue_forearm_r", "lengyue_hand_r", "lengyue_thigh_r" };
             var actualBones = boneNames.Select(name => character.GetComponentsInChildren<Transform>(true)
                 .Single(bone => bone.name == name)).ToArray();
             var expectedBones = boneNames.Select(name => reference.GetComponentsInChildren<Transform>(true)
@@ -192,10 +192,10 @@ namespace MateSoul.Editor
 
         private static float ValidateReference(BowlingMotion motion)
         {
-            const string path = "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Bowling/pick_up_bowlingball_InPlace.fbx";
+            const string path = "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/Bowling/pick_up_bowlingball_InPlace.fbx";
             var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(path));
             var target = AssetDatabase.LoadAssetAtPath<GameObject>(GameSceneBuilder.CharacterPath)
-                .GetComponentsInChildren<Transform>(true).Single(value => value.name == "Hand_R");
+                .GetComponentsInChildren<Transform>(true).Single(value => value.name == "lengyue_hand_r");
             var heldOffset = Vector3.Scale(motion.ballInHand, target.lossyScale);
             root.hideFlags = HideFlags.HideAndDontSave;
             try
@@ -203,7 +203,7 @@ namespace MateSoul.Editor
                 var clip = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
                     .Where(value => !value.name.StartsWith("__preview__"))
                     .OrderByDescending(value => value.length).First();
-                var hand = root.GetComponentsInChildren<Transform>(true).Single(value => value.name == "Hand_R");
+                var hand = root.GetComponentsInChildren<Transform>(true).Single(value => value.name == "lengyue_hand_r");
                 var ball = root.GetComponentsInChildren<MeshFilter>(true).Single(value => value.name == "BowlingBall_Body");
                 var max = 0f;
                 for (var frame = 24; frame <= 87; frame++)

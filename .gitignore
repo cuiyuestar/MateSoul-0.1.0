@@ -16,6 +16,9 @@ emu-last-feature-flags.protobuf
 
 # Local notes, diagnostics, and generated evidence.
 AGENTS.md
+.uploads/
+diagnostics/
+diagnostics-new/
 /scripts/
 真实切割系统可行性分析.md
 debug-*.md

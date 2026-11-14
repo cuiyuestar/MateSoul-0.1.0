@@ -1040,7 +1040,22 @@ namespace MateSoul.RoomNavigation
                 }
 
                 if (PXR_MixedReality.GetSceneBox3DData(anchor.Key, out var localPosition,
-                        out var localRotation, out var size) != PxrResult.SUCCESS) continue;
+                        out var localRotation, out var size) != PxrResult.SUCCESS)
+                {
+                    // Some Room Capture furniture anchors carry only a 2D box.
+                    // Keep the identity so the bed/sofa calibration fallback can
+                    // still resolve a real surface instead of losing the item.
+                    if (definition.IsItem &&
+                        PXR_MixedReality.GetSceneBox2DData(anchor.Key, out var flatOffset,
+                            out var flatExtent) == PxrResult.SUCCESS)
+                        realityItems.Add(new RealityItemObservation(anchor.Value.ToString(),
+                            semantic,
+                            anchorPosition + anchorRotation *
+                            new Vector3(flatOffset.x, flatOffset.y, 0f),
+                            anchorRotation,
+                            new Vector3(flatExtent.x, flatExtent.y, WallThickness)));
+                    continue;
+                }
 #region debug-point D:room-box-raw-pose
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 Debug.Log($"MATESOUL_ROOM_BOX id={anchor.Value} label={label} " +

@@ -15,8 +15,8 @@ namespace MateSoul.Runtime
         public const string EmotionLayerName = "Emotion";
         public const string AngryStateName = "Angry";
         public const string SadStateName = "Sad";
-        public const string AngryClipName = "Lengyue_Angry01";
-        public const string SadClipName = "Lengyue_Sad01";
+        public const string AngryClipName = "lengyue_clip_angry01";
+        public const string SadClipName = "lengyue_clip_sad01";
         private const string ResourceRoot = "ResponseEmotionAudio/";
         private static readonly ControlChannels PerformanceChannels =
             ControlChannels.Locomotion | ControlChannels.FullBody |
@@ -408,7 +408,7 @@ namespace MateSoul.Runtime
                 : animator == null
                     ? null
                     : animator.GetComponentsInChildren<Transform>(true)
-                        .FirstOrDefault(value => value.name == "Head 1");
+                        .FirstOrDefault(value => value.name == "lengyue_head_01");
             source = (head != null ? head.gameObject : gameObject).AddComponent<AudioSource>();
             source.playOnAwake = false;
             source.loop = false;

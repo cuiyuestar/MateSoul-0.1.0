@@ -135,6 +135,7 @@ namespace MateSoul.Runtime
             else RefreshContact();
             RefreshDisplay();
             RefreshOperatingAudio();
+            Debug.Log($"MATESOUL_HEAT_BASE power={(powered ? 1 : 0)} temp={temperature}");
             PowerChanged?.Invoke(powered);
         }
 
@@ -153,6 +154,7 @@ namespace MateSoul.Runtime
                 activeReceiver.SetHeatSource(this, temperature);
             RefreshDisplay();
             RefreshOperatingAudio();
+            Debug.Log($"MATESOUL_HEAT_BASE temp={temperature} powered={(powered ? 1 : 0)}");
             TemperatureChanged?.Invoke(temperature);
         }
 
@@ -248,6 +250,9 @@ namespace MateSoul.Runtime
             {
                 ClearReceiver();
                 activeReceiver = best;
+                Debug.Log($"MATESOUL_HEAT_BASE contact={(best != null ? 1 : 0)} " +
+                          $"ratio={bestRatio:F2} " +
+                          $"receiver={(best != null ? best.name : "none")} temp={temperature}");
             }
             currentContactRatio = best == null ? 0 : bestRatio;
             if (best != null) best.SetHeatSource(this, temperature);

@@ -18,7 +18,7 @@ namespace MateSoul.Runtime
         private const string DynamicFontResourcePath = "MateSoulUI/NotoSansCJKsc-Dynamic-SDF";
         public const string InitialFontCharacters =
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_" +
-            " ，。！？：；、·…/+-%()（）" +
+            " ，。！？：；、·…/+-%()（）@.:" +
             "一上下个中主二互交仍休伴位保信停先入共关内再冷准击切初删前功动势化去反发取可合名" +
             "向启品响回图在坐基备天女始子字存定容对小尚尾局岁左已幕平并床应座开式当心态性息情" +
             "想戏房手拟择按换提放散文新无明暂月有服束来果柄标栏格椅槽模正步水没活测消游点物状玩" +

@@ -44,6 +44,11 @@ namespace MateSoul.Runtime
         public Vector3 platePosition;
         public Vector3 toolPosition;
         public Vector3 approachPosition;
+        // Authored right-hand gesture that replaces the procedural finger pose
+        // while this item is held. Empty keeps the procedural grip.
+        public AnimationClip handGesture;
+        [Min(0)] public float handGestureLeadTime = .05f;
+
         public Pose Grip => new Pose(gripPosition, Quaternion.Euler(gripEuler));
         public Pose SecondaryGrip =>
             new Pose(secondaryGripPosition, Quaternion.Euler(secondaryGripEuler));

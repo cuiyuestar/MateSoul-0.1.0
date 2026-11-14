@@ -15,13 +15,22 @@ namespace MateSoul.Runtime
         [SerializeField] private GameObject[] controllerRayRoots;
         [SerializeField] private GameObject gazePinchRoot;
         [SerializeField] private GameObject[] handRayRoots;
+        // 真机手部追踪会以 80ms 级间隔短暂丢失，放置期间保持上一帧有效姿态。
+        private const float PlacementTrackingGrace = .25f;
         private PicoTrackedHand[] hands;
         private PicoTrackedHand placementHand;
+        private Pose placementPose;
+        private float placementPoseTime = -1f;
+        private bool placementPoseHeld;
+        private bool placementPosePressed;
+        private bool placementTrackingFresh;
         private bool placementActive;
         public PlayerInteractionMode CurrentMode => currentMode;
         public bool Automatic => false;
         public bool DirectHandsEnabled => currentMode == PlayerInteractionMode.Gesture;
         public PicoTrackedHand[] Hands => hands;
+        /// <summary>True when the placement hand was tracked on the current frame.</summary>
+        public bool PlacementTrackingFresh => placementTrackingFresh;
         public event Action<PlayerInteractionMode> ModeChanged;
         public bool PlacementActive
         {
@@ -31,6 +40,9 @@ namespace MateSoul.Runtime
                 if (placementActive == value) return;
                 placementActive = value;
                 placementHand = null;
+                placementPoseHeld = false;
+                placementPosePressed = false;
+                placementTrackingFresh = false;
             }
         }
         public Transform Gaze => gazePinchRoot == null ? null : gazePinchRoot.transform;
@@ -82,6 +94,7 @@ namespace MateSoul.Runtime
         {
             pose = default;
             pressed = false;
+            placementTrackingFresh = false;
             if (!DirectHandsEnabled || hands == null) return false;
             // Lock the initiating hand for the whole preview: tracking loss never swaps hands.
             if (placementHand == null)
@@ -91,10 +104,25 @@ namespace MateSoul.Runtime
                         placementHand = hands[index];
                         break;
                     }
-            if (placementHand == null || !placementHand.Tracked || placementHand.Direct.hasSelection)
+            if (placementHand == null) return false;
+            if (placementHand.Tracked && !placementHand.Direct.hasSelection)
+            {
+                placementPose = placementHand.Palm;
+                placementPosePressed = placementHand.Closed;
+                placementPoseTime = Time.unscaledTime;
+                placementPoseHeld = true;
+                placementTrackingFresh = true;
+                pose = placementPose;
+                pressed = placementPosePressed;
+                return true;
+            }
+            // 追踪短暂丢失时继续返回上一次有效姿态，避免预览与确认手势被逐帧清零；
+            // 调用方通过 PlacementTrackingFresh 判断是否为当帧真实姿态。
+            if (!placementPoseHeld ||
+                Time.unscaledTime - placementPoseTime > PlacementTrackingGrace)
                 return false;
-            pose = placementHand.Palm;
-            pressed = placementHand.Closed;
+            pose = placementPose;
+            pressed = placementPosePressed;
             return true;
         }
 

@@ -213,6 +213,7 @@ namespace MateSoul.Runtime
                                        Quaternion.Inverse(activeArm.socketLocalRotation);
             var desiredWristPosition = filteredGripPosition -
                                        desiredWristRotation * activeArm.socketLocalPosition;
+            desiredWristPosition = ConstrainBody(desiredWristPosition);
             var reach = HandHoldMath.ConstrainReach(activeArm.upperArm.position,
                 desiredWristPosition, activeArm.length,
                 tuning.softReachRatio, tuning.hardReachRatio);
@@ -232,6 +233,21 @@ namespace MateSoul.Runtime
 
             return new HandHoldRigSample(reach.Direction, reach.Extension,
                 reach.Utilization, wrist.Utilization, reach.Separation, jump);
+        }
+
+        // Limits the pulled hand to an ergonomic envelope: outside the torso
+        // capsule and inside the shoulder swing cone. Beyond that the hand stops
+        // instead of wrenching the arm out of its socket or through the body.
+        private Vector3 ConstrainBody(Vector3 wrist)
+        {
+            var cone = tuning.shoulderConeDegrees > 0 ? tuning.shoulderConeDegrees : 100f;
+            var radius = tuning.torsoRadius > 0 ? tuning.torsoRadius : .16f;
+            var shoulderMid = (left.upperArm.position + right.upperArm.position) * .5f;
+            var bodyBase = transform.position + transform.up * .05f;
+            wrist = HandHoldMath.ConstrainShoulderCone(activeArm.upperArm.position, wrist,
+                -transform.up, cone);
+            return HandHoldMath.ConstrainToTorso(wrist, shoulderMid, bodyBase,
+                transform.forward, radius);
         }
 
         public bool BlendTowards(float target, float deltaSeconds)

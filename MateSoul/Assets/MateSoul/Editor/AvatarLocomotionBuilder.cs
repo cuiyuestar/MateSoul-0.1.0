@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,32 +13,32 @@ namespace MateSoul.Editor
     {
         public const string ControllerPath = "Assets/MateSoul/Content/Avatar.controller";
         public const string IdlePath =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/" +
-            "Idle01/Lengyue_Idle01_Combined.anim";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/" +
+            "Idle01/lengyue_clip_idle01_combined.anim";
         public const string Idle02Path =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/" +
-            "Idle02/Lengyue_Idle02_Combined.anim";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/" +
+            "Idle02/lengyue_clip_idle02_combined.anim";
         public const string Idle03Path =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/" +
-            "SocialAttention/Lengyue_SocialAttention_Idle_BodyOnly.anim";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/" +
+            "SocialAttention/lengyue_clip_socialattention_idle_bodyonly.anim";
         public const string WalkPath =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/" +
-            "Lengyue_Walk_BodyOnly.anim";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/" +
+            "lengyue_clip_walk_bodyonly.anim";
         public const string TurnLeftPath =
-            "Assets/MateSoul/Content/Locomotion/Lengyue_TurnLeft_BodyOnly.anim";
+            "Assets/MateSoul/Content/Locomotion/lengyue_clip_turn_left_bodyonly.anim";
         public const string TurnRightPath =
-            "Assets/MateSoul/Content/Locomotion/Lengyue_TurnRight_BodyOnly.anim";
+            "Assets/MateSoul/Content/Locomotion/lengyue_clip_turn_right_bodyonly.anim";
         public const string SocialAttentionPath =
             Idle03Path;
         public const string AngryPath =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/" +
-            "Emotion/Angry/Lengyue_Angry01.anim";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/" +
+            "Emotion/Angry/lengyue_clip_angry01.anim";
         public const string SadPath =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/" +
-            "Emotion/Sad/Lengyue_Sad01.anim";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/" +
+            "Emotion/Sad/lengyue_clip_sad01.anim";
         private const string CharacterPrefabPath =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Prefabs/" +
-            "Lengyue_GameCharacter.prefab";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Prefabs/" +
+            "lengyue_character.prefab";
 
         [MenuItem("MateSoul/Game/Rebuild Avatar Locomotion")]
         public static void BuildProductionController()
@@ -65,6 +65,9 @@ namespace MateSoul.Editor
                 left, right, socialIdle);
             ConfigureEmotionLayer(controller, angry);
             ConfigureEmotionState(controller, ResponseEmotionAudio.SadStateName, sad);
+            // Registers the side-sleep loop imported from the authored FBX. It is
+            // an override layer at zero weight until the lying rig fades it in.
+            SleepAnimationBuilder.ConfigureRuntimeLayer(controller);
         }
 
         private static void Configure(AnimatorController controller,
@@ -231,10 +234,10 @@ namespace MateSoul.Editor
                 var transforms = animator.GetComponentsInChildren<Transform>(true);
                 var bones = new[]
                 {
-                    "Hips", "Spine", "Chest",
-                    "Leg_L", "Knee_L", "Foot_L",
-                    "Leg_R", "Knee_R", "Foot_R",
-                    "UpperArm_L", "Forearm_L", "UpperArm_R", "Forearm_R"
+                    "lengyue_hips", "lengyue_spine", "lengyue_chest",
+                    "lengyue_thigh_l", "lengyue_shin_l", "lengyue_foot_l",
+                    "lengyue_thigh_r", "lengyue_shin_r", "lengyue_foot_r",
+                    "lengyue_upper_arm_l", "lengyue_forearm_l", "lengyue_upper_arm_r", "lengyue_forearm_r"
                 }.ToDictionary(name => name,
                     name => transforms.Single(value => value.name == name));
                 idle.SampleAnimation(animator.gameObject, 0);
@@ -243,9 +246,9 @@ namespace MateSoul.Editor
                 var idlePositions = bones.ToDictionary(
                     pair => pair.Key, pair => pair.Value.localPosition);
 
-                left = BuildTurnClip(TurnLeftPath, "Lengyue_TurnLeft_BodyOnly",
+                left = BuildTurnClip(TurnLeftPath, "lengyue_clip_turn_left_bodyonly",
                     -1, animator, bones, idleRotations, idlePositions, walk);
-                right = BuildTurnClip(TurnRightPath, "Lengyue_TurnRight_BodyOnly",
+                right = BuildTurnClip(TurnRightPath, "lengyue_clip_turn_right_bodyonly",
                     1, animator, bones, idleRotations, idlePositions, walk);
             }
             finally
@@ -309,7 +312,7 @@ namespace MateSoul.Editor
                 }
 
                 var hipsPosition = Vector3.Lerp(
-                    idlePositions["Hips"], bones["Hips"].localPosition,
+                    idlePositions["lengyue_hips"], bones["lengyue_hips"].localPosition,
                     .18f * stepEnvelope);
                 hipsPositionCurves[0].AddKey(time, hipsPosition.x);
                 hipsPositionCurves[1].AddKey(time, hipsPosition.y);
@@ -322,12 +325,12 @@ namespace MateSoul.Editor
                     pair.Value, animator.transform);
                 SetTransformCurves(clip, bonePath, "m_LocalRotation",
                     rotationCurves[pair.Key]);
-                if (pair.Key != "Hips")
+                if (pair.Key != "lengyue_hips")
                     SetConstantPositionCurves(
                         clip, bonePath, idlePositions[pair.Key], walk.length);
             }
             var hipsPath = AnimationUtility.CalculateTransformPath(
-                bones["Hips"], animator.transform);
+                bones["lengyue_hips"], animator.transform);
             SetTransformCurves(clip, hipsPath, "m_LocalPosition", hipsPositionCurves);
             SetPlantCurves(clip, walk.length, direction);
             clip.frameRate = frameRate;
@@ -343,12 +346,12 @@ namespace MateSoul.Editor
 
         private static float MotionAmount(string bone)
         {
-            if (bone.StartsWith("UpperArm", StringComparison.Ordinal) ||
-                bone.StartsWith("Forearm", StringComparison.Ordinal)) return .15f;
-            if (bone == "Hips" || bone == "Spine" || bone == "Chest") return .25f;
-            if (bone.StartsWith("Leg", StringComparison.Ordinal)) return .45f;
-            if (bone.StartsWith("Knee", StringComparison.Ordinal)) return .55f;
-            if (bone.StartsWith("Foot", StringComparison.Ordinal)) return .5f;
+            if (bone.StartsWith("lengyue_upper_arm", StringComparison.Ordinal) ||
+                bone.StartsWith("lengyue_forearm", StringComparison.Ordinal)) return .15f;
+            if (bone == "lengyue_hips" || bone == "lengyue_spine" || bone == "lengyue_chest") return .25f;
+            if (bone.StartsWith("lengyue_thigh", StringComparison.Ordinal)) return .45f;
+            if (bone.StartsWith("lengyue_shin", StringComparison.Ordinal)) return .55f;
+            if (bone.StartsWith("lengyue_foot", StringComparison.Ordinal)) return .5f;
             return .4f;
         }
 
@@ -357,13 +360,13 @@ namespace MateSoul.Editor
             var wave = Mathf.Sin(phase * Mathf.PI * 2);
             var leftSwing = .5f - .5f * Mathf.Cos(phase * Mathf.PI * 2);
             var rightSwing = 1 - leftSwing;
-            if (bone == "Hips") return direction * (3.5f + wave);
-            if (bone == "Spine") return direction * (2.5f - wave * .5f);
-            if (bone == "Chest") return direction * 1.5f;
-            if (bone == "Leg_L") return direction * Mathf.Lerp(-1, 4.5f, leftSwing);
-            if (bone == "Leg_R") return direction * Mathf.Lerp(-1, 4.5f, rightSwing);
-            if (bone == "Foot_L") return direction * leftSwing * 3.5f;
-            if (bone == "Foot_R") return direction * rightSwing * 3.5f;
+            if (bone == "lengyue_hips") return direction * (3.5f + wave);
+            if (bone == "lengyue_spine") return direction * (2.5f - wave * .5f);
+            if (bone == "lengyue_chest") return direction * 1.5f;
+            if (bone == "lengyue_thigh_l") return direction * Mathf.Lerp(-1, 4.5f, leftSwing);
+            if (bone == "lengyue_thigh_r") return direction * Mathf.Lerp(-1, 4.5f, rightSwing);
+            if (bone == "lengyue_foot_l") return direction * leftSwing * 3.5f;
+            if (bone == "lengyue_foot_r") return direction * rightSwing * 3.5f;
             return 0;
         }
 

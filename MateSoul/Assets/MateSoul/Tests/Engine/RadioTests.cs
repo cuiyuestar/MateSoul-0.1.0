@@ -80,7 +80,7 @@ namespace MateSoul.Tests
 
             volume.SetNormalizedValue(.8f);
             Assert.That(radio.Volume, Is.EqualTo(.8f).Within(.001f));
-            Assert.That(radio.OutputVolume, Is.EqualTo(.576f).Within(.001f));
+            Assert.That(radio.OutputVolume, Is.EqualTo(.765f).Within(.001f));
             tuning.SetNormalizedValue(0);
             yield return Wait(.2f);
             Assert.That(radio.IsTuningTransition, Is.True);

@@ -19,9 +19,9 @@ namespace LengyueIntegration.Editor
             {
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GameSceneBuilder.CharacterPath);
                 var skins = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-                var body = skins.Single(s => s.name == "Body");
-                var face = skins.Single(s => s.name == "Face");
-                var hair = skins.Single(s => s.name == "Hair");
+                var body = skins.Single(s => s.name == "lengyue_body_root");
+                var face = skins.Single(s => s.name == "lengyue_face_root");
+                var hair = skins.Single(s => s.name == "lengyue_hair_root");
                 if (prefab.GetComponentsInChildren<Animator>(true).Length != 1 ||
                     face.sharedMesh.blendShapeCount != 61 ||
                     !AssetDatabase.GetAssetPath(face.sharedMesh).EndsWith("/Face_Direct54_GameExpressions.asset") ||
@@ -30,7 +30,7 @@ namespace LengyueIntegration.Editor
                 if (!AssetDatabase.GetAssetPath(body.sharedMaterials[0]).EndsWith("/BodySkin_Direct56.mat") ||
                     !AssetDatabase.GetAssetPath(face.sharedMaterials[2]).EndsWith("/FaceExpression_Direct57.mat"))
                     throw new InvalidOperationException("Production character does not use the current skin textures.");
-                var lines = skins.Single(s => s.name == "HairStrandLines_Direct59");
+                var lines = skins.Single(s => s.name == "lengyue_hair_strand_lines");
                 if (!lines.bones.SequenceEqual(hair.bones) ||
                     !lines.sharedMesh.bindposes.SequenceEqual(hair.sharedMesh.bindposes) ||
                     !AssetDatabase.GetAssetPath(lines.sharedMesh).EndsWith("/HairStrandLines_Direct59.asset") ||
@@ -41,12 +41,12 @@ namespace LengyueIntegration.Editor
                         throw new InvalidOperationException("Broken skin dependency: " + skin.name);
                 if (prefab.GetComponentsInChildren<MonoBehaviour>(true).Any(c => c == null))
                     throw new InvalidOperationException("Production character has a missing script.");
-                var cloth = skins.Single(s => s.name == "Lengyue_AdaptedGarments");
+                var cloth = skins.Single(s => s.name == "lengyue_garment_adapted");
                 if (!AssetDatabase.GetAssetPath(cloth.sharedMaterials[0]).Contains("SoftFit01"))
                     throw new InvalidOperationException("Production clothing does not use SoftFit01.");
                 var bones = prefab.GetComponentsInChildren<Transform>(true).ToDictionary(t => t.name);
-                if (Mathf.Abs(bones["Foot_L"].position.z + .018681f) > .00001f ||
-                    Mathf.Abs(bones["Foot_R"].position.z + .018681f) > .00001f)
+                if (Mathf.Abs(bones["lengyue_foot_l"].position.z + .018681f) > .00001f ||
+                    Mathf.Abs(bones["lengyue_foot_r"].position.z + .018681f) > .00001f)
                     throw new InvalidOperationException("Production foot rest position changed.");
                 var scene = EditorSceneManager.OpenScene(GameSceneBuilder.ScenePath);
                 var motor = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<AvatarMotor>(true)).Single();
@@ -64,7 +64,7 @@ namespace LengyueIntegration.Editor
                     bodyMaterial = AssetDatabase.GetAssetPath(body.sharedMaterials[0]),
                     faceExpressionMaterial = AssetDatabase.GetAssetPath(face.sharedMaterials[2]),
                     clothing = AssetDatabase.GetAssetPath(cloth.sharedMesh),
-                    footZ = bones["Foot_L"].position.z,
+                    footZ = bones["lengyue_foot_l"].position.z,
                     skins = skins.Length, scripts = prefab.GetComponentsInChildren<MonoBehaviour>(true).Length
                 }, true));
                 Debug.Log("PRODUCTION_CHARACTER_VALIDATION_COMPLETE");

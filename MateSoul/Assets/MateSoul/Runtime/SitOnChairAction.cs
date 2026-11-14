@@ -13,6 +13,12 @@ namespace MateSoul.Runtime
         private readonly AvatarMotor motor;
         private readonly INavigationService navigation;
         private readonly AvatarSeatingRig rig;
+        // The approach point only has to be reachable, not exact: a navmesh point
+        // displaced by a carved obstacle still walks up to the chair and the seat
+        // pose is driven by the seat centre, not by this dock.
+        private const float DockSampleRadius = .35f;
+        private const float MaximumDockHorizontalError = .25f;
+        private const float MaximumDockVerticalError = .14f;
         private SeatTarget seat;
         private ItemReservation reservation;
         private MoveAction movement;
@@ -21,6 +27,10 @@ namespace MateSoul.Runtime
         private bool started, exiting;
         private string exitError;
         private int phase;
+        // Release builds compile out the development probes, so a refused sit has
+        // to explain itself in the plain device log.
+        private string lastCheckLog;
+        private float nextCheckLog;
         public string Phase => new[] { "walking", "docking", "sitting", "seated", "standing" }[phase];
         public string PhaseId => Phase;
         public string PostureId => phase >= 2 && phase < 4 ? "seated" : "standing";
@@ -40,7 +50,11 @@ namespace MateSoul.Runtime
             if (seat.Backless &&
                 !SeatGeometry.TryOrientBackless(seat, scanner.Geometry, motor.transform.position))
                 return "凳子周围没有可用的落座方向。";
-            if (!scanner.IsSafe(seat)) return "椅子前方空间不足。";
+            if (!scanner.IsSafe(seat))
+            {
+                LogCheck("clearance", seat, false, -1f, -1f);
+                return "椅子前方空间不足。";
+            }
             var fit = rig.Check(seat);
             if (fit != null) return fit;
 #region debug-point A-C-D-E:seat-navigation-check
@@ -79,12 +93,36 @@ namespace MateSoul.Runtime
             debugRequest.SendWebRequest().completed += _ => debugRequest.Dispose();
 #endif
 #endregion
-            if (!navigation.TrySample(seat.Dock, .15f, out dock) ||
-                Vector3.ProjectOnPlane(dock - seat.Dock, Vector3.up).magnitude > .10f ||
-                Mathf.Abs(dock.y - seat.FloorY) > .08f)
+            var sampled = navigation.TrySample(seat.Dock, DockSampleRadius, out var candidate);
+            var horizontalError = sampled
+                ? Vector3.ProjectOnPlane(candidate - seat.Dock, Vector3.up).magnitude : -1f;
+            var verticalError = sampled ? Mathf.Abs(candidate.y - seat.FloorY) : -1f;
+            if (!sampled || horizontalError > MaximumDockHorizontalError ||
+                verticalError > MaximumDockVerticalError)
+            {
+                LogCheck("dock", seat, sampled, horizontalError, verticalError);
                 return "椅子正前方没有可用的站立位置。";
+            }
+            // Keep the sampled walkable spot horizontally, but stand on the seat's
+            // own floor: a navmesh point a few centimetres off in height must not
+            // sink the avatar or float it above the chair.
+            dock = new Vector3(candidate.x, seat.FloorY, candidate.z);
             movement = new MoveAction(motor, navigation, () => dock);
             return movement.Check();
+        }
+
+        private void LogCheck(string reason, SeatTarget target, bool sampled,
+            float horizontalError, float verticalError)
+        {
+            var now = Time.unscaledTime;
+            if (reason == lastCheckLog && now < nextCheckLog) return;
+            lastCheckLog = reason;
+            nextCheckLog = now + 2f;
+            Debug.Log($"MATESOUL_SEAT check reason={reason} id={targetId} " +
+                      $"seat={target.Center:F3} size={target.Width:F2}x{target.Depth:F2} " +
+                      $"height={target.Center.y - target.FloorY:F2} dock={target.Dock:F3} " +
+                      $"sampled={sampled} horizontalError={horizontalError:F3} " +
+                      $"verticalError={verticalError:F3}");
         }
 
         public void Start()
@@ -94,7 +132,8 @@ namespace MateSoul.Runtime
             started = true;
             movement.Start();
             Debug.Log($"MATESOUL_SEAT phase=walking id={targetId} center={seat.Center:F3} " +
-                      $"width={seat.Width:F3} depth={seat.Depth:F3} planeError={seat.PlaneError:F4}");
+                      $"width={seat.Width:F3} depth={seat.Depth:F3} planeError={seat.PlaneError:F4} " +
+                      $"dock={dock:F3}");
         }
 
         public ActionProgress Tick(float dt)

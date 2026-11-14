@@ -83,6 +83,12 @@ namespace MateSoul.Runtime
             TraceStartup("bootstrap_start");
             RenderPipelineManager.endCameraRendering += OnStartupCameraRendered;
             realityOcclusion = RealityOcclusionMeshRenderer.Install(Camera.main);
+            RealityOcclusionMeshRenderer.CoverageTarget =
+                character != null ? character.transform : null;
+            SpatialMeshVisualizer.Install(
+                realityOcclusion != null ? realityOcclusion.transform : null);
+            EnvironmentDepthDiagnostics.Install(Camera.main,
+                character != null ? character.transform : null);
             gameObject.AddComponent<SystemNotificationPresenter>().Bind(Notifications);
             await RetryLocalizationAsync();
         }

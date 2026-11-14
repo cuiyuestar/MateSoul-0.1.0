@@ -46,7 +46,10 @@ namespace MateSoul.Runtime
         public bool IsReserved => Instance != null && Instance.IsCharacterOwned;
         public float LastInteractionReleasePositionDelta { get; private set; }
         public float LastInteractionReleaseRotationDelta { get; private set; }
-        public bool CanPlayerUse => Instance != null && !Instance.IsOccupied &&
+        // Being carried by the player is not a lock: the radio's own buttons and
+        // knobs have to stay usable in the player's other hand.
+        public bool CanPlayerUse => Instance != null &&
+            (!Instance.IsOccupied || Instance.ControlState == ItemControlState.PlayerHeld) &&
             Body != null && !Body.IsPaused;
         public ItemRegistry Registry => registry;
         internal GameSession Session => session;
@@ -160,6 +163,13 @@ namespace MateSoul.Runtime
             registry.Register(Instance);
             if (content.Interaction != null)
                 registry.AddCapability(instanceId, content.Interaction.capability);
+            if (content.IsEdible)
+                registry.AddCapability(instanceId, "edible");
+            if (content.UseAnimation != null)
+            {
+                registry.AddCapability(instanceId, "use");
+                registry.SetUseLabel(instanceId, content.UseAnimation.actionLabel);
+            }
             cuttable = GetComponent<RuntimeCuttable>();
             if (content.Cuttable.enabled)
             {
@@ -174,6 +184,12 @@ namespace MateSoul.Runtime
             RuntimeColliderRefiner.Ensure(gameObject);
             Body = GetComponent<PhysicsBody>() ?? gameObject.AddComponent<PhysicsBody>();
             Body.Configure(content.Physics);
+            // A carried pan still has to catch the food dropped into it.
+            Body.RetainCollisionsWhileHeld =
+                GetComponent<CookwareHeatReceiver>() != null;
+            if (Body.RetainCollisionsWhileHeld)
+                Debug.Log($"MATESOUL_COOK_BIND item={content.Id} cookware=1 " +
+                          $"retainCollisions=1");
             if (cuttable != null)
                 Body.Rigidbody.mass = Mathf.Max(.001f,
                     content.Physics.mass * cuttable.VolumeRatio);

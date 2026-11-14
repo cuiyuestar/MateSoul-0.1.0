@@ -30,17 +30,24 @@ namespace MateSoul.Runtime
             if (wait > 0) return;
             wait = 2f;
             var choice = random.NextDouble();
-            if (choice < .6 && navigation.TryRandom(motor.Position, random, out var target))
-                avatar.Submit(new AvatarIntent("move", IntentSource.Autonomous, payload: target));
-            else if (choice > .85)
+            // Walking and the three idle variations stay the base behaviour; 20% goes to item use.
+            if (choice < .4 && navigation.TryRandom(motor.Position, random, out var target))
             {
-                var available = items.Items.Where(i => i.Supports("visit") && !i.IsOccupied &&
-                    canUseItem != null && canUseItem(i)).ToArray();
-                if (available.Length > 0)
-                    avatar.Submit(new AvatarIntent("visit", IntentSource.Autonomous,
-                        available[random.Next(available.Length)].Id));
+                avatar.Submit(new AvatarIntent("move", IntentSource.Autonomous, payload: target));
+                return;
             }
-            else avatar.Submit(new AvatarIntent("stay", IntentSource.Autonomous));
+            if (choice >= .8)
+            {
+                var available = items.Items.Where(i => i.IsPresent && i.Supports("use") &&
+                    !i.IsOccupied && canUseItem != null && canUseItem(i)).ToArray();
+                if (available.Length > 0)
+                {
+                    avatar.Submit(new AvatarIntent(UseHeldItemAction.Id, IntentSource.Autonomous,
+                        available[random.Next(available.Length)].Id));
+                    return;
+                }
+            }
+            avatar.Submit(new AvatarIntent("stay", IntentSource.Autonomous));
         }
     }
 }

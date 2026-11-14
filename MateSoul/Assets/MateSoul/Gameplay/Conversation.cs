@@ -19,6 +19,26 @@ namespace MateSoul.Gameplay
     {
         public string id;
         public string target_id;
+        public string destination;
+        public string destination_kind;
+    }
+
+    public enum PlacementDestinationKind { Any, Real, Virtual }
+
+    public sealed class PlacementDirective
+    {
+        public string Destination { get; set; }
+        public PlacementDestinationKind Kind { get; set; }
+    }
+
+    public interface IPlacementCommandHandler
+    {
+        bool TryPlace(PlacementDirective directive, string itemInstanceId, out string failure);
+    }
+
+    public static class PlacementCommands
+    {
+        public const string ActionId = "place-item";
     }
 
     [Serializable]
@@ -47,14 +67,18 @@ namespace MateSoul.Gameplay
         public IReadOnlyList<string> Moods { get; }
         public CharacterContextSnapshot CharacterContext { get; }
         public float ContextCaptureMilliseconds { get; }
+        // Set only when the runtime rejected an earlier requested action; the
+        // model then explains the failure in character instead of inventing one.
+        public string RuntimeNotice { get; }
         public ConversationRequest(string input, IReadOnlyList<DialogueMessage> history,
             IReadOnlyList<ActionDefinition> actions, IReadOnlyList<ItemInstance> targets,
             IReadOnlyList<string> moods, CharacterContextSnapshot characterContext,
-            float contextCaptureMilliseconds)
+            float contextCaptureMilliseconds, string runtimeNotice = null)
         {
             Input = input; History = history; Actions = actions; Targets = targets; Moods = moods;
             CharacterContext = characterContext;
             ContextCaptureMilliseconds = contextCaptureMilliseconds;
+            RuntimeNotice = runtimeNotice;
         }
     }
 
@@ -92,6 +116,7 @@ namespace MateSoul.Gameplay
         private readonly AvatarActionCoordinator avatar;
         private readonly ItemRegistry items;
         private readonly MoodSystem mood;
+        private readonly IPlacementCommandHandler placement;
         private CancellationTokenSource pending;
         private bool disposed;
         public ConversationState State { get; private set; }
@@ -104,10 +129,11 @@ namespace MateSoul.Gameplay
 
         public ConversationOrchestrator(ILLMProvider provider, IConversationContextProvider context,
             ActionCatalog catalog, AvatarActionCoordinator avatar, ItemRegistry items, MoodSystem mood,
-            ICharacterContextProvider characterContext)
+            ICharacterContextProvider characterContext, IPlacementCommandHandler placement = null)
         {
             this.provider = provider; dialogueContext = context; this.catalog = catalog;
             this.avatar = avatar; this.items = items; this.mood = mood;
+            this.placement = placement;
             this.characterContext = characterContext ??
                 throw new ArgumentNullException(nameof(characterContext));
         }
@@ -157,9 +183,42 @@ namespace MateSoul.Gameplay
                 {
                     if (!catalog.TryGet(reply.action.id, out var action) || !action.ExposeToAI)
                         ActionError = "模型请求了未开放的动作。";
+                    else if (action.AcceptsDestination)
+                    {
+                        if (placement == null)
+                            ActionError = "放置能力尚未配置。";
+                        else
+                        {
+                            var directive = new PlacementDirective
+                            {
+                                Destination = reply.action.destination,
+                                Kind = ParseDestinationKind(reply.action.destination_kind)
+                            };
+                            if (!placement.TryPlace(directive, reply.action.target_id, out var failure))
+                            {
+                                ActionError = string.IsNullOrWhiteSpace(failure)
+                                    ? "冷月没能找到合适的位置。" : failure;
+                                var explained = await ExplainFailureAsync(input, moods, character,
+                                    ActionError, requestCancellation.Token);
+                                requestCancellation.Token.ThrowIfCancellationRequested();
+                                if (!ReferenceEquals(pending, requestCancellation)) return;
+                                if (explained != null)
+                                {
+                                    reply = explained;
+                                    ResponseEmotionProtocol.TryParse(
+                                        explained.response_emotion, out responseEmotion);
+                                }
+                            }
+                        }
+                    }
                     else if (action.RequiresTarget &&
                         (!items.TryGet(reply.action.target_id, out var target) || !target.Supports(action.TargetCapability)))
                         ActionError = "动作目标不存在或不支持此能力。";
+                    else if (!action.AcceptsTarget && reply.action.target_id != null)
+                        ActionError = "动作不接受目标。";
+                    else if (action.AcceptsTarget && reply.action.target_id != null &&
+                        !items.TryGet(reply.action.target_id, out _))
+                        ActionError = "动作目标不存在。";
                     else
                     {
                         LastAction = avatar.Submit(new AvatarIntent(
@@ -203,6 +262,35 @@ namespace MateSoul.Gameplay
                 }
                 requestCancellation.Dispose();
             }
+        }
+
+        private async Task<ConversationReply> ExplainFailureAsync(string input,
+            IReadOnlyList<string> moods, CharacterContextSnapshot character,
+            string failure, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var request = new ConversationRequest(input, dialogueContext.Read(),
+                    Array.Empty<ActionDefinition>(), Array.Empty<ItemInstance>(), moods,
+                    character, 0f, failure);
+                var reply = await provider.CompleteAsync(request, cancellationToken);
+                if (reply == null || string.IsNullOrWhiteSpace(reply.reply_text) ||
+                    reply.reply_text.Length > 4096 ||
+                    !ResponseEmotionProtocol.TryParse(reply.response_emotion, out _))
+                    return null;
+                return reply;
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception) { return null; }
+        }
+
+        private static PlacementDestinationKind ParseDestinationKind(string value)
+        {
+            if (string.Equals(value, "real", StringComparison.OrdinalIgnoreCase))
+                return PlacementDestinationKind.Real;
+            if (string.Equals(value, "virtual", StringComparison.OrdinalIgnoreCase))
+                return PlacementDestinationKind.Virtual;
+            return PlacementDestinationKind.Any;
         }
 
         public void Cancel()

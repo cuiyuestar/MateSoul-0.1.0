@@ -494,8 +494,8 @@ namespace MateSoul.Tests
             yield return SetUp(false);
             var animator = character.GetComponentInChildren<Animator>();
             var bones = animator.GetComponentsInChildren<Transform>(true);
-            var leftEye = bones.Single(value => value.name == "Eye_L");
-            var rightEye = bones.Single(value => value.name == "Eye_R");
+            var leftEye = bones.Single(value => value.name == "lengyue_eye_l");
+            var rightEye = bones.Single(value => value.name == "lengyue_eye_r");
             var target = new GameObject("Rear seam attention target").transform;
             target.SetParent(root.transform);
 

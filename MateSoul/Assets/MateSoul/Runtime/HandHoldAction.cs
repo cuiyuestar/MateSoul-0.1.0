@@ -10,12 +10,15 @@ namespace MateSoul.Runtime
         public const string LeftId = "hold-left-hand";
         public const string RightId = "hold-right-hand";
 
+        private const float PathGraceSeconds = .25f;
+        private const float DiagnosticInterval = .25f;
         private readonly AvatarMotor motor;
         private readonly INavigationService navigation;
         private readonly HandIKRig rig;
         private readonly HandHoldRequest request;
         private readonly Transform playerHead;
         private readonly HandHoldTractionController traction = new HandHoldTractionController();
+        private readonly HandHoldLeadController lead = new HandHoldLeadController();
         private bool started, exiting, blocked;
         private float previousExtension;
         private Vector3 previousHandPosition;
@@ -23,10 +26,12 @@ namespace MateSoul.Runtime
         private Vector3 handVelocity;
         private Vector3 playerVelocity;
         private Vector3 pathDirection;
+        private Vector3 lastPathDirection;
         private float repathRemaining, blockedTime, hapticRemaining;
+        private float pathGrace, diagnosticRemaining;
 
         public string PhaseId => exiting ? "releasing" :
-            blocked ? "blocked" : traction.Engaged ? "following" : "holding";
+            blocked ? "blocked" : traction.Engaged || lead.Engaged ? "following" : "holding";
         public string PostureId => "standing";
 
         public HandHoldAction(AvatarMotor motor, INavigationService navigation,
@@ -54,6 +59,8 @@ namespace MateSoul.Runtime
             previousHandPosition = pose.position;
             previousPlayerPosition = playerHead != null ? playerHead.position : pose.position;
             previousExtension = 0;
+            pathGrace = PathGraceSeconds;
+            diagnosticRemaining = 0;
             Debug.Log($"MATESOUL_HAND_HOLD phase=holding side={request.Side.ToString().ToLowerInvariant()}");
 #region debug-point D:handhold-action-start
 #if DEVELOPMENT_BUILD && !UNITY_EDITOR
@@ -111,8 +118,12 @@ namespace MateSoul.Runtime
                 sample.TensionDirection, outwardSpeed, rig.Tuning);
             var requestedVelocity = traction.Tick(force,
                 playerVelocity, handVelocity, deltaSeconds, rig.Tuning);
+            var leadVelocity = lead.Tick(playerVelocity, handVelocity, deltaSeconds, rig.Tuning);
+            if (leadVelocity.sqrMagnitude > requestedVelocity.sqrMagnitude)
+                requestedVelocity = leadVelocity;
             var safeVelocity = ResolveNavigationVelocity(requestedVelocity, deltaSeconds);
             motor.SetHandHoldVelocity(safeVelocity);
+            LogFollowDiagnostics(sample, requestedVelocity, safeVelocity, deltaSeconds);
 
             var constrainedTooFar = sample.TargetSeparation >
                                     rig.Tuning.maximumTargetSeparation;
@@ -133,6 +144,7 @@ namespace MateSoul.Runtime
             {
                 blocked = false;
                 pathDirection = Vector3.zero;
+                pathGrace = PathGraceSeconds;
                 return Vector3.zero;
             }
             repathRemaining -= deltaSeconds;
@@ -144,10 +156,21 @@ namespace MateSoul.Runtime
                 var probe = motor.Position + requestedDirection * .8f;
                 if (!navigation.TryPath(motor.Position, probe, out var corners))
                 {
+                    // A probe can fail on a navmesh seam while the character can still
+                    // walk. Hold the last validated direction for a short grace instead
+                    // of freezing the follow until the arm stretches out of range.
+                    if (pathGrace > 0 && lastPathDirection.sqrMagnitude > .5f)
+                    {
+                        pathGrace -= deltaSeconds;
+                        blocked = false;
+                        pathDirection = lastPathDirection;
+                        return pathDirection * requested.magnitude;
+                    }
                     blocked = true;
                     pathDirection = Vector3.zero;
                     return Vector3.zero;
                 }
+                pathGrace = PathGraceSeconds;
                 pathDirection = requestedDirection;
                 for (var index = 0; index < corners.Length; index++)
                 {
@@ -156,9 +179,30 @@ namespace MateSoul.Runtime
                     pathDirection = offset.normalized;
                     break;
                 }
+                lastPathDirection = pathDirection;
             }
             blocked = false;
             return pathDirection * requested.magnitude;
+        }
+
+        private void LogFollowDiagnostics(HandHoldRigSample sample, Vector3 requested,
+            Vector3 safe, float deltaSeconds)
+        {
+            diagnosticRemaining -= deltaSeconds;
+            if (diagnosticRemaining > 0) return;
+            diagnosticRemaining = DiagnosticInterval;
+            var playerSpeed = new Vector2(playerVelocity.x, playerVelocity.z).magnitude;
+            var handSpeed = new Vector2(handVelocity.x, handVelocity.z).magnitude;
+            var coherence = playerSpeed > .001f && handSpeed > .001f
+                ? Vector3.Dot(playerVelocity / playerSpeed, handVelocity / handSpeed) : 0;
+            Debug.Log($"MATESOUL_HAND_HOLD phase={PhaseId} " +
+                      $"side={request.Side.ToString().ToLowerInvariant()} " +
+                      $"player={playerSpeed:F2} hand={handSpeed:F2} dot={coherence:F2} " +
+                      $"lead={(lead.Engaged ? 1 : 0)} " +
+                      $"traction={(traction.Engaged ? 1 : 0)} " +
+                      $"blocked={(blocked ? 1 : 0)} requested={requested.magnitude:F2} " +
+                      $"safe={safe.magnitude:F2} separation={sample.TargetSeparation:F2} " +
+                      $"motor=({motor.Position.x:F2},{motor.Position.z:F2})");
         }
 
         private void UpdateHaptics(HandHoldRigSample sample, float deltaSeconds)
@@ -178,6 +222,7 @@ namespace MateSoul.Runtime
             exiting = true;
             motor.EndHandHold();
             traction.Reset();
+            lead.Reset();
             if (endSelection) request.EndSelection();
             Debug.Log($"MATESOUL_HAND_HOLD phase=releasing reason={reason}");
 #region debug-point D:handhold-action-exit

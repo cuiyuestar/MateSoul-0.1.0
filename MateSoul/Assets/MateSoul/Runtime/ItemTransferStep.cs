@@ -30,16 +30,18 @@ namespace MateSoul.Runtime
         public static bool CanSnapPickup(float primaryError, float secondaryError = 0)
             => SelectPickupSnapLayer(primaryError, secondaryError) != PickupSnapLayer.None;
 
-        private enum Phase { Approach, Dock, Reach, Lift, PickupBlend, Hold, Carry, DockTarget, Place, Release, Retract }
+        private enum Phase { Approach, Dock, Reach, Lift, PickupBlend, PickupUse, PickupSettle, Hold, Carry, DockTarget, Place, Release, Retract }
         private readonly GameSession session;
         private readonly AvatarMotor motor;
         private readonly AvatarItemRig rig;
         private readonly ItemActionBinding binding;
-        private readonly Func<Pose> destination;
+        private Func<Pose> destination;
         private readonly Vector3 destinationDock;
         private readonly bool naturalRelease;
         private readonly bool pickupOnly;
-        private readonly bool finishAfterPickup, fromHeld;
+        private readonly bool finishAfterPickup;
+        private readonly ItemUseAnimation pickupUseAnimation;
+        private bool fromHeld;
         private readonly Guid run;
         private Phase phase;
         private MoveAction move;
@@ -49,6 +51,7 @@ namespace MateSoul.Runtime
         private ItemMotion reachMotion;
         private PickupPerformance pickup;
         private float elapsed;
+        private float nextMotionReport;
         private float debugNextCarryReport;
 #region debug-point C-D-E:held-follow
 #if UNITY_EDITOR
@@ -66,7 +69,61 @@ namespace MateSoul.Runtime
         private readonly string label;
         private readonly string heldLabel;
         public string Label => phase == Phase.Hold
-            ? heldLabel : label;
+            ? heldLabel
+            : phase == Phase.PickupUse && pickupUseAnimation != null
+                ? pickupUseAnimation.actionLabel : label;
+        public bool IsHolding => active && phase == Phase.Hold;
+
+        // Continues the running pickup instead of cancelling it: releasing the
+        // lease would drop the item, so the hold is retargeted in place.
+        public bool TryRetarget(Func<Pose> newDestination, out string error)
+        {
+            error = null;
+            if (!IsHolding || newDestination == null)
+            {
+                error = "物品当前无法重新放置。";
+                return false;
+            }
+            if (binding.Lease.State != ItemControlState.HeldByCharacter)
+            {
+                error = "物品已不在冷月手中。";
+                return false;
+            }
+            var previousDestination = destination;
+            var previousPickup = pickup;
+            var previousDock = sourceDock;
+            var previousFacing = sourceFacing;
+            var previousFromHeld = fromHeld;
+            var previousActive = active;
+            try
+            {
+                destination = newDestination;
+                var target = newDestination();
+                var returnHeight = binding.Profile.WorldGrip(target).position.y -
+                    session.Navigation.FloorHeight;
+                pickup = returnHeight < .45f
+                    ? rig.PickupAnimations.Select(returnHeight, rig.transform.lossyScale.y)
+                    : null;
+                fromHeld = true;
+                sourceDock = FindApproach(target);
+                rig.Motion(ItemMotion.Carry, 1);
+                BeginWalk(sourceDock);
+                Next(Phase.Carry);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                destination = previousDestination;
+                pickup = previousPickup;
+                sourceDock = previousDock;
+                sourceFacing = previousFacing;
+                fromHeld = previousFromHeld;
+                active = previousActive;
+                phase = Phase.Hold;
+                error = exception.Message;
+                return false;
+            }
+        }
 
         public ItemTransferStep(string label, GameSession session, AvatarItemRig rig,
             ItemActionBinding binding, Guid run, bool finishAfterPickup = false)
@@ -74,6 +131,11 @@ namespace MateSoul.Runtime
         {
             pickupOnly = true;
             this.finishAfterPickup = finishAfterPickup;
+            var animation = binding.View.Definition.UseAnimation;
+            // Only the indefinite hold pickup performs the authored pickup
+            // animation; use-item and radio actions drive their own use step.
+            pickupUseAnimation = !finishAfterPickup && animation != null &&
+                animation.playOnPickup && animation.clip != null ? animation : null;
         }
 
         public ItemTransferStep(string label, GameSession session, AvatarItemRig rig,
@@ -81,7 +143,7 @@ namespace MateSoul.Runtime
             Vector3 destinationDock, bool naturalRelease = false, bool fromHeld = false)
         {
             this.label = label; this.session = session; motor = (AvatarMotor)session.Motor;
-            heldLabel = "已拿起" + binding.View.Definition.DisplayName + "，可放下后再次测试";
+            heldLabel = "手里拿着" + binding.View.Definition.DisplayName;
             this.rig = rig; this.binding = binding; this.run = run;
             this.destination = destination; this.destinationDock = destinationDock;
             this.naturalRelease = naturalRelease;
@@ -293,6 +355,12 @@ namespace MateSoul.Runtime
             debugPhaseRequest.SendWebRequest().completed += _ => debugPhaseRequest.Dispose();
 #endif
 #endregion
+            // Phase progression is the only way to see where an item action stopped
+            // once it leaves the log-friendly startup window.
+            Debug.Log($"MATESOUL_ITEM_PHASE item={binding.View.Definition.Id} " +
+                $"from={phase} to={value} elapsed={elapsed:F2} " +
+                $"pickupOnly={pickupOnly} finishAfterPickup={finishAfterPickup} " +
+                $"use={(pickupUseAnimation != null && pickupUseAnimation.clip != null ? pickupUseAnimation.clip.name : "none")}");
             phase = value;
             elapsed = 0;
             contactSettled = false;
@@ -429,6 +497,36 @@ namespace MateSoul.Runtime
         public bool Tick(float dt)
         {
             elapsed += dt;
+            // The pickup phases move the body through the pickup layer, so a lift can
+            // happen there without any use gesture involved. Sample the root every
+            // quarter second so the phase that raises her is on record.
+            if (Time.unscaledTime >= nextMotionReport)
+            {
+                nextMotionReport = Time.unscaledTime + .25f;
+                var motionBody = motor.Body;
+                // The rise is position-based (velocity stays at zero), which is the
+                // signature of depenetration. Name whatever the torso is overlapping.
+                var overlapCount = 0;
+                var overlapNames = "none";
+                var probes = Physics.OverlapSphere(motor.Position + Vector3.up * .9f, .35f,
+                    Physics.AllLayers, QueryTriggerInteraction.Ignore);
+                foreach (var probe in probes)
+                {
+                    if (probe.transform.IsChildOf(motor.transform)) continue;
+                    overlapCount++;
+                    if (overlapCount > 3) continue;
+                    overlapNames = overlapNames == "none"
+                        ? probe.name : overlapNames + "," + probe.name;
+                }
+                Debug.Log($"MATESOUL_ITEM_MOTION item={binding.View.Definition.Id} " +
+                    $"phase={phase} elapsed={elapsed:F2} " +
+                    $"root={motor.Position} velY={motionBody.Rigidbody.velocity.y:F2} " +
+                    $"following={motionBody.IsFollowing} contact={motionBody.IsContact} " +
+                    $"docked={motionBody.IsDocked} paused={motionBody.IsPaused} " +
+                    $"kinematic={motionBody.Rigidbody.isKinematic} " +
+                    $"overlaps={overlapCount} on={overlapNames} " +
+                    motor.MotionDiagnostics);
+            }
             if (phase != Phase.Hold && elapsed > 35) throw new InvalidOperationException("搬运物品超时。");
             var view = binding.View;
             switch (phase)
@@ -602,6 +700,27 @@ namespace MateSoul.Runtime
                     Next(Phase.Carry);
                     break;
                 case Phase.PickupBlend:
+                    if (pickupOnly && !finishAfterPickup)
+                    {
+                        if (pickupUseAnimation != null)
+                        {
+                            // Settle into the carry pose first so the gesture
+                            // starts without a visible snap.
+                            rig.BlendPickupToCarry(elapsed / .3f);
+                            Drive(CarryPose(), dt);
+                            if (elapsed < .3f || !NearGrip(CarryPose(), .08f)) return false;
+                            rig.ClearReach();
+                            rig.UseMotion(pickupUseAnimation, 0, 0);
+                            Next(Phase.PickupUse);
+                            break;
+                        }
+                        // The item stays in the hand without the authored carry
+                        // pose, so she stands and walks with her arms hanging.
+                        rig.HoldNaturally(elapsed / .3f);
+                        if (elapsed < .3f) return false;
+                        Next(Phase.Hold);
+                        break;
+                    }
                     rig.BlendPickupToCarry(elapsed / .3f);
                     Drive(CarryPose(), dt);
                     if (elapsed < .3f || !NearGrip(CarryPose(), .08f)) return false;
@@ -614,9 +733,32 @@ namespace MateSoul.Runtime
                     BeginWalk(destinationDock);
                     Next(Phase.Carry);
                     break;
+                case Phase.PickupUse:
+                {
+                    var useClip = pickupUseAnimation.clip;
+                    const float fade = .25f;
+                    var weight = Mathf.SmoothStep(0, 1, elapsed / fade) *
+                        (1 - Mathf.SmoothStep(0, 1, (elapsed - useClip.length) / fade));
+                    rig.UseMotion(pickupUseAnimation, Mathf.Min(elapsed, useClip.length), weight);
+                    if (elapsed < useClip.length + fade) return false;
+                    Next(Phase.PickupSettle);
+                    break;
+                }
+                case Phase.PickupSettle:
+                {
+                    // Hand the arms back to locomotion while the gesture fades.
+                    var settle = Mathf.Clamp01(elapsed / .25f);
+                    rig.UseMotion(pickupUseAnimation, pickupUseAnimation.clip.length,
+                        1 - settle);
+                    rig.HoldNaturally(settle);
+                    if (settle < 1) return false;
+                    rig.ClearUse();
+                    Next(Phase.Hold);
+                    break;
+                }
                 case Phase.Hold:
-                    rig.Motion(ItemMotion.Carry, 1);
-                    Drive(CarryPose(), dt);
+                    // Only idle03 and walking play while the item stays held.
+                    rig.HoldNaturally(1);
                     return false;
                 case Phase.Carry:
                     rig.Motion(ItemMotion.Carry, 1);

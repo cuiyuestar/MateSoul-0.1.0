@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -235,7 +235,7 @@ namespace MateSoul.Tests
                 maxSpeed = Mathf.Max(maxSpeed, animator.GetFloat("Speed"));
                 foreach (var info in animator.GetCurrentAnimatorClipInfo(0))
                     if (info.clip != null &&
-                        info.clip.name == "Lengyue_Walk_BodyOnly")
+                        info.clip.name == "lengyue_clip_walk_bodyonly")
                         maxWalkWeight = Mathf.Max(maxWalkWeight, info.weight);
                 Assert.That(UnityEngine.AI.NavMesh.SamplePosition(session.Motor.Position,
                     out var hit, .2f, UnityEngine.AI.NavMesh.AllAreas), Is.True);
@@ -250,7 +250,7 @@ namespace MateSoul.Tests
             Assert.That(animator.GetCurrentAnimatorClipInfo(0).Length, Is.GreaterThan(0));
             Assert.That(animator.GetFloat("Speed"), Is.Zero);
             Assert.That(animator.GetCurrentAnimatorClipInfo(0).Any(info =>
-                info.clip != null && info.clip.name == "Lengyue_Idle01_Combined" &&
+                info.clip != null && info.clip.name == "lengyue_clip_idle01_combined" &&
                 info.weight > .99f), Is.True);
             Assert.That(session.Avatar.Leases.Count, Is.Zero);
             Assert.That(character.GetComponent<RoomRandomWalker>(), Is.Null);
@@ -382,6 +382,8 @@ namespace MateSoul.Tests
                  elapsed += .1f)
                 session.Tick(.1f);
             Assert.That(session.SocialAttentionActive, Is.True);
+            Assert.That(session.Avatar.HasClaim(ControlChannels.Dialogue), Is.False,
+                "Dialogue attention must not claim the dialogue channel, or sends are rejected.");
 
             var explicitAction = session.Submit(
                 new AvatarIntent("stay", IntentSource.Player));
@@ -658,6 +660,30 @@ namespace MateSoul.Tests
             while (!restore.IsCompleted) yield return null;
             Assert.That(session.ItemViews.Count(), Is.EqualTo(1));
             Assert.That(session.GetRemainingQuantity(lamp.Id), Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator RefreshAllInventoryRestoresEveryLimitedItemAndSaves()
+        {
+            yield return new EnterPlayMode();
+            yield return SetUp();
+            session.Dispose();
+            lamp.ConfigureInventory(3);
+            session = CreateSession(new HttpLLMProvider(null));
+            var restore = session.RestoreItemsAsync();
+            while (!restore.IsCompleted) yield return null;
+
+            var place = session.PlaceItemAsync(
+                lamp.Id, new Pose(new Vector3(2, 0, 2), Quaternion.identity));
+            while (!place.IsCompleted) yield return null;
+            Assert.That(session.GetRemainingQuantity(lamp.Id), Is.EqualTo(2));
+
+            session.RefreshAllInventory();
+
+            Assert.That(session.GetRemainingQuantity(lamp.Id), Is.EqualTo(3));
+            Assert.That(store.Data.inventory
+                .Single(item => item.definitionId == lamp.Id).remaining, Is.EqualTo(3));
+            Assert.That(session.Notice, Does.Contain("库存已刷新"));
         }
 
         [UnityTest]
@@ -2142,7 +2168,7 @@ namespace MateSoul.Tests
             Assert.That(motor.IsMoving, Is.False);
             Assert.That(animator.GetFloat("Speed"), Is.Zero);
             Assert.That(animator.GetCurrentAnimatorClipInfo(0).Any(info =>
-                info.clip != null && info.clip.name == "Lengyue_Idle01_Combined" &&
+                info.clip != null && info.clip.name == "lengyue_clip_idle01_combined" &&
                 info.weight > .99f), Is.True);
             Assert.That(character.GetComponent<PhysicsBody>().Rigidbody.isKinematic, Is.False);
             Assert.That(character.GetComponent<CharacterController>(), Is.Null);
@@ -2594,7 +2620,7 @@ namespace MateSoul.Tests
                 .Where(button => button.name.StartsWith("活动/", StringComparison.Ordinal)).ToArray();
             Assert.That(activities.Select(button => button.name), Is.EqualTo(new[]
             {
-                "活动/一起散步", "活动/坐下聊天", "活动/躺床休息", "活动/起身",
+                "活动/一起散步", "活动/坐下聊天", "活动/躺下休息", "活动/起身",
                 "活动/切水果", "活动/小游戏"
             }));
             Assert.That(page.GetComponentsInChildren<Button>(true)
@@ -2942,8 +2968,8 @@ namespace MateSoul.Tests
         public void ImportedIdleKeepsLegsStationaryWhileUpperBodyRemainsAnimated()
         {
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(
-                "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/" +
-                "Idle01/Lengyue_Idle01_Combined.anim");
+                "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/" +
+                "Idle01/lengyue_clip_idle01_combined.anim");
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
                 GameSceneBuilder.CharacterPath);
             Assert.That(clip, Is.Not.Null);
@@ -2974,13 +3000,13 @@ namespace MateSoul.Tests
                     .ToDictionary(group => group.Key, group => group.Single());
                 var lowerBodyNames = new[]
                 {
-                    "Leg_L", "Leg_R", "Knee_L", "Knee_R",
-                    "Foot_L", "Foot_R", "Toe_L", "Toe_R"
+                    "lengyue_thigh_l", "lengyue_thigh_r", "lengyue_shin_l", "lengyue_shin_r",
+                    "lengyue_foot_l", "lengyue_foot_r", "lengyue_toe_l", "lengyue_toe_r"
                 };
                 clip.SampleAnimation(instance, 0);
                 var initialLowerBody = lowerBodyNames.ToDictionary(
                     name => name, name => transforms[name].localRotation);
-                var initialHead = transforms["Head 1"].localRotation;
+                var initialHead = transforms["lengyue_head_01"].localRotation;
                 var maximumLowerBodyDelta = 0f;
                 var maximumHeadDelta = 0f;
 
@@ -2993,14 +3019,14 @@ namespace MateSoul.Tests
                                 transforms[name].localRotation));
                     maximumHeadDelta = Mathf.Max(maximumHeadDelta,
                         Quaternion.Angle(initialHead,
-                            transforms["Head 1"].localRotation));
+                            transforms["lengyue_head_01"].localRotation));
                 }
 
                 Assert.That(maximumLowerBodyDelta, Is.LessThan(.05f));
                 Assert.That(maximumHeadDelta, Is.GreaterThan(5f));
 
                 var face = instance.GetComponentsInChildren<SkinnedMeshRenderer>(true)
-                    .Single(item => item.name == "face");
+                    .Single(item => item.name == "lengyue_face_root");
                 int Shape(string suffix) => Enumerable.Range(
                         0, face.sharedMesh.blendShapeCount)
                     .Single(index => face.sharedMesh.GetBlendShapeName(index)

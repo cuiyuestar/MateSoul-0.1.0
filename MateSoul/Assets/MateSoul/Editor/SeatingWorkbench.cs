@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -73,14 +73,14 @@ namespace MateSoul.Editor
         public static void Analyze()
         {
             Directory.CreateDirectory(Output);
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/MateSoul/Content/Lengyue_Runtime.prefab");
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/MateSoul/Content/lengyue_avatar_runtime.prefab");
             var root = UnityEngine.Object.Instantiate(source);
             try
             {
                 root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
                 var animator = root.GetComponentInChildren<Animator>();
                 var idle = AssetDatabase.LoadAssetAtPath<AnimationClip>(
-                    "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Lengyue_Idle_BodyOnly.anim");
+                    "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/lengyue_clip_idle_bodyonly.anim");
                 idle.SampleAnimation(animator.gameObject, 0);
                 var rig = new Rig
                 {
@@ -112,7 +112,7 @@ namespace MateSoul.Editor
                 root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
                 var animator = root.GetComponentInChildren<Animator>();
                 AssetDatabase.LoadAssetAtPath<AnimationClip>(
-                    "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Lengyue_Idle_BodyOnly.anim")
+                    "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/lengyue_clip_idle_bodyonly.anim")
                     .SampleAnimation(animator.gameObject, 0);
                 var rig = root.GetComponent<MateSoul.Runtime.AvatarSeatingRig>();
                 var seat = new MateSoul.Runtime.SeatTarget

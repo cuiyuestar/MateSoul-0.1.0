@@ -116,7 +116,7 @@ namespace MateSoul.Runtime
             var vessel = GetComponentsInChildren<Renderer>(true)
                 .Where(value => value.transform != waterVisual &&
                     value.name.IndexOf("handle", StringComparison.OrdinalIgnoreCase) < 0 &&
-                    (value.name.IndexOf("body", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (value.name.IndexOf("lengyue_body_root", StringComparison.OrdinalIgnoreCase) >= 0 ||
                      value.name.IndexOf("cup", StringComparison.OrdinalIgnoreCase) >= 0 ||
                      value.name.IndexOf("bowl", StringComparison.OrdinalIgnoreCase) >= 0 ||
                      value.name.IndexOf("plate", StringComparison.OrdinalIgnoreCase) >= 0))

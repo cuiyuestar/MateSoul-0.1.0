@@ -20,14 +20,45 @@ namespace MateSoul.Runtime
             if (observedItemAction == null || !observedItemAction.IsFinished) return;
             if (observedItemAction.State != ActionState.Rejected)
                 Notifications.ShowHint(observedItemAction.Error ??
-                    (observedItemAction.Intent.ActionId == "visit"
+                    (observedItemAction.Intent.ActionId == "visit" ||
+                     observedItemAction.Intent.ActionId == UseHeldItemAction.Id
                         ? observedItemAction.State == ActionState.Succeeded
                             ? "物品互动已结束。" : "物品互动已取消。"
                      : observedItemAction.Intent.ActionId == PickupItemAction.Id
                         ? "物品拾取已结束。" :
+                     observedItemAction.Intent.ActionId == EatItemAction.Id
+                        ? observedItemAction.State == ActionState.Succeeded
+                            ? "冷月吃饱了。" : "吃东西已取消。" :
+                     observedItemAction.Intent.ActionId == RadioMusicAction.PlayId
+                        ? observedItemAction.State == ActionState.Succeeded
+                            ? "音乐已开始播放。" : "播放音乐已取消。" :
+                     observedItemAction.Intent.ActionId == RadioMusicAction.SwitchId
+                        ? observedItemAction.State == ActionState.Succeeded
+                            ? "音乐已切换。" : "切换音乐已取消。" :
                      observedItemAction.State == ActionState.Succeeded
                         ? "水果切好了，已装入盘子。" : "切水果已取消。"));
             observedItemAction = null;
+        }
+
+        // Eating removes the food outright: no output exists, so the removal is the commit.
+        internal void CommitEat(ItemActionBinding source, Guid runId)
+        {
+            if (source.Consumed || source.View == null || !source.Lease.IsValid ||
+                source.Lease.InteractionId != runId)
+                throw new InvalidOperationException("进食状态已失效。");
+            var name = source.View.Definition.DisplayName;
+            var view = source.View;
+            source.Consumed = true;
+            Items.Remove(view.Instance.Id);
+            views.Remove(view.Instance.Id);
+            view.Retire();
+            UnityEngine.Object.Destroy(view.gameObject);
+            try { Save(); }
+            catch (Exception error)
+            {
+                Notifications.ShowHint(name + "已吃掉，但保存失败：" + error.Message);
+                RequestPhysicsSave();
+            }
         }
 
         // Pre-create and validate every output before removing the source. No await/callback

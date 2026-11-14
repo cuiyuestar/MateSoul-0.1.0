@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,8 +20,8 @@ namespace MateSoul.RoomNavigation.Editor
             "Assets/MateSoul/RoomNavigation/RoomNavigation_v001.unity";
 
         private const string CharacterPrefabPath =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Prefabs/" +
-            "Lengyue_GameCharacter.prefab";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Prefabs/" +
+            "lengyue_character.prefab";
 
         private const string MockSceneDataPath =
             "Packages/com.bytedance.pico.xr/Assets/Resources/MockSceneData.json";
@@ -65,7 +65,7 @@ namespace MateSoul.RoomNavigation.Editor
                 var bootstrap = navigationRoot.AddComponent<RoomNavigationBootstrap>();
 
                 var character = (GameObject)PrefabUtility.InstantiatePrefab(characterPrefab);
-                character.name = "Lengyue_RoomWalker";
+                character.name = "lengyue_room_walker";
                 character.SetActive(false);
 
                 bootstrap.Configure(mockSceneData, character, true, 1701);

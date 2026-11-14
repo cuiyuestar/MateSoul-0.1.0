@@ -297,7 +297,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -583,7 +583,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -869,7 +869,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -1155,7 +1155,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -1441,7 +1441,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -1727,7 +1727,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
   m_CompressedRotationCurves: []
   m_EulerCurves: []
   m_PositionCurves:
@@ -2016,7 +2016,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2302,7 +2302,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2588,7 +2588,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2874,7 +2874,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -3160,7 +3160,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -3446,7 +3446,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
   m_ScaleCurves: []
   m_FloatCurves: []
   m_PPtrCurves: []
@@ -3458,7 +3458,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 2645150313
+      path: 1234046458
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -3467,7 +3467,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2255866068
+      path: 963696425
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -3476,7 +3476,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1855574732
+      path: 1520116216
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -3485,7 +3485,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2190461416
+      path: 732573381
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -3494,7 +3494,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3804179643
+      path: 308936956
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -3503,7 +3503,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1935415833
+      path: 1967359788
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -3512,7 +3512,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2645150313
+      path: 1234046458
       attribute: 2
       script: {fileID: 0}
       typeID: 4
@@ -3521,7 +3521,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2255866068
+      path: 963696425
       attribute: 2
       script: {fileID: 0}
       typeID: 4
@@ -3530,7 +3530,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1855574732
+      path: 1520116216
       attribute: 2
       script: {fileID: 0}
       typeID: 4
@@ -3539,7 +3539,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2190461416
+      path: 732573381
       attribute: 2
       script: {fileID: 0}
       typeID: 4
@@ -3548,7 +3548,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3804179643
+      path: 308936956
       attribute: 2
       script: {fileID: 0}
       typeID: 4
@@ -3557,7 +3557,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1935415833
+      path: 1967359788
       attribute: 2
       script: {fileID: 0}
       typeID: 4
@@ -3874,7 +3874,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -4165,7 +4165,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -4456,7 +4456,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -4747,7 +4747,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -5038,7 +5038,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -5329,7 +5329,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -5620,7 +5620,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.w
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -5911,7 +5911,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -6202,7 +6202,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -6493,7 +6493,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -6784,7 +6784,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -7075,7 +7075,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -7366,7 +7366,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -7657,7 +7657,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.w
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -7948,7 +7948,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -8239,7 +8239,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -8530,7 +8530,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -8821,7 +8821,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -9112,7 +9112,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -9403,7 +9403,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -9694,7 +9694,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.w
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -9985,7 +9985,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -10276,7 +10276,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -10567,7 +10567,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -10858,7 +10858,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -11149,7 +11149,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -11440,7 +11440,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -11731,7 +11731,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.w
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -12022,7 +12022,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -12313,7 +12313,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -12604,7 +12604,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -12895,7 +12895,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -13186,7 +13186,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -13477,7 +13477,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -13768,7 +13768,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.w
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -14059,7 +14059,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -14350,7 +14350,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -14641,7 +14641,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -14932,7 +14932,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -15223,7 +15223,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -15514,7 +15514,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -15805,7 +15805,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalRotation.w
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 16
@@ -16097,7 +16097,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -16388,7 +16388,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -16679,7 +16679,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -16970,7 +16970,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -17261,7 +17261,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -17552,7 +17552,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -17843,7 +17843,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -18134,7 +18134,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -18425,7 +18425,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_L/UpperArm_L/Forearm_L/Hand_L
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_l/lengyue_upper_arm_l/lengyue_forearm_l/lengyue_hand_l
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -18716,7 +18716,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -19007,7 +19007,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -19298,7 +19298,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -19589,7 +19589,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -19880,7 +19880,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -20171,7 +20171,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -20462,7 +20462,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.x
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -20753,7 +20753,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.y
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -21044,7 +21044,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAngles.z
-    path: Root/Hips/Spine/Chest/UpperChest/Shoulder_R/UpperArm_R/Forearm_R/Hand_R
+    path: lengyue_armature_root/lengyue_hips/lengyue_spine/lengyue_chest/lengyue_upper_chest/lengyue_clavicle_r/lengyue_upper_arm_r/lengyue_forearm_r/lengyue_hand_r
     classID: 4
     script: {fileID: 0}
     flags: 0

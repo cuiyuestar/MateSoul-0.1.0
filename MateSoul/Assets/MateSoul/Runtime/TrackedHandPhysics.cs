@@ -252,6 +252,7 @@ namespace MateSoul.Runtime
 
         private void FixedUpdate()
         {
+            using var perf = PerfMonitor.Sample("Hand.Physics");
             if (hand == null || !hand.Tracked)
             {
                 ClearContacts();

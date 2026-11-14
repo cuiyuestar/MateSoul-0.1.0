@@ -231,7 +231,10 @@ namespace MateSoul.Tests
             {
                 for (var i = 0; i < 3; i++) scanner.Observe(Chair(Vector3.zero), Time.unscaledTime);
                 var locked = scanner.Targets.Single().Copy();
-                scanner.Observe(new List<RealityTriangle>(), Time.unscaledTime);
+                // Two empty publishes are tolerated so a chair in the headset's blind
+                // spot survives; the third one must revoke the seat.
+                for (var i = 0; i < 3; i++)
+                    scanner.Observe(new List<RealityTriangle>(), Time.unscaledTime);
                 Assert.That(scanner.IsSafe(locked), Is.False);
                 Assert.That(registry.Count, Is.Zero);
             }

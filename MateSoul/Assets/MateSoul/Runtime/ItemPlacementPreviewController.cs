@@ -18,6 +18,10 @@ namespace MateSoul.Runtime
         private InputAction confirmAction, cancelAction;
         private bool controllerReady;
         private float cancelGestureStarted = -1;
+        // 手部抖动/采样噪声会让合法性逐帧翻转，短暂失效时沿用上一次有效位置。
+        private const float PlacementValidityGrace = .3f;
+        private Pose heldPlacement;
+        private float invalidSince = -1;
         public event Action<ItemDefinition> ConfirmRequested;
         public event Action<bool> ActiveChanged;
         public bool CanPlace { get; private set; }
@@ -53,6 +57,7 @@ namespace MateSoul.Runtime
             gestureReady = gesturePressed = false;
             controllerReady = false;
             cancelGestureStarted = -1;
+            invalidSince = -1;
             EnsureProjection();
             projection.transform.localScale = item.PlacementSurface == ItemPlacementSurface.Wall
                 ? new Vector3(item.Footprint.x, item.PlacementHeight, .006f)
@@ -69,6 +74,7 @@ namespace MateSoul.Runtime
             CanPlace = false;
             gestureReady = gesturePressed = false;
             cancelGestureStarted = -1;
+            invalidSince = -1;
             if (input != null) input.PlacementActive = false;
             if (projection != null) projection.SetActive(false);
             ActiveChanged?.Invoke(false);
@@ -102,7 +108,8 @@ namespace MateSoul.Runtime
                 return;
             }
             cancelGestureStarted = -1;
-            if (!CanPlace || !input.TryGetPlacementHand(out _, out var pressed))
+            // 合法性短暂闪烁时不清零手势状态，否则握-松确认永远走不完。
+            if (!input.TryGetPlacementHand(out _, out var pressed))
             {
                 gestureReady = gesturePressed = false;
                 return;
@@ -110,7 +117,7 @@ namespace MateSoul.Runtime
             if (!pressed && !gesturePressed) gestureReady = true;
             var confirm = gestureReady && gesturePressed && !pressed;
             gesturePressed = pressed;
-            if (confirm)
+            if (confirm && CanPlace && input.PlacementTrackingFresh)
             {
                 gestureReady = false;
                 ConfirmRequested?.Invoke(definition);
@@ -178,8 +185,10 @@ namespace MateSoul.Runtime
         {
             if (!input.TryGetPlacementHand(out var hand, out _))
             {
-                CanPlace = false;
-                projection.SetActive(false);
+                // 手短暂丢失时保留上一次有效预览，超过宽限才隐藏。
+                var holding = CommitPlacement(false, Placement);
+                projection.SetActive(holding);
+                SetProjectionColor();
                 return;
             }
             var session = bootstrap.Session;
@@ -187,29 +196,65 @@ namespace MateSoul.Runtime
             {
                 var direction = hand.rotation * Vector3.forward;
                 // Wall controls are placed within arm's reach, never across the room.
-                CanPlace = session.TryResolveWallPlacement(definition,
+                var valid = session.TryResolveWallPlacement(definition,
                     new Ray(hand.position, direction), null, out var wall);
-                var center = wall.position + Vector3.up * definition.PlacementHeight * .5f;
-                CanPlace &= Vector3.Distance(center, hand.position) <= .3f + definition.Footprint.y * .5f;
-                Placement = wall;
+                valid &= Vector3.Distance(
+                    wall.position + Vector3.up * definition.PlacementHeight * .5f,
+                    hand.position) <= .3f + definition.Footprint.y * .5f;
+                if (CommitPlacement(valid, wall))
+                {
+                    SetProjectionColor();
+                    return;
+                }
                 projection.transform.SetPositionAndRotation(
-                    CanPlace ? center : hand.position + direction * .15f,
-                    CanPlace ? wall.rotation : Quaternion.LookRotation(-direction));
+                    valid
+                        ? wall.position + Vector3.up * definition.PlacementHeight * .5f
+                        : hand.position + direction * .15f,
+                    valid ? wall.rotation : Quaternion.LookRotation(-direction));
             }
             else
             {
                 // Vertical projection under the actual palm; no visible aiming ray.
-                CanPlace = session.TryResolveSurfacePlacement(definition,
+                var valid = session.TryResolveSurfacePlacement(definition,
                     new Ray(hand.position, Vector3.down), null, out var surface,
                     viewerPosition);
-                CanPlace &= hand.position.y - surface.position.y >= -.01f &&
-                            hand.position.y - surface.position.y <= 2f;
-                Placement = surface;
+                valid &= hand.position.y - surface.position.y >= -.01f &&
+                         hand.position.y - surface.position.y <= 2f;
+                if (CommitPlacement(valid, surface))
+                {
+                    SetProjectionColor();
+                    return;
+                }
                 projection.transform.SetPositionAndRotation(
-                    CanPlace ? surface.position + Vector3.up * .004f : hand.position,
-                    CanPlace ? surface.rotation : Quaternion.identity);
+                    valid ? surface.position + Vector3.up * .004f : hand.position,
+                    valid ? surface.rotation : Quaternion.identity);
             }
             SetProjectionColor();
+        }
+
+        /// <summary>合法性去抖：短暂失效沿用上一次有效位置，返回当前是否仍显示旧位置。</summary>
+        private bool CommitPlacement(bool valid, Pose pose)
+        {
+            if (valid)
+            {
+                CanPlace = true;
+                Placement = heldPlacement = pose;
+                invalidSince = -1;
+                return false;
+            }
+            if (CanPlace)
+            {
+                if (invalidSince < 0) invalidSince = Time.unscaledTime;
+                if (Time.unscaledTime - invalidSince <= PlacementValidityGrace)
+                {
+                    Placement = heldPlacement;
+                    return true;
+                }
+            }
+            CanPlace = false;
+            invalidSince = -1;
+            Placement = pose;
+            return false;
         }
 
         private void OnDisable()

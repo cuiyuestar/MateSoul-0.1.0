@@ -94,11 +94,11 @@ namespace MateSoul.Tests.Engine
             Assert.That(blend.children.Select(child => child.threshold),
                 Is.EquivalentTo(new[] { 0f, .9f }));
             Assert.That(states["SocialAttention"].motion.name,
-                Is.EqualTo("Lengyue_SocialAttention_Idle_BodyOnly"));
+                Is.EqualTo("lengyue_clip_socialattention_idle_bodyonly"));
             Assert.That(states["TurnStepLeft"].motion.name,
-                Is.EqualTo("Lengyue_TurnLeft_BodyOnly"));
+                Is.EqualTo("lengyue_clip_turn_left_bodyonly"));
             Assert.That(states["TurnStepRight"].motion.name,
-                Is.EqualTo("Lengyue_TurnRight_BodyOnly"));
+                Is.EqualTo("lengyue_clip_turn_right_bodyonly"));
             Assert.That(AnimationUtility.GetAnimationClipSettings(
                 (AnimationClip)states["TurnStepLeft"].motion).loopTime, Is.False);
             Assert.That(AnimationUtility.GetAnimationClipSettings(
@@ -151,8 +151,8 @@ namespace MateSoul.Tests.Engine
             {
                 var animator = character.GetComponentInChildren<Animator>();
                 var transforms = animator.GetComponentsInChildren<Transform>(true);
-                var leftFoot = transforms.Single(value => value.name == "Foot_L");
-                var rightFoot = transforms.Single(value => value.name == "Foot_R");
+                var leftFoot = transforms.Single(value => value.name == "lengyue_foot_l");
+                var rightFoot = transforms.Single(value => value.name == "lengyue_foot_r");
                 clip.SampleAnimation(animator.gameObject, 0);
                 var leftStart = animator.transform.InverseTransformPoint(
                     leftFoot.position);
@@ -199,19 +199,15 @@ namespace MateSoul.Tests.Engine
             var bindings = AnimationUtility.GetCurveBindings(clip);
             Assert.That(bindings.Any(binding =>
                 binding.type == typeof(Transform) &&
-                binding.path.EndsWith("/Head 1", StringComparison.Ordinal)), Is.True);
+                binding.path.EndsWith("/lengyue_head_01", StringComparison.Ordinal)), Is.True);
             Assert.That(bindings.Any(binding =>
                 binding.type != typeof(Transform)), Is.False);
             Assert.That(bindings.Any(binding =>
             {
                 var leaf = binding.path.Split('/').Last();
-                return leaf.StartsWith("Hair_", StringComparison.Ordinal) ||
-                       leaf.StartsWith("Backhair_", StringComparison.Ordinal) ||
-                       leaf.StartsWith("Skirt_", StringComparison.Ordinal) ||
-                       leaf.StartsWith("OuterSkirt_", StringComparison.Ordinal) ||
-                       leaf.StartsWith("CTRL_", StringComparison.Ordinal) ||
-                       leaf.StartsWith("DRV_", StringComparison.Ordinal) ||
-                       leaf.StartsWith("MCH_", StringComparison.Ordinal);
+                return leaf.StartsWith("lengyue_hair_", StringComparison.Ordinal) ||
+                       leaf.StartsWith("lengyue_skirt_", StringComparison.Ordinal) ||
+                       leaf.StartsWith("lengyue_outer_skirt_", StringComparison.Ordinal);
             }), Is.False);
         }
 
@@ -304,7 +300,7 @@ namespace MateSoul.Tests.Engine
                 peakTurnRate = Mathf.Max(peakTurnRate,
                     Mathf.Abs(animator.GetFloat("TurnRate")));
                 foreach (var clip in animator.GetCurrentAnimatorClipInfo(0))
-                    if (clip.clip != null && clip.clip.name == "Lengyue_Walk_BodyOnly")
+                    if (clip.clip != null && clip.clip.name == "lengyue_clip_walk_bodyonly")
                         peakStepWeight = Mathf.Max(peakStepWeight, clip.weight);
                     else if (clip.clip != null &&
                              clip.clip.name.IndexOf(

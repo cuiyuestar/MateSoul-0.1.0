@@ -19,6 +19,7 @@ namespace MateSoul.Gameplay
         public string DefinitionId { get; }
         public string DisplayName { get; }
         public string StateId { get; private set; }
+        public string UseLabel { get; internal set; }
         public long Generation { get; internal set; }
         public bool IsPresent { get; internal set; } = true;
         public bool IsOccupied => Reservation != null;
@@ -228,6 +229,11 @@ namespace MateSoul.Gameplay
             if (!TryGet(id, out var item))
                 throw new KeyNotFoundException($"Item '{id}' is not registered.");
             item.AddCapability(capability);
+        }
+
+        public void SetUseLabel(string id, string label)
+        {
+            if (TryGet(id, out var item)) item.UseLabel = label;
         }
 
         public void RemoveCapability(string id, string capability)

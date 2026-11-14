@@ -6,12 +6,13 @@ namespace MateSoul.Runtime
     // Targeted and autonomous use share the same coordinator, lease and hand owner.
     public sealed class UseHeldItemAction : ItemActionRun
     {
+        public const string Id = "use-item";
         protected override string ActionName => "使用物品";
         protected override string StartNotice =>
             "冷月正在" + Bindings["item"].View.Definition.UseAnimation.actionLabel + "。";
 
         public UseHeldItemAction(GameSession session, string instanceId) : base(session,
-            new ItemActionRequirement("item", "visit", "目标物品", instanceId ?? string.Empty)) { }
+            new ItemActionRequirement("item", null, "目标物品", instanceId ?? string.Empty)) { }
 
         public static bool Supports(GameItem item) => PickupItemAction.Supports(item) &&
             item.Definition.UseAnimation != null && item.Definition.UseAnimation.clip != null;

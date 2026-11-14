@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
@@ -24,6 +25,7 @@ namespace MateSoul.Runtime
             Interaction,
             MiniGames,
             PickupItems,
+            EatFood,
             Information,
             Items,
             Settings,
@@ -47,6 +49,8 @@ namespace MateSoul.Runtime
         private static readonly Color DialogueInputColor = new Color(.27f, .20f, .34f, .42f);
         private static readonly Color DialogueSendColor = new Color(.59f, .42f, .77f, .92f);
         private static readonly Color DialogueCloseColor = new Color(.34f, .28f, .40f, .82f);
+        private static readonly Color VoiceIdleColor = new Color(.47f, .34f, .58f, .92f);
+        private static readonly Color VoiceActiveColor = new Color(.80f, .32f, .40f, .96f);
         private static readonly ItemCategory[] CatalogCategories =
         {
             ItemCategory.Furniture,
@@ -81,6 +85,12 @@ namespace MateSoul.Runtime
         private Button pickupReleaseButton;
         private ActionHandle pickupAction;
         private int pickupPage;
+        private readonly List<HudPanelButton> eatButtons = new List<HudPanelButton>();
+        private ItemDefinition[] eatDefinitions = Array.Empty<ItemDefinition>();
+        private TMP_Text eatPageLabel, eatFeedback;
+        private Button eatReleaseButton;
+        private ActionHandle eatAction;
+        private int eatPage;
         private readonly List<HudPanelButton> catalogCategoryButtons = new List<HudPanelButton>();
         private readonly List<IUIInteractor> hudPointers = new List<IUIInteractor>();
         private ItemDefinition[] catalog = Array.Empty<ItemDefinition>();
@@ -90,6 +100,28 @@ namespace MateSoul.Runtime
         private TMP_Text hudVisibilityHint;
         private TMP_InputField input;
         private TMP_InputField aiAddress, aiModel, aiKey;
+        private Button micButton;
+        private TMP_Text micLabel, dialoguePlaceholder;
+        private SpeechToTextRecorder voiceInput;
+        // PICO 全屏应用一旦拉起系统输入法，整个 XR 容器会被切到后台并退回桌面，
+        // 因此 HUD 输入框只使用内置键盘，不再打开系统软键盘。
+        private RectTransform keyboardRoot;
+        private TMP_InputField keyboardTarget;
+        private bool keyboardShift;
+        private const float KeyboardDialogueLift = 258f;
+        private const float KeyboardKeyHeight = 42f;
+        private const float KeyboardRowGap = 6f;
+        private const float KeyboardRowTop = 56f;
+        private const int KeyboardCandidateCount = 6;
+        private bool keyboardChinese;
+        private string pinyinBuffer = string.Empty;
+        private TMP_Text keyboardComposition, keyboardModeLabel;
+        private Button keyboardModeButton;
+        private readonly List<(HudPanelButton button, TMP_Text label)> keyboardCandidateSlots =
+            new List<(HudPanelButton, TMP_Text)>();
+        private readonly List<string> keyboardCandidateValues = new List<string>(KeyboardCandidateCount);
+        private readonly List<(TMP_Text label, string value)> keyboardLetterKeys =
+            new List<(TMP_Text label, string value)>();
         private TMP_Text aiConfigurationStatus;
         private RectTransform aiRequiredHint;
         private Button aiSaveButton, aiCheckButton;
@@ -97,6 +129,9 @@ namespace MateSoul.Runtime
         private int placementVisibilityFrame = -1;
         private readonly CancellationTokenSource hudLifetime = new CancellationTokenSource();
         private Button sendButton, recycleButton;
+        private Button meshOcclusionToggle, environmentOcclusionToggle;
+        private Button coverageGateToggle, meshVisualizationToggle;
+        private Button environmentPresetButton;
         private Canvas canvas;
         private TMP_FontAsset font;
         private Material overlayMaterial;
@@ -153,6 +188,8 @@ namespace MateSoul.Runtime
 
         // Native keyboard gestures must not also click/deselect the world-space HUD.
         // TMP keeps isFocused until it has consumed the keyboard's final text/status.
+        // The in-app HUD keyboard keeps isFocused without any soft keyboard, so the
+        // suppression only applies while a real system keyboard is visible.
         public static bool IsTextInputFocused
         {
             get
@@ -160,7 +197,7 @@ namespace MateSoul.Runtime
                 var selectedObject = EventSystem.current?.currentSelectedGameObject;
                 return selectedObject != null &&
                        selectedObject.TryGetComponent<TMP_InputField>(out var field) &&
-                       field.isFocused;
+                       field.isFocused && TouchScreenKeyboard.visible;
             }
         }
 
@@ -278,6 +315,7 @@ namespace MateSoul.Runtime
             BuildDialogueBar();
             BuildSubtitle();
             BuildPages();
+            BuildKeyboard();
             var hudLayer = LayerMask.NameToLayer(HudEyeHandInteractor.HudLayerName);
             if (hudLayer < 0) throw new InvalidOperationException("MateSoulHUD layer is missing.");
             foreach (var child in root.GetComponentsInChildren<Transform>(true))
@@ -351,6 +389,88 @@ namespace MateSoul.Runtime
             }
             hudVisibilityHint = Label(VisibilityHint(), 12, 137, 800, 18, 14, dock,
                 TextAnchor.MiddleCenter, MutedTextColor, "展示隐藏UI提示");
+            BuildOcclusionToggles(dock);
+        }
+
+        private void BuildOcclusionToggles(RectTransform dock)
+        {
+            var panel = AnchoredRect("Occlusion Toggles", dock, new Vector2(1f, 0),
+                new Vector2(1f, 0), new Vector2(0f, 0), new Vector2(6, 0),
+                new Vector2(120, 200));
+            AddBackground(panel, DockColor);
+            meshOcclusionToggle = Button("", 6, 6, 108, 34,
+                ToggleMeshOcclusion, panel, 13, "实时网格遮挡");
+            environmentOcclusionToggle = Button("", 6, 45, 108, 34,
+                ToggleEnvironmentOcclusion, panel, 13, "环境深度遮挡");
+            coverageGateToggle = Button("", 6, 84, 108, 34,
+                ToggleCoverageGate, panel, 13, "覆盖度门控");
+            meshVisualizationToggle = Button("", 6, 123, 108, 34,
+                ToggleMeshVisualization, panel, 13, "网格可视化");
+            environmentPresetButton = Button("", 6, 162, 108, 34,
+                ApplyEnvironmentOnlyPreset, panel, 13,
+                "一键实验：关网格遮挡与覆盖门控，只保留环境深度遮挡");
+            RefreshOcclusionToggles();
+        }
+
+        private void ToggleMeshOcclusion()
+        {
+            RealityOcclusionMeshRenderer.SetMeshOcclusion(
+                !RealityOcclusionMeshRenderer.MeshOcclusionAllowed);
+            RefreshOcclusionToggles();
+        }
+
+        private void ToggleEnvironmentOcclusion()
+        {
+            RealityOcclusionMeshRenderer.SetEnvironmentOcclusion(
+                !RealityOcclusionMeshRenderer.EnvironmentOcclusionAllowed);
+            RefreshOcclusionToggles();
+        }
+
+        private void ToggleCoverageGate()
+        {
+            RealityOcclusionMeshRenderer.SetCoverageGate(
+                !RealityOcclusionMeshRenderer.CoverageGateAllowed);
+            RefreshOcclusionToggles();
+        }
+
+        private void ToggleMeshVisualization()
+        {
+            RealityOcclusionMeshRenderer.SetMeshVisualization(
+                !RealityOcclusionMeshRenderer.MeshVisualizationAllowed);
+            RefreshOcclusionToggles();
+        }
+
+        private void ApplyEnvironmentOnlyPreset()
+        {
+            RealityOcclusionMeshRenderer.SetEnvironmentOnlyPreset();
+            RefreshOcclusionToggles();
+        }
+
+        private void RefreshOcclusionToggles()
+        {
+            RefreshOcclusionToggle(meshOcclusionToggle, "网格遮挡",
+                RealityOcclusionMeshRenderer.MeshOcclusionAllowed);
+            RefreshOcclusionToggle(environmentOcclusionToggle, "环境遮挡",
+                RealityOcclusionMeshRenderer.EnvironmentOcclusionAllowed);
+            RefreshOcclusionToggle(coverageGateToggle, "覆盖门控",
+                RealityOcclusionMeshRenderer.CoverageGateAllowed);
+            RefreshOcclusionToggle(meshVisualizationToggle, "网格可视化",
+                RealityOcclusionMeshRenderer.MeshVisualizationAllowed);
+            RefreshOcclusionToggle(environmentPresetButton, "纯环境实验",
+                RealityOcclusionMeshRenderer.EnvironmentOcclusionAllowed &&
+                !RealityOcclusionMeshRenderer.MeshOcclusionAllowed &&
+                !RealityOcclusionMeshRenderer.CoverageGateAllowed);
+        }
+
+        private static void RefreshOcclusionToggle(Button button, string title, bool enabled)
+        {
+            if (button == null) return;
+            button.GetComponent<Image>().color = enabled
+                ? ButtonColor
+                : new Color(.38f, .34f, .40f, .82f);
+            var label = button.transform.Find("Label").GetComponent<TMP_Text>();
+            label.text = $"{title} {(enabled ? "开" : "关")}";
+            label.color = enabled ? TextColor : MutedTextColor;
         }
 
         private void BuildDialogueBar()
@@ -368,20 +488,29 @@ namespace MateSoul.Runtime
             var hazeImage = AddBackground(haze, DialogueHazeColor);
             hazeImage.raycastTarget = false;
 
-            var inputRoot = Rect("对话输入", 18, 20, 568, 72, dialogueRoot);
+            micButton = Button("语音", 18, 20, 64, 72, ToggleVoiceInput,
+                dialogueRoot, 19, "语音输入");
+            micButton.GetComponent<Image>().color = VoiceIdleColor;
+            micLabel = micButton.GetComponentInChildren<TMP_Text>();
+
+            var inputRoot = Rect("对话输入", 90, 20, 496, 72, dialogueRoot);
             AddBackground(inputRoot, DialogueInputColor);
             input = inputRoot.gameObject.AddComponent<TMP_InputField>();
-            var value = Label("", 18, 0, 532, 72, 21, inputRoot,
+            var value = Label("", 18, 0, 460, 72, 21, inputRoot,
                 TextAnchor.MiddleLeft, TextColor, "输入内容");
-            var placeholder = Label("输入想对冷月说的话…", 18, 0, 532, 72, 20, inputRoot,
+            dialoguePlaceholder = Label("输入想对冷月说的话…", 18, 0, 460, 72, 20, inputRoot,
                 TextAnchor.MiddleLeft, new Color(.92f, .87f, .96f, .72f), "输入提示");
             input.textComponent = value;
-            input.placeholder = placeholder;
+            input.placeholder = dialoguePlaceholder;
             input.characterLimit = 1000;
             input.lineType = TMP_InputField.LineType.SingleLine;
 #region debug-point C:input-glyphs
             input.onValueChanged.AddListener(ReportInputGlyphCoverage);
 #endregion
+            voiceInput = new SpeechToTextRecorder();
+            voiceInput.PartialText += OnVoicePartial;
+            voiceInput.Completed += OnVoiceCompleted;
+            voiceInput.Failed += OnVoiceFailed;
 
             sendButton = Button("发送", 598, 20, 106, 72,
                 SendDialogue, dialogueRoot, 20, "发送");
@@ -434,6 +563,7 @@ namespace MateSoul.Runtime
             BuildInteractionPage();
             BuildMiniGamesPage();
             BuildPickupPage();
+            BuildEatPage();
             BuildInformationPage();
             BuildItemsPage();
             BuildSettingsPage();
@@ -454,7 +584,7 @@ namespace MateSoul.Runtime
         {
             var page = CreatePage(HudPage.Interaction, "互动栏目");
             PageHeader(page.transform, "选择互动", "和冷月一起，享受片刻陪伴", "互动标题");
-            var activities = new[] { "一起散步", "坐下聊天", "躺床休息", "起身", "切水果" };
+            var activities = new[] { "一起散步", "坐下聊天", "躺下休息", "起身", "切水果" };
             for (var i = 0; i < activities.Length; i++)
             {
                 var activity = activities[i];
@@ -463,7 +593,9 @@ namespace MateSoul.Runtime
             }
             PanelButton("物品拾取", 388, 256, 344, 60, () => SetActivePage(HudPage.PickupItems),
                 page.transform, 22, "活动/物品拾取", primary: true);
-            PanelButton("小游戏  ›", 28, 328, 704, 52, () => SetActivePage(HudPage.MiniGames),
+            PanelButton("吃东西", 28, 328, 344, 52, () => SetActivePage(HudPage.EatFood),
+                page.transform, 22, "活动/吃东西", primary: true);
+            PanelButton("小游戏  ›", 388, 328, 344, 52, () => SetActivePage(HudPage.MiniGames),
                 page.transform, 22, "活动/小游戏", primary: true);
             var feedback = PanelCard("互动状态", 28, 390, 704, 44, page.transform);
             interactionFeedback = Label("请选择一项互动活动。", 14, 2, 476, 40, 16,
@@ -568,6 +700,101 @@ namespace MateSoul.Runtime
             });
         }
 
+        private void BuildEatPage()
+        {
+            var page = CreatePage(HudPage.EatFood, "吃东西面板");
+            PageHeader(page.transform, "吃东西", "只列出可食用的食物，冷月会分三口吃完", "吃东西标题");
+            PanelButton("‹ 返回互动", 574, 20, 158, 44,
+                () => SetActivePage(HudPage.Interaction), page.transform, 18, "吃东西/返回", quiet: true);
+            for (var slot = 0; slot < CatalogPageSize; slot++)
+            {
+                var capturedSlot = slot;
+                eatButtons.Add(PanelButton("", 28 + slot % 3 * 240, 112 + slot / 3 * 80, 224, 68,
+                    () => EatPlacedItem(capturedSlot), page.transform, 18, "吃东西槽位/" + slot));
+            }
+            PanelButton("‹", 28, 284, 68, 42, () => ChangeEatPage(-1),
+                page.transform, 24, "吃东西/上一页", quiet: true);
+            eatPageLabel = Label("", 108, 284, 544, 42, 17, page.transform,
+                TextAnchor.MiddleCenter, MutedTextColor, "吃东西页码");
+            PanelButton("›", 664, 284, 68, 42, () => ChangeEatPage(1),
+                page.transform, 24, "吃东西/下一页", quiet: true);
+            eatFeedback = Label("仅列出房间内可食用的食物。", 28, 332, 704, 46, 17,
+                page.transform, TextAnchor.MiddleLeft, MutedTextColor, "吃东西状态");
+            PanelButton("去放置食物", 28, 390, 344, 44, () => SetActivePage(HudPage.Items),
+                page.transform, 18, "吃东西/放置", quiet: true);
+            eatReleaseButton = PanelButton("取消吃东西", 388, 390, 344, 44,
+                () => Run(() => bootstrap.Session.Avatar.Cancel(eatAction)),
+                page.transform, 18, "吃东西/取消", danger: true);
+        }
+
+        private void ChangeEatPage(int offset)
+        {
+            var count = Mathf.Max(1, (eatDefinitions.Length + CatalogPageSize - 1) / CatalogPageSize);
+            eatPage = (eatPage + offset + count) % count;
+            RefreshEatPage();
+        }
+
+        private void RefreshEatPage()
+        {
+            var session = bootstrap == null ? null : bootstrap.Session;
+            var placed = session == null ? Array.Empty<GameItem>() :
+                session.ItemViews.Where(item => EatItemAction.Supports(item) &&
+                    session.Items.IsCurrent(item.Instance)).ToArray();
+            eatDefinitions = placed.Select(item => item.Definition).Distinct()
+                .OrderBy(item => item.DisplayName).ThenBy(item => item.Id).ToArray();
+            var count = Mathf.Max(1, (eatDefinitions.Length + CatalogPageSize - 1) / CatalogPageSize);
+            eatPage = Mathf.Clamp(eatPage, 0, count - 1);
+            var running = eatAction != null && !eatAction.IsFinished;
+            for (var slot = 0; slot < eatButtons.Count; slot++)
+            {
+                var index = eatPage * CatalogPageSize + slot;
+                var button = eatButtons[slot];
+                button.gameObject.SetActive(index < eatDefinitions.Length);
+                if (index >= eatDefinitions.Length) continue;
+                var definition = eatDefinitions[index];
+                var available = placed.Count(item => item.Definition == definition && !item.Instance.IsOccupied);
+                button.name = "吃东西/" + definition.Id;
+                button.transform.Find("Label").GetComponent<TMP_Text>().text =
+                    definition.DisplayName + $"\n可食用 {available}";
+                button.interactable = session.ItemsReady && !session.Paused && !running && available > 0;
+            }
+            eatPageLabel.text = eatDefinitions.Length == 0
+                ? "暂无可食用食物，请先到物品背包放置"
+                : $"{eatPage + 1} / {count}  ·  共 {eatDefinitions.Length} 种";
+            eatReleaseButton.interactable = running && session != null && !session.Paused;
+            if (running)
+                eatFeedback.text = session.Avatar.Capture()
+                    .FirstOrDefault(action => action.action_id == EatItemAction.Id)?.phase ?? "正在准备吃东西";
+        }
+
+        private void EatPlacedItem(int slot)
+        {
+            Run(() =>
+            {
+                if (eatAction != null && !eatAction.IsFinished) return;
+                var index = eatPage * CatalogPageSize + slot;
+                if (index < 0 || index >= eatDefinitions.Length) return;
+                var session = bootstrap.Session;
+                var definition = eatDefinitions[index];
+                var item = session.ItemViews.Where(value => EatItemAction.Supports(value) &&
+                        value.Definition == definition && session.Items.IsCurrent(value.Instance) &&
+                        !value.Instance.IsOccupied)
+                    .OrderBy(value => (value.Body.Pose.position - session.Motor.Position).sqrMagnitude)
+                    .ThenBy(value => value.Instance.Id).FirstOrDefault();
+                if (item == null)
+                {
+                    message = "该食物已被拿取或吃掉，请重新选择。";
+                    eatFeedback.text = message;
+                    RefreshEatPage();
+                    return;
+                }
+                eatAction = session.Submit(new AvatarIntent(EatItemAction.Id, IntentSource.UI, item.Instance.Id));
+                message = eatAction.IsFinished ? eatAction.Error : "冷月正在吃" + definition.DisplayName + "。";
+                eatFeedback.text = message;
+                RefreshEatPage();
+            });
+        }
+
         private void BuildMiniGamesPage()
         {
             var page = CreatePage(HudPage.MiniGames, "小游戏二级页面");
@@ -631,6 +858,9 @@ namespace MateSoul.Runtime
         {
             var page = CreatePage(HudPage.Items, "虚拟物品栏目");
             PageHeader(page.transform, "物品背包", "选择分类，点击物品即可取出", "物品标题");
+            PanelButton("刷新库存", 574, 20, 158, 44,
+                () => Run(() => bootstrap.Session.RefreshAllInventory()),
+                page.transform, 17, "物品/刷新库存", quiet: true);
             catalog = bootstrap.CatalogItems.ToArray();
             const float categoryWidth = 110.6667f;
             const float categoryGap = 8;
@@ -756,7 +986,7 @@ namespace MateSoul.Runtime
             }, systemSettingsRoot, 20);
             PanelButton("AI配置", 360, 148, 344, 60,
                 () => OpenAIConfiguration(false), systemSettingsRoot, 20, "设置/AI配置");
-            var modeButton = PanelButton("交互模式", 0, 222, 704, 44, () => Run(() =>
+            var modeButton = PanelButton("交互模式", 0, 222, 344, 44, () => Run(() =>
             {
                 var mode = bootstrap.MiniGames.Input;
                 if (mode == null) return;
@@ -766,7 +996,28 @@ namespace MateSoul.Runtime
                 else message = "菜单可注视后捏合点选，也可食指触碰；物品需伸手靠近后握紧拾取，松手放下。";
             }), systemSettingsRoot, 20);
             inputModeLabel = modeButton.GetComponentInChildren<TMP_Text>();
+            PanelButton("重启游戏", 360, 222, 344, 44, RestartGame,
+                systemSettingsRoot, 20, "设置/重启游戏", danger: true);
             SetSettingsMode(true);
+        }
+
+        private void RestartGame()
+        {
+            // 先保存当前会话，避免场景重载时丢失物品与房间状态。
+            try { bootstrap.Session?.Save(); }
+            catch (Exception error) { Debug.LogException(error, this); }
+            StartCoroutine(ReloadSceneNextFrame());
+        }
+
+        private IEnumerator ReloadSceneNextFrame()
+        {
+            // 延后一帧再重载，避免在 UI 点击事件分发途中销毁整个 HUD。
+            yield return null;
+            var scene = SceneManager.GetActiveScene();
+            if (scene.buildIndex >= 0)
+                SceneManager.LoadScene(scene.buildIndex, LoadSceneMode.Single);
+            else
+                SceneManager.LoadScene(scene.name, LoadSceneMode.Single);
         }
 
         private void BuildAIConfigurationPage()
@@ -790,20 +1041,65 @@ namespace MateSoul.Runtime
         }
 
         private TMP_InputField AIField(string title, string placeholder, float y,
-            Transform parent, bool secret = false)
+            Transform parent, bool withPaste = false)
         {
+            var width = withPaste ? 458 : 558;
             Label(title, 28, y, 132, 56, 19, parent, TextAnchor.MiddleLeft, MutedTextColor);
-            var root = Rect(title + "输入框", 174, y, 558, 56, parent);
+            var root = Rect(title + "输入框", 174, y, width, 56, parent);
             AddPanelBackground(root, CardColor);
             var field = root.gameObject.AddComponent<TMP_InputField>();
-            field.textComponent = Label("", 18, 0, 522, 56, 19, root,
+            field.textComponent = Label("", 18, 0, width - 36, 56, 19, root,
                 TextAnchor.MiddleLeft, TextColor, title + "内容");
-            field.placeholder = Label(placeholder, 18, 0, 522, 56, 18, root,
+            field.placeholder = Label(placeholder, 18, 0, width - 36, 56, 18, root,
                 TextAnchor.MiddleLeft, MutedTextColor, title + "提示");
             field.lineType = TMP_InputField.LineType.SingleLine;
-            field.characterLimit = secret ? 4096 : 300;
-            if (secret) field.contentType = TMP_InputField.ContentType.Password;
+            field.characterLimit = withPaste ? 4096 : 300;
+            if (withPaste)
+                PanelButton("粘贴", 644, y, 88, 56, PasteAIConfigurationKey,
+                    parent, 19, "AI配置/粘贴");
             return field;
+        }
+
+        private void PasteAIConfigurationKey()
+        {
+            if (aiKey == null) return;
+            var clipboard = ReadClipboard();
+            if (string.IsNullOrEmpty(clipboard))
+            {
+                aiConfigurationStatus.text = "剪贴板为空，无法粘贴。";
+                return;
+            }
+            aiKey.text = clipboard.Trim();
+            aiKey.ForceLabelUpdate();
+            aiConfigurationStatus.text = "已粘贴剪贴板内容，请保存配置。";
+        }
+
+        private static string ReadClipboard()
+        {
+            try
+            {
+                var text = GUIUtility.systemCopyBuffer;
+                if (!string.IsNullOrEmpty(text)) return text;
+            }
+            catch (Exception) { }
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
+            {
+                using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                using var activity = player.GetStatic<AndroidJavaObject>("currentActivity");
+                using var clipboard = activity.Call<AndroidJavaObject>(
+                    "getSystemService", "clipboard");
+                using var clip = clipboard.Call<AndroidJavaObject>("getPrimaryClip");
+                if (clip != null && clip.Call<int>("getItemCount") > 0)
+                {
+                    using var item = clip.Call<AndroidJavaObject>("getItemAt", 0);
+                    using var text = item.Call<AndroidJavaObject>("getText");
+                    if (text != null) return text.Call<string>("toString");
+                }
+            }
+            catch (Exception) { }
+#endif
+            return null;
         }
 
         private void BuildAITutorialPage()
@@ -884,11 +1180,16 @@ namespace MateSoul.Runtime
         private void RefreshAIAvailability()
         {
             var configured = bootstrap != null && bootstrap.AIConfiguration.IsConfigured;
+            var thinking = bootstrap != null && bootstrap.Session != null &&
+                bootstrap.Session.Conversation.State == MateSoul.Gameplay.ConversationState.Thinking;
+            var capturing = voiceInput != null && voiceInput.IsCapturing;
             if (aiRequiredHint != null) aiRequiredHint.gameObject.SetActive(!configured);
-            if (input != null) input.interactable = configured;
+            if (input != null) input.interactable = configured && !capturing;
             if (sendButton != null)
                 sendButton.interactable = configured && bootstrap.Session != null &&
-                    bootstrap.Session.Conversation.State != MateSoul.Gameplay.ConversationState.Thinking;
+                    !thinking && !capturing;
+            if (micButton != null)
+                micButton.interactable = configured && (!thinking || capturing);
         }
 
         private void SetSettingsMode(bool personality)
@@ -931,11 +1232,13 @@ namespace MateSoul.Runtime
 
         private void SetActivePage(HudPage page)
         {
+            CloseKeyboard();
             if (page != HudPage.Items && placementPreview != null)
                 placementPreview.Cancel();
             if (page != HudPage.Items) CancelRecycleSelection();
             activePage = page;
             if (page == HudPage.PickupItems) RefreshPickupPage();
+            if (page == HudPage.EatFood) RefreshEatPage();
             if (panelTransition != null) StopCoroutine(panelTransition);
             if (page == HudPage.None && !contentRoot.gameObject.activeSelf)
             {
@@ -1011,7 +1314,8 @@ namespace MateSoul.Runtime
                     entry.Key == HudPage.Dialogue && dialogueOpen ||
                     entry.Key == activePage ||
                     entry.Key == HudPage.Interaction &&
-                        (activePage == HudPage.MiniGames || activePage == HudPage.PickupItems)
+                        (activePage == HudPage.MiniGames || activePage == HudPage.PickupItems ||
+                         activePage == HudPage.EatFood)
                         ? SelectedColor
                         : ButtonColor;
         }
@@ -1019,6 +1323,11 @@ namespace MateSoul.Runtime
         private void SetDialogueOpen(bool open)
         {
             if (dialogueOpen == open && dialogueTransition == null) return;
+            if (!open)
+            {
+                CloseKeyboard();
+                StopVoiceInput();
+            }
             if (open) SetActivePage(HudPage.None);
             RefreshAIAvailability();
             dialogueOpen = open;
@@ -1207,6 +1516,11 @@ namespace MateSoul.Runtime
 
         private void SetHudVisible(bool visible)
         {
+            if (!visible)
+            {
+                CloseKeyboard();
+                StopVoiceInput();
+            }
             hudVisible = visible;
             ApplyHudVisibility();
         }
@@ -1252,7 +1566,7 @@ namespace MateSoul.Runtime
                     message = interactionAction.IsFinished ? interactionAction.Error : "正在走向椅子并对齐落座";
                 });
             }
-            else if (activity == "躺床休息")
+            else if (activity == "躺下休息")
             {
                 Run(() =>
                 {
@@ -1263,7 +1577,7 @@ namespace MateSoul.Runtime
                     interactionAction = session.Submit(new AvatarIntent(
                         RealityInteractionIds.Lie, IntentSource.UI, bed.Id));
                     message = interactionAction.IsFinished
-                        ? interactionAction.Error : "正在走向床边并准备躺下";
+                        ? interactionAction.Error : "正在走向床或沙发并准备躺下";
                 });
             }
             else if (activity == "起身")
@@ -1279,7 +1593,254 @@ namespace MateSoul.Runtime
             if (interactionFeedback != null) interactionFeedback.text = message;
         }
 
+        /// <summary>
+        /// HUD 内置键盘：PICO 全屏应用不能安全使用系统输入法（会把 XR 容器切到后台），
+        /// 输入框统一改为在应用内输入；中文通过拼音候选栏选择。
+        /// </summary>
+        private void BuildKeyboard()
+        {
+            keyboardRoot = AnchoredRect("屏幕键盘", hudRoot, new Vector2(.5f, 0),
+                new Vector2(.5f, 0), new Vector2(.5f, 0), Vector2.zero,
+                new Vector2(824, 250));
+            AddPanelBackground(keyboardRoot, PanelColor);
+            BuildKeyboardCandidates();
+            const float keyHeight = KeyboardKeyHeight;
+            const float gap = KeyboardRowGap;
+            const float margin = 8;
+            const float keyWidth = 61;
+            KeyboardRow(0, keyHeight, gap, margin, keyWidth,
+                "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "_");
+            KeyboardRow(1, keyHeight, gap, margin, keyWidth,
+                "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "@", ".");
+            KeyboardLetterRow(2, keyHeight, gap, margin, keyWidth);
+            KeyboardBottomRow(3, keyHeight, gap, margin);
+            BindHudInput(input);
+            BindHudInput(aiAddress);
+            BindHudInput(aiModel);
+            BindHudInput(aiKey);
+            SetKeyboardChinese(false);
+            keyboardRoot.gameObject.SetActive(false);
+        }
+
+        private void BuildKeyboardCandidates()
+        {
+            var bar = Rect("拼音候选栏", 12, 8, 800, 42, keyboardRoot);
+            keyboardComposition = Label("英文输入", 6, 0, 122, 42, 18, bar,
+                TextAnchor.MiddleLeft, MutedTextColor, "拼音组合");
+            for (var index = 0; index < KeyboardCandidateCount; index++)
+            {
+                var slot = index;
+                var button = PanelButton(string.Empty, 134 + index * 108, 0, 100, 42,
+                    () => ChooseKeyboardCandidate(slot), bar, 20, "候选" + (index + 1),
+                    quiet: true);
+                keyboardCandidateSlots.Add((button, button.GetComponentInChildren<TMP_Text>()));
+            }
+        }
+
+        private void KeyboardRow(int row, float height, float gap, float margin, float width,
+            params string[] labels)
+        {
+            var y = KeyboardRowTop + row * (height + gap);
+            for (var index = 0; index < labels.Length; index++)
+            {
+                var value = labels[index];
+                KeyboardKey(value, margin + index * (width + gap), y, width, height,
+                    () => KeyboardType(value));
+            }
+        }
+
+        private void KeyboardLetterRow(int row, float height, float gap, float margin, float width)
+        {
+            var y = KeyboardRowTop + row * (height + gap);
+            var x = margin;
+            KeyboardKey("大写", x, y, width, height, ToggleKeyboardShift).image.color = QuietColor;
+            x += width + gap;
+            foreach (var value in new[] { "a", "s", "d", "f", "g", "h", "j", "k", "l", ":", "/" })
+            {
+                AddKeyboardLetter(value, x, y, width, height);
+                x += width + gap;
+            }
+            keyboardModeButton = KeyboardKey("英文", x, y, width, height, ToggleKeyboardLanguage);
+            keyboardModeLabel = keyboardModeButton.GetComponentInChildren<TMP_Text>();
+        }
+
+        private void KeyboardBottomRow(int row, float height, float gap, float margin)
+        {
+            const float keyWidth = 61;
+            var y = KeyboardRowTop + row * (height + gap);
+            var x = margin;
+            foreach (var value in new[] { "z", "x", "c", "v", "b", "n", "m" })
+            {
+                AddKeyboardLetter(value, x, y, keyWidth, height);
+                x += keyWidth + gap;
+            }
+            KeyboardKey("删除", x, y, 76, height, KeyboardBackspace);
+            x += 76 + gap;
+            KeyboardKey("空格", x, y, 140, height, KeyboardSpace);
+            x += 140 + gap;
+            KeyboardKey("完成", x, y, 100, height, FinishKeyboardInput).image.color = DialogueSendColor;
+        }
+
+        private void AddKeyboardLetter(string value, float x, float y, float width, float height)
+        {
+            var button = KeyboardKey(value, x, y, width, height,
+                () => KeyboardType(keyboardShift ? value.ToUpperInvariant() : value));
+            keyboardLetterKeys.Add((button.GetComponentInChildren<TMP_Text>(), value));
+        }
+
+        private Button KeyboardKey(string label, float x, float y, float width, float height,
+            UnityEngine.Events.UnityAction action)
+        {
+            var button = Button(label, x, y, width, height, action, keyboardRoot, 20, "键 " + label);
+            button.image.color = CardColor;
+            return button;
+        }
+
+        private void BindHudInput(TMP_InputField field)
+        {
+            if (field == null) return;
+            // 关键点：禁止 TMP 打开系统软键盘，否则 PICO 会关闭整个 XR 容器。
+            field.shouldHideSoftKeyboard = true;
+            field.onSelect.AddListener(_ => OpenKeyboard(field));
+        }
+
+        private void OpenKeyboard(TMP_InputField field)
+        {
+            if (field == null || keyboardRoot == null) return;
+            keyboardTarget = field;
+            // 对话默认中文，配置项默认英文，仍可用中/英键随时切换。
+            SetKeyboardChinese(field == input);
+            keyboardRoot.gameObject.SetActive(true);
+            if (dialogueOpen && dialogueRoot != null)
+                dialogueRoot.anchoredPosition = new Vector2(0, KeyboardDialogueLift);
+        }
+
+        private void CloseKeyboard()
+        {
+            var target = keyboardTarget;
+            keyboardTarget = null;
+            keyboardShift = false;
+            pinyinBuffer = string.Empty;
+            foreach (var entry in keyboardLetterKeys) entry.label.text = entry.value;
+            if (target != null) target.DeactivateInputField();
+            if (keyboardRoot != null) keyboardRoot.gameObject.SetActive(false);
+            if (dialogueOpen && dialogueRoot != null) dialogueRoot.anchoredPosition = Vector2.zero;
+        }
+
+        private void FinishKeyboardInput()
+        {
+            if (keyboardChinese && pinyinBuffer.Length > 0) CommitKeyboardCandidate(0);
+            CloseKeyboard();
+        }
+
+        private void ToggleKeyboardLanguage() => SetKeyboardChinese(!keyboardChinese);
+
+        private void SetKeyboardChinese(bool chinese)
+        {
+            keyboardChinese = chinese;
+            pinyinBuffer = string.Empty;
+            if (keyboardModeLabel != null) keyboardModeLabel.text = chinese ? "中文" : "英文";
+            if (keyboardModeButton != null)
+                keyboardModeButton.image.color = chinese ? DialogueSendColor : QuietColor;
+            RefreshKeyboardCandidates();
+        }
+
+        private void RefreshKeyboardCandidates()
+        {
+            keyboardCandidateValues.Clear();
+            if (!keyboardChinese)
+            {
+                if (keyboardComposition != null) keyboardComposition.text = "英文输入";
+            }
+            else
+            {
+                if (keyboardComposition != null)
+                    keyboardComposition.text = pinyinBuffer.Length == 0 ? "拼音输入" : pinyinBuffer;
+                PinyinIme.Fill(pinyinBuffer, keyboardCandidateValues);
+            }
+            for (var index = 0; index < keyboardCandidateSlots.Count; index++)
+            {
+                var labelText = index < keyboardCandidateValues.Count
+                    ? keyboardCandidateValues[index] : string.Empty;
+                keyboardCandidateSlots[index].label.text = labelText;
+                keyboardCandidateSlots[index].button.interactable = labelText.Length > 0;
+            }
+        }
+
+        private void ChooseKeyboardCandidate(int index) => CommitKeyboardCandidate(index);
+
+        private void CommitKeyboardCandidate(int index)
+        {
+            if (keyboardTarget == null || index < 0 || index >= keyboardCandidateValues.Count)
+                return;
+            keyboardTarget.text = (keyboardTarget.text ?? string.Empty) +
+                                  keyboardCandidateValues[index];
+            keyboardTarget.ForceLabelUpdate();
+            pinyinBuffer = string.Empty;
+            RefreshKeyboardCandidates();
+        }
+
+        private void KeyboardType(string value)
+        {
+            if (keyboardTarget == null) return;
+            if (keyboardChinese && value.Length == 1 && PinyinIme.IsLetter(char.ToLowerInvariant(value[0])))
+            {
+                if (pinyinBuffer.Length >= 12) return;
+                pinyinBuffer += char.ToLowerInvariant(value[0]);
+                RefreshKeyboardCandidates();
+                return;
+            }
+            if (keyboardChinese && pinyinBuffer.Length > 0) CommitKeyboardCandidate(0);
+            // 内置键盘固定在光标末尾追加，避免依赖 TMP 在失焦后重置的 caret。
+            keyboardTarget.text = (keyboardTarget.text ?? string.Empty) + value;
+            keyboardTarget.ForceLabelUpdate();
+        }
+
+        private void KeyboardSpace()
+        {
+            if (keyboardChinese && pinyinBuffer.Length > 0)
+            {
+                CommitKeyboardCandidate(0);
+                return;
+            }
+            KeyboardType(" ");
+        }
+
+        private void KeyboardBackspace()
+        {
+            if (keyboardTarget == null) return;
+            if (keyboardChinese && pinyinBuffer.Length > 0)
+            {
+                pinyinBuffer = pinyinBuffer.Substring(0, pinyinBuffer.Length - 1);
+                RefreshKeyboardCandidates();
+                return;
+            }
+            var text = keyboardTarget.text ?? string.Empty;
+            if (text.Length == 0) return;
+            keyboardTarget.text = text.Substring(0, text.Length - 1);
+            keyboardTarget.ForceLabelUpdate();
+        }
+
+        private void ToggleKeyboardShift()
+        {
+            keyboardShift = !keyboardShift;
+            foreach (var entry in keyboardLetterKeys)
+                entry.label.text = keyboardShift ? entry.value.ToUpperInvariant() : entry.value;
+        }
+
         private void SendDialogue()
+        {
+            if (keyboardChinese && pinyinBuffer.Length > 0) CommitKeyboardCandidate(0);
+            CloseKeyboard();
+            if (voiceInput != null && voiceInput.IsCapturing)
+            {
+                voiceInput.Cancel();
+                RefreshVoiceUi();
+            }
+            SendDialogueText(input.text);
+        }
+
+        private void SendDialogueText(string value)
         {
             if (!bootstrap.AIConfiguration.IsConfigured)
             {
@@ -1291,7 +1852,6 @@ namespace MateSoul.Runtime
 #endregion
             RunAsync(async () =>
             {
-                var value = input.text;
                 if (string.IsNullOrWhiteSpace(value)) return;
                 var conversation = bootstrap.Session.Conversation;
                 if (conversation.State == MateSoul.Gameplay.ConversationState.Thinking)
@@ -1304,6 +1864,77 @@ namespace MateSoul.Runtime
                     input.text = "";
                 await pending;
             });
+        }
+
+        private void ToggleVoiceInput()
+        {
+            if (voiceInput == null) return;
+            if (voiceInput.IsCapturing)
+            {
+                voiceInput.Stop();
+                RefreshVoiceUi();
+                return;
+            }
+            if (!bootstrap.AIConfiguration.IsConfigured)
+            {
+                RefreshAIAvailability();
+                return;
+            }
+            if (bootstrap.Session != null &&
+                bootstrap.Session.Conversation.State == MateSoul.Gameplay.ConversationState.Thinking)
+            {
+                message = "冷月正在回复，请稍候。";
+                return;
+            }
+            CloseKeyboard();
+            input.text = string.Empty;
+            voiceInput.Start();
+            RefreshVoiceUi();
+        }
+
+        private void StopVoiceInput()
+        {
+            if (voiceInput == null || !voiceInput.IsCapturing) return;
+            voiceInput.Cancel();
+            RefreshVoiceUi();
+        }
+
+        private void OnVoicePartial(string text)
+        {
+            // 识别中间结果只放在占位提示里，避免每包结果都改写输入框触发额外回调。
+            if (dialoguePlaceholder == null || string.IsNullOrEmpty(text)) return;
+            dialoguePlaceholder.text = text;
+        }
+
+        private void OnVoiceCompleted(string text)
+        {
+            RefreshVoiceUi();
+            if (string.IsNullOrWhiteSpace(text) || input == null) return;
+            input.text = text;
+            input.ForceLabelUpdate();
+            SendDialogueText(text);
+        }
+
+        private void OnVoiceFailed(string error)
+        {
+            RefreshVoiceUi();
+            message = error;
+        }
+
+        private void RefreshVoiceUi()
+        {
+            if (micButton == null) return;
+            var phase = voiceInput == null ? SpeechToTextRecorder.Phase.Idle : voiceInput.State;
+            var capturing = phase != SpeechToTextRecorder.Phase.Idle;
+            micButton.GetComponent<Image>().color = capturing ? VoiceActiveColor : VoiceIdleColor;
+            if (micLabel != null)
+                micLabel.text = phase == SpeechToTextRecorder.Phase.Preparing ? "准备中" :
+                    phase == SpeechToTextRecorder.Phase.Listening ? "停止" :
+                    phase == SpeechToTextRecorder.Phase.Finishing ? "识别中" : "语音";
+            if (dialoguePlaceholder != null)
+                dialoguePlaceholder.text = capturing
+                    ? "正在聆听，请说话…" : "输入想对冷月说的话…";
+            RefreshAIAvailability();
         }
 
 #region debug-point A:close-button
@@ -1562,6 +2193,9 @@ namespace MateSoul.Runtime
 
         private void RefreshCatalogQuantities()
         {
+            // Runs 5x/s and allocates with LINQ per visible slot; tracked so a large
+            // item count shows up as HUD cost instead of an unexplained spike.
+            using var perf = PerfMonitor.Sample("Hud.Refresh");
             var session = bootstrap == null ? null : bootstrap.Session;
             for (var slot = 0; slot < catalogButtons.Count; slot++)
             {
@@ -1580,6 +2214,7 @@ namespace MateSoul.Runtime
 
         private void Update()
         {
+            voiceInput?.Tick();
             UpdateHudVisibilityInput();
 #region debug-point D:eyehand-pointer-stall
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -1629,6 +2264,15 @@ namespace MateSoul.Runtime
                 pickupAction = null;
             }
             if (activePage == HudPage.PickupItems) RefreshPickupPage();
+            if (eatAction != null && eatAction.IsFinished)
+            {
+                message = eatAction.Error ?? (eatAction.State == ActionState.Succeeded
+                    ? "冷月吃完了。" : "吃东西已取消。");
+                eatFeedback.text = message;
+                eatAction = null;
+                RefreshEatPage();
+            }
+            if (activePage == HudPage.EatFood) RefreshEatPage();
             if (interactionAction != null && interactionAction.IsFinished)
             {
                 message = interactionAction.Error ?? (
@@ -1636,7 +2280,7 @@ namespace MateSoul.Runtime
                         ? (interactionAction.State == ActionState.Succeeded ? "水果已切好并装盘" : "切水果已取消") :
                     interactionAction.Intent.ActionId == "stay" ? "已起身" :
                     interactionAction.Intent.ActionId == RealityInteractionIds.Lie
-                        ? "躺床互动已结束" : "落座互动已结束");
+                        ? "躺下互动已结束" : "落座互动已结束");
                 interactionAction = null;
                 if (interactionFeedback != null) interactionFeedback.text = message;
             }
@@ -2275,6 +2919,7 @@ namespace MateSoul.Runtime
             }
             hudLifetime.Cancel();
             hudLifetime.Dispose();
+            voiceInput?.Dispose();
             CancelRecycleSelection();
             if (dialogueTransition != null) StopCoroutine(dialogueTransition);
             if (panelTransition != null) StopCoroutine(panelTransition);

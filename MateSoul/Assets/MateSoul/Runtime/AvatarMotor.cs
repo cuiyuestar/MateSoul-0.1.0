@@ -116,7 +116,7 @@ namespace MateSoul.Runtime
     public sealed class AvatarMotor : MonoBehaviour, IAvatarMotor
     {
         public const float FullWalkBlendSpeed = .12f;
-        public const float WalkReferenceSpeed = .6221811f;
+        public const float WalkReferenceSpeed = .4086475f;
         private const float AnimationIdleSpeed = .05f;
         private const float TurnAnimationStartSpeed = .12f;
         private const float TurnBeforeMoveEnterAngle = 70f;
@@ -135,7 +135,6 @@ namespace MateSoul.Runtime
         [SerializeField] private Animator animator;
         [SerializeField] private float speed = .75f;
         [SerializeField] private float turnSpeed = 240f;
-        [SerializeField] private float handHoldAcceleration = 2.2f;
         private PhysicsBody body;
         private CapsuleCollider capsule;
         private NavMeshAgent agent;
@@ -149,6 +148,7 @@ namespace MateSoul.Runtime
         private float turnStepRecoverySeconds;
         private bool contact;
         private Vector3 contactExit;
+        private float contactLandingTolerance = MountClipTolerance;
         private Vector3 desiredVelocity;
         private Vector3 externalResponseVelocity;
         private Vector3 physicalStepOrigin, physicalStepOffset;
@@ -188,6 +188,11 @@ namespace MateSoul.Runtime
         public string ContactPosture => !contact ? null :
             Vector3.Dot(body.Pose.rotation * Vector3.up, Vector3.up) < .7f ? "lying" : "seated";
         public Vector3 Position => body != null ? body.Pose.position : transform.position;
+        // Exposes the internal velocity commands so a constant horizontal drift can be
+        // traced to the system that owns it instead of being blamed on an animation.
+        public string MotionDiagnostics =>
+            $"desired={desiredVelocity} external={externalResponseVelocity} " +
+            $"handHold={handHoldDrive} step={physicalStepActive} moving={IsMoving}";
         public bool IsMoving => corners != null;
         public bool IsTurning => turnMotion.IsTurning;
         public bool IsTurnStepActive => turnStepActive;
@@ -255,8 +260,8 @@ namespace MateSoul.Runtime
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             foreach (var child in animator.GetComponentsInChildren<Transform>(true))
             {
-                if (child.name == "Leg_L") debugLeftLeg = child;
-                else if (child.name == "Leg_R") debugRightLeg = child;
+                if (child.name == "lengyue_thigh_l") debugLeftLeg = child;
+                else if (child.name == "lengyue_thigh_r") debugRightLeg = child;
             }
             debugPreviousLeftLeg = debugLeftLeg != null
                 ? debugLeftLeg.localRotation : Quaternion.identity;
@@ -667,10 +672,26 @@ namespace MateSoul.Runtime
                 }
                 var target = Vector3.ProjectOnPlane(
                     desiredVelocity + externalResponseVelocity, normal);
-                var actual = Vector3.ProjectOnPlane(body.Rigidbody.velocity, normal);
-                var acceleration = handHoldDrive ? handHoldAcceleration : 14f;
-                body.AddForce(Vector3.ClampMagnitude((target - actual) / Time.fixedDeltaTime, acceleration),
-                    ForceMode.Acceleration);
+                if (handHoldDrive)
+                {
+                    // A hand hold is a direct command: the player leads the avatar, so
+                    // its velocity is written straight onto the body. Servo-driving it
+                    // through a force budget made the avatar lag the player, stretch the
+                    // arm and drop the hold.
+                    if (!body.Rigidbody.isKinematic)
+                    {
+                        if (target.sqrMagnitude > .0001f && body.Rigidbody.IsSleeping())
+                            body.Rigidbody.WakeUp();
+                        body.Rigidbody.velocity = new Vector3(
+                            target.x, body.Rigidbody.velocity.y, target.z);
+                    }
+                }
+                else
+                {
+                    var actual = Vector3.ProjectOnPlane(body.Rigidbody.velocity, normal);
+                    body.AddForce(Vector3.ClampMagnitude((target - actual) / Time.fixedDeltaTime, 14f),
+                        ForceMode.Acceleration);
+                }
             }
             if (!physicalStepActive)
                 externalResponseVelocity = Vector3.MoveTowards(
@@ -806,10 +827,15 @@ namespace MateSoul.Runtime
         private void Update()
         {
             if (body == null || animator == null) return;
-            // Update once per rendered frame from physics, including braking, docking
-            // and hand holding. A blocked capsule must not keep advancing the gait.
-            SetAnimationSpeed(body.IsPaused || contact ? 0 :
-                Vector3.ProjectOnPlane(body.Rigidbody.velocity, Vector3.up).magnitude);
+            // Update once per rendered frame from physics, including braking and
+            // docking. A blocked capsule must not keep advancing the gait. While hand
+            // holding the motion is commanded directly, so the gait rides the command
+            // and starts walking on the same frame as the player instead of waiting
+            // for the rigidbody to catch up.
+            var gait = handHoldDrive
+                ? Vector3.ProjectOnPlane(desiredVelocity, Vector3.up).magnitude
+                : Vector3.ProjectOnPlane(body.Rigidbody.velocity, Vector3.up).magnitude;
+            SetAnimationSpeed(body.IsPaused || contact ? 0 : gait);
         }
 
         private void UpdateFacing(float actualSpeed)
@@ -1057,12 +1083,17 @@ namespace MateSoul.Runtime
             body.MoveContact(target);
         }
 
-        public void BeginLyingContact(Vector3 exit, Pose target)
+        public void BeginLyingContact(Vector3 exit, Pose target,
+            ISet<int> ignoredRoomSurfaceSources = null,
+            float landingTolerance = MountClipTolerance)
         {
             Stop();
             ResetTurnMotion();
             contactExit = exit;
             contactIgnoredSurfaceSources.Clear();
+            if (ignoredRoomSurfaceSources != null)
+                contactIgnoredSurfaceSources.UnionWith(ignoredRoomSurfaceSources);
+            contactLandingTolerance = landingTolerance;
             var from = body.Pose;
             // The authored lying pose is a snap, but it must have a clear raised transfer
             // route and a valid torso volume. No disabled collider or unchecked teleport.
@@ -1072,10 +1103,10 @@ namespace MateSoul.Runtime
             capsule.height = 1.4f;
             capsule.center = new Vector3(0, .725f, .145f);
             Physics.SyncTransforms();
-            if (!IsLyingTransferClear(from, target))
+            if (!IsLyingTransferClear(from, target, landingTolerance))
             {
                 SetStandingShape();
-                throw new InvalidOperationException("床边转移路径被物体阻挡。");
+                throw new InvalidOperationException("躺卧位置转移路径被物体阻挡。");
             }
             contact = true;
             body.SetContact(true);
@@ -1159,10 +1190,11 @@ namespace MateSoul.Runtime
         {
             if (Vector3.Dot(from.rotation * Vector3.up, Vector3.up) > .7f)
                 return body.IsPathClear(from, to, contactIgnoredSurfaceSources);
-            return IsLyingTransferClear(to, from);
+            return IsLyingTransferClear(to, from, contactLandingTolerance);
         }
 
-        private bool IsLyingTransferClear(Pose standing, Pose lying)
+        private bool IsLyingTransferClear(Pose standing, Pose lying,
+            float landingTolerance = MountClipTolerance)
         {
             // Lift upright before rotation so the head does not sweep through the bed edge.
             // At a side dock, align with the foot end outside the bed before lying sideways.
@@ -1177,14 +1209,32 @@ namespace MateSoul.Runtime
                 aligned.position += lengthAxis * Vector3.Dot(lying.position - standing.position, lengthAxis);
             var rotated = new Pose(aligned.position, lying.rotation);
             var aboveBed = new Pose(new Vector3(lying.position.x, height, lying.position.z), lying.rotation);
-            var startClear = body.CanOccupy(standing);
-            var liftClear = body.IsPathClear(standing, raised);
-            var alignClear = body.IsPathClear(raised, aligned);
-            var rotateClear = body.IsPathClear(aligned, rotated);
-            var slideClear = body.IsPathClear(rotated, aboveBed);
-            var landClear = body.IsPathClear(aboveBed, lying);
+            // The target's own seat, back and arms are already allowed by the planner,
+            // so they must not veto the transfer either.
+            var ignored = contactIgnoredSurfaceSources;
+            // A sofa sweep runs past its arms and may graze a neighbouring wall,
+            // so it accepts a deeper clip than the bed while still refusing a
+            // genuine obstruction.
+            var clipTolerance = Mathf.Max(MountClipTolerance,
+                Mathf.Min(landingTolerance, SofaTransferTolerance));
+            var startClear = body.CanOccupy(standing, MountClipTolerance);
+            var liftClear = body.IsPathClear(standing, raised, ignored, clipTolerance);
+            var alignClear = body.IsPathClear(raised, aligned, ignored, clipTolerance);
+            var rotateClear = body.IsPathClear(aligned, rotated, ignored, clipTolerance);
+            var slideClear = body.IsPathClear(rotated, aboveBed, ignored, clipTolerance);
+            var landClear = body.IsPathClear(aboveBed, lying, ignored, landingTolerance);
             return startClear && liftClear && alignClear && rotateClear && slideClear && landClear;
         }
+
+        // A stand-to-lie transfer next to a sofa can graze the cushion or an
+        // armrest by a few centimetres. Treat that as acceptable clipping
+        // instead of refusing the interaction.
+        public const float MountClipTolerance = .06f;
+        // The final drop onto a sofa is accepted with a deeper clip so a low
+        // seat or a thick cushion cannot block the landing.
+        public const float SofaLandingTolerance = .20f;
+        // The horizontal sofa sweep may brush an armrest or a wall beside it.
+        private const float SofaTransferTolerance = .12f;
 
         private void SetStandingShape()
         {

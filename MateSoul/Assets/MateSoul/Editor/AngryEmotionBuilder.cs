@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using MateSoul.Runtime;
 using UnityEditor;
@@ -11,9 +11,9 @@ namespace MateSoul.Editor
     public static class AngryEmotionBuilder
     {
         public const string DirectoryPath =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Emotion/Angry";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/Emotion/Angry";
         public const string SourcePath = DirectoryPath + "/Mad_01_InPlace.fbx";
-        public const string ClipPath = DirectoryPath + "/Lengyue_Angry01.anim";
+        public const string ClipPath = DirectoryPath + "/lengyue_clip_angry01.anim";
 
         [MenuItem("MateSoul/Lengyue/Import Angry Emotion")]
         public static void Import()
@@ -88,7 +88,7 @@ namespace MateSoul.Editor
             try
             {
                 var hips = instance.GetComponentsInChildren<Transform>(true)
-                    .Single(value => value.name == "Hips");
+                    .Single(value => value.name == "lengyue_hips");
                 clip.SampleAnimation(instance, 0);
                 var start = hips.position;
                 clip.SampleAnimation(instance, clip.length);

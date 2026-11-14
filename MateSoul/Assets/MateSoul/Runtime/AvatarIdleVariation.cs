@@ -26,8 +26,23 @@ namespace MateSoul.Runtime
         private int variantParameter;
         private float remainingSeconds;
         private bool scheduled;
+        private bool holdLocked;
 
         public int CurrentVariant { get; private set; }
+
+        // While an item stays in hand only the third idle may play, so the
+        // variant is pinned and the rotation schedule is suspended until the
+        // item interaction ends.
+        public void SetHoldLocked(bool value)
+        {
+            if (holdLocked == value) return;
+            holdLocked = value;
+            CurrentVariant = value ? 2 : 0;
+            if (animator != null)
+                animator.SetInteger(variantParameter, CurrentVariant);
+            remainingSeconds = 0;
+            scheduled = false;
+        }
 
         public static AvatarIdleVariation Attach(
             GameObject character, Animator characterAnimator)
@@ -72,6 +87,11 @@ namespace MateSoul.Runtime
 
         public void Tick(float deltaSeconds)
         {
+            if (holdLocked)
+            {
+                animator.SetInteger(variantParameter, 2);
+                return;
+            }
             if (!CanRotate())
                 return;
             if (!scheduled)

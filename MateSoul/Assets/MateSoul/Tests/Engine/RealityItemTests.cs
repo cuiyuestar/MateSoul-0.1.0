@@ -28,6 +28,8 @@ namespace MateSoul.Tests
                 .Select(item => item.Id), Is.EquivalentTo(new[] { RealityInteractionIds.Sit }));
             Assert.That(RealityInteractionCatalog.For(RealitySemantic.Bed)
                 .Select(item => item.Id), Is.EquivalentTo(new[] { RealityInteractionIds.Lie }));
+            Assert.That(RealityInteractionCatalog.For(RealitySemantic.Sofa)
+                .Select(item => item.Id), Is.EquivalentTo(new[] { RealityInteractionIds.Lie }));
             Assert.That(RealityInteractionCatalog.For(RealitySemantic.Table), Is.Empty);
         }
 

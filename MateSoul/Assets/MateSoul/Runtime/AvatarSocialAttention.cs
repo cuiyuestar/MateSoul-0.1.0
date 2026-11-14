@@ -56,8 +56,8 @@ namespace MateSoul.Runtime
                 transforms.FirstOrDefault(value => value.name == name);
             var rig = animator.GetComponent<AvatarSocialAttentionRig>() ??
                       animator.gameObject.AddComponent<AvatarSocialAttentionRig>();
-            rig.Configure(character.transform, Bone("Neck"), Bone("Head 1"),
-                Bone("Eye_L"), Bone("Eye_R"));
+            rig.Configure(character.transform, Bone("lengyue_neck"), Bone("lengyue_head_01"),
+                Bone("lengyue_eye_l"), Bone("lengyue_eye_r"));
             return rig;
         }
 

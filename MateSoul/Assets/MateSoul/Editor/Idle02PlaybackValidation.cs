@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,8 +13,8 @@ namespace MateSoul.Editor
     public static class Idle02PlaybackValidation
     {
         private const string CharacterPrefabPath =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Prefabs/" +
-            "Lengyue_GameCharacter.prefab";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Prefabs/" +
+            "lengyue_character.prefab";
 
         [Serializable]
         private sealed class ValidationReport
@@ -131,8 +131,8 @@ namespace MateSoul.Editor
                 .Select(shape => shape.path + "/" + shape.name)
                 .ToArray();
 
-            var bones = new[] { "Hips", "Spine", "Chest", "Head 1",
-                    "UpperArm_L", "UpperArm_R", "Leg_L", "Leg_R" }
+            var bones = new[] { "lengyue_hips", "lengyue_spine", "lengyue_chest", "lengyue_head_01",
+                    "lengyue_upper_arm_l", "lengyue_upper_arm_r", "lengyue_thigh_l", "lengyue_thigh_r" }
                 .Select(name => instance.GetComponentsInChildren<Transform>(true)
                     .Single(transform => transform.name == name))
                 .ToArray();
@@ -228,8 +228,8 @@ namespace MateSoul.Editor
                     binding.propertyName.StartsWith(
                         "blendShape.", StringComparison.Ordinal));
 
-            var bones = new[] { "Hips", "Spine", "Chest", "Head 1",
-                    "UpperArm_L", "UpperArm_R", "Leg_L", "Leg_R" }
+            var bones = new[] { "lengyue_hips", "lengyue_spine", "lengyue_chest", "lengyue_head_01",
+                    "lengyue_upper_arm_l", "lengyue_upper_arm_r", "lengyue_thigh_l", "lengyue_thigh_r" }
                 .Select(name => instance.GetComponentsInChildren<Transform>(true)
                     .Single(transform => transform.name == name))
                 .ToArray();
@@ -299,7 +299,7 @@ namespace MateSoul.Editor
         {
             string directory = Path.GetFullPath(
                 Application.dataPath +
-                "/../../ArtSource/SapphiArt/Animation/Idle02/reports");
+                "/../../ArtSource/Lengyue/Animation/Idle02/reports");
             Directory.CreateDirectory(directory);
             File.WriteAllText(
                 directory + "/playback_validation.json",

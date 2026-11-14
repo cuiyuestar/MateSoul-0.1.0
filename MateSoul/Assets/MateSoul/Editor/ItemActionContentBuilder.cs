@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -114,6 +114,12 @@ namespace MateSoul.Editor
                 if (profile == null)
                     profile = Profile(item.name, "character-grip", Vector3.zero);
                 ConfigureGripGeometry(item, profile);
+                if (item.Id == "knife")
+                {
+                    var gesture = AssetDatabase.LoadAssetAtPath<AnimationClip>(
+                        PickupAnimationBuilder.KnifeGesturePath);
+                    if (gesture) profile.handGesture = gesture;
+                }
                 item.ConfigureInteraction(profile);
                 EditorUtility.SetDirty(profile);
                 EditorUtility.SetDirty(item);
@@ -515,13 +521,13 @@ namespace MateSoul.Editor
             var transforms = animator.GetComponentsInChildren<Transform>(true);
             Transform Bone(string name) => transforms.Single(value => value.name == name);
             var rig = character.GetComponent<AvatarItemRig>() ?? character.AddComponent<AvatarItemRig>();
-            rig.Configure(animator, new[] { Bone("UpperArm_R"), Bone("Forearm_R"), Bone("Hand_R"),
-                    Bone("Index_01_R"), Bone("Middle_01_R"), Bone("Pinky_01_R") },
-                new[] { Bone("UpperArm_L"), Bone("Forearm_L"), Bone("Hand_L"),
-                    Bone("Index_01_L"), Bone("Middle_01_L"), Bone("Pinky_01_L") },
-                new[] { Bone("Hips"), Bone("Spine"), Bone("Neck"), Bone("Head 1"),
-                    Bone("Leg_L"), Bone("Knee_L"), Bone("Foot_L"),
-                    Bone("Leg_R"), Bone("Knee_R"), Bone("Foot_R") });
+            rig.Configure(animator, new[] { Bone("lengyue_upper_arm_r"), Bone("lengyue_forearm_r"), Bone("lengyue_hand_r"),
+                    Bone("lengyue_index_01_r"), Bone("lengyue_middle_01_r"), Bone("lengyue_little_01_r") },
+                new[] { Bone("lengyue_upper_arm_l"), Bone("lengyue_forearm_l"), Bone("lengyue_hand_l"),
+                    Bone("lengyue_index_01_l"), Bone("lengyue_middle_01_l"), Bone("lengyue_little_01_l") },
+                new[] { Bone("lengyue_hips"), Bone("lengyue_spine"), Bone("lengyue_neck"), Bone("lengyue_head_01"),
+                    Bone("lengyue_thigh_l"), Bone("lengyue_shin_l"), Bone("lengyue_foot_l"),
+                    Bone("lengyue_thigh_r"), Bone("lengyue_shin_r"), Bone("lengyue_foot_r") });
             var layer = controller.layers.FirstOrDefault(value => value.name == "ItemInteraction");
             if (layer == null)
             {
@@ -561,15 +567,15 @@ namespace MateSoul.Editor
             ItemMotion motion, Func<string, Transform> bone)
         {
             var idle = AssetDatabase.LoadAssetAtPath<AnimationClip>(
-                "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Idle01/Lengyue_Idle01_Combined.anim");
+                "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/Idle01/lengyue_clip_idle01_combined.anim");
             idle.SampleAnimation(animator.gameObject, 0);
-            var names = new[] { "UpperArm_L", "Forearm_L", "Hand_L",
-                "UpperArm_R", "Forearm_R", "Hand_R" };
+            var names = new[] { "lengyue_upper_arm_l", "lengyue_forearm_l", "lengyue_hand_l",
+                "lengyue_upper_arm_r", "lengyue_forearm_r", "lengyue_hand_r" };
             var bones = names.Select(bone).ToArray();
             var positions = bones.Select(value => value.localPosition).ToArray();
             var rotations = bones.Select(value => value.localRotation).ToArray();
-            var leftHand = bone("Hand_L").position;
-            var rightHand = bone("Hand_R").position;
+            var leftHand = bone("lengyue_hand_l").position;
+            var rightHand = bone("lengyue_hand_r").position;
             var curves = new Dictionary<string, AnimationCurve[]>();
             foreach (var value in bones)
                 curves.Add(AnimationUtility.CalculateTransformPath(value, animator.transform),
@@ -585,12 +591,12 @@ namespace MateSoul.Editor
                 var z = motion == ItemMotion.Carry ? .43f : .44f;
                 if (motion == ItemMotion.Cut) y -= .1f * amount;
                 var target = character.transform.TransformPoint(new Vector3(.21f, y, z));
-                AvatarSeatingRig.Solve(bone("UpperArm_R"), bone("Forearm_R"), bone("Hand_R"),
+                AvatarSeatingRig.Solve(bone("lengyue_upper_arm_r"), bone("lengyue_forearm_r"), bone("lengyue_hand_r"),
                     Vector3.Lerp(rightHand, target, motion == ItemMotion.Carry ? 1 : amount),
                     character.transform.right);
                 var left = character.transform.TransformPoint(new Vector3(-.18f,
                     motion == ItemMotion.Reach ? .85f : 1.0f, .30f));
-                AvatarSeatingRig.Solve(bone("UpperArm_L"), bone("Forearm_L"), bone("Hand_L"),
+                AvatarSeatingRig.Solve(bone("lengyue_upper_arm_l"), bone("lengyue_forearm_l"), bone("lengyue_hand_l"),
                     Vector3.Lerp(leftHand, left, motion == ItemMotion.Carry ? 1 : amount),
                     -character.transform.right);
                 foreach (var value in bones)

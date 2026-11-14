@@ -10,6 +10,7 @@ namespace MateSoul.Runtime
         private FollowShape[] followShapes;
         private FollowCandidate[] followCandidates;
         private bool[] followPairs;
+        private float[] followBaselineDepths;
         private Pose[] followSamples;
         private int followShapeCount, followCandidateCount, followOverlapCount, followSampleCount;
         private Quaternion followBoundsRotation;
@@ -43,6 +44,7 @@ namespace MateSoul.Runtime
         {
             followShapes = new FollowShape[shapes.Length];
             followPairs = new bool[shapes.Length * FollowCandidateCapacity];
+            followBaselineDepths = new float[shapes.Length * FollowCandidateCapacity];
         }
 
         private void ClearFollowScratch()
@@ -51,6 +53,7 @@ namespace MateSoul.Runtime
             Array.Clear(followOverlaps, 0, followOverlapCount);
             Array.Clear(followCandidates, 0, followCandidateCount);
             Array.Clear(followShapes, 0, followShapeCount);
+            Array.Clear(followBaselineDepths, 0, followShapeCount * FollowCandidateCapacity);
             followShapeCount = followCandidateCount = followOverlapCount = followSampleCount = 0;
         }
 
@@ -109,6 +112,7 @@ namespace MateSoul.Runtime
             {
                 var other = followOverlaps[index];
                 if (other.attachedRigidbody == rb) continue;
+                if (PhysicalContactsResolveDynamic(other.attachedRigidbody)) continue;
                 if (stableCutting && other.GetComponentInParent<GameItem>() is GameItem item &&
                     item.Definition != null && item.Definition.Cuttable.enabled) continue;
                 var candidateIndex = followCandidateCount++;
@@ -121,8 +125,36 @@ namespace MateSoul.Runtime
                     followPairs[shapeIndex * FollowCandidateCapacity + candidateIndex] =
                         !Physics.GetIgnoreCollision(followShapes[shapeIndex].Collider, other);
             }
+            // A coarse room scan can leave an item already sunk into a table. Record
+            // that starting penetration so lifting the item out is not rejected as
+            // "blocked" for every sample.
+            for (var shapeIndex = 0; shapeIndex < followShapeCount; shapeIndex++)
+            {
+                var shape = followShapes[shapeIndex];
+                var position = from.position + from.rotation * shape.Position;
+                var rotation = from.rotation * shape.Rotation;
+                var shapeBounds = FollowBounds(shape, from);
+                shapeBounds.Expand(.004f);
+                for (var index = 0; index < followCandidateCount; index++)
+                {
+                    var key = shapeIndex * FollowCandidateCapacity + index;
+                    if (!followPairs[key] || !shapeBounds.Intersects(followCandidates[index].Bounds))
+                        continue;
+                    var other = followCandidates[index];
+                    followBaselineDepths[key] =
+                        Physics.ComputePenetration(shape.Collider, position, rotation,
+                            other.Collider, other.Position, other.Rotation, out _, out var depth)
+                            ? depth : 0;
+                }
+            }
             return true;
         }
+
+        // A stable-follow body is kinematic. PhysX resolves its dynamic contacts
+        // only when collisions are retained (cookware); the manual blockers must
+        // not also stop it, or a held pan could not move with food inside.
+        private bool PhysicalContactsResolveDynamic(Rigidbody other)
+            => Rigidbody.detectCollisions && other != null && !other.isKinematic;
 
         private static Bounds FollowCandidateBounds(Collider collider)
         {
@@ -165,9 +197,14 @@ namespace MateSoul.Runtime
                     var other = followCandidates[index];
                     if (!followPairs[shapeIndex * FollowCandidateCapacity + index] ||
                         !bounds.Intersects(other.Bounds)) continue;
+                    // Allow motion that keeps or reduces the penetration already
+                    // present at grab time (embedded item), only reject deepening.
                     if (Physics.ComputePenetration(shape.Collider, position, rotation,
                             other.Collider, other.Position, other.Rotation, out _, out var depth) &&
-                        depth > .001f) return false;
+                        depth > .001f &&
+                        depth > followBaselineDepths[
+                            shapeIndex * FollowCandidateCapacity + index] + .0005f)
+                        return false;
                 }
             }
             return true;

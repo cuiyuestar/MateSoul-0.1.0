@@ -41,7 +41,8 @@ namespace MateSoul.Runtime
             new RealityInteractionDefinition(RealityInteractionIds.Sit, "坐下",
                 "Walk to a real chair and sit until asked to stand", RealitySemantic.Chair),
             new RealityInteractionDefinition(RealityInteractionIds.Lie, "躺下",
-                "Walk to a real bed and lie down until asked to get up", RealitySemantic.Bed)
+                "Walk to a real bed or sofa and lie down until asked to get up",
+                RealitySemantic.Bed, RealitySemantic.Sofa)
         };
 
         private static readonly IReadOnlyList<RealityInteractionDefinition> all =

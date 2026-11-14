@@ -105,6 +105,20 @@ namespace MateSoul.Core
             return handle;
         }
 
+        public bool TryGetRunning<T>(string actionId, out T action) where T : class, IAvatarAction
+        {
+            foreach (var execution in executions)
+                if (execution.Handle.State == ActionState.Running &&
+                    execution.Handle.Intent.ActionId == actionId &&
+                    execution.Action is T typed)
+                {
+                    action = typed;
+                    return true;
+                }
+            action = null;
+            return false;
+        }
+
         public IReadOnlyList<AvatarActionSnapshot> Capture()
         {
             var snapshot = new AvatarActionSnapshot[executions.Count];

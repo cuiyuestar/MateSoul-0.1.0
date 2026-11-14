@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using MateSoul.Runtime;
@@ -13,16 +13,16 @@ namespace MateSoul.Editor
     public static class BowlingAnimationBuilder
     {
         public const string DirectoryPath =
-            "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Animations/Bowling";
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/Bowling";
         public const string SourcePath = DirectoryPath + "/pick_up_bowlingball_InPlace.fbx";
-        public const string ClipPath = DirectoryPath + "/Lengyue_Bowling.anim";
+        public const string ClipPath = DirectoryPath + "/lengyue_clip_bowling.anim";
         public const string MotionPath = DirectoryPath + "/BowlingMotion.asset";
 
         [MenuItem("MateSoul/Lengyue/Import Bowling Animation")]
         public static void Import()
         {
             var canonical = AssetDatabase.LoadAssetAtPath<GameObject>(
-                "Assets/Characters/SapphiArtCustom/Lengyue/Runtime/Prefabs/Lengyue_GameCharacter.prefab");
+                "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Prefabs/lengyue_character.prefab");
             var importer = AppDomain.CurrentDomain.GetAssemblies()
                 .Select(assembly => assembly.GetType(
                     "MateSoul.Editor.LengyueIdle01Builder"))
@@ -33,7 +33,7 @@ namespace MateSoul.Editor
                     "Lengyue authored-animation importer is unavailable.");
             var clip = method.Invoke(null, new object[]
             {
-                SourcePath, ClipPath, "Lengyue_Bowling", canonical
+                SourcePath, ClipPath, "lengyue_clip_bowling", canonical
             }) as AnimationClip;
             if (!clip)
                 throw new InvalidOperationException(
@@ -82,9 +82,9 @@ namespace MateSoul.Editor
                     .Where(clip => !clip.name.StartsWith("__preview__"))
                     .OrderByDescending(clip => clip.length).First();
                 var sourceHand = source.GetComponentsInChildren<Transform>(true)
-                    .Single(bone => bone.name == "Hand_R");
+                    .Single(bone => bone.name == "lengyue_hand_r");
                 var targetHand = target.GetComponentsInChildren<Transform>(true)
-                    .Single(bone => bone.name == "Hand_R");
+                    .Single(bone => bone.name == "lengyue_hand_r");
                 var reference = source.GetComponentsInChildren<MeshFilter>(true)
                     .Single(mesh => mesh.name == "BowlingBall_Body");
                 // Source starts at authored frame 1; Unity's clip starts at time zero.
@@ -125,7 +125,7 @@ namespace MateSoul.Editor
             layers[index] = layer;
             controller.layers = layers;
             var hand = animator.GetComponentsInChildren<Transform>(true)
-                .Single(bone => bone.name == "Hand_R");
+                .Single(bone => bone.name == "lengyue_hand_r");
             var rig = character.GetComponent<AvatarBowlingRig>() ?? character.AddComponent<AvatarBowlingRig>();
             rig.Configure(animator, hand, motion);
             EditorUtility.SetDirty(controller);

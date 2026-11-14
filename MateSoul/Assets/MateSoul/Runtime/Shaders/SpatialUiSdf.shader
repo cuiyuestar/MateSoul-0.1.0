@@ -54,7 +54,8 @@ Shader "MateSoul/Spatial UI SDF"
         ZWrite Off
         Lighting Off
         Fog { Mode Off }
-        ZTest Always
+        // 恢复正常深度测试：虚拟手/角色等更近的几何体必须能遮挡 HUD。
+        ZTest LEqual
         Blend One OneMinusSrcAlpha
         ColorMask [_ColorMask]
         Pass

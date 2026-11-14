@@ -136,7 +136,9 @@ namespace MateSoul.Runtime
             proximityAttentionArmed = true;
             Catalog.Register(new ActionDefinition(SocialAttentionAction.Id,
                 "Stop and attend to the nearby player",
-                ControlChannels.All,
+                // 对话打开期间社交注视会一直保持；Dialogue 通道属于投球等系统动作，
+                // 常驻注视不能占用，否则 ConversationOrchestrator 会误判为小游戏占用并拒绝发送。
+                ControlChannels.All & ~ControlChannels.Dialogue,
                 intent => new SocialAttentionAction(
                     (AvatarMotor)Motor, socialAttentionRig, intent.Payload as Transform),
                 timeoutSeconds: 3600, exposeToAI: false, exitTimeoutSeconds: 1));
@@ -214,7 +216,8 @@ namespace MateSoul.Runtime
             RegisterActions();
             Avatar = new AvatarActionCoordinator(Catalog);
             Autonomy = new AutonomousBehaviour(Avatar, navigation, motor, Items,
-                item => views.TryGetValue(item.Id, out var view) &&
+                item => ItemsReady && Items.IsCurrent(item) &&
+                    views.TryGetValue(item.Id, out var view) &&
                     view.Definition.AllowAutonomousUse && UseHeldItemAction.Supports(view));
             characterContext = new CharacterRuntimeContextProvider(
                 Persona, wardrobe, Mood, Avatar, Catalog, Items, Motor as AvatarMotor,
@@ -223,7 +226,7 @@ namespace MateSoul.Runtime
             // not on the player's first conversation turn.
             characterContext.Capture();
             Conversation = new ConversationOrchestrator(llm, new SessionConversationContext(),
-                Catalog, Avatar, Items, Mood, characterContext);
+                Catalog, Avatar, Items, Mood, characterContext, this);
             Conversation.Changed += OnConversationChanged;
             SpontaneousReplies = new SpontaneousReplyCoordinator(
                 spontaneousReplyProvider, Persona);
@@ -400,6 +403,24 @@ namespace MateSoul.Runtime
             return inventory.TryGetValue(definitionId, out var remaining) ? remaining : 0;
         }
 
+        public void RefreshAllInventory()
+        {
+            if (Paused || disposed) return;
+            if (itemOperation != null)
+            {
+                Notice = "物品定位处理中，请稍候。";
+                return;
+            }
+            foreach (var definition in CatalogItems)
+            {
+                if (definition.UnlimitedInventory) continue;
+                inventory[definition.Id] = definition.InventoryLimit;
+            }
+            CaptureInventory();
+            store.Save(saved);
+            Notice = "所有虚拟物品库存已刷新。";
+        }
+
         private void RefreshDailyInventoryIfNeeded()
         {
             if (!RefreshDailyInventory()) return;
@@ -430,7 +451,35 @@ namespace MateSoul.Runtime
                 "Walk to a placed item, pick it up and hold it until released",
                 body | ControlChannels.LeftArm | ControlChannels.RightArm,
                 intent => new PickupItemAction(this, intent.TargetId),
-                timeoutSeconds: 3600, exposeToAI: false, exitTimeoutSeconds: 1));
+                timeoutSeconds: 3600, targetCapability: "visit", exitTimeoutSeconds: 1));
+            Catalog.Register(new ActionDefinition(EatItemAction.Id,
+                "Pick up an edible item and eat it in three bites",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                intent => new EatItemAction(this, intent.TargetId),
+                timeoutSeconds: 3600, targetCapability: "edible", exitTimeoutSeconds: 1));
+            Catalog.Register(new ActionDefinition(UseHeldItemAction.Id,
+                "Perform the target item's own interaction, such as drinking from a mug",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                CreateUseAction, timeoutSeconds: 150, targetCapability: "use",
+                exitTimeoutSeconds: 1));
+            Catalog.Register(new ActionDefinition(RadioMusicAction.PlayId,
+                "Pick up the radio, perform its play gesture and start a randomly chosen station",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                intent => CreateRadioMusicAction(intent, false), timeoutSeconds: 150,
+                exposeToAI: true, exitTimeoutSeconds: 1, allowsOptionalTarget: true));
+            Catalog.Register(new ActionDefinition(RadioMusicAction.SwitchId,
+                "Pick up the radio, perform its gesture and change to a different station; " +
+                "starts music when the radio is off",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                intent => CreateRadioMusicAction(intent, true), timeoutSeconds: 150,
+                exposeToAI: true, exitTimeoutSeconds: 1, allowsOptionalTarget: true));
+            Catalog.Register(new ActionDefinition(PlacementCommands.ActionId,
+                "Put the item in hand down on a named real-world surface or virtual item, " +
+                "or beside a virtual item that has no surface; destination names the target",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                _ => throw new InvalidOperationException("放置物品需要通过放置指令完成。"),
+                timeoutSeconds: 60, exposeToAI: true, exitTimeoutSeconds: 1,
+                allowsOptionalTarget: true, acceptsDestination: true));
         }
 
         private IAvatarAction CreateVisitAction(AvatarIntent intent)
@@ -440,11 +489,58 @@ namespace MateSoul.Runtime
                 (view == null || !view.Definition.AllowAutonomousUse ||
                  !UseHeldItemAction.Supports(view)))
                 throw new InvalidOperationException("这个物品不在自主使用白名单中。");
+            if (view != null && view.Definition.UseAnimation != null &&
+                view.GetComponent<RadioController>() != null)
+                return new RadioMusicAction(this, intent.TargetId, false);
             if (view != null && view.Definition.UseAnimation != null)
                 return new UseHeldItemAction(this, intent.TargetId);
             return new VisitItemAction(Items, intent.TargetId,
                 () => views.TryGetValue(intent.TargetId, out var target) ? target : null,
                 Motor, Navigation);
+        }
+
+        private IAvatarAction CreateUseAction(AvatarIntent intent)
+        {
+            views.TryGetValue(intent.TargetId, out var view);
+            if (view == null || view.Definition.UseAnimation == null)
+                throw new InvalidOperationException("这个物品没有专属交互方式。");
+            if (intent.Source == IntentSource.Autonomous &&
+                !view.Definition.AllowAutonomousUse)
+                throw new InvalidOperationException("这个物品不在自主使用白名单中。");
+            // The radio's own interaction is music playback, not a silent gesture.
+            if (view.GetComponent<RadioController>() != null)
+                return new RadioMusicAction(this, intent.TargetId, false);
+            return new UseHeldItemAction(this, intent.TargetId);
+        }
+
+        private IAvatarAction CreateRadioMusicAction(AvatarIntent intent, bool switchTrack)
+        {
+            var view = ResolveRadio(intent.TargetId);
+            if (view == null)
+                throw new InvalidOperationException("房间里还没有放置复古收音机。");
+            if (view.Definition.UseAnimation == null)
+                throw new InvalidOperationException("收音机还没有配置播放音乐的动画。");
+            return new RadioMusicAction(this, view.Instance.Id, switchTrack);
+        }
+
+        // An explicit target must be that exact radio; otherwise the nearest
+        // placed radio is used so a plain "play some music" still works.
+        private GameItem ResolveRadio(string targetId)
+        {
+            if (!string.IsNullOrEmpty(targetId))
+            {
+                if (!views.TryGetValue(targetId, out var target) || target == null)
+                    throw new InvalidOperationException("动作目标不存在。");
+                if (target.GetComponent<RadioController>() == null)
+                    throw new InvalidOperationException("这个物品不是可以播放音乐的收音机。");
+                return target;
+            }
+            return views.Values
+                .Where(view => view != null && view.Instance != null && view.Instance.IsPresent &&
+                    !view.Instance.IsOccupied && view.GetComponent<RadioController>() != null)
+                .OrderBy(view => (view.Body.Pose.position - Motor.Position).sqrMagnitude)
+                .ThenBy(view => view.Instance.Id, StringComparer.Ordinal)
+                .FirstOrDefault();
         }
 
         public ActionHandle Submit(AvatarIntent intent)
@@ -454,6 +550,9 @@ namespace MateSoul.Runtime
             if (action.State == ActionState.Rejected) Notice = action.Error;
             if (!action.IsFinished &&
                 (intent.ActionId == CutFruitAction.Id || intent.ActionId == PickupItemAction.Id ||
+                 intent.ActionId == EatItemAction.Id || intent.ActionId == UseHeldItemAction.Id ||
+                 intent.ActionId == RadioMusicAction.PlayId ||
+                 intent.ActionId == RadioMusicAction.SwitchId ||
                  intent.ActionId == "visit" && views.TryGetValue(intent.TargetId, out var view) &&
                  view.Definition.UseAnimation != null))
                 observedItemAction = action;
@@ -470,6 +569,7 @@ namespace MateSoul.Runtime
         public void Tick(float seconds)
         {
             if (Paused || disposed) return;
+            using var perf = PerfMonitor.Sample("Session.Tick");
             Notifications.Tick(seconds);
             SpontaneousReplies.Tick(seconds);
             RefreshDailyInventoryIfNeeded();

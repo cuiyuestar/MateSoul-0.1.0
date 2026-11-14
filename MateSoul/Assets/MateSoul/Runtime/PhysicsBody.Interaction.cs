@@ -40,7 +40,8 @@ namespace MateSoul.Runtime
             if (!rb.isKinematic) { rb.velocity = Vector3.zero; rb.angularVelocity = Vector3.zero; }
             SetKinematic(true);
             rb.useGravity = false;
-            rb.detectCollisions = false;
+            // Cookware stays solid so food dropped into a carried pan can rest.
+            rb.detectCollisions = !RetainCollisionsWhileHeld;
             rb.interpolation = RigidbodyInterpolation.None;
         }
 

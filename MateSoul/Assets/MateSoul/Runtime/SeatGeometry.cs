@@ -17,18 +17,54 @@ namespace MateSoul.Runtime
         public int SourceId;
         public float ObservedAt;
         public int StableSamples;
+        // A headset loses sight of the chair it is standing next to, so a single
+        // missed mesh publish must not tear down the prompt.
+        public int MissedScans;
         public bool Available;
         public Quaternion Rotation => Quaternion.LookRotation(Forward, Vector3.up);
         public Vector3 Right => Vector3.Cross(Vector3.up, Forward);
-        public Vector3 Dock => new Vector3(Center.x, FloorY, Center.z) + Forward * (Depth * .5f + .48f);
+        public Vector3 Dock => new Vector3(Center.x, FloorY, Center.z) + Forward * (Depth * .5f + .40f);
         public bool IsFresh => Available;
         public SeatTarget Copy() => (SeatTarget)MemberwiseClone();
     }
 
+    public sealed class SeatReject
+    {
+        public Vector3 Center;
+        public float Height, Area, PlaneError, BackArea;
+        public string Reason;
+    }
+
     public sealed class SeatScanDiagnostics
     {
+        private const int RejectCapacity = 4;
+
         public int HorizontalTriangles, SurfaceGroups;
         public int AreaRejected, PlaneRejected, BackrestRejected, SizeRejected, SupportRejected;
+        // Loose probes: how much horizontal surface exists at all, and how much of
+        // it sits in a wider height band than the seat window.
+        public int HorizontalAll, InHeightBand;
+        public int SemanticHorizontalTriangles, SemanticSurfaces;
+        public int SemanticAreaRejected, SemanticPlaneRejected, SemanticBackrestRejected;
+        public int SemanticFitRejected;
+        public readonly List<SeatReject> Rejects = new List<SeatReject>();
+
+        // Keeps the largest rejects: a chair-sized patch is more informative than
+        // the small fragments produced by mesh noise.
+        public void Record(Vector3 center, float height, float area, float planeError,
+            float backArea, string reason)
+        {
+            Rejects.Add(new SeatReject
+            {
+                Center = center, Height = height, Area = Mathf.Max(0f, area),
+                PlaneError = planeError, BackArea = backArea, Reason = reason
+            });
+            if (Rejects.Count <= RejectCapacity) return;
+            var smallest = 0;
+            for (var i = 1; i < Rejects.Count; i++)
+                if (Rejects[i].Area < Rejects[smallest].Area) smallest = i;
+            Rejects.RemoveAt(smallest);
+        }
 
         public string NoTargetStatus(int triangleCount)
         {
@@ -45,6 +81,13 @@ namespace MateSoul.Runtime
     // Pure geometry: semantic labels select candidates, never determine a contact pose.
     public static class SeatGeometry
     {
+        // Device evidence (PICO 4, 2026-11-13 14:21-14:25 session): the SDK mesh never
+        // delivered a complete seat. The real chair showed area .08-.24m², plane error
+        // .011-.046m and only 24-39/49 support samples, so the old 42/49 (geometric)
+        // and 49/49 (semantic) gates rejected every scan. The 3x3 core stayed solid on
+        // nearly every frame, so a looser perimeter count still cannot bridge a hole.
+        private const int GeometricMinimumSupportSamples = 27;
+        private const int SemanticMinimumSupportSamples = 30;
         public static List<SeatTarget> Extract(IReadOnlyList<RealityTriangle> triangles, float floorY)
             => Extract(triangles, floorY, out _);
 
@@ -52,9 +95,13 @@ namespace MateSoul.Runtime
             out SeatScanDiagnostics diagnostics)
         {
             diagnostics = new SeatScanDiagnostics();
-            var horizontal = triangles.Where(t => t.HasSemantic(PxrSemanticLabel.Chair) &&
+            // Filter once: the backrest search below used to walk every triangle in
+            // the room for each candidate surface.
+            var labelled = triangles.Where(t => t.HasSemantic(PxrSemanticLabel.Chair)).ToArray();
+            var horizontal = labelled.Where(t =>
                 Mathf.Abs(t.Normal.y) > .985f &&
                 t.Center.y - floorY >= .32f && t.Center.y - floorY <= .60f).ToArray();
+            diagnostics.SemanticHorizontalTriangles = horizontal.Length;
             // Connected surfaces, including shared vertices across mesh block boundaries.
             // A category or a mesh UUID is not a chair instance.
             var parents = Enumerable.Range(0, horizontal.Length).ToArray();
@@ -77,21 +124,32 @@ namespace MateSoul.Runtime
             var seats = new List<SeatTarget>();
             foreach (var group in groups.Values)
             {
+                diagnostics.SemanticSurfaces++;
                 var area = group.Sum(t => t.Area);
-                if (area < .055f || area > .65f) continue;
+                if (area <= 0f) continue;
                 var center = group.Aggregate(Vector3.zero, (p, t) => p + t.Center * t.Area) / area;
                 var points = group.SelectMany(t => new[] { t.A, t.B, t.C }).ToArray();
                 var error = points.Max(v => Mathf.Abs(v.y - center.y));
-                if (error > .018f) continue;
+                if (area < .055f || area > .65f)
+                {
+                    diagnostics.SemanticAreaRejected++;
+                    diagnostics.Record(center, center.y - floorY, area, error, 0f, "semantic-area");
+                    continue;
+                }
+                if (error > .035f)
+                {
+                    diagnostics.SemanticPlaneRejected++;
+                    diagnostics.Record(center, center.y - floorY, area, error, 0f, "semantic-plane");
+                    continue;
+                }
 
                 // A vertical surface above one edge provides backrest direction.
                 var back = Vector3.zero;
                 var backArea = 0f;
-                foreach (var t in triangles)
+                foreach (var t in labelled)
                 {
                     var delta = t.Center - center;
-                    if (!t.HasSemantic(PxrSemanticLabel.Chair) ||
-                        Mathf.Abs(t.Normal.y) > .40f ||
+                    if (Mathf.Abs(t.Normal.y) > .40f ||
                         delta.y < .12f || delta.y > .58f) continue;
                     delta.y = 0;
                     if (delta.magnitude < .12f || delta.magnitude > .43f) continue;
@@ -104,11 +162,28 @@ namespace MateSoul.Runtime
                 // A semantic label cannot distinguish the emulator's compact side
                 // table from a stool. Until another cue can prove a safe facing
                 // direction, backless patches fail closed.
-                if (!hasBack) continue;
-                if (area < .105f) continue;
+                if (!hasBack)
+                {
+                    diagnostics.SemanticBackrestRejected++;
+                    diagnostics.Record(center, center.y - floorY, area, error, backArea,
+                        "semantic-back");
+                    continue;
+                }
+                if (area < .085f)
+                {
+                    diagnostics.SemanticAreaRejected++;
+                    diagnostics.Record(center, center.y - floorY, area, error, backArea,
+                        "semantic-small");
+                    continue;
+                }
                 var forward = -back.normalized;
                 if (!TryCreateTarget(group, center, points, forward, floorY, error, false, out var seat))
+                {
+                    diagnostics.SemanticFitRejected++;
+                    diagnostics.Record(center, center.y - floorY, area, error, backArea,
+                        "semantic-fit");
                     continue;
+                }
                 seats.Add(seat);
             }
             ExtractGeometricChairs(triangles, floorY, seats, diagnostics);
@@ -122,33 +197,104 @@ namespace MateSoul.Runtime
             // A seat may cross a block seam, and its back may carry a different label.
             var geometry = triangles.Where(t => t.HasSemantic(PxrSemanticLabel.Chair) ||
                 t.Label == (int)PxrSemanticLabel.Unknown && t.SourceId != -1).ToArray();
+            var horizontalAll = 0;
+            var inHeightBand = 0;
+            foreach (var triangle in triangles)
+            {
+                if (Mathf.Abs(triangle.Normal.y) <= .7f) continue;
+                horizontalAll++;
+                var height = triangle.Center.y - floorY;
+                if (height >= .20f && height <= .80f) inHeightBand++;
+            }
+            diagnostics.HorizontalAll = horizontalAll;
+            diagnostics.InHeightBand = inHeightBand;
             var horizontal = geometry.Where(t => Mathf.Abs(t.Normal.y) > .7f &&
                 t.Center.y - floorY >= .32f && t.Center.y - floorY <= .60f).ToArray();
             diagnostics.HorizontalTriangles = horizontal.Length;
+            if (horizontal.Length == 0) return;
+            // Backrest support only counts within one seat width, so bucket the
+            // vertical triangles once instead of rescanning the whole room for
+            // every candidate surface.
+            var vertical = new VerticalIndex(
+                geometry.Where(t => Mathf.Abs(t.Normal.y) <= .40f).ToArray());
+            var nearby = new List<RealityTriangle>(256);
             foreach (var group in Connected(horizontal))
             {
                 diagnostics.SurfaceGroups++;
-                if (!TryCreateGeometricTarget(group, geometry, floorY, diagnostics, out var target) ||
+                if (!TryCreateGeometricTarget(group, vertical, nearby, floorY, diagnostics,
+                        out var target) ||
                     seats.Any(existing => Vector3.Distance(existing.Center, target.Center) < .25f))
                     continue;
                 seats.Add(target);
             }
         }
 
+        // Spatial buckets for vertical triangles: a seat can only be backed by
+        // structure within its own footprint.
+        private sealed class VerticalIndex
+        {
+            private const float Cell = .5f;
+            private const float Reach = .75f;
+            private readonly RealityTriangle[] source;
+            private readonly Dictionary<long, List<int>> cells = new Dictionary<long, List<int>>();
+
+            public VerticalIndex(RealityTriangle[] vertical)
+            {
+                source = vertical;
+                for (var index = 0; index < vertical.Length; index++)
+                {
+                    var key = Key(CellIndex(vertical[index].Center.x),
+                        CellIndex(vertical[index].Center.z));
+                    if (!cells.TryGetValue(key, out var bucket))
+                        cells[key] = bucket = new List<int>();
+                    bucket.Add(index);
+                }
+            }
+
+            public void Near(Vector3 point, List<RealityTriangle> results)
+            {
+                results.Clear();
+                var minX = CellIndex(point.x - Reach);
+                var maxX = CellIndex(point.x + Reach);
+                var minZ = CellIndex(point.z - Reach);
+                var maxZ = CellIndex(point.z + Reach);
+                for (var x = minX; x <= maxX; x++)
+                    for (var z = minZ; z <= maxZ; z++)
+                        if (cells.TryGetValue(Key(x, z), out var bucket))
+                            foreach (var index in bucket) results.Add(source[index]);
+            }
+
+            private static int CellIndex(float value) => Mathf.FloorToInt(value / Cell);
+
+            private static long Key(int x, int z) => ((long)x << 32) ^ (uint)z;
+        }
+
         private static bool TryCreateGeometricTarget(IReadOnlyList<RealityTriangle> group,
-            IReadOnlyList<RealityTriangle> source, float floorY,
+            VerticalIndex index, List<RealityTriangle> source, float floorY,
             SeatScanDiagnostics diagnostics, out SeatTarget target)
         {
             target = null;
             var area = group.Sum(t => t.Area);
-            if (area < .12f || area > .90f) { diagnostics.AreaRejected++; return false; }
+            if (area <= 0f) { diagnostics.AreaRejected++; return false; }
             var center = group.Aggregate(Vector3.zero, (sum, triangle) =>
                 sum + triangle.Center * triangle.Area) / area;
             var planeError = Mathf.Sqrt(group.Sum(t =>
                 Mathf.Pow(t.Center.y - center.y, 2) * t.Area) / area);
-            if (planeError > .05f) { diagnostics.PlaneRejected++; return false; }
+            if (area < .09f || area > .90f)
+            {
+                diagnostics.AreaRejected++;
+                diagnostics.Record(center, center.y - floorY, area, planeError, 0f, "geo-area");
+                return false;
+            }
+            if (planeError > .05f)
+            {
+                diagnostics.PlaneRejected++;
+                diagnostics.Record(center, center.y - floorY, area, planeError, 0f, "geo-plane");
+                return false;
+            }
             var points = group.SelectMany(t => new[] { t.A, t.B, t.C }).ToArray();
 
+            index.Near(center, source);
             var upper = Vector3.zero;
             var upperArea = 0f;
             foreach (var triangle in source)
@@ -176,7 +322,12 @@ namespace MateSoul.Runtime
             }
             // Sparse/slatted backs provide direction without a solid 0.18m² panel.
             if (upperArea < .035f || upper.magnitude / upperArea < .65f)
-            { diagnostics.BackrestRejected++; return false; }
+            {
+                diagnostics.BackrestRejected++;
+                diagnostics.Record(center, center.y - floorY, area, planeError, upperArea,
+                    "geo-back");
+                return false;
+            }
 
             var forward = -upper.normalized;
             var right = Vector3.Cross(Vector3.up, forward);
@@ -185,7 +336,12 @@ namespace MateSoul.Runtime
             var width = xs.Max() - xs.Min();
             var depth = zs.Max() - zs.Min();
             if (width < .36f || width > .90f || depth < .34f || depth > .85f)
-            { diagnostics.SizeRejected++; return false; }
+            {
+                diagnostics.SizeRejected++;
+                diagnostics.Record(center, center.y - floorY, area, planeError, upperArea,
+                    $"geo-size({width:F2}x{depth:F2})");
+                return false;
+            }
             center += right * (xs.Max() + xs.Min()) * .5f +
                       forward * (zs.Max() + zs.Min()) * .5f;
 
@@ -198,9 +354,20 @@ namespace MateSoul.Runtime
                     var hasSupport = group.Any(triangle => ContainsXZ(triangle, point));
                     if (hasSupport) supported++;
                     else if (Mathf.Abs(x) <= 1 && Mathf.Abs(z) <= 1)
-                    { diagnostics.SupportRejected++; return false; }
+                    {
+                        diagnostics.SupportRejected++;
+                        diagnostics.Record(center, center.y - floorY, area, planeError, upperArea,
+                            "geo-support-center");
+                        return false;
+                    }
                 }
-            if (supported < 42) { diagnostics.SupportRejected++; return false; }
+            if (supported < GeometricMinimumSupportSamples)
+            {
+                diagnostics.SupportRejected++;
+                diagnostics.Record(center, center.y - floorY, area, planeError, upperArea,
+                    $"geo-support({supported}/49)");
+                return false;
+            }
 
             target = new SeatTarget
             {
@@ -271,17 +438,22 @@ namespace MateSoul.Runtime
             {
                 if (width < .28f || width > .42f || depth < .28f || depth > .42f) return false;
             }
-            else if (width < .34f || width > .80f || depth < .32f || depth > .72f) return false;
+            else if (width < .30f || width > .80f || depth < .28f || depth > .72f) return false;
             center += right * (xs.Max() + xs.Min()) * .5f + forward * (zs.Max() + zs.Min()) * .5f;
-            // The complete inner contact rectangle must be supported. A convex hull
-            // alone would silently bridge a missing patch or an open chair frame.
+            // The central contact patch must be solid: a convex hull alone would
+            // silently bridge a missing patch or an open chair frame. The perimeter
+            // of a partially scanned seat may stay empty, so only the 3x3 core is
+            // mandatory and the full grid just has to reach a workable coverage.
+            var supported = 0;
             for (var x = -3; x <= 3; x++)
                 for (var z = -3; z <= 3; z++)
                 {
                     var p = center + right * (x / 3f * (width * .5f - .045f)) +
                             forward * (z / 3f * (depth * .5f - .045f));
-                    if (!group.Any(t => ContainsXZ(t, p))) return false;
+                    if (group.Any(t => ContainsXZ(t, p))) supported++;
+                    else if (Mathf.Abs(x) <= 1 && Mathf.Abs(z) <= 1) return false;
                 }
+            if (supported < SemanticMinimumSupportSamples) return false;
             target = new SeatTarget
             {
                 Center = center, Forward = forward, Width = width, Depth = depth,
@@ -348,29 +520,64 @@ namespace MateSoul.Runtime
                    dimensionsMatch;
         }
 
+        // A standing body may graze scanned furniture by a few centimetres: a
+        // chair pushed against a table or a rug edge used to reject every pose.
+        // The envelope is inset by this margin, so only deeper overlap blocks.
+        public const float ClearancePenetration = .07f;
+
         // Test an upper-body envelope along the complete sit/stand sweep.
         // All mesh triangles participate, including other chairs and unlabeled objects.
         public static bool HasClearance(SeatTarget seat, IReadOnlyList<RealityTriangle> triangles)
+            => HasClearance(seat, triangles, out _);
+
+        // A bare boolean cannot tell a desk edge from the chair's own backrest, so
+        // device runs log the triangle that vetoed the seat.
+        public static bool HasClearance(SeatTarget seat, IReadOnlyList<RealityTriangle> triangles,
+            out RealityTriangle blocker)
         {
+            blocker = default;
             var inverse = Quaternion.Inverse(seat.Rotation);
-            var front = seat.Depth * .5f + .66f;
+            // The sweep only has to cover the approach point; reaching past it
+            // turned every desk or table in front of a chair into a blocker.
+            // Device log 2026-11-13 18:47-18:56: a chair tucked in front of furniture
+            // failed every frame while the same kind of empty chair passed, so the
+            // body envelope now ends 33cm past the seat edge instead of 59cm.
+            var front = seat.Depth * .5f + .40f;
             var center = new Vector3(0, .815f, (front - .10f) * .5f);
-            var extent = new Vector3(.20f, .735f, (front + .10f) * .5f);
+            var extent = new Vector3(.20f - ClearancePenetration, .735f,
+                (front + .10f) * .5f - ClearancePenetration);
+            // Cheap world-space reject before the per-vertex rotation.
+            var reach = front + .80f;
+            var top = seat.Center.y + 1.60f;
+            var bottom = seat.FloorY - .10f;
             foreach (var t in triangles)
             {
                 // The avatar intentionally enters the target chair's own volume.
                 // Meshes from every other source remain hard obstacles.
                 if (seat.SourceId != -1 && t.SourceId == seat.SourceId) continue;
+                if (t.Center.y < bottom || t.Center.y > top ||
+                    (t.Center - seat.Center).sqrMagnitude > reach * reach) continue;
                 var a = inverse * (t.A - seat.Center);
                 var b = inverse * (t.B - seat.Center);
                 var c = inverse * (t.C - seat.Center);
                 if (BoundsOverlap(a, b, c, center, extent) &&
-                    TriangleBox(a - center, b - center, c - center, extent)) return false;
+                    TriangleBox(a - center, b - center, c - center, extent))
+                {
+                    blocker = t;
+                    return false;
+                }
                 var footMin = seat.FloorY - seat.Center.y + .04f;
-                var legCenter = new Vector3(0, (footMin + .08f) * .5f, .46f);
-                var legExtent = new Vector3(.19f, (.08f - footMin) * .5f, .16f);
+                // Legs reach .31-.49m in front of the seat centre: far enough to catch
+                // a chair pushed under a desk, close enough to let a desk edge pass.
+                var legCenter = new Vector3(0, (footMin + .08f) * .5f, .40f);
+                var legExtent = new Vector3(.19f - ClearancePenetration, (.08f - footMin) * .5f,
+                    .16f - ClearancePenetration);
                 if (BoundsOverlap(a, b, c, legCenter, legExtent) &&
-                    TriangleBox(a - legCenter, b - legCenter, c - legCenter, legExtent)) return false;
+                    TriangleBox(a - legCenter, b - legCenter, c - legCenter, legExtent))
+                {
+                    blocker = t;
+                    return false;
+                }
             }
             return true;
         }

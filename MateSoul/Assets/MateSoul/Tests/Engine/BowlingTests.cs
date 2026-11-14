@@ -88,7 +88,7 @@ namespace MateSoul.Tests
                 Is.True, "Placement markers must clone a material referenced by the pin prefab.");
             Assert.That(pin.GetComponent<Rigidbody>().centerOfMass.y, Is.EqualTo(.145f).Within(.001f));
             var source = AssetDatabase.GetDependencies(BowlingContentBuilder.GamePath);
-            Assert.That(source.Any(path => path.EndsWith("CrowdCheer_Short_CC-BY-4.0.mp3")),
+            Assert.That(source.Any(path => path.EndsWith("lengyue_audio_crowd_cheer.mp3")),
                 Is.True);
         }
 
@@ -97,7 +97,7 @@ namespace MateSoul.Tests
         {
             root = new GameObject("Ignored collision occupancy");
             var material = new PhysicMaterial("Ignored collision occupancy");
-            var bodyObject = new GameObject("Body", typeof(BoxCollider));
+            var bodyObject = new GameObject("lengyue_body_root", typeof(BoxCollider));
             bodyObject.transform.SetParent(root.transform);
             var body = bodyObject.AddComponent<PhysicsBody>();
             body.Configure(new BodySettings(1, material));

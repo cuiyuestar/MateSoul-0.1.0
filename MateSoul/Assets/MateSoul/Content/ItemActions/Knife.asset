@@ -33,3 +33,5 @@ MonoBehaviour:
   platePosition: {x: 0, y: 0, z: 0}
   toolPosition: {x: 0, y: 0, z: 0}
   approachPosition: {x: 0, y: 0, z: 0}
+  handGesture: {fileID: 7400000, guid: 6dc04a85d1a34244fb527bd25f173f8f, type: 2}
+  handGestureLeadTime: 0.05

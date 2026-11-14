@@ -7,6 +7,7 @@
     "MateSoul.Character",
     "MateSoul.RoomNavigation",
     "ByteDance.PICO.XR",
+    "ByteDance.PICO.Platform",
     "Unity.Animation.Rigging",
     "Unity.InputSystem",
     "Unity.RenderPipelines.Core.Runtime",

@@ -48,7 +48,8 @@ namespace MateSoul.Runtime
                 active_facts = CaptureWorldFacts(itemViews),
                 inventory_alerts = CaptureInventoryAlerts(),
                 environment = aiEnvironment,
-                virtual_world = virtualWorld
+                virtual_world = virtualWorld,
+                placement_destinations = CapturePlacementDestinations()
             };
             var signature = JsonUtility.ToJson(world);
             if (!string.Equals(signature, aiWorldSignature, StringComparison.Ordinal))

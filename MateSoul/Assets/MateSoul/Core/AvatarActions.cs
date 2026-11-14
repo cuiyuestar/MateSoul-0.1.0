@@ -89,6 +89,9 @@ namespace MateSoul.Core
         public string Description { get; }
         public ControlChannels Channels { get; }
         public bool RequiresTarget { get; }
+        public bool AllowsOptionalTarget { get; }
+        public bool AcceptsTarget => RequiresTarget || AllowsOptionalTarget;
+        public bool AcceptsDestination { get; }
         public string TargetCapability { get; }
         public bool ExposeToAI { get; }
         public float TimeoutSeconds { get; }
@@ -98,7 +101,8 @@ namespace MateSoul.Core
         public ActionDefinition(
             string id, string description, ControlChannels channels,
             Func<AvatarIntent, IAvatarAction> factory, float timeoutSeconds = 30f,
-            string targetCapability = null, bool exposeToAI = true, float exitTimeoutSeconds = 3f)
+            string targetCapability = null, bool exposeToAI = true, float exitTimeoutSeconds = 3f,
+            bool allowsOptionalTarget = false, bool acceptsDestination = false)
         {
             if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
             if (timeoutSeconds <= 0 || exitTimeoutSeconds <= 0)
@@ -111,6 +115,8 @@ namespace MateSoul.Core
             ExitTimeoutSeconds = exitTimeoutSeconds;
             TargetCapability = targetCapability;
             RequiresTarget = targetCapability != null;
+            AllowsOptionalTarget = allowsOptionalTarget;
+            AcceptsDestination = acceptsDestination;
             ExposeToAI = exposeToAI;
         }
     }

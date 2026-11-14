@@ -183,7 +183,7 @@ PrefabInstance:
     - target: {fileID: 8470193967530044995, guid: ef0be3f2d0f904d0789c8483c7dd5e6c,
         type: 3}
       propertyPath: m_Name
-      value: Lengyue_RoomWalker
+      value: lengyue_room_walker
       objectReference: {fileID: 0}
     - target: {fileID: 8470193967530044995, guid: ef0be3f2d0f904d0789c8483c7dd5e6c,
         type: 3}

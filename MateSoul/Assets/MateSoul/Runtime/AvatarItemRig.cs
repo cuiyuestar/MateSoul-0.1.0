@@ -16,6 +16,7 @@ namespace MateSoul.Runtime
         private const float MaximumWristCorrection = 55f;
         [SerializeField] private Animator animator;
         [SerializeField] private PickupAnimationSet pickupAnimations;
+        [SerializeField] private ItemUseAnimation eatAnimation;
         private PickupPerformance authoredPickup;
         private ItemUseAnimation authoredUse;
         private bool pickupPlacement;
@@ -24,6 +25,14 @@ namespace MateSoul.Runtime
         [SerializeField] private float pickupLeftAnkleHeight = .1f;
         [SerializeField] private float pickupRightAnkleHeight = .1f;
         public PickupAnimationSet PickupAnimations => pickupAnimations;
+        public ItemUseAnimation EatAnimation => eatAnimation;
+        // The head bone sits at the skull base; offset forward and slightly down in
+        // character space so spatial audio is emitted from the mouth.
+        private static readonly Vector3 MouthOffset = new Vector3(0f, -.035f, .075f);
+        public Vector3 MouthPosition => head != null
+            ? head.position + transform.rotation * MouthOffset
+            : transform.position;
+        public Transform Head => head;
         [SerializeField] private Transform upper, elbow, hand, index, middle, pinky;
         [SerializeField] private Transform leftUpper, leftElbow, leftHand;
         [SerializeField] private Transform leftIndex, leftMiddle, leftPinky;
@@ -53,12 +62,30 @@ namespace MateSoul.Runtime
         private bool heldFingerPoseCached;
         private Vector2 heldPinchContact;
         private float heldPinchIndexSide;
+        private enum HandGesturePhase { None, Closing, Holding, Opening, Releasing }
+        private HandGesturePhase handGesturePhase;
+        private Quaternion[][][] handGestureFrames;
+        private Quaternion[][] handGestureBlendFrom;
+        private float handGestureDuration = 1;
+        private float handGestureLead = .05f;
+        private float handGesturePlayhead;
+        private float handGestureBlend;
         private ItemMotion activeMotion;
         private float motionProgress;
         private float motionWeight;
         private ItemMotion debugMotion;
         private float debugProgress = -1;
         private int debugPoseReports;
+        private float nextUseReport;
+        private Vector3 useRootStart;
+        private float useRootMinY, useRootMaxY;
+        private float useElbowLMin = -1f, useElbowLMax = -1f;
+        private float useElbowRMin = -1f, useElbowRMax = -1f;
+        private float useSpreadMin = -1f, useSpreadMax = -1f;
+        private float useFirstSeconds, useLastSeconds;
+        private int useSamples;
+        private bool naturalHold;
+        private AvatarIdleVariation idleVariation;
 #region debug-point A-B-D:wrist-kinematics
 #if UNITY_EDITOR
         private float debugNextWristReport;
@@ -110,6 +137,8 @@ namespace MateSoul.Runtime
             leftHand.TransformPoint(localLeftGrip),
             leftHand.rotation * localLeftGripRotation);
 
+        public void ConfigureEat(ItemUseAnimation value) => eatAnimation = value;
+
         public void ConfigurePickups(PickupAnimationSet value)
         {
             pickupAnimations = value;
@@ -151,6 +180,28 @@ namespace MateSoul.Runtime
                 1 - Mathf.SmoothStep(0, 1, progress));
         }
 
+        // Fades the authored pickup and carry pose out while the item stays in
+        // the hand, leaving the arms to the locomotion animation so she can
+        // idle and walk with her hands hanging naturally.
+        public void HoldNaturally(float blend)
+        {
+            if (owner == Guid.Empty) throw new InvalidOperationException("No item motion owner.");
+            var value = Mathf.SmoothStep(0, 1, Mathf.Clamp01(blend));
+            var pickupLayer = animator.GetLayerIndex(PickupAnimationSet.LayerName);
+            if (pickupLayer >= 0) animator.SetLayerWeight(pickupLayer, 1 - value);
+            // Only fade the carry layer down; never raise it back over the base
+            // locomotion while the arms hand over to it.
+            animator.SetLayerWeight(layer, Mathf.Min(animator.GetLayerWeight(layer), 1 - value));
+            authoredPickup = null;
+            pickupPlacement = false;
+            contactWeight = 1 - value;
+            naturalHold = true;
+            if (value < 1) return;
+            ClearReach();
+            // Only idle03 and walking may play until the item interaction ends.
+            if (idleVariation != null) idleVariation.SetHoldLocked(true);
+        }
+
         public void ClearPickup()
         {
             authoredPickup = null;
@@ -164,8 +215,30 @@ namespace MateSoul.Runtime
         public bool CanPlayUse(ItemUseAnimation animation)
         {
             var useLayer = animator != null ? animator.GetLayerIndex(ItemUseAnimation.LayerName) : -1;
-            return animation != null && animation.clip != null && useLayer >= 0 &&
+            var playable = animation != null && animation.clip != null && useLayer >= 0 &&
                 animator.HasState(useLayer, Animator.StringToHash(animation.StateName));
+            // A rejected gesture used to fail silently, which made "the animation never
+            // played" indistinguishable from "the controller has no such state".
+            if (!playable)
+                Debug.LogWarning($"MATESOUL_ITEM_USE_UNAVAILABLE " +
+                    $"clip={(animation != null && animation.clip != null ? animation.clip.name : "none")} " +
+                    $"useLayer={useLayer} state=" +
+                    $"{(animation != null && animation.clip != null ? Animator.StringToHash(animation.StateName).ToString() : "none")}");
+            return playable;
+        }
+
+        // Bend of a two-bone chain, in degrees. -1 means the bones are not bound.
+        private static float ElbowFlex(Transform shoulder, Transform elbow, Transform wrist)
+            => shoulder && elbow && wrist
+                ? Vector3.Angle(shoulder.position - elbow.position,
+                    wrist.position - elbow.position)
+                : -1f;
+
+        private static void Track(ref float min, ref float max, float value)
+        {
+            if (value < 0f) return;
+            if (min < 0f || value < min) min = value;
+            if (max < 0f || value > max) max = value;
         }
 
         public void UseMotion(ItemUseAnimation animation, float seconds, float weight)
@@ -173,16 +246,98 @@ namespace MateSoul.Runtime
             if (owner == Guid.Empty || heldBody == null)
                 throw new InvalidOperationException("物品使用动作需要有效的持物控制权。");
             Motion(ItemMotion.Carry, 1);
-            authoredUse = animation;
+            if (authoredUse != animation)
+            {
+                authoredUse = animation;
+                useRootStart = transform.position;
+                useRootMinY = useRootMaxY = transform.position.y;
+                useElbowLMin = useElbowLMax = -1f;
+                useElbowRMin = useElbowRMax = -1f;
+                useSpreadMin = useSpreadMax = -1f;
+                useFirstSeconds = seconds;
+                useLastSeconds = seconds;
+                useSamples = 0;
+                nextUseReport = 0f;
+            }
             var useLayer = animator.GetLayerIndex(ItemUseAnimation.LayerName);
             animator.SetLayerWeight(useLayer, weight);
             animator.Play(animation.StateName, useLayer,
                 Mathf.Clamp01(seconds / animation.clip.length) * .999f);
+            // The gesture used to log nothing, so "did it play" and "is the pose right"
+            // had no evidence at all. Report the state clock, every competing layer, the
+            // arm bend (a hug must fold both elbows), how far apart the hands are, and
+            // how the root drifts while the clip runs.
+            useLastSeconds = seconds;
+            useSamples++;
+            var elbowL = ElbowFlex(leftUpper, leftElbow, leftHand);
+            var elbowR = ElbowFlex(upper, elbow, hand);
+            var spread = leftHand && hand ? Vector3.Distance(leftHand.position, hand.position) : -1f;
+            Track(ref useElbowLMin, ref useElbowLMax, elbowL);
+            Track(ref useElbowRMin, ref useElbowRMax, elbowR);
+            Track(ref useSpreadMin, ref useSpreadMax, spread);
+            useRootMinY = Mathf.Min(useRootMinY, transform.position.y);
+            useRootMaxY = Mathf.Max(useRootMaxY, transform.position.y);
+            if (Time.unscaledTime >= nextUseReport)
+            {
+                nextUseReport = Time.unscaledTime + .25f;
+                var pickupLayer = animator.GetLayerIndex(PickupAnimationSet.LayerName);
+                var info = animator.GetCurrentAnimatorStateInfo(useLayer);
+                // The state hash alone cannot prove which clip the layer is actually
+                // evaluating, so read the clip the animator reports for that layer.
+                var clips = animator.GetCurrentAnimatorClipInfo(useLayer);
+                var playing = clips.Length > 0 && clips[0].clip != null ? clips[0].clip.name : "none";
+                var playingWeight = clips.Length > 0 ? clips[0].weight : 0f;
+                var seatRig = GetComponent<AvatarSeatingRig>();
+                var lyingRig = GetComponent<AvatarLyingRig>();
+                // Naming the surface under her separates "the floor moved" from
+                // "she was placed on furniture".
+                var groundName = "none";
+                var groundY = float.NaN;
+                if (Physics.Raycast(transform.position + Vector3.up * .5f, Vector3.down,
+                        out var ground, 3f, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+                {
+                    groundY = ground.point.y;
+                    groundName = ground.collider.name;
+                }
+                // Velocity and the body flags say whether physics is pushing her or an
+                // owner is driving her body directly.
+                var body = GetComponent<Rigidbody>();
+                var physique = GetComponent<PhysicsBody>();
+                Debug.Log($"MATESOUL_ITEM_USE clip={animation.clip.name} " +
+                    $"len={animation.clip.length:F2} fps={animation.clip.frameRate:F0} " +
+                    $"t={seconds:F2} w={weight:F2} " +
+                    $"state={info.shortNameHash} stateTime={info.normalizedTime:F2} " +
+                    $"playing={playing} playingWeight={playingWeight:F2} " +
+                    $"useLayer={animator.GetLayerWeight(useLayer):F2} " +
+                    $"interaction={animator.GetLayerWeight(layer):F2} " +
+                    $"pickup={(pickupLayer >= 0 ? animator.GetLayerWeight(pickupLayer) : 0f):F2} " +
+                    $"seat={(seatRig ? seatRig.Weight : 0f):F2} " +
+                    $"lie={(lyingRig ? lyingRig.Weight : 0f):F2} " +
+                    $"elbowL={elbowL:F0} elbowR={elbowR:F0} spread={spread:F2} " +
+                    $"root={transform.position} " +
+                    $"hipsLocal={(hips ? hips.localPosition : Vector3.zero)} " +
+                    $"hipsWorld={(hips ? hips.position : Vector3.zero)} " +
+                    $"ground={groundY:F2} on={groundName} " +
+                    $"velY={(body ? body.velocity.y : 0f):F2} " +
+                    $"kinematic={(body ? body.isKinematic : false)} " +
+                    $"following={(physique ? physique.IsFollowing : false)} " +
+                    $"contact={(physique ? physique.IsContact : false)} " +
+                    $"docked={(physique ? physique.IsDocked : false)} " +
+                    $"paused={(physique ? physique.IsPaused : false)}");
+            }
         }
 
         public void ClearUse()
         {
+            if (authoredUse != null && useSamples > 0)
+                Debug.Log($"MATESOUL_ITEM_USE_SUMMARY clip={authoredUse.clip.name} " +
+                    $"samples={useSamples} t={useFirstSeconds:F2}..{useLastSeconds:F2} " +
+                    $"rootY={useRootMinY:F2}..{useRootMaxY:F2} startY={useRootStart.y:F2} " +
+                    $"elbowL={useElbowLMin:F0}..{useElbowLMax:F0} " +
+                    $"elbowR={useElbowRMin:F0}..{useElbowRMax:F0} " +
+                    $"spread={useSpreadMin:F2}..{useSpreadMax:F2}");
             authoredUse = null;
+            useSamples = 0;
             var useLayer = animator != null ? animator.GetLayerIndex(ItemUseAnimation.LayerName) : -1;
             if (useLayer >= 0) animator.SetLayerWeight(useLayer, 0);
         }
@@ -222,9 +377,9 @@ namespace MateSoul.Runtime
                 rightKnee = postureBones[8];
                 rightFoot = postureBones[9];
             }
-            rightFingerChains = BuildFingerChains(hand, "_R");
+            rightFingerChains = BuildFingerChains(hand, "_r");
             leftFingerChains = leftHand != null
-                ? BuildFingerChains(leftHand, "_L") : null;
+                ? BuildFingerChains(leftHand, "_l") : null;
         }
 
         public void Begin(Guid run)
@@ -232,11 +387,11 @@ namespace MateSoul.Runtime
             if (owner != Guid.Empty || !IsConfigured)
                 throw new InvalidOperationException("角色物品动作未配置或已被占用。");
             if (rightFingerChains == null)
-                rightFingerChains = BuildFingerChains(hand, "_R");
+                rightFingerChains = BuildFingerChains(hand, "_r");
             if (!FingerChainsComplete(rightFingerChains))
                 throw new InvalidOperationException("角色右手缺少完整五指骨链。");
             if (leftHand != null && leftFingerChains == null)
-                leftFingerChains = BuildFingerChains(leftHand, "_L");
+                leftFingerChains = BuildFingerChains(leftHand, "_l");
             if (leftHand != null && !FingerChainsComplete(leftFingerChains))
                 throw new InvalidOperationException("角色左手缺少完整五指骨链。");
             rightFingerBaseRotations = CaptureFingerRotations(
@@ -244,6 +399,10 @@ namespace MateSoul.Runtime
             leftFingerBaseRotations = leftFingerChains != null
                 ? CaptureFingerRotations(leftFingerChains) : null;
             owner = run;
+            if (idleVariation == null) idleVariation = GetComponent<AvatarIdleVariation>();
+            naturalHold = false;
+            if (idleVariation != null) idleVariation.SetHoldLocked(false);
+            ClearHandGesture();
             rightHeldFingerRotations = null;
             heldFingerPoseCached = false;
             heldPinchContact = Vector2.zero;
@@ -350,6 +509,7 @@ namespace MateSoul.Runtime
             }
             heldBody = body;
             SyncHeldBody();
+            BeginHandGesture();
 #region debug-point A-C:attach-transform
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             var debugAttachedGrip = profile.WorldGrip(body.Pose);
@@ -416,8 +576,9 @@ namespace MateSoul.Runtime
         public void DetachHeld(Guid run)
         {
             if (owner != run) return;
-            RestoreFingerPose(
-                rightFingerChains, rightFingerBaseRotations);
+            if (!BeginHandGestureRelease())
+                RestoreFingerPose(
+                    rightFingerChains, rightFingerBaseRotations);
             RestoreFingerPose(
                 leftFingerChains, leftFingerBaseRotations);
             heldBody = null;
@@ -452,6 +613,7 @@ namespace MateSoul.Runtime
             if (owner != Guid.Empty && authoredUse != null)
             {
                 ApplyFingerPose();
+                ApplyHandGesture(Time.deltaTime);
                 SyncHeldBody();
                 return;
             }
@@ -465,10 +627,26 @@ namespace MateSoul.Runtime
             {
                 ApplyAuthoredPickupContact();
                 ApplyFingerPose();
+                ApplyHandGesture(Time.deltaTime);
                 SyncHeldBody();
                 return;
             }
-            if (owner == Guid.Empty || !hasTarget) return;
+            if (owner != Guid.Empty && naturalHold)
+            {
+                // No arm override: the held item simply follows the hand while
+                // the locomotion animation keeps the arms naturally down.
+                ApplyFingerPose();
+                ApplyHandGesture(Time.deltaTime);
+                SyncHeldBody();
+                return;
+            }
+            if (owner == Guid.Empty || !hasTarget)
+            {
+                // The release gesture keeps playing after detach, when the
+                // interaction layer no longer drives the hand target.
+                ApplyHandGesture(Time.deltaTime);
+                return;
+            }
 #region debug-point E:action-idle-state
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (Time.unscaledTime >= debugNextActionStateReport)
@@ -535,7 +713,7 @@ namespace MateSoul.Runtime
             {
                 debugPoseReports++;
                 Transform hips = upper;
-                while (hips != null && hips.name != "Hips") hips = hips.parent;
+                while (hips != null && hips.name != "lengyue_hips") hips = hips.parent;
                 var payload = FormattableString.Invariant($"{{\"sessionId\":\"item-reach-layer\",\"runId\":\"post-fix\",\"hypothesisId\":\"B-C-D\",\"location\":\"AvatarItemRig.LateUpdate\",\"msg\":\"[DEBUG] evaluated pose\",\"data\":{{\"hips\":{JsonUtility.ToJson(hips.position)},\"shoulder\":{JsonUtility.ToJson(upper.position)},\"root\":{JsonUtility.ToJson(transform.position)},\"wrist\":{JsonUtility.ToJson(wrist)},\"handBefore\":{JsonUtility.ToJson(hand.position)},\"reach\":{reach},\"demand\":{delta.magnitude},\"sampleTime\":{animator.GetCurrentAnimatorStateInfo(layer).normalizedTime}}}}}");
                 var request = UnityEngine.Networking.UnityWebRequest.Post("http://127.0.0.1:7793/event", payload, "application/json");
                 request.SendWebRequest().completed += _ => request.Dispose();
@@ -593,6 +771,7 @@ namespace MateSoul.Runtime
             }
             SolveSecondaryArm();
             ApplyFingerPose();
+            ApplyHandGesture(Time.deltaTime);
 #region debug-point A-E:item-action-jitter-state
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (heldBody != null && heldProfile != null &&
@@ -732,15 +911,15 @@ namespace MateSoul.Runtime
             {
                 debugNextPostureReport = Time.unscaledTime + .25f;
                 var debugBones = animator.GetComponentsInChildren<Transform>(true);
-                var debugHips = debugBones.Single(value => value.name == "Hips");
-                var debugSpine = debugBones.Single(value => value.name == "Spine");
-                var debugHead = debugBones.Single(value => value.name == "Head 1");
-                var debugLeftLeg = debugBones.Single(value => value.name == "Leg_L");
-                var debugLeftKnee = debugBones.Single(value => value.name == "Knee_L");
-                var debugLeftFoot = debugBones.Single(value => value.name == "Foot_L");
-                var debugRightLeg = debugBones.Single(value => value.name == "Leg_R");
-                var debugRightKnee = debugBones.Single(value => value.name == "Knee_R");
-                var debugRightFoot = debugBones.Single(value => value.name == "Foot_R");
+                var debugHips = debugBones.Single(value => value.name == "lengyue_hips");
+                var debugSpine = debugBones.Single(value => value.name == "lengyue_spine");
+                var debugHead = debugBones.Single(value => value.name == "lengyue_head_01");
+                var debugLeftLeg = debugBones.Single(value => value.name == "lengyue_thigh_l");
+                var debugLeftKnee = debugBones.Single(value => value.name == "lengyue_shin_l");
+                var debugLeftFoot = debugBones.Single(value => value.name == "lengyue_foot_l");
+                var debugRightLeg = debugBones.Single(value => value.name == "lengyue_thigh_r");
+                var debugRightKnee = debugBones.Single(value => value.name == "lengyue_shin_r");
+                var debugRightFoot = debugBones.Single(value => value.name == "lengyue_foot_r");
                 var debugLeftKneeAngle = Vector3.Angle(
                     debugLeftLeg.position - debugLeftKnee.position,
                     debugLeftFoot.position - debugLeftKnee.position);
@@ -1120,6 +1299,155 @@ namespace MateSoul.Runtime
                 MinimumFingerClearance = 0;
             if (float.IsNegativeInfinity(MaximumFingerClearance))
                 MaximumFingerClearance = 0;
+        }
+
+        // Profiles without an authored gesture keep the procedural finger solve.
+        private void BeginHandGesture()
+        {
+            ClearHandGesture();
+            var clip = heldProfile != null ? heldProfile.handGesture : null;
+            if (clip == null || clip.length <= 0 ||
+                !FingerChainsComplete(rightFingerChains)) return;
+            var frameRate = clip.frameRate > 0 ? clip.frameRate : 30f;
+            var frameCount = Mathf.Max(2,
+                Mathf.RoundToInt(clip.length * frameRate) + 1);
+            var frames = new Quaternion[frameCount][][];
+            var entry = CaptureFingerRotations(rightFingerChains);
+            var moved = false;
+            for (var frame = 0; frame < frameCount; frame++)
+            {
+                clip.SampleAnimation(transform.gameObject,
+                    Mathf.Min(clip.length, frame / frameRate));
+                frames[frame] = CaptureFingerRotations(rightFingerChains);
+                moved |= !SameHandGesturePose(frames[0], frames[frame]);
+            }
+            RestoreFingerPose(rightFingerChains, entry);
+            if (!moved)
+            {
+                Debug.LogWarning(
+                    "Hand gesture clip has no finger motion: " + clip.name, this);
+                return;
+            }
+            handGestureFrames = frames;
+            handGestureBlendFrom = entry;
+            handGestureDuration = Mathf.Max(.001f, clip.length);
+            handGestureLead = Mathf.Max(.001f, heldProfile.handGestureLeadTime);
+            handGesturePlayhead = 0;
+            handGestureBlend = 0;
+            handGesturePhase = HandGesturePhase.Closing;
+        }
+
+        private bool BeginHandGestureRelease()
+        {
+            if (handGesturePhase == HandGesturePhase.None ||
+                handGestureFrames == null) return false;
+            handGestureBlendFrom = CaptureFingerRotations(rightFingerChains);
+            handGestureBlend = 0;
+            handGesturePhase = HandGesturePhase.Opening;
+            return true;
+        }
+
+        private void ClearHandGesture()
+        {
+            handGesturePhase = HandGesturePhase.None;
+            handGestureFrames = null;
+            handGestureBlendFrom = null;
+            handGesturePlayhead = 0;
+            handGestureBlend = 0;
+        }
+
+        private void ApplyHandGesture(float deltaTime)
+        {
+            if (handGesturePhase == HandGesturePhase.None) return;
+            if (handGestureFrames == null ||
+                !FingerChainsComplete(rightFingerChains))
+            {
+                ClearHandGesture();
+                return;
+            }
+            switch (handGesturePhase)
+            {
+                case HandGesturePhase.Closing:
+                    handGesturePlayhead = Mathf.Min(1,
+                        handGesturePlayhead + deltaTime / handGestureDuration);
+                    handGestureBlend = Mathf.Min(1,
+                        handGestureBlend + deltaTime / handGestureLead);
+                    WriteHandGesture(handGesturePlayhead,
+                        handGestureBlendFrom, handGestureBlend);
+                    if (handGesturePlayhead >= 1 && handGestureBlend >= 1)
+                        handGesturePhase = HandGesturePhase.Holding;
+                    break;
+                case HandGesturePhase.Holding:
+                    WriteHandGesture(1, null, 1);
+                    break;
+                case HandGesturePhase.Opening:
+                    handGesturePlayhead = Mathf.Max(0,
+                        handGesturePlayhead - deltaTime / handGestureDuration);
+                    handGestureBlend = Mathf.Min(1,
+                        handGestureBlend + deltaTime / handGestureLead);
+                    WriteHandGesture(handGesturePlayhead,
+                        handGestureBlendFrom, handGestureBlend);
+                    if (handGesturePlayhead <= 0 && handGestureBlend >= 1)
+                    {
+                        handGestureBlendFrom = handGestureFrames[0];
+                        handGestureBlend = 0;
+                        handGesturePhase = HandGesturePhase.Releasing;
+                    }
+                    break;
+                case HandGesturePhase.Releasing:
+                    handGestureBlend = Mathf.Min(1,
+                        handGestureBlend + deltaTime / handGestureLead);
+                    BlendHandGestureToBase(handGestureBlend);
+                    if (handGestureBlend >= 1) ClearHandGesture();
+                    break;
+            }
+        }
+
+        private void WriteHandGesture(float playhead,
+            Quaternion[][] from, float weight)
+        {
+            var frames = handGestureFrames;
+            if (frames == null) return;
+            var position = Mathf.Clamp01(playhead) * (frames.Length - 1);
+            var lower = Mathf.Clamp(Mathf.FloorToInt(position), 0,
+                frames.Length - 1);
+            var upper = Mathf.Min(lower + 1, frames.Length - 1);
+            var frac = position - lower;
+            var blend = from == null ? 1 :
+                Mathf.SmoothStep(0, 1, Mathf.Clamp01(weight));
+            for (var finger = 0; finger < rightFingerChains.Length; finger++)
+            for (var joint = 0; joint < rightFingerChains[finger].Length; joint++)
+            {
+                var value = Quaternion.Slerp(frames[lower][finger][joint],
+                    frames[upper][finger][joint], frac);
+                if (from != null)
+                    value = Quaternion.Slerp(from[finger][joint], value, blend);
+                rightFingerChains[finger][joint].localRotation = value;
+            }
+        }
+
+        private void BlendHandGestureToBase(float weight)
+        {
+            var open = handGestureBlendFrom;
+            if (open == null) return;
+            var blend = Mathf.SmoothStep(0, 1, Mathf.Clamp01(weight));
+            for (var finger = 0; finger < rightFingerChains.Length; finger++)
+            for (var joint = 0; joint < rightFingerChains[finger].Length; joint++)
+            {
+                var chain = rightFingerChains[finger][joint];
+                chain.localRotation = Quaternion.Slerp(
+                    open[finger][joint], chain.localRotation, blend);
+            }
+        }
+
+        private static bool SameHandGesturePose(
+            Quaternion[][] first, Quaternion[][] second)
+        {
+            for (var finger = 0; finger < first.Length; finger++)
+            for (var joint = 0; joint < first[finger].Length; joint++)
+                if (Quaternion.Angle(first[finger][joint],
+                        second[finger][joint]) > .01f) return false;
+            return true;
         }
 
         private void PoseFingerChains(
@@ -1688,7 +2016,7 @@ namespace MateSoul.Runtime
         {
             if (handRoot == null) return null;
             var all = handRoot.GetComponentsInChildren<Transform>(true);
-            var fingers = new[] { "Thumb", "Index", "Middle", "Ring", "Pinky" };
+            var fingers = new[] { "lengyue_thumb", "lengyue_index", "lengyue_middle", "lengyue_ring", "lengyue_little" };
             return fingers.Select(finger => Enumerable.Range(1, 3)
                 .Select(segment => all.SingleOrDefault(value =>
                     value.name == $"{finger}_0{segment}{suffix}"))
@@ -1765,6 +2093,8 @@ namespace MateSoul.Runtime
         public void End(Guid run)
         {
             if (owner != run) return;
+            naturalHold = false;
+            if (idleVariation != null) idleVariation.SetHoldLocked(false);
             if (layer >= 0 && animator != null) animator.SetLayerWeight(layer, 0);
             ClearUse();
             ClearPickup();
@@ -1783,6 +2113,7 @@ namespace MateSoul.Runtime
         private void OnDisable()
         {
             if (owner != Guid.Empty) End(owner);
+            ClearHandGesture();
         }
     }
 }

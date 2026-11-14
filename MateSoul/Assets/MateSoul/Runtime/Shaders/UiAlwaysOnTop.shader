@@ -36,7 +36,8 @@ Shader "MateSoul/UI Always On Top"
         Cull Off
         Lighting Off
         ZWrite Off
-        ZTest Always
+        // 恢复正常深度测试：虚拟手/角色等更近的几何体必须能遮挡 HUD。
+        ZTest LEqual
         Blend SrcAlpha OneMinusSrcAlpha
         ColorMask [_ColorMask]
 

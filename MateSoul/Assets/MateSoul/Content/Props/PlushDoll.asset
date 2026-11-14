@@ -38,6 +38,7 @@ MonoBehaviour:
   immovableAfterPlacement: 0
   placementFacingYaw: 0
   minimumSurfaceSupportRatio: 1
+  providesPlacementSurface: 0
   breakable:
     enabled: 0
     lightForceThreshold: 0
@@ -74,5 +75,8 @@ MonoBehaviour:
     maximumCutDepth: 0
     minimumPieceVolumeRatio: 0
   interaction: {fileID: 11400000, guid: cd6b2b2f4e8e14daa9f8404b6df095a6, type: 2}
+  useAnimation: {fileID: 11400000, guid: c3648cd7cbc7a594a9cca23c5c96d700, type: 2}
+  allowAutonomousUse: 1
+  edible: 0
   consumedProduct: 0
   placementParts: []

@@ -9,9 +9,13 @@ namespace MateSoul.Runtime
     /// <summary>Fingertip taps, continuous control drags and captured rotary hand input.</summary>
     public sealed class PicoHandPoke : MonoBehaviour, IUIInteractor
     {
-        private const float TouchDistance = .005f;
-        private const float ReleaseDistance = .015f;
-        private const float MaximumPenetration = .025f;
+        // The tip bone sits at the centre of the virtual fingertip, so a finger
+        // resting on a panel is already a centimetre or two past its surface. The
+        // tap window has to include that depth or the panel only reacts when the
+        // whole fingertip is pushed through it.
+        private const float TouchDistance = .018f;
+        private const float ReleaseDistance = .03f;
+        private const float MaximumPenetration = .04f;
         private readonly List<Vector3> rayPoints = new List<Vector3>(2);
         private readonly List<Vector3> noRayPoints = new List<Vector3>(0);
         private readonly List<RaycastResult> hits = new List<RaycastResult>();

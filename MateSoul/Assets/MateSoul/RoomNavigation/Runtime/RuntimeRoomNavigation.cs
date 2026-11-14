@@ -43,6 +43,7 @@ namespace MateSoul.RoomNavigation
         private AsyncOperation liveBuild;
         private bool liveDirty;
         private float nextLiveBuild;
+        private float nextPerfLog;
         private Stopwatch liveBuildWatch;
 #region debug-point A-C:spawn-probe-rate
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -232,6 +233,13 @@ namespace MateSoul.RoomNavigation
             var watch = Stopwatch.StartNew();
             var surface = new LiveRoomSurface(
                 mesh, world, Snapshot.MainFloor.Centroid.y, Snapshot.Bounds);
+            var projectMs = watch.Elapsed.TotalMilliseconds;
+            if (projectMs >= 2f && Time.unscaledTime >= nextPerfLog)
+            {
+                nextPerfLog = Time.unscaledTime + 1f;
+                Debug.Log($"MATESOUL_PERF_NAV_PROJECT block={id} ms={projectMs:F1} " +
+                          $"cells={surface.Occupied.Count} frame={Time.frameCount}");
+            }
             if (liveSurfaces.TryGetValue(id, out var previous) &&
                 previous.Occupied.SetEquals(surface.Occupied) &&
                 previous.Covered.SetEquals(surface.Covered)) return;
@@ -263,6 +271,15 @@ namespace MateSoul.RoomNavigation
                 liveBuild = null;
                 liveBuildWatch.Stop();
                 LiveRevision++;
+                // NavMeshBuilder.UpdateNavMeshDataAsync finishes on the main thread; a
+                // long build shows up as a frame spike even though it started off-thread.
+                var asyncMs = liveBuildWatch.Elapsed.TotalMilliseconds;
+                if (asyncMs >= 4f)
+                {
+                    Debug.Log($"MATESOUL_PERF_NAV_ASYNC revision={LiveRevision} " +
+                              $"asyncMs={asyncMs:F1} cells={LiveObstacleCells} " +
+                              $"retired={RetiredCalibratedObstacles} frame={Time.frameCount}");
+                }
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 Debug.Log($"MATESOUL_LIVE_NAV revision={LiveRevision} " +
                           $"cells={LiveObstacleCells} retired={RetiredCalibratedObstacles} " +
@@ -270,6 +287,7 @@ namespace MateSoul.RoomNavigation
 #endif
             }
             if (!IsReady || !liveDirty || Time.unscaledTime < nextLiveBuild) return;
+            var sourcesWatch = Stopwatch.StartNew();
             var occupied = new HashSet<Vector2Int>();
             var covered = new HashSet<Vector2Int>();
             foreach (var surface in liveSurfaces.Values)
@@ -313,6 +331,14 @@ namespace MateSoul.RoomNavigation
             LiveObstacleCells = occupied.Count;
             liveDirty = false;
             nextLiveBuild = Time.unscaledTime + .25f;
+            var sourcesMs = sourcesWatch.Elapsed.TotalMilliseconds;
+            if (sourcesMs >= 3f && Time.unscaledTime >= nextPerfLog)
+            {
+                nextPerfLog = Time.unscaledTime + 1f;
+                Debug.Log($"MATESOUL_PERF_NAV_SOURCES ms={sourcesMs:F1} " +
+                          $"cells={occupied.Count} sources={sources.Count} " +
+                          $"surfaces={liveSurfaces.Count} frame={Time.frameCount}");
+            }
             liveBuildWatch = Stopwatch.StartNew();
             liveBuild = NavMeshBuilder.UpdateNavMeshDataAsync(
                 navMeshData, buildSettings, sources, buildBounds);

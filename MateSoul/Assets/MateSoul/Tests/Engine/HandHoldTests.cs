@@ -87,6 +87,83 @@ namespace MateSoul.Tests
         }
 
         [Test]
+        public void LeadFollowsSustainedPlayerMovementAndStopsAfterwards()
+        {
+            var tuning = HandHoldTuning.Default;
+            var controller = new HandHoldLeadController();
+
+            for (var index = 0; index < 10; index++)
+            {
+                var idle = controller.Tick(Vector3.zero, Vector3.zero, .05f, tuning);
+                Assert.That(controller.Engaged, Is.False);
+                Assert.That(idle.sqrMagnitude, Is.LessThan(.0001f));
+            }
+
+            var velocity = Vector3.zero;
+            for (var index = 0; index < 40; index++)
+            {
+                velocity = controller.Tick(Vector3.forward * .6f,
+                    Vector3.forward * .6f, .05f, tuning);
+                Assert.That(velocity.magnitude,
+                    Is.LessThanOrEqualTo(tuning.maximumSpeed + .0001f));
+            }
+            Assert.That(controller.Engaged, Is.True);
+            Assert.That(velocity.z, Is.GreaterThan(.1f));
+            // The follow command rides the player's head speed instead of ramping
+            // towards it on its own acceleration budget.
+            Assert.That(velocity.z, Is.EqualTo(.6f).Within(.02f));
+
+            for (var index = 0; index < 60; index++)
+                velocity = controller.Tick(Vector3.zero, Vector3.zero, .05f, tuning);
+            Assert.That(controller.Engaged, Is.False);
+            Assert.That(velocity.sqrMagnitude, Is.LessThan(.0001f));
+        }
+
+        [Test]
+        public void LeadIgnoresHeadTurnsAndHandGestures()
+        {
+            var tuning = HandHoldTuning.Default;
+            var controller = new HandHoldLeadController();
+            Vector3 velocity = default;
+
+            for (var index = 0; index < 40; index++)
+                velocity = controller.Tick(Vector3.right * .4f,
+                    Vector3.forward * .4f, .05f, tuning);
+            Assert.That(controller.Engaged, Is.False);
+            Assert.That(velocity.sqrMagnitude, Is.LessThan(.0001f));
+
+            // A head turn alone must not drag the avatar along: the held hand stays
+            // where it is while the head swings to the side.
+            for (var index = 0; index < 40; index++)
+                velocity = controller.Tick(Vector3.right * .4f,
+                    Vector3.zero, .05f, tuning);
+            Assert.That(controller.Engaged, Is.False);
+            Assert.That(velocity.sqrMagnitude, Is.LessThan(.0001f));
+
+            for (var index = 0; index < 40; index++)
+                velocity = controller.Tick(Vector3.zero,
+                    Vector3.right * .4f, .05f, tuning);
+            Assert.That(controller.Engaged, Is.False);
+            Assert.That(velocity.sqrMagnitude, Is.LessThan(.0001f));
+        }
+
+        [Test]
+        public void LeadEngagesOnSlowWalkWithAStabilisedHand()
+        {
+            var tuning = HandHoldTuning.Default;
+            var controller = new HandHoldLeadController();
+            Vector3 velocity = default;
+
+            // Device logs measured 0.15-0.32 m/s walking while the held hand lagged
+            // behind at roughly a third of the head speed.
+            for (var index = 0; index < 40; index++)
+                velocity = controller.Tick(Vector3.forward * .18f,
+                    Vector3.forward * .07f, .05f, tuning);
+            Assert.That(controller.Engaged, Is.True);
+            Assert.That(velocity.z, Is.GreaterThan(.05f));
+        }
+
+        [Test]
         public void ProductionPrefabContainsTwoConstrainedSelectableHands()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GameSceneBuilder.CharacterPath);
@@ -229,12 +306,20 @@ namespace MateSoul.Tests
                 manager.SelectEnter((IXRSelectInteractor)ray, socket);
                 Assert.That(socket.isSelected, Is.True);
 
+                // XRI re-validates the selection every frame, so the held radius has
+                // to cover the arm lagging behind the walking player; otherwise the
+                // hold is cancelled before the character has a chance to follow.
                 controllerObject.transform.position =
                     socket.transform.position + Vector3.right * .13f;
                 Assert.That(socket.IsWithinHoldRange(ray), Is.True,
                     "Selection should survive movement between the entry and exit radii.");
                 controllerObject.transform.position =
-                    socket.transform.position + Vector3.right * .17f;
+                    socket.transform.position + Vector3.right * .35f;
+                Assert.That(socket.IsWithinHoldRange(ray), Is.True,
+                    "A walking hold must outlast the arm lag instead of ending on the " +
+                    "acquisition radius.");
+                controllerObject.transform.position =
+                    socket.transform.position + Vector3.right * .75f;
                 Assert.That(socket.IsWithinHoldRange(ray), Is.False);
             }
             finally

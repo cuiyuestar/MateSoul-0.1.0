@@ -442,6 +442,15 @@ namespace MateSoul.Gameplay
     }
 
     [Serializable]
+    public sealed class RuntimePlacementDestinationSnapshot
+    {
+        public string id;
+        public string name;
+        public string kind;
+        public bool has_surface;
+    }
+
+    [Serializable]
     public sealed class RuntimeWorldSnapshot
     {
         public int schema_version = 1;
@@ -456,6 +465,8 @@ namespace MateSoul.Gameplay
             Array.Empty<RuntimeInventoryAlertSnapshot>();
         public RuntimeEnvironmentSnapshot environment;
         public RuntimeVirtualWorldSnapshot virtual_world;
+        public RuntimePlacementDestinationSnapshot[] placement_destinations =
+            Array.Empty<RuntimePlacementDestinationSnapshot>();
     }
 
     [Serializable]

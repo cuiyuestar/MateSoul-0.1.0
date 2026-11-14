@@ -43,6 +43,7 @@ namespace MateSoul.Runtime
         public bool IsCookable => configured && settings.enabled;
         public bool IsHeating => effects != null && effects.IsHeating;
         public CookingEffects Effects => effects;
+        public GameItem Item => item;
         public GameObject RawVisualRoot => rawVisualRoot;
         public GameObject CookedVisualRoot => cookedVisualRoot;
         public event Action<FoodDoneness> DonenessChanged;
@@ -177,6 +178,9 @@ namespace MateSoul.Runtime
             if (item?.Instance != null)
                 item.Instance.SetState(StateId(next));
             ApplyVisual();
+            if (changed)
+                Debug.Log($"MATESOUL_COOK_STAGE food={name} stage={stage} " +
+                          $"doneness={doneness:F1}");
             if (publish && changed) DonenessChanged?.Invoke(stage);
         }
 

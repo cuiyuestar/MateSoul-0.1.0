@@ -67,6 +67,9 @@ namespace MateSoul.Runtime
         [Min(.01f)] public float trackingJumpDistance;
         [Min(.01f)] public float blendInSeconds;
         [Min(.01f)] public float blendOutSeconds;
+        // Zero keeps instances serialized before these limits on the defaults.
+        [Range(30, 160)] public float shoulderConeDegrees;
+        [Min(0)] public float torsoRadius;
         public WristRotationLimits wrist;
 
         public static HandHoldTuning Default => new HandHoldTuning
@@ -87,14 +90,16 @@ namespace MateSoul.Runtime
             maximumAcceleration = 2.2f,
             stoppingAcceleration = 3f,
             velocityDamping = .8f,
-            playerMovementSpeed = .16f,
+            playerMovementSpeed = .10f,
             movementCoherence = .55f,
             forceFilterHz = 5,
-            maximumTargetSeparation = .20f,
+            maximumTargetSeparation = .40f,
             blockedReleaseDelay = .30f,
             trackingJumpDistance = .45f,
             blendInSeconds = .15f,
             blendOutSeconds = .22f,
+            shoulderConeDegrees = 100,
+            torsoRadius = .16f,
             wrist = WristRotationLimits.Comfortable
         };
 
@@ -172,6 +177,46 @@ namespace MateSoul.Runtime
             return new HandReachResult(position, direction, Mathf.Max(0, distance - soft),
                 Mathf.Clamp01(Mathf.InverseLerp(soft, hard, distance)),
                 Vector3.Distance(position, desiredWrist));
+        }
+
+        // Keeps the pulled hand out of the torso volume so the arm cannot be
+        // dragged through the chest or belly. The torso is approximated by a
+        // capsule from the hips to the shoulder midpoint.
+        public static Vector3 ConstrainToTorso(Vector3 wrist, Vector3 shoulderMid,
+            Vector3 bodyBase, Vector3 bodyForward, float radius)
+        {
+            var axis = shoulderMid - bodyBase;
+            var length = axis.magnitude;
+            if (length < .001f || radius <= 0) return wrist;
+            var direction = axis / length;
+            var along = Mathf.Clamp(Vector3.Dot(wrist - bodyBase, direction), 0, length);
+            var closest = bodyBase + direction * along;
+            var radial = Vector3.ProjectOnPlane(wrist - closest, direction);
+            if (radial.sqrMagnitude >= radius * radius) return wrist;
+            if (radial.sqrMagnitude < .000001f)
+                radial = Vector3.ProjectOnPlane(bodyForward, direction);
+            if (radial.sqrMagnitude < .000001f) radial = Vector3.right;
+            return closest + radial.normalized * radius;
+        }
+
+        // Caps the shoulder swing at a cone around the hanging direction. Past
+        // that angle the hand stops instead of wrenching the arm out of its
+        // socket or folding it behind the back.
+        public static Vector3 ConstrainShoulderCone(Vector3 shoulder, Vector3 wrist,
+            Vector3 down, float coneDegrees)
+        {
+            var offset = wrist - shoulder;
+            var distance = offset.magnitude;
+            if (distance < .0001f || coneDegrees <= 0 || coneDegrees >= 180) return wrist;
+            var direction = offset / distance;
+            down = NormalizeAxis(down, Vector3.down);
+            var angle = Vector3.Angle(down, direction);
+            if (angle <= coneDegrees) return wrist;
+            var axis = Vector3.Cross(direction, down);
+            if (axis.sqrMagnitude < .000001f)
+                axis = Vector3.Cross(direction, Vector3.forward);
+            var clamped = Quaternion.AngleAxis(angle - coneDegrees, axis.normalized) * direction;
+            return shoulder + clamped * distance;
         }
 
         public static WristConstraintResult ConstrainWristDelta(
@@ -266,6 +311,88 @@ namespace MateSoul.Runtime
         private static Vector3 NormalizeAxis(Vector3 value, Vector3 fallback)
             => PhysicsBody.IsFinite(value) && value.sqrMagnitude > .000001f
                 ? value.normalized : fallback;
+    }
+
+    /// <summary>
+    /// Turns sustained player locomotion into a walking command so the avatar
+    /// keeps pace while the player leads it by the hand, instead of only moving
+    /// once the arm has been stretched beyond its soft reach.
+    /// </summary>
+    public sealed class HandHoldLeadController
+    {
+        private const float velocityResponse = 12f;
+        private const float engageDelay = .12f;
+        private const float releaseSpeedRatio = .5f;
+        // A held hand is stabilised by the arm and never matches the head speed, so
+        // it only has to travel with the body instead of keeping pace with it.
+        private const float handSpeedRatio = .3f;
+        // Hand tracking drops a frame or two at a time; a brief disagreement must not
+        // restart the whole engagement.
+        private const float vetoTolerance = .1f;
+        private Vector3 filteredVelocity;
+        private float engageTime, vetoTimer;
+        private bool engaged;
+
+        public bool Engaged => engaged;
+        public Vector3 CommandVelocity { get; private set; }
+
+        public Vector3 Tick(Vector3 playerVelocity, Vector3 handVelocity,
+            float deltaSeconds, HandHoldTuning tuning)
+        {
+            if (deltaSeconds <= 0) return CommandVelocity;
+            playerVelocity.y = 0;
+            handVelocity.y = 0;
+            var playerSpeed = playerVelocity.magnitude;
+            var handSpeed = handVelocity.magnitude;
+            var enterSpeed = tuning.playerMovementSpeed;
+            // Walking means the head travels and the held hand travels along with it.
+            // A head turn moves the head but leaves the hand behind, which is what
+            // this rejects; the hand no longer has to reach the head speed itself.
+            var walking = playerSpeed >= enterSpeed &&
+                          handSpeed >= playerSpeed * handSpeedRatio &&
+                          Vector3.Dot(playerVelocity, handVelocity) > 0;
+            vetoTimer = walking ? 0 : vetoTimer + deltaSeconds;
+            filteredVelocity = Vector3.Lerp(filteredVelocity,
+                walking ? playerVelocity : Vector3.zero,
+                HandHoldMath.ExpSmoothing(velocityResponse, deltaSeconds));
+            var speed = filteredVelocity.magnitude;
+            var releaseSpeed = enterSpeed * releaseSpeedRatio;
+
+            if (!engaged)
+            {
+                engageTime = speed >= enterSpeed && vetoTimer < vetoTolerance
+                    ? engageTime + deltaSeconds : 0;
+                if (engageTime >= engageDelay) engaged = true;
+            }
+            else if (speed < releaseSpeed)
+            {
+                engaged = false;
+                engageTime = 0;
+            }
+
+            if (!engaged)
+            {
+                CommandVelocity = Vector3.MoveTowards(CommandVelocity, Vector3.zero,
+                    tuning.stoppingAcceleration * deltaSeconds);
+                return CommandVelocity;
+            }
+
+            // The filtered player speed is already smooth, so the command tracks it
+            // one-to-one instead of ramping a second time; the extra acceleration
+            // budget made the avatar trail the player by another quarter second.
+            var direction = speed > .0001f ? filteredVelocity / speed : Vector3.zero;
+            CommandVelocity = direction * Mathf.Min(speed, tuning.maximumSpeed);
+            return CommandVelocity;
+        }
+
+        public void Reset()
+        {
+            filteredVelocity = Vector3.zero;
+            engageTime = 0;
+            vetoTimer = 0;
+            engaged = false;
+            CommandVelocity = Vector3.zero;
+        }
     }
 
     public sealed class HandHoldTractionController

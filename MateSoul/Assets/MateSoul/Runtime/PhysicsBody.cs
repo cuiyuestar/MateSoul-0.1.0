@@ -58,6 +58,9 @@ namespace MateSoul.Runtime
         public bool IsStableFollowing => following && stableFollow;
         public bool IsContact => contact;
         public bool IsDocked => docked;
+        // Cookware must stay solid while a tracked hand carries it, otherwise food
+        // dropped into the pan passes straight through the ghosted body.
+        public bool RetainCollisionsWhileHeld { get; set; }
         public bool IsSettled => initialized && !following &&
             (docked || Rigidbody.IsSleeping() || quietTime >= .5f);
         public Pose Pose => new Pose(Rigidbody.position, Rigidbody.rotation);
@@ -213,7 +216,8 @@ namespace MateSoul.Runtime
                 Rigidbody.interpolation = RigidbodyInterpolation.None;
                 // Manual occupancy checks below avoid an infinitely heavy
                 // tracked tool flinging dynamic objects through a table.
-                Rigidbody.detectCollisions = false;
+                // Cookware opts out so items can rest inside a carried pan.
+                Rigidbody.detectCollisions = RetainCollisionsWhileHeld;
             }
             Rigidbody.WakeUp();
         }
@@ -227,9 +231,20 @@ namespace MateSoul.Runtime
             if (!IsFinite(velocity) || !IsFinite(angularVelocity))
                 throw new ArgumentException("Follow motion must be finite.");
             followTarget = target;
-            followVelocity = Vector3.ClampMagnitude(velocity, 4f);
-            followAngularVelocity = Vector3.ClampMagnitude(angularVelocity, 12f);
+            followVelocity = Vector3.ClampMagnitude(velocity, 12f);
+            followAngularVelocity = Vector3.ClampMagnitude(angularVelocity, 24f);
             if (IsStableFollowing && !IsPaused) ApplyStableFollow(target);
+        }
+
+        public void HoldFollowPose()
+        {
+            if (!following) return;
+            // Hand tracking has stopped providing samples: hold the body where
+            // it is instead of chasing a stale attach pose. FixedUpdate keeps
+            // cancelling gravity for dynamic bodies.
+            followTarget = Pose;
+            followVelocity = followAngularVelocity = Vector3.zero;
+            if (IsStableFollowing && !IsPaused) ApplyStableFollow(followTarget);
         }
 
         private void ApplyStableFollow(Pose target)
@@ -246,6 +261,7 @@ namespace MateSoul.Runtime
                              movement / distance, distance + .002f, QueryTriggerInteraction.Ignore))
                 {
                     if (Vector3.Dot(movement, hit.normal) >= 0) continue;
+                    if (PhysicalContactsResolveDynamic(hit.rigidbody)) continue;
                     if (stableCutting && hit.collider.GetComponentInParent<GameItem>() is GameItem cuttable &&
                         cuttable.Definition != null && cuttable.Definition.Cuttable.enabled)
                         continue;
@@ -315,7 +331,7 @@ namespace MateSoul.Runtime
             var canThrow = following && !IsPaused && (!Rigidbody.isKinematic || stableFollow);
             EndFollow(stableFollow);
             if (!canThrow) return;
-            var velocity = Vector3.ClampMagnitude(recentVelocity, 4f);
+            var velocity = Vector3.ClampMagnitude(recentVelocity, 12f);
             // Keep fresh hand momentum in free space, but do not inject it through
             // a wall/table that physically blocks the released body.
             if (velocity.sqrMagnitude > .0001f)
@@ -333,7 +349,7 @@ namespace MateSoul.Runtime
                 }
             }
             Rigidbody.velocity = velocity;
-            Rigidbody.angularVelocity = Vector3.ClampMagnitude(recentAngularVelocity, 12f);
+            Rigidbody.angularVelocity = Vector3.ClampMagnitude(recentAngularVelocity, 24f);
             if (velocity.sqrMagnitude > 4f)
                 Rigidbody.collisionDetectionMode = shapes.All(shape => !(shape is MeshCollider))
                     ? CollisionDetectionMode.ContinuousDynamic
@@ -601,7 +617,8 @@ namespace MateSoul.Runtime
         }
 
         // Authored contact motion is sampled at <=2 cm / 3 degrees, including rotation.
-        public bool IsPathClear(Pose from, Pose to, ISet<int> ignoredRoomSurfaceSources = null)
+        public bool IsPathClear(Pose from, Pose to, ISet<int> ignoredRoomSurfaceSources = null,
+            float tolerance = .012f)
         {
             var steps = Mathf.CeilToInt(Mathf.Max(Vector3.Distance(from.position, to.position) / .02f,
                 Quaternion.Angle(from.rotation, to.rotation) / 3f));
@@ -610,7 +627,7 @@ namespace MateSoul.Runtime
                 var t = (float)index / Mathf.Max(1, steps);
                 if (!CanOccupy(new Pose(Vector3.Lerp(from.position, to.position, t),
                         Quaternion.Slerp(from.rotation, to.rotation, t)),
-                        ignoredRoomSurfaceSources: ignoredRoomSurfaceSources)) return false;
+                        tolerance, ignoredRoomSurfaceSources: ignoredRoomSurfaceSources)) return false;
             }
             return true;
         }

@@ -23,6 +23,14 @@ namespace MateSoul.Runtime
         private bool hadPalm;
         private readonly float[] fingerCurls = new float[3];
         private int validCurlMask;
+        // Release detection can land on a frame where the palm sample is not
+        // continuous. Keep a short history so the throw still gets the last
+        // trustworthy hand motion instead of a zero-velocity drop.
+        private const int MotionHistoryLength = 16;
+        private readonly Vector3[] motionVelocity = new Vector3[MotionHistoryLength];
+        private readonly Vector3[] motionAngular = new Vector3[MotionHistoryLength];
+        private readonly float[] motionTime = new float[MotionHistoryLength];
+        private int motionHead, motionCount;
 #region debug-point A-B:eyehand-pointer-stall
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         private float debugNextHandTrace;
@@ -92,6 +100,7 @@ namespace MateSoul.Runtime
 
         private void Update()
         {
+            using var perf = PerfMonitor.Sample("Hand.Update");
             Tracked = TipTracked = false;
             NativeTracked = NativePinching = NativeGrasping = false;
             Grip = 0;
@@ -187,9 +196,9 @@ namespace MateSoul.Runtime
         // fast gesture remains continuous when the render frame rate drops.
         internal static bool IsContinuousMotion(Pose previous, Pose current, float delta)
             => delta > .0001f && delta < .1f &&
-               Vector3.Distance(previous.position, current.position) <= .02f + 6f * delta &&
+               Vector3.Distance(previous.position, current.position) <= .02f + 12f * delta &&
                Quaternion.Angle(previous.rotation, current.rotation) <=
-               10f + 20f * Mathf.Rad2Deg * delta;
+               10f + 24f * Mathf.Rad2Deg * delta;
 
         private void UpdatePalmMotion(float delta)
         {
@@ -198,18 +207,80 @@ namespace MateSoul.Runtime
                 new Pose(previousPalmPosition, previousPalmRotation), Palm, delta);
             if (MotionValid)
             {
+                // A real throw swings the hand at 5-8 m/s; the old 4 m/s cap is why
+                // released items trickled out. 12 m/s is still a hard glitch guard.
                 PalmVelocity = Vector3.ClampMagnitude(
-                    (Palm.position - previousPalmPosition) / delta, 4f);
+                    (Palm.position - previousPalmPosition) / delta, 12f);
                 var turn = Palm.rotation * Quaternion.Inverse(previousPalmRotation);
                 turn.ToAngleAxis(out var angle, out var axis);
                 if (angle > 180) angle -= 360;
                 PalmAngularVelocity = PhysicsBody.IsFinite(axis)
-                    ? Vector3.ClampMagnitude(axis * (angle * Mathf.Deg2Rad / delta), 12f)
+                    ? Vector3.ClampMagnitude(axis * (angle * Mathf.Deg2Rad / delta), 24f)
                     : Vector3.zero;
+                RecordMotion(Time.unscaledTime);
             }
             previousPalmPosition = Palm.position;
             previousPalmRotation = Palm.rotation;
             hadPalm = true;
+        }
+
+        private void RecordMotion(float time)
+        {
+            motionVelocity[motionHead] = PalmVelocity;
+            motionAngular[motionHead] = PalmAngularVelocity;
+            motionTime[motionHead] = time;
+            motionHead = (motionHead + 1) % MotionHistoryLength;
+            if (motionCount < MotionHistoryLength) motionCount++;
+        }
+
+        /// <summary>Newest trustworthy palm motion no older than <paramref name="maxAge"/>.</summary>
+        public bool TryGetRecentMotion(float maxAge, out Vector3 velocity, out Vector3 angular)
+        {
+            velocity = angular = Vector3.zero;
+            var now = Time.unscaledTime;
+            for (var offset = 0; offset < motionCount; offset++)
+            {
+                var index = (motionHead - 1 - offset + MotionHistoryLength * 2) % MotionHistoryLength;
+                if (now - motionTime[index] > maxAge) continue;
+                velocity = motionVelocity[index];
+                angular = motionAngular[index];
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>Recency-weighted palm motion for release throws.</summary>
+        /// <remarks>
+        /// Opening the fingers disturbs the palm sample on the exact release frame, so a
+        /// single-frame delta understates the swing. A short recency-weighted average of
+        /// the recorded history keeps the hand's real speed and direction instead.
+        /// </remarks>
+        public bool TryGetThrowMotion(out Vector3 velocity, out Vector3 angular)
+        {
+            const float window = .1f;
+            var now = Time.unscaledTime;
+            var total = 0f;
+            velocity = angular = Vector3.zero;
+            for (var offset = 0; offset < motionCount; offset++)
+            {
+                var index = (motionHead - 1 - offset + MotionHistoryLength * 2) % MotionHistoryLength;
+                var age = now - motionTime[index];
+                if (age > window) break;
+                var weight = 1f - age / window;
+                velocity += motionVelocity[index] * weight;
+                angular += motionAngular[index] * weight;
+                total += weight;
+            }
+            if (total > 0f)
+            {
+                velocity /= total;
+                angular /= total;
+                return true;
+            }
+            if (!MotionValid) return false;
+            velocity = PalmVelocity;
+            angular = PalmAngularVelocity;
+            return true;
         }
 
         private void UpdateClosedState()
@@ -428,6 +499,7 @@ namespace MateSoul.Runtime
             MotionValid = false;
             validCurlMask = 0;
             hadPalm = false;
+            motionHead = motionCount = 0;
             Array.Clear(jointValid, 0, jointValid.Length);
             if (visualHand != null) visualHand.enabled = false;
             if (renderers != null)

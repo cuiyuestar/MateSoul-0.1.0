@@ -38,6 +38,7 @@ MonoBehaviour:
   immovableAfterPlacement: 1
   placementFacingYaw: 0
   minimumSurfaceSupportRatio: 1
+  providesPlacementSurface: 1
   breakable:
     enabled: 0
     lightForceThreshold: 0

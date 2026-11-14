@@ -252,6 +252,7 @@ namespace MateSoul.Runtime
         [SerializeField] private bool immovableAfterPlacement;
         [SerializeField] private float placementFacingYaw;
         [SerializeField, Range(.5f, 1f)] private float minimumSurfaceSupportRatio = 1f;
+        [SerializeField] private bool providesPlacementSurface;
         [SerializeField] private BreakableSettings breakable;
         [SerializeField] private ImpactSoundSettings impactSound;
         [SerializeField] private CookingSettings cooking;
@@ -259,6 +260,7 @@ namespace MateSoul.Runtime
         [SerializeField] private ItemInteractionProfile interaction;
         [SerializeField] private ItemUseAnimation useAnimation;
         [SerializeField] private bool allowAutonomousUse;
+        [SerializeField] private bool edible;
         [SerializeField] private bool consumedProduct;
         [SerializeField] private ItemPlacementPart[] placementParts = Array.Empty<ItemPlacementPart>();
         public string Id => id;
@@ -284,6 +286,7 @@ namespace MateSoul.Runtime
         public float MinimumSurfaceSupportRatio => minimumSurfaceSupportRatio > 0
             ? Mathf.Clamp(minimumSurfaceSupportRatio, .5f, 1f)
             : 1f;
+        public bool ProvidesPlacementSurface => providesPlacementSurface;
         public BreakableSettings Breakable => breakable;
         public ImpactSoundSettings ImpactSound => impactSound;
         public CookingSettings Cooking => cooking;
@@ -292,6 +295,10 @@ namespace MateSoul.Runtime
         public ItemUseAnimation UseAnimation => useAnimation;
         public bool AllowAutonomousUse => allowAutonomousUse;
         public bool ConsumedProduct => consumedProduct;
+        public bool IsEdible => edible;
+
+        public void ConfigureEdible(bool value) => edible = value;
+
         public void ConfigureUse(ItemUseAnimation animation, bool autonomous)
         {
             if (autonomous && (animation == null || animation.clip == null))
@@ -365,6 +372,8 @@ namespace MateSoul.Runtime
                     "Surface support ratio must be between 0.5 and 1.");
             minimumSurfaceSupportRatio = minimumRatio;
         }
+
+        public void ConfigurePlacementSurface(bool value) => providesPlacementSurface = value;
 
         public Quaternion ResolvePlacementRotation(Vector3 facesPlayer)
         {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using MateSoul.Runtime;
@@ -17,7 +17,7 @@ namespace MateSoul.Editor
         public const string PinPath = "Assets/MateSoul/Content/MiniGames/BowlingPin.prefab";
         private const string Source = "Assets/MateSoul/Content/PropsSource/Bowling";
         private const string Materials = "Assets/MateSoul/Content/MiniGames/BowlingMaterials";
-        private const string Audio = "Assets/MateSoul/Content/Audio/ThirdParty/CrowdCheer_Short_CC-BY-4.0.mp3";
+        private const string Audio = "Assets/MateSoul/Content/Audio/Ambience/lengyue_audio_crowd_cheer.mp3";
 
         [MenuItem("MateSoul/Game/Build Bowling Content")]
         public static BowlingGame Build()
@@ -27,13 +27,13 @@ namespace MateSoul.Editor
             Directory.CreateDirectory("Assets/MateSoul/Content/MiniGames");
             var repository = Path.GetFullPath(Path.Combine(Application.dataPath, "../.."));
             Copy(Path.Combine(repository,
-                    "ArtSource/SapphiArt/Props/BowlingBall/exports/LavenderChibiBowlingBall_218mm.fbx"),
+                    "ArtSource/Lengyue/Props/BowlingBall/exports/LavenderChibiBowlingBall_218mm.fbx"),
                 Source + "/LavenderChibiBowlingBall_218mm.fbx");
             Copy(Path.Combine(repository,
-                    "ArtSource/SapphiArt/Props/BowlingPin/exports/LavenderChibiBowlingPin_380mm.fbx"),
+                    "ArtSource/Lengyue/Props/BowlingPin/exports/LavenderChibiBowlingPin_380mm.fbx"),
                 Source + "/LavenderChibiBowlingPin_380mm.fbx");
             Copy(Path.Combine(repository,
-                    "ArtSource/SapphiArt/Props/BowlingBall/textures/bowling_character_decal.png"),
+                    "ArtSource/Lengyue/Props/BowlingBall/textures/bowling_character_decal.png"),
                 Source + "/bowling_character_decal.png");
             AssetDatabase.Refresh();
             ConfigureImporter(Source + "/LavenderChibiBowlingBall_218mm.fbx");
@@ -100,6 +100,12 @@ namespace MateSoul.Editor
                 ConvertMaterials(view, "Pin");
                 AddCapsule(root, "Lower Body Collider", new Vector3(0, .12f, 0), .06f, .24f);
                 AddCapsule(root, "Neck Collider", new Vector3(0, .265f, 0), .032f, .17f);
+                var baseCollider = new GameObject("Base Collider", typeof(BoxCollider));
+                baseCollider.transform.SetParent(root.transform, false);
+                baseCollider.GetComponent<BoxCollider>().center = new Vector3(0, .01f, 0);
+                // The lower capsule ends in a hemisphere, so the pin balanced on a single
+                // point and toppled on its own; a flat base gives it a real support polygon.
+                baseCollider.GetComponent<BoxCollider>().size = new Vector3(.08f, .02f, .08f);
                 var head = new GameObject("Head Collider", typeof(SphereCollider));
                 head.transform.SetParent(root.transform, false);
                 head.transform.localPosition = new Vector3(0, .342f, 0);

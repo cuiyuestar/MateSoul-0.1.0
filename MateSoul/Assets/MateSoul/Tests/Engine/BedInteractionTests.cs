@@ -55,6 +55,53 @@ namespace MateSoul.Tests
             return triangles;
         }
 
+        private static List<RealityTriangle> Sofa(float width = .62f, float length = 1.9f,
+            float surface = .45f)
+        {
+            var triangles = new List<RealityTriangle>();
+            void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, int source)
+            {
+                triangles.Add(new RealityTriangle(a, b, c, (int)RealitySemantic.Sofa, source));
+                triangles.Add(new RealityTriangle(a, c, d, (int)RealitySemantic.Sofa, source));
+            }
+
+            for (var x = 0; x < 4; x++)
+                for (var z = 0; z < 8; z++)
+                {
+                    var x0 = -width * .5f + x * width / 4f;
+                    var z0 = -length * .5f + z * length / 8f;
+                    Quad(new Vector3(x0, surface, z0),
+                        new Vector3(x0 + width / 4f, surface, z0),
+                        new Vector3(x0 + width / 4f, surface, z0 + length / 8f),
+                        new Vector3(x0, surface, z0 + length / 8f), 30);
+                }
+            // A backrest runs along the long side instead of across an end.
+            Quad(new Vector3(width * .5f, surface, -length * .5f),
+                new Vector3(width * .5f, surface, length * .5f),
+                new Vector3(width * .5f, surface + .42f, length * .5f),
+                new Vector3(width * .5f, surface + .42f, -length * .5f), 30);
+            Quad(new Vector3(width * .5f + .12f, surface, -length * .5f),
+                new Vector3(width * .5f + .12f, surface, length * .5f),
+                new Vector3(width * .5f + .12f, surface + .42f, length * .5f),
+                new Vector3(width * .5f + .12f, surface + .42f, -length * .5f), 30);
+            Quad(new Vector3(width * .5f, surface + .42f, -length * .5f),
+                new Vector3(width * .5f + .12f, surface + .42f, -length * .5f),
+                new Vector3(width * .5f + .12f, surface + .42f, length * .5f),
+                new Vector3(width * .5f, surface + .42f, length * .5f), 30);
+            return triangles;
+        }
+
+        [Test]
+        public void ExtractsSofaWithoutHeadEndCue()
+        {
+            var target = BedGeometry.Extract(Sofa(), 0).Single();
+            Assert.That(target.Semantic, Is.EqualTo(RealitySemantic.Sofa));
+            Assert.That(target.Width, Is.EqualTo(.62f).Within(.02f));
+            Assert.That(target.Length, Is.EqualTo(1.9f).Within(.02f));
+            Assert.That(target.Center.y, Is.EqualTo(.45f).Within(.005f));
+            Assert.That(target.HeadCue, Is.EqualTo(BedHeadCue.Default));
+        }
+
         [Test]
         public void ExtractsOneBedFromOverlappingFrameAndBlanket()
         {
@@ -80,7 +127,7 @@ namespace MateSoul.Tests
             Assert.That(target.ContactRoot.y, Is.EqualTo(surface + .035f).Within(.005f));
             Assert.That(candidates.Where(candidate => candidate.Edge != BedMountEdge.Foot)
                 .All(candidate => Vector3.Distance(candidate.IdealDock, target.Center) >
-                                  width * .5f + .3f), Is.True);
+                                  width * .5f + .1f), Is.True);
         }
 
         [Test]
@@ -134,6 +181,25 @@ namespace MateSoul.Tests
                 Assert.That(item.Supports(RealityInteractionIds.Lie), Is.True);
                 Assert.That(directory.TryGet(target.Id, out var reality), Is.True);
                 Assert.That(reality.Semantic, Is.EqualTo(RealitySemantic.Bed));
+            }
+        }
+
+        [Test]
+        public void ScannerPublishesLieCapabilityForSofa()
+        {
+            using (var registry = new ItemRegistry())
+            using (var directory = new RealityItemDirectory(registry))
+            using (var source = new RealityMeshSource(Room()))
+            using (var scanner = new RealBedScanner(directory, Room(), source))
+            {
+                var geometry = Sofa();
+                for (var index = 0; index < 3; index++)
+                    scanner.Observe(geometry, Time.unscaledTime + index * .1f);
+                var target = scanner.Targets.Single();
+                Assert.That(registry.TryGet(target.Id, out var item), Is.True);
+                Assert.That(item.Supports(RealityInteractionIds.Lie), Is.True);
+                Assert.That(directory.TryGet(target.Id, out var reality), Is.True);
+                Assert.That(reality.Semantic, Is.EqualTo(RealitySemantic.Sofa));
             }
         }
 

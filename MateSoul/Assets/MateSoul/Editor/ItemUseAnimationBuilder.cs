@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MateSoul.Runtime;
@@ -46,8 +47,9 @@ namespace MateSoul.Editor
         public static void ImportHugToy()
         {
             var character = AssetDatabase.LoadAssetAtPath<GameObject>(GameSceneBuilder.CharacterPath);
+            var sourcePath = DirectoryPath + "/Source/HugToy_01_InPlace.fbx";
             var clip = AvatarItemAnimationRetarget.Retarget(
-                DirectoryPath + "/Source/HugToy_01_InPlace.fbx", DirectoryPath + "/HugToy_01.anim");
+                sourcePath, DirectoryPath + "/HugToy_01.anim");
             var animation = AssetDatabase.LoadAssetAtPath<ItemUseAnimation>(HugToyPath);
             if (!animation)
             {
@@ -63,6 +65,8 @@ namespace MateSoul.Editor
             var doll = AssetDatabase.LoadAssetAtPath<ItemDefinition>(
                 "Assets/MateSoul/Content/Props/PlushDoll.asset");
             if (!doll) throw new InvalidOperationException("Missing plush doll definition.");
+            FitGestureGrip(sourcePath, DirectoryPath + "/HugToy_01.anim", doll,
+                "Stuffed_Shirt", "Head_Fabric");
             doll.ConfigureUse(animation, true);
             EditorUtility.SetDirty(doll);
             EditorUtility.SetDirty(animation);
@@ -94,6 +98,8 @@ namespace MateSoul.Editor
             var radio = AssetDatabase.LoadAssetAtPath<ItemDefinition>(
                 "Assets/MateSoul/Content/Props/Radio.asset");
             if (!radio) throw new InvalidOperationException("Missing radio definition.");
+            FitGestureGrip(DirectoryPath + "/Source/PlayRadio_01_InPlace.fbx",
+                DirectoryPath + "/PlayRadio_01.anim", radio, "Radio_Handle_Grip");
             radio.ConfigureUse(animation, false);
             EditorUtility.SetDirty(radio);
             EditorUtility.SetDirty(animation);
@@ -160,6 +166,298 @@ namespace MateSoul.Editor
                     throw new InvalidOperationException("Missing edible item definition: " + path);
                 definition.ConfigureEdible(true);
                 EditorUtility.SetDirty(definition);
+            }
+        }
+
+        // Content rebuilds regenerate every profile's grip geometry, so the
+        // gesture fits have to be re-applied there as well or the props snap
+        // back to their generic palm pose whenever "Build Item Actions" runs.
+        public static void FitGripForContent()
+        {
+            FitGripForContent("Assets/MateSoul/Content/Props/PlushDoll.asset",
+                DirectoryPath + "/Source/HugToy_01_InPlace.fbx",
+                DirectoryPath + "/HugToy_01.anim",
+                "Stuffed_Shirt", "Head_Fabric");
+            FitGripForContent("Assets/MateSoul/Content/Props/Radio.asset",
+                DirectoryPath + "/Source/PlayRadio_01_InPlace.fbx",
+                DirectoryPath + "/PlayRadio_01.anim",
+                "Radio_Handle_Grip");
+        }
+
+        private static void FitGripForContent(string itemPath, string sourcePath,
+            string targetClipPath, params string[] preferredMeshes)
+        {
+            var item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(itemPath);
+            if (item == null || item.Interaction == null ||
+                AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath) == null ||
+                AssetDatabase.LoadAssetAtPath<AnimationClip>(targetClipPath) == null)
+                return;
+            try
+            {
+                FitGestureGrip(sourcePath, targetClipPath, item, preferredMeshes);
+            }
+            catch (InvalidOperationException error)
+            {
+                Debug.LogWarning($"MATESOUL_USE_GRIP_SKIPPED item={item.Id} " +
+                    error.Message);
+            }
+        }
+
+        // The authored gesture already contains the prop posed exactly where the
+        // artist wants it. The prop's authored mesh pose relative to the source
+        // upper chest is mapped onto the production character's upper chest, and
+        // the grip offset is then derived from the production hand at the same
+        // authored frame. This deliberately avoids carrying any unit/axis
+        // difference between the gesture FBX and the production prop prefab into
+        // the grip anchor. Works for both the hug doll and the radio.
+        private static void FitGestureGrip(string sourcePath, string targetClipPath,
+            ItemDefinition item, params string[] preferredMeshes)
+        {
+            var sourceAsset = AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
+            var targetAsset = AssetDatabase.LoadAssetAtPath<GameObject>(
+                GameSceneBuilder.CharacterPath);
+            var targetClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(targetClipPath);
+            var itemPrefab = item.Prefab;
+            var profile = item.Interaction;
+            if (sourceAsset == null || targetAsset == null || targetClip == null ||
+                itemPrefab == null || profile == null)
+                throw new InvalidOperationException(
+                    "Missing gesture source, target clip, character, item prefab, or grip profile.");
+            var source = UnityEngine.Object.Instantiate(sourceAsset);
+            var target = UnityEngine.Object.Instantiate(targetAsset);
+            var itemInstance = UnityEngine.Object.Instantiate(itemPrefab);
+            source.hideFlags = target.hideFlags = itemInstance.hideFlags =
+                HideFlags.HideAndDontSave;
+            try
+            {
+                foreach (var behaviour in source.GetComponentsInChildren<Behaviour>(true))
+                    behaviour.enabled = false;
+                foreach (var behaviour in target.GetComponentsInChildren<Behaviour>(true))
+                    behaviour.enabled = false;
+                foreach (var behaviour in itemInstance.GetComponentsInChildren<Behaviour>(true))
+                    behaviour.enabled = false;
+                var sourceMesh = FindSharedMesh(
+                    source, itemInstance, preferredMeshes, out var itemMesh);
+                if (sourceMesh == null || itemMesh == null)
+                    throw new InvalidOperationException(
+                        "The gesture does not contain this item's model.");
+                var sourceClip = AssetDatabase.LoadAllAssetsAtPath(sourcePath)
+                    .OfType<AnimationClip>()
+                    .Where(clip => !clip.name.StartsWith("__preview__", StringComparison.Ordinal))
+                    .OrderByDescending(clip => AnimationUtility.GetCurveBindings(clip)
+                        .Count(binding => binding.type == typeof(Transform)))
+                    .First();
+                var sourceBones = Bones(source);
+                var targetBones = Bones(target);
+                var sourceHand = sourceBones["J_Bip_R_Hand"];
+                var sourceMiddle = sourceBones["J_Bip_R_Middle1"];
+                var sourceIndex = sourceBones["J_Bip_R_Index1"];
+                var sourcePinky = sourceBones["J_Bip_R_Little1"];
+                var sourceChest = sourceBones["J_Bip_C_UpperChest"];
+                var sourceHead = sourceBones["J_Bip_C_Head"];
+                var targetHand = targetBones["lengyue_hand_r"];
+                var targetMiddle = targetBones["lengyue_middle_01_r"];
+                var targetIndex = targetBones["lengyue_index_01_r"];
+                var targetPinky = targetBones["lengyue_little_01_r"];
+                var targetChest = targetBones["lengyue_upper_chest"];
+                var targetHead = targetBones["lengyue_head_01"];
+                var meshLocal = itemInstance.transform.worldToLocalMatrix *
+                                itemMesh.localToWorldMatrix;
+                var meshPosition = (Vector3)meshLocal.GetColumn(3);
+                var previousGrip = new Pose(
+                    profile.gripPosition, Quaternion.Euler(profile.gripEuler));
+                var shapeCenter = previousGrip.position +
+                    previousGrip.rotation * profile.gripShapeOffset;
+                var sourceRenderer = sourceMesh.GetComponent<Renderer>();
+                var frameRate = sourceClip.frameRate > 0 ? sourceClip.frameRate : 30f;
+                var frames = Mathf.RoundToInt(sourceClip.length * frameRate);
+                var bestScore = float.PositiveInfinity;
+                var bestTime = 0f;
+                for (var frame = 0; frame <= frames; frame++)
+                {
+                    var time = frame / frameRate;
+                    sourceClip.SampleAnimation(source, time);
+                    var propCenter = sourceRenderer != null
+                        ? sourceRenderer.bounds.center : sourceMesh.position;
+                    var grip = GripFromHand(
+                        sourceHand, sourceMiddle, sourceIndex, sourcePinky);
+                    var score = Vector3.Distance(grip.position, propCenter);
+                    if (score >= bestScore) continue;
+                    bestScore = score;
+                    bestTime = time;
+                }
+                // Evaluate both rigs on the same authored frame: the source
+                // gives the prop's pose against the chest, the target gives the
+                // production chest and the production hand that will hold it.
+                sourceClip.SampleAnimation(source, bestTime);
+                targetClip.SampleAnimation(target, bestTime);
+                var authoredMesh = new Pose(sourceMesh.position, sourceMesh.rotation);
+                var sourceGrip = GripFromHand(
+                    sourceHand, sourceMiddle, sourceIndex, sourcePinky);
+                var targetGrip = GripFromHand(
+                    targetHand, targetMiddle, targetIndex, targetPinky);
+                var chestOffsetPosition = Quaternion.Inverse(sourceChest.rotation) *
+                    (authoredMesh.position - sourceChest.position);
+                var chestOffsetRotation = Quaternion.Inverse(sourceChest.rotation) *
+                    authoredMesh.rotation;
+                var visualPosition = targetChest.position +
+                    targetChest.rotation * chestOffsetPosition;
+                var visualRotation = targetChest.rotation * chestOffsetRotation;
+                var itemRotation = visualRotation *
+                    Quaternion.Inverse(meshLocal.rotation);
+                var itemPosition = visualPosition - itemRotation * meshPosition;
+                var gripPosition = Quaternion.Inverse(itemRotation) *
+                    (targetGrip.position - itemPosition);
+                var gripRotation = Quaternion.Inverse(itemRotation) * targetGrip.rotation;
+                profile.gripPosition = gripPosition;
+                profile.gripEuler = gripRotation.eulerAngles;
+                // Keep the authored grasp volume (the doll's chest, the radio's
+                // handle) on the same physical part of the prop.
+                profile.gripShapeOffset = Quaternion.Inverse(gripRotation) *
+                    (shapeCenter - gripPosition);
+                // The gesture poses both hands and all fingers around the prop;
+                // the procedural finger solve would overwrite them and push the
+                // fingers through the model.
+                profile.authoredFingerPose = true;
+                EditorUtility.SetDirty(profile);
+                Debug.Log($"MATESOUL_USE_GRIP item={item.Id} mesh={sourceMesh.name} " +
+                    $"time={bestTime:F2} handToProp={bestScore:F3} " +
+                    $"chestOffset={chestOffsetPosition} " +
+                    $"sourceHead={sourceHead.position} targetHead={targetHead.position} " +
+                    $"sourceGrip={sourceGrip.position} targetGrip={targetGrip.position} " +
+                    $"handAngle={Quaternion.Angle(sourceGrip.rotation, targetGrip.rotation):F1} " +
+                    $"gripPosition={gripPosition} gripEuler={gripRotation.eulerAngles} " +
+                    $"shapeCenter={shapeCenter} meshPosition={meshPosition}");
+                // Plan A: bake the authored prop pose per frame, expressed in the
+                // production right-hand bone's local space. Sampling this track at
+                // the use-animation time reproduces the authored prop trajectory
+                // (two-hand hug, re-grip on the handle) instead of one rigid offset.
+                var holdPositions = new Vector3[frames + 1];
+                var holdRotations = new Quaternion[frames + 1];
+                for (var frame = 0; frame <= frames; frame++)
+                {
+                    var time = Mathf.Min(sourceClip.length, frame / frameRate);
+                    sourceClip.SampleAnimation(source, time);
+                    targetClip.SampleAnimation(target, time);
+                    var authored = new Pose(sourceMesh.position, sourceMesh.rotation);
+                    var chestPosition = Quaternion.Inverse(sourceChest.rotation) *
+                        (authored.position - sourceChest.position);
+                    var chestRotation = Quaternion.Inverse(sourceChest.rotation) *
+                        authored.rotation;
+                    var holdVisualPosition = targetChest.position +
+                        targetChest.rotation * chestPosition;
+                    var holdVisualRotation = targetChest.rotation * chestRotation;
+                    var frameRotation = holdVisualRotation *
+                        Quaternion.Inverse(meshLocal.rotation);
+                    var framePosition = holdVisualPosition - frameRotation * meshPosition;
+                    var inverseHand = Quaternion.Inverse(targetHand.rotation);
+                    holdPositions[frame] = inverseHand *
+                        (framePosition - targetHand.position);
+                    holdRotations[frame] = (inverseHand * frameRotation).normalized;
+                }
+                profile.authoredHoldPositions = holdPositions;
+                profile.authoredHoldRotations = holdRotations;
+                profile.authoredHoldFrameRate = frameRate;
+                var holdRange = 0f;
+                for (var frame = 1; frame <= frames; frame++)
+                    holdRange = Mathf.Max(holdRange,
+                        Vector3.Distance(holdPositions[0], holdPositions[frame]));
+                Debug.Log($"MATESOUL_USE_AUTHORED_HOLD item={item.Id} " +
+                    $"frames={frames + 1} rate={frameRate:F1} drift={holdRange:F3} " +
+                    $"hand={targetHand.name}");
+                EditorUtility.SetDirty(profile);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(source);
+                UnityEngine.Object.DestroyImmediate(target);
+                UnityEngine.Object.DestroyImmediate(itemInstance);
+            }
+        }
+
+        private static Pose GripFromHand(Transform hand, Transform middle,
+            Transform index, Transform pinky)
+        {
+            var forward = middle.position - hand.position;
+            var across = index.position - pinky.position;
+            if (forward.sqrMagnitude < .000001f) forward = hand.forward;
+            var up = -Vector3.Cross(forward, across);
+            if (up.sqrMagnitude < .000001f) up = hand.up;
+            return new Pose(
+                Vector3.Lerp(hand.position, middle.position, .55f),
+                Quaternion.LookRotation(forward, up.normalized));
+        }
+
+        private static Dictionary<string, Transform> Bones(GameObject root)
+            => root.GetComponentsInChildren<Transform>(true)
+                .GroupBy(bone => bone.name)
+                .Where(group => group.Count() == 1)
+                .ToDictionary(group => group.Key, group => group.Single());
+
+        // The gesture exports its own copy of the prop. Its meshes match the
+        // production prefab by name, so the shared mesh is the anchor that
+        // transfers the authored root pose between the two models.
+        private static Transform FindSharedMesh(GameObject source, GameObject item,
+            string[] preferredMeshes, out Transform itemMesh)
+        {
+            var preferred = new HashSet<string>(preferredMeshes ?? Array.Empty<string>());
+            var itemMeshes = new Dictionary<string, Transform>();
+            foreach (var renderer in item.GetComponentsInChildren<Renderer>(true))
+            {
+                var mesh = RendererMesh(renderer);
+                if (mesh == null) continue;
+                var key = MeshKey(mesh.name);
+                if (!itemMeshes.ContainsKey(key)) itemMeshes[key] = renderer.transform;
+            }
+            Transform found = null;
+            itemMesh = null;
+            foreach (var renderer in source.GetComponentsInChildren<Renderer>(true))
+            {
+                var mesh = RendererMesh(renderer);
+                if (mesh == null) continue;
+                var key = MeshKey(mesh.name);
+                if (!itemMeshes.TryGetValue(key, out var candidate)) continue;
+                if (preferred.Contains(key))
+                {
+                    itemMesh = candidate;
+                    return renderer.transform;
+                }
+                if (found == null)
+                {
+                    found = renderer.transform;
+                    itemMesh = candidate;
+                }
+            }
+            if (found == null)
+                Debug.LogWarning("MATESOUL_USE_GRIP_NO_MESH itemMeshes=" +
+                    string.Join(",", itemMeshes.Keys));
+            return found;
+        }
+
+        private static Mesh RendererMesh(Renderer renderer)
+        {
+            if (renderer is SkinnedMeshRenderer skin) return skin.sharedMesh;
+            if (!(renderer is MeshRenderer)) return null;
+            var filter = renderer.GetComponent<MeshFilter>();
+            return filter ? filter.sharedMesh : null;
+        }
+
+        private static string MeshKey(string name)
+        {
+            name = name.Trim();
+            for (;;)
+            {
+                if (name.EndsWith(".001", StringComparison.Ordinal))
+                {
+                    name = name.Substring(0, name.Length - 4);
+                    continue;
+                }
+                if (name.EndsWith("_Mesh", StringComparison.Ordinal))
+                {
+                    name = name.Substring(0, name.Length - 5);
+                    continue;
+                }
+                return name;
             }
         }
 

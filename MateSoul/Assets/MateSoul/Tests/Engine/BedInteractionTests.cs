@@ -358,7 +358,8 @@ namespace MateSoul.Tests
             Assert.That(motor.Body.IsContact, Is.False);
             Assert.That(motor.Body.Pose.position, Is.EqualTo(before.position));
             Assert.That(character.GetComponent<CapsuleCollider>().height,
-                Is.EqualTo(RuntimeRoomNavigation.CharacterHeight));
+                Is.EqualTo(RuntimeRoomNavigation.CharacterHeight -
+                    AvatarMotor.StandingSoleLift));
             Object.Destroy(character);
             Object.Destroy(roomObject);
             Object.Destroy(mesh);

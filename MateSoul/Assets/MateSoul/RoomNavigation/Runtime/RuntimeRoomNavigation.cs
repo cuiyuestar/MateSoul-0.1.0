@@ -18,9 +18,15 @@ namespace MateSoul.RoomNavigation
     [DisallowMultipleComponent]
     public sealed class RuntimeRoomNavigation : MonoBehaviour
     {
-        public const float CharacterRadius = 0.18f;
-        public const float NavigationRadius = 0.16f;
-        public const float CharacterHeight = 1.65f;
+        // Collision proxy now sits just inside the widest body points (hips 0.143,
+        // shoulders 0.130) instead of the old oversized 0.18 capsule. Tight gaps
+        // stay passable; the widest few centimetres of the body may clip slightly.
+        public const float CharacterRadius = 0.13f;
+        // The bake keeps a hair more clearance than the physical capsule so a
+        // path accepted by the NavMesh cannot wedge the capsule on a wall.
+        public const float NavigationRadius = 0.135f;
+        // Hair top measures 1.580; the old 1.65 also blocked low-clearance routes.
+        public const float CharacterHeight = 1.58f;
         public const float NavigationObstacleInset = 0.06f;
 
         [SerializeField, Min(0.1f)]

@@ -19,6 +19,9 @@ namespace MateSoul.Core
         private readonly ActionCatalog catalog;
         private readonly List<Execution> executions = new List<Execution>();
         private bool disposed;
+        // Wired by the runtime layer so the engine agnostic core can be traced.
+        public static Action<string> Trace;
+        private static void Report(string message) => Trace?.Invoke(message);
         public ControlLeaseManager Leases { get; } = new ControlLeaseManager();
         // Session lifecycle admission applies equally to UI, AI and autonomy.
         public bool Suspended { get; set; }
@@ -48,7 +51,7 @@ namespace MateSoul.Core
             this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         }
 
-        public ActionHandle Submit(AvatarIntent intent)
+        public ActionHandle Submit(AvatarIntent intent, bool preemptSamePriority = false)
         {
             if (intent == null) throw new ArgumentNullException(nameof(intent));
             var handle = new ActionHandle(intent);
@@ -79,7 +82,7 @@ namespace MateSoul.Core
             foreach (var existing in executions)
             {
                 if ((existing.Definition.Channels & definition.Channels) == 0) continue;
-                if (existing.Priority >= priority)
+                if (existing.Priority >= priority && !preemptSamePriority)
                 {
                     try { action.Dispose(); }
                     catch (Exception exception) { return Reject(handle, exception.Message); }
@@ -99,6 +102,8 @@ namespace MateSoul.Core
             {
                 Handle = handle, Definition = definition, Action = action, Priority = priority
             };
+            Report($"admit action={intent.ActionId} target={intent.TargetId} " +
+                $"source={intent.Source} channels={definition.Channels}");
             executions.Add(execution);
             Notify(execution);
             TryStart(execution);
@@ -201,6 +206,9 @@ namespace MateSoul.Core
                 return;
             }
             execution.Handle.State = ActionState.Cancelling;
+            Report($"cancel action={execution.Handle.Intent.ActionId} " +
+                $"target={execution.Handle.Intent.TargetId} reason={reason} " +
+                $"elapsed={execution.Handle.ElapsedSeconds:F2}");
             Notify(execution);
             try { execution.Action.Cancel(reason); }
             catch (Exception exception) { Finish(execution, ActionState.Failed, exception.Message); }
@@ -208,13 +216,20 @@ namespace MateSoul.Core
 
         private void TryStart(Execution execution)
         {
-            if (!Leases.TryAcquire(execution.Handle.Id, execution.Definition.Channels)) return;
+            if (!Leases.TryAcquire(execution.Handle.Id, execution.Definition.Channels))
+            {
+                Report($"hold action={execution.Handle.Intent.ActionId} " +
+                    $"target={execution.Handle.Intent.TargetId} reason=lease-busy");
+                return;
+            }
             try
             {
                 // A target may disappear while an earlier action is exiting.
                 var error = execution.Action.Check();
                 if (error != null) { Finish(execution, ActionState.Rejected, error); return; }
                 execution.Handle.State = ActionState.Running;
+                Report($"start action={execution.Handle.Intent.ActionId} " +
+                    $"target={execution.Handle.Intent.TargetId}");
                 execution.Action.Start();
                 Notify(execution);
             }
@@ -233,6 +248,9 @@ namespace MateSoul.Core
                 execution.Handle.Error = error;
                 execution.Handle.State = state;
             }
+            Report($"finish action={execution.Handle.Intent.ActionId} " +
+                $"target={execution.Handle.Intent.TargetId} state={state} " +
+                $"elapsed={execution.Handle.ElapsedSeconds:F2} error={error}");
             Notify(execution);
         }
 
@@ -258,6 +276,8 @@ namespace MateSoul.Core
         {
             handle.State = ActionState.Rejected;
             handle.Error = error;
+            Report($"reject action={handle.Intent.ActionId} target={handle.Intent.TargetId} " +
+                $"source={handle.Intent.Source} reason={error}");
             return handle;
         }
 

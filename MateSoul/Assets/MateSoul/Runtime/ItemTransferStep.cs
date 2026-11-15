@@ -40,6 +40,8 @@ namespace MateSoul.Runtime
         private readonly bool naturalRelease;
         private readonly bool pickupOnly;
         private readonly bool finishAfterPickup;
+        private readonly bool retainWhenDone;
+        private bool alreadyHeld;
         private readonly ItemUseAnimation pickupUseAnimation;
         private bool fromHeld;
         private readonly Guid run;
@@ -101,7 +103,7 @@ namespace MateSoul.Runtime
                 var target = newDestination();
                 var returnHeight = binding.Profile.WorldGrip(target).position.y -
                     session.Navigation.FloorHeight;
-                pickup = returnHeight < .45f
+                pickup = returnHeight < .8f
                     ? rig.PickupAnimations.Select(returnHeight, rig.transform.lossyScale.y)
                     : null;
                 fromHeld = true;
@@ -126,11 +128,13 @@ namespace MateSoul.Runtime
         }
 
         public ItemTransferStep(string label, GameSession session, AvatarItemRig rig,
-            ItemActionBinding binding, Guid run, bool finishAfterPickup = false)
+            ItemActionBinding binding, Guid run, bool finishAfterPickup = false,
+            bool retainWhenDone = false)
             : this(label, session, rig, binding, run, () => binding.View.Body.Pose, Vector3.zero)
         {
             pickupOnly = true;
             this.finishAfterPickup = finishAfterPickup;
+            this.retainWhenDone = retainWhenDone;
             var animation = binding.View.Definition.UseAnimation;
             // Only the indefinite hold pickup performs the authored pickup
             // animation; use-item and radio actions drive their own use step.
@@ -155,6 +159,20 @@ namespace MateSoul.Runtime
             if (binding.View.IsFixedAfterPlacement)
                 throw new InvalidOperationException(
                     $"{binding.View.Definition.DisplayName}放置后不可搬动。");
+            // A previous command already put this item in her hand, so the pickup
+            // phase is skipped and the action continues where it left off.
+            if (pickupOnly && !fromHeld && rig.IsHoldingFor(run, binding.View.Body))
+            {
+                alreadyHeld = true;
+                active = true;
+                phase = Phase.Hold;
+                // The item is already carried; mirror the state a pickup would set.
+                if (binding.Lease != null &&
+                    binding.Lease.State != ItemControlState.HeldByCharacter)
+                    binding.Lease.Transition(binding.Lease.State, ItemControlState.HeldByCharacter);
+                if (retainWhenDone) rig.RetainOnEnd(run);
+                return;
+            }
             if (fromHeld)
             {
                 if (binding.Lease.State != ItemControlState.HeldByCharacter)
@@ -162,8 +180,10 @@ namespace MateSoul.Runtime
                 var returnHeight = binding.Profile.WorldGrip(destination()).position.y -
                     session.Navigation.FloorHeight;
                 // Low returns need the authored crouch; surfaces in normal arm
-                // range use the existing placement posture and torso reach.
-                pickup = returnHeight < .45f
+                // range use the existing placement posture and torso reach. A bed
+                // or low table sits below standing arm reach once the hand offset
+                // is added, so it needs the crouch.
+                pickup = returnHeight < .8f
                     ? rig.PickupAnimations.Select(returnHeight, rig.transform.lossyScale.y)
                     : null;
                 drivenGrip = rig.HandGrip;
@@ -226,9 +246,12 @@ namespace MateSoul.Runtime
             var occupancyRejected = 0;
             // Preserve the original authored stand positions first. Only after
             // every one fails, project to a nearby walkable point whose actual
-            // grasp error fits the existing final pickup fallback.
+            // grasp error fits the existing final pickup fallback. Returning an
+            // item sweeps a wider ring: the destination may sit in the middle of
+            // a large surface, so the floor is further out than a pickup needs.
+            var rings = fromHeld ? 10 : pickup != null ? 7 : 5;
             for (var pass = 0; pass < (pickup != null && !fromHeld ? 2 : 1); pass++)
-            for (var ring = 0; ring < (pickup != null ? 7 : 5); ring++)
+            for (var ring = 0; ring < rings; ring++)
                 for (var i = 0; i < 16; i++)
                 {
                     var direction = Quaternion.Euler(0, i * 22.5f, 0) * initial;
@@ -238,7 +261,12 @@ namespace MateSoul.Runtime
                           direction * (ring * .075f)
                         : position + direction * (.44f + ring * .1f);
                     candidate.y = session.Navigation.FloorHeight;
-                    var sampleRange = pass == 0 ? ApproachSampleDistance : FallbackPickupSnapDistance;
+                    // Returning an item only needs a reachable stand point beside
+                    // the destination; the navmesh is eroded around furniture, so a
+                    // tight pickup-sized tolerance rejects every candidate.
+                    var sampleRange = fromHeld
+                        ? FallbackPickupSnapDistance
+                        : pass == 0 ? ApproachSampleDistance : FallbackPickupSnapDistance;
                     if (!session.Navigation.TrySample(candidate, sampleRange, out var floor)) continue;
                     sampled++;
                     if (Vector3.Distance(floor, candidate) > sampleRange)
@@ -278,7 +306,9 @@ namespace MateSoul.Runtime
             Debug.LogWarning($"MATESOUL_ITEM_APPROACH failed item={binding.View.Definition.Id} " +
                 $"sampled={sampled} offStand={offStand} handOutOfRange={outOfReach} " +
                 $"pathRejected={pathRejected} occupancyRejected={occupancyRejected}");
-            throw new InvalidOperationException($"无法走到{binding.View.Definition.DisplayName}旁边。");
+            throw new InvalidOperationException(fromHeld
+                ? "无法走到放置点旁边。"
+                : $"无法走到{binding.View.Definition.DisplayName}旁边。");
         }
 
         public static bool CanReachFromApproach(Vector3 floor, Quaternion facing,
@@ -496,10 +526,9 @@ namespace MateSoul.Runtime
 
         public bool Tick(float dt)
         {
+            // The item was already in her hand when this step began; nothing to do.
+            if (alreadyHeld) return true;
             elapsed += dt;
-            // The pickup phases move the body through the pickup layer, so a lift can
-            // happen there without any use gesture involved. Sample the root every
-            // quarter second so the phase that raises her is on record.
             if (Time.unscaledTime >= nextMotionReport)
             {
                 nextMotionReport = Time.unscaledTime + .25f;
@@ -718,6 +747,11 @@ namespace MateSoul.Runtime
                         // pose, so she stands and walks with her arms hanging.
                         rig.HoldNaturally(elapsed / .3f);
                         if (elapsed < .3f) return false;
+                        if (retainWhenDone)
+                        {
+                            rig.RetainOnEnd(run);
+                            return true;
+                        }
                         Next(Phase.Hold);
                         break;
                     }
@@ -726,6 +760,13 @@ namespace MateSoul.Runtime
                     if (elapsed < .3f || !NearGrip(CarryPose(), .08f)) return false;
                     if (pickupOnly)
                     {
+                        if (retainWhenDone)
+                        {
+                            // Keep the carry state but let the action finish, so the
+                            // control lease is released for the next command.
+                            rig.RetainOnEnd(run);
+                            return true;
+                        }
                         if (finishAfterPickup) return true;
                         Next(Phase.Hold);
                         break;
@@ -753,6 +794,11 @@ namespace MateSoul.Runtime
                     rig.HoldNaturally(settle);
                     if (settle < 1) return false;
                     rig.ClearUse();
+                    if (retainWhenDone)
+                    {
+                        rig.RetainOnEnd(run);
+                        return true;
+                    }
                     Next(Phase.Hold);
                     break;
                 }
@@ -783,8 +829,25 @@ namespace MateSoul.Runtime
                             rig.GripForHeldPosition(destination().position),
                             Mathf.SmoothStep(0, 1, (elapsed - lowerSeconds + .25f) / .25f),
                             elapsed / .25f);
-                        if (elapsed < lowerSeconds ||
-                            Vector3.Distance(view.Body.Pose.position, destination().position) > PlacementContactTolerance)
+                        // The authored descent is relative to where she happens to
+                        // stand, so its contact frame can miss the original spot by
+                        // more than the contact tolerance. Close the residual with
+                        // the reach solve instead of waiting forever for a
+                        // placement that can never land.
+                        if (elapsed >= lowerSeconds)
+                        {
+                            // Seed the drive from the solved hand so the arm does
+                            // not jump back to the last carry pose.
+                            drivenGrip = rig.HandGrip;
+                            hasDrivenGrip = true;
+                            Drive(destination(), dt);
+                        }
+                        if (elapsed < lowerSeconds) return false;
+                        // Release aligns the item to the exact pose itself, so a
+                        // residual gap must never block the transfer forever.
+                        if (Vector3.Distance(view.Body.Pose.position,
+                                destination().position) > PlacementContactTolerance &&
+                            elapsed < lowerSeconds + 4f)
                             return false;
                         if (!contactSettled) { contactSettled = true; return false; }
                         Next(Phase.Release);
@@ -832,7 +895,9 @@ namespace MateSoul.Runtime
                     }
 #endif
 #endregion
-                    if (elapsed < 2 || !NearGrip(target, .04f))
+                    var settled = NearGrip(target, .04f) &&
+                        Vector3.Distance(view.Body.Pose.position, target.position) <= .005f;
+                    if (elapsed < 2f || (!settled && elapsed < 6f))
                     {
                         contactSettled = false;
                         return false;
@@ -846,15 +911,13 @@ namespace MateSoul.Runtime
                     gateRequest.SendWebRequest().completed += _ => gateRequest.Dispose();
 #endif
 #endregion
-                    if (rig.ContactError > .04f)
-                        throw new InvalidOperationException("桌面工作位置超出手部范围。");
-                    if (Vector3.Distance(
-                            view.Body.Pose.position,
-                            target.position) > .005f)
-                    {
-                        contactSettled = false;
-                        return false;
-                    }
+                    // A low surface can sit outside standing arm reach. The release
+                    // phase aligns the item itself, so missing hand contact must not
+                    // block the transfer until the step timeout.
+                    if (!settled)
+                        Debug.Log($"MATESOUL_ITEM_PLACE fallback item={view.Definition.Id} " +
+                            $"elapsed={elapsed:F2} contactError={rig.ContactError:F3} " +
+                            $"hand={rig.HandGrip.position} target={target.position}");
                     Next(Phase.Release);
                     break;
                 case Phase.Release:

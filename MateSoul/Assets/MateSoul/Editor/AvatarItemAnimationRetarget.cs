@@ -8,9 +8,10 @@ using Object = UnityEngine.Object;
 
 namespace MateSoul.Editor
 {
-    // The authored item gestures export the VRoid/VRM (J_Bip_*) skeleton while
-    // the production avatar uses the lengyue_* rig. This bakes them bone by
-    // bone with the same world-space rest deltas as the walk retarget.
+    // The authored gestures and emotions export foreign skeletons (VRoid/VRM
+    // J_Bip_* names, or the re-rigged display names Hips/Leg_L/Index_01_L)
+    // while the production avatar uses the lengyue_* rig. This bakes them bone
+    // by bone with world-space rest deltas, IK limb goals and a foot-error gate.
     public static class AvatarItemAnimationRetarget
     {
         private const string TargetPath = GameSceneBuilder.CharacterPath;
@@ -72,6 +73,111 @@ namespace MateSoul.Editor
                 { "J_Bip_R_Little3", "lengyue_little_03_r" }
             };
 
+        // Describes one authoring skeleton: the full bone mapping plus the
+        // names the retarget core looks up directly (hips, limb chains,
+        // finger chains). Keeping them in one profile lets new exports plug
+        // into the same proven pipeline without touching its math.
+        public sealed class SourceRig
+        {
+            public readonly Dictionary<string, string> BoneMap;
+            public readonly string Hips;
+            public readonly Func<string, string> UpperLeg, LowerLeg, Foot;
+            public readonly Func<string, string> UpperArm, LowerArm, Hand;
+            public readonly Func<string, string> IndexBase, LittleBase;
+            public readonly Func<string, string, int, string> Digit;
+
+            public SourceRig(
+                Dictionary<string, string> boneMap, string hips,
+                Func<string, string> upperLeg, Func<string, string> lowerLeg,
+                Func<string, string> foot,
+                Func<string, string> upperArm, Func<string, string> lowerArm,
+                Func<string, string> hand,
+                Func<string, string> indexBase, Func<string, string> littleBase,
+                Func<string, string, int, string> digit)
+            {
+                BoneMap = boneMap;
+                Hips = hips;
+                UpperLeg = upperLeg;
+                LowerLeg = lowerLeg;
+                Foot = foot;
+                UpperArm = upperArm;
+                LowerArm = lowerArm;
+                Hand = hand;
+                IndexBase = indexBase;
+                LittleBase = littleBase;
+                Digit = digit;
+            }
+        }
+
+        // The VRoid/VRM export used by the item gestures (J_Bip_C_Hips, ...).
+        public static readonly SourceRig VrmRig = new SourceRig(
+            BoneMap, "J_Bip_C_Hips",
+            side => "J_Bip_" + side + "_UpperLeg",
+            side => "J_Bip_" + side + "_LowerLeg",
+            side => "J_Bip_" + side + "_Foot",
+            side => "J_Bip_" + side + "_UpperArm",
+            side => "J_Bip_" + side + "_LowerArm",
+            side => "J_Bip_" + side + "_Hand",
+            side => "J_Bip_" + side + "_Index1",
+            side => "J_Bip_" + side + "_Little1",
+            (digit, side, joint) => "J_Bip_" + side + "_" + digit + joint);
+
+        // The re-rigged emotion exports use display names (Hips, Chest,
+        // Leg_L, Index_01_L, ...) on the same class of skeleton as the
+        // gestures, so they ride the same retarget math.
+        public static readonly SourceRig DisplayRig = new SourceRig(
+            DisplayBoneMap(), "Hips",
+            side => "Leg_" + side,
+            side => "Knee_" + side,
+            side => "Foot_" + side,
+            side => "UpperArm_" + side,
+            side => "Forearm_" + side,
+            side => "Hand_" + side,
+            side => "Index_01_" + side,
+            side => "Pinky_01_" + side,
+            // The retarget core names the fifth digit "Little" (VRM); this
+            // authoring skeleton calls it "Pinky".
+            (digit, side, joint) =>
+                (digit == "Little" ? "Pinky" : digit) + "_0" + joint + "_" + side);
+
+        private static Dictionary<string, string> DisplayBoneMap()
+        {
+            var map = new Dictionary<string, string>
+            {
+                { "Hips", "lengyue_hips" },
+                { "Spine", "lengyue_spine" },
+                // The display rig has one chest joint; drive the last torso bone
+                // before the neck so the authored neck and head motion transfers.
+                { "Chest", "lengyue_upper_chest" },
+                { "Neck", "lengyue_neck" },
+                { "Head", "lengyue_head_01" }
+            };
+            var limbs = new[]
+            {
+                ("Shoulder", "clavicle"), ("UpperArm", "upper_arm"),
+                ("Forearm", "forearm"), ("Hand", "hand"),
+                ("Leg", "thigh"), ("Knee", "shin"),
+                ("Foot", "foot"), ("Toe", "toe")
+            };
+            var digits = new[]
+            {
+                ("Thumb", "thumb"), ("Index", "index"), ("Middle", "middle"),
+                ("Ring", "ring"), ("Pinky", "little")
+            };
+            foreach (var side in new[] { "L", "R" })
+            {
+                var lower = side.ToLowerInvariant();
+                foreach (var limb in limbs)
+                    map[limb.Item1 + "_" + side] =
+                        "lengyue_" + limb.Item2 + "_" + lower;
+                foreach (var digit in digits)
+                    for (var joint = 1; joint <= 3; joint++)
+                        map[digit.Item1 + "_0" + joint + "_" + side] =
+                            "lengyue_" + digit.Item2 + "_0" + joint + "_" + lower;
+            }
+            return map;
+        }
+
         private sealed class Bone
         {
             public Transform source, target;
@@ -89,6 +195,10 @@ namespace MateSoul.Editor
         }
 
         public static AnimationClip Retarget(string sourcePath, string outputPath)
+            => Retarget(sourcePath, outputPath, VrmRig);
+
+        public static AnimationClip Retarget(string sourcePath, string outputPath,
+            SourceRig rig)
         {
             AssetDatabase.ImportAsset(sourcePath,
                 ImportAssetOptions.ForceSynchronousImport);
@@ -122,11 +232,11 @@ namespace MateSoul.Editor
                 DisableBehaviours(target);
                 var sourceTransforms = Transforms(source);
                 var targetTransforms = Transforms(target);
-                var sourceHips = sourceTransforms["J_Bip_C_Hips"];
+                var sourceHips = sourceTransforms[rig.Hips];
                 // The armature root is the rigid frame the source gesture is authored in.
                 var sourceBasis = sourceHips.parent != null ? sourceHips.parent : sourceHips;
                 var targetBasis = target.GetComponentInChildren<Animator>(true).transform;
-                var bones = BoneMap.Select(pair =>
+                var bones = rig.BoneMap.Select(pair =>
                 {
                     var destination = targetTransforms[pair.Value];
                     return new Bone
@@ -147,12 +257,12 @@ namespace MateSoul.Editor
                 var legScale = LegLength(targetTransforms,
                                      "lengyue_thigh_l", "lengyue_shin_l", "lengyue_foot_l") /
                                LegLength(sourceTransforms,
-                                     "J_Bip_L_UpperLeg", "J_Bip_L_LowerLeg", "J_Bip_L_Foot");
+                                     rig.UpperLeg("L"), rig.LowerLeg("L"), rig.Foot("L"));
                 var legs = new[] { "l", "r" }.Select(side =>
                 {
                     var sourceSide = side == "l" ? "L" : "R";
-                    var sourceKnee = sourceTransforms["J_Bip_" + sourceSide + "_LowerLeg"];
-                    var sourceFoot = sourceTransforms["J_Bip_" + sourceSide + "_Foot"];
+                    var sourceKnee = sourceTransforms[rig.LowerLeg(sourceSide)];
+                    var sourceFoot = sourceTransforms[rig.Foot(sourceSide)];
                     return new Leg
                     {
                         sourceKnee = sourceKnee,
@@ -178,15 +288,15 @@ namespace MateSoul.Editor
                 var armScale = LegLength(targetTransforms,
                                     "lengyue_upper_arm_l", "lengyue_forearm_l", "lengyue_hand_l") /
                                LegLength(sourceTransforms,
-                                    "J_Bip_L_UpperArm", "J_Bip_L_LowerArm", "J_Bip_L_Hand");
+                                    rig.UpperArm("L"), rig.LowerArm("L"), rig.Hand("L"));
                 var arms = new[] { "l", "r" }.Select(side =>
                 {
                     var sourceSide = side == "l" ? "L" : "R";
                     return new Leg
                     {
-                        sourceRoot = sourceTransforms["J_Bip_" + sourceSide + "_UpperArm"],
-                        sourceKnee = sourceTransforms["J_Bip_" + sourceSide + "_LowerArm"],
-                        sourceFoot = sourceTransforms["J_Bip_" + sourceSide + "_Hand"],
+                        sourceRoot = sourceTransforms[rig.UpperArm(sourceSide)],
+                        sourceKnee = sourceTransforms[rig.LowerArm(sourceSide)],
+                        sourceFoot = sourceTransforms[rig.Hand(sourceSide)],
                         thigh = targetTransforms["lengyue_upper_arm_" + side],
                         knee = targetTransforms["lengyue_forearm_" + side],
                         foot = targetTransforms["lengyue_hand_" + side]
@@ -211,27 +321,27 @@ namespace MateSoul.Editor
                 foreach (var side in new[] { "l", "r" })
                 {
                     var sourceSide = side == "l" ? "L" : "R";
-                    var sourceAcross = sourceTransforms["J_Bip_" + sourceSide + "_Index1"].position -
-                        sourceTransforms["J_Bip_" + sourceSide + "_Little1"].position;
+                    var sourceAcross = sourceTransforms[rig.IndexBase(sourceSide)].position -
+                        sourceTransforms[rig.LittleBase(sourceSide)].position;
                     var targetAcross = targetTransforms["lengyue_index_01_" + side].position -
                         targetTransforms["lengyue_little_01_" + side].position;
                     RebaseArmChainBone(
                         bones.Single(bone => bone.target.name == "lengyue_hand_" + side),
-                        sourceTransforms["J_Bip_" + sourceSide + "_Hand"],
-                        sourceTransforms["J_Bip_" + sourceSide + "_Index1"],
+                        sourceTransforms[rig.Hand(sourceSide)],
+                        sourceTransforms[rig.IndexBase(sourceSide)],
                         targetTransforms["lengyue_hand_" + side],
                         targetTransforms["lengyue_index_01_" + side],
                         sourceAcross, targetAcross, sourceBasis, targetBasis, false);
                     foreach (var digit in digits)
                         for (var joint = 1; joint <= 3; joint++)
                         {
-                            var sourceName = "J_Bip_" + sourceSide + "_" + digit[0] + joint;
+                            var sourceName = rig.Digit(digit[0], sourceSide, joint);
                             var targetName = "lengyue_" + digit[1] + "_0" + joint + "_" + side;
                             // The last finger joint has no child in the map; aligning
                             // it on its own offset from the previous joint keeps the
                             // tip parallel to its parent.
                             var sourceNext = sourceTransforms[
-                                "J_Bip_" + sourceSide + "_" + digit[0] + (joint < 3 ? joint + 1 : 2)];
+                                rig.Digit(digit[0], sourceSide, joint < 3 ? joint + 1 : 2)];
                             var targetNext = targetTransforms[
                                 "lengyue_" + digit[1] + "_0" + (joint < 3 ? joint + 1 : 2) + "_" + side];
                             RebaseArmChainBone(
@@ -254,7 +364,9 @@ namespace MateSoul.Editor
                             bone.targetRestRotation).normalized);
                     var delta = Quaternion.Inverse(sourceBasis.rotation) *
                         (sourceHips.position - sourceBasis.position) - referenceHips;
-                    if (delta.magnitude > .3f)
+                    // Compare in target metres so an authoring file exported in
+                    // centimetres is scaled by legScale instead of being rejected.
+                    if (delta.magnitude * legScale > .3f)
                         throw new InvalidOperationException(
                             "Gesture hips displacement exceeds the rig's metre scale: " +
                             Path.GetFileName(sourcePath));

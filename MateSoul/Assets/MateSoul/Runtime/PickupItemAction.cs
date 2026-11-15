@@ -57,8 +57,43 @@ namespace MateSoul.Runtime
         {
             var item = Bindings["item"];
             transfer = new ItemTransferStep("拾取" + item.View.Definition.DisplayName,
-                Session, Rig, item, RunId);
+                Session, Rig, item, RunId, retainWhenDone: true);
             yield return transfer;
+        }
+    }
+
+    // Carries an already held item to a resolved spot. The placement command
+    // creates this when the pickup that carried the item has already finished.
+    public sealed class PlaceHeldAction : ItemActionRun
+    {
+        public const string Id = "place-held";
+        private readonly Pose placement;
+        protected override string ActionName => "放下物品";
+        protected override string StartNotice => "冷月正在把物品放下。";
+
+        public PlaceHeldAction(GameSession session, string instanceId, Pose placement)
+            : base(session, new ItemActionRequirement("item", null, "目标物品", instanceId))
+        {
+            this.placement = placement;
+        }
+
+        protected override string CheckBindings()
+        {
+            var item = Bindings["item"];
+            if (!PickupItemAction.Supports(item.View)) return "请选择可移动的单手物品。";
+            if (!Rig.PickupAnimations) return "角色缺少拾取动画配置。";
+            return null;
+        }
+
+        protected override IEnumerable<IItemActionStep> BuildSteps()
+        {
+            var item = Bindings["item"];
+            // A refused drop must leave the item in her hand instead of
+            // releasing it where she stands.
+            Rig.RetainOnEnd(RunId);
+            yield return new ItemTransferStep("放下" + item.View.Definition.DisplayName,
+                Session, Rig, item, RunId, () => placement, Vector3.zero,
+                naturalRelease: true, fromHeld: true);
         }
     }
 }

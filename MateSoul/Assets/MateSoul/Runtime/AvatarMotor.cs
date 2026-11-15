@@ -117,6 +117,11 @@ namespace MateSoul.Runtime
     {
         public const float FullWalkBlendSpeed = .12f;
         public const float WalkReferenceSpeed = .4086475f;
+        // The production garment mesh (lengyue_mesh_garment_seat_contact.asset)
+        // has not received the sole lift. Keep the capsule bottom at 0 so the
+        // visual sole stays on the floor. Set this to .008f only after that
+        // production mesh is lifted by the same amount.
+        public const float StandingSoleLift = 0f;
         private const float AnimationIdleSpeed = .05f;
         private const float TurnAnimationStartSpeed = .12f;
         private const float TurnBeforeMoveEnterAngle = 70f;
@@ -184,6 +189,9 @@ namespace MateSoul.Runtime
         private Quaternion debugPreviousRightLeg;
 #endif
 #endregion
+        private float lastStandingHeight = -1f;
+        private float lastStandingCenterY = -1f;
+        private float nextMovementDiagnostic;
         public PhysicsBody Body => body;
         public string ContactPosture => !contact ? null :
             Vector3.Dot(body.Pose.rotation * Vector3.up, Vector3.up) < .7f ? "lying" : "seated";
@@ -565,8 +573,8 @@ namespace MateSoul.Runtime
             var normal = Vector3.up;
             var grounded = false;
             var supportDistance = -1f;
-            var count = Physics.SphereCastNonAlloc(Position + Vector3.up * .32f, capsule.radius * .9f,
-                Vector3.down, groundHits, .16f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+            var count = Physics.SphereCastNonAlloc(Position + Vector3.up * .12f, capsule.radius * .9f,
+                Vector3.down, groundHits, .25f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
             for (var index = 0; index < count; index++)
             {
                 if (groundHits[index].rigidbody == body.Rigidbody || groundHits[index].normal.y < .7f) continue;
@@ -574,6 +582,51 @@ namespace MateSoul.Runtime
                 supportDistance = groundHits[index].distance;
                 grounded = true;
                 break;
+            }
+            if (Time.unscaledTime >= nextMovementDiagnostic)
+            {
+                nextMovementDiagnostic = Time.unscaledTime + 1f;
+                var culture = System.Globalization.CultureInfo.InvariantCulture;
+                var actual = body.Rigidbody.velocity;
+                var position = Position;
+                string blocker = physicalBlocker != null
+                    ? physicalBlocker.name : "none";
+                Debug.Log("MATESOUL_MOVEMENT grounded=" +
+                    grounded.ToString().ToLowerInvariant() +
+                    " support=" + supportDistance.ToString("R", culture) +
+                    " moving=" + (corners != null).ToString().ToLowerInvariant() +
+                    " handHold=" + handHoldDrive.ToString().ToLowerInvariant() +
+                    " contact=" + contact.ToString().ToLowerInvariant() +
+                    " paused=" + body.IsPaused.ToString().ToLowerInvariant() +
+                    " sleeping=" +
+                    body.Rigidbody.IsSleeping().ToString().ToLowerInvariant() +
+                    " pos=(" + position.x.ToString("R", culture) + "," +
+                    position.y.ToString("R", culture) + "," +
+                    position.z.ToString("R", culture) + ")" +
+                    " desired=(" + desiredVelocity.x.ToString("R", culture) + "," +
+                    desiredVelocity.y.ToString("R", culture) + "," +
+                    desiredVelocity.z.ToString("R", culture) + ")" +
+                    " actual=(" + actual.x.ToString("R", culture) + "," +
+                    actual.y.ToString("R", culture) + "," +
+                    actual.z.ToString("R", culture) + ")" +
+                    " capsuleH=" + capsule.height.ToString("R", culture) +
+                    " capsuleBottom=" +
+                    (capsule.center.y - capsule.height * .5f)
+                        .ToString("R", culture) +
+                    " agentEnabled=" +
+                    (agent != null && agent.enabled).ToString().ToLowerInvariant() +
+                    " onNavMesh=" +
+                    (agent != null && agent.isOnNavMesh).ToString().ToLowerInvariant() +
+                    " stopped=" +
+                    (agent != null && agent.isStopped).ToString().ToLowerInvariant() +
+                    " hasPath=" +
+                    (agent != null && agent.hasPath).ToString().ToLowerInvariant() +
+                    " pathStatus=" +
+                    (agent != null ? agent.pathStatus.ToString() : "none") +
+                    " remaining=" +
+                    (agent != null ? agent.remainingDistance.ToString("R", culture) : "-1") +
+                    " blocker=" + blocker +
+                    " avoid=" + physicalAvoidanceTotalSeconds.ToString("R", culture));
             }
 #region debug-point A-B:movement-runtime-state
 #if DEVELOPMENT_BUILD && !UNITY_EDITOR
@@ -1239,8 +1292,25 @@ namespace MateSoul.Runtime
         private void SetStandingShape()
         {
             capsule.radius = RuntimeRoomNavigation.CharacterRadius;
-            capsule.height = RuntimeRoomNavigation.CharacterHeight;
-            capsule.center = Vector3.up * capsule.height * .5f;
+            capsule.height = RuntimeRoomNavigation.CharacterHeight -
+                StandingSoleLift;
+            capsule.center = Vector3.up *
+                (capsule.height * .5f + StandingSoleLift);
+            if (Mathf.Approximately(lastStandingHeight, capsule.height) &&
+                Mathf.Approximately(lastStandingCenterY, capsule.center.y))
+                return;
+            lastStandingHeight = capsule.height;
+            lastStandingCenterY = capsule.center.y;
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            Debug.Log("MATESOUL_AVATAR_STANDING height=" +
+                capsule.height.ToString("R", culture) +
+                " centerY=" + capsule.center.y.ToString("R", culture) +
+                " bottom=" + (capsule.center.y - capsule.height * .5f)
+                    .ToString("R", culture) +
+                " radius=" + capsule.radius.ToString("R", culture) +
+                " soleLift=" + StandingSoleLift.ToString("R", culture) +
+                " characterHeight=" +
+                RuntimeRoomNavigation.CharacterHeight.ToString("R", culture));
         }
 
         private void OnDisable()

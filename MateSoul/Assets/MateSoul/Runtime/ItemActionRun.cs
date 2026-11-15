@@ -124,6 +124,24 @@ namespace MateSoul.Runtime
             started = true;
             Motor.EndBodyContact();
             Motor.Stop();
+            // Continue from a carried item when this command targets it, otherwise
+            // drop whatever the previous command left in her hand.
+            var adopted = false;
+            var carried = Rig != null ? Rig.PassiveHoldBody : null;
+            var match = carried != null
+                ? Bindings.Values.FirstOrDefault(pair =>
+                    pair.View != null && pair.View.Body == carried)
+                : null;
+            if (carried != null)
+            {
+                adopted = match != null && Rig.AdoptPassive(carried, RunId);
+                if (!adopted) Rig.ReleasePassive();
+                else if (match.Lease != null &&
+                    match.Lease.State != ItemControlState.HeldByCharacter)
+                    match.Lease.Transition(
+                        match.Lease.State, ItemControlState.HeldByCharacter);
+            }
+            Debug.Log($"MATESOUL_ACTION continue adopt={adopted} carried={(carried != null)}");
             Rig.Begin(RunId);
             sequence = BuildSteps().GetEnumerator();
             Session.Notifications.ShowHint(StartNotice);
@@ -214,8 +232,10 @@ namespace MateSoul.Runtime
             {
                 Session.SetItemActionAttention(null, false);
                 Motor.Stop();
-                Rig.End(RunId);
+                // Release the reservation first: it ends the item's interaction control,
+                // which would otherwise drop an item that is meant to stay carried.
                 foreach (var binding in Bindings.Values) binding.Lease?.Dispose();
+                Rig.End(RunId);
                 Session.RequestPhysicsSave();
                 started = false;
             }

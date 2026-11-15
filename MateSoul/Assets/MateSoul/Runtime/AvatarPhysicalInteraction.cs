@@ -95,6 +95,9 @@ namespace MateSoul.Runtime
             var locomotion = GetComponent<CapsuleCollider>();
             if (locomotion == null) throw new InvalidOperationException("Physical response requires a locomotion capsule.");
             locomotion.gameObject.layer = InteractionPhysicsLayers.AvatarLocomotion;
+            // A previous attempt may have failed midway; reused parts are reconfigured below.
+            bodyParts.Clear();
+            foreach (var group in groups) group.Clear();
             CacheSkin();
             AddTorso(bones["lengyue_hips"], bones["lengyue_spine"]);
             AddTorso(bones["lengyue_spine"], bones["lengyue_chest"]);
@@ -118,6 +121,7 @@ namespace MateSoul.Runtime
 
         private void CacheSkin()
         {
+            skin.Clear();
             foreach (var renderer in GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 // Fit anatomical contact to the skin, avoiding hair, skirt and loose sleeves.
@@ -169,9 +173,9 @@ namespace MateSoul.Runtime
                     var start = bones[finger + "_0" + segment + suffix];
                     var end = bones[finger + "_0" + (segment + 1) + suffix];
                     var delta = end.position - start.position;
-                    var shape = Part(start, (start.position + end.position) * .5f,
+                    var shape = AddCollider<CapsuleCollider>(Part(start, (start.position + end.position) * .5f,
                         Quaternion.FromToRotation(Vector3.forward, delta.normalized),
-                        AvatarBodyRegion.Hand, side).AddComponent<CapsuleCollider>();
+                        AvatarBodyRegion.Hand, side));
                     shape.direction = 2;
                     shape.radius = .0055f;
                     shape.height = Mathf.Max(.011f, delta.magnitude);
@@ -227,8 +231,8 @@ namespace MateSoul.Runtime
                 var depth = Percentile(local.Select(p => Mathf.Abs(p.z)), .8f, .065f);
                 var thickness = Mathf.Clamp(depth - .004f, .035f, .10f);
                 // A flattened box inset into each skin band avoids the old 14–17 cm radii.
-                var shape = Part(start, center, transform.rotation,
-                    AvatarBodyRegion.Torso, AvatarBodySide.Center).AddComponent<BoxCollider>();
+                var shape = AddCollider<BoxCollider>(Part(start, center, transform.rotation,
+                    AvatarBodyRegion.Torso, AvatarBodySide.Center, "Band" + band));
                 shape.size = new Vector3(Mathf.Clamp(width * 2 - .008f, .09f, .32f),
                     height / count * .96f, thickness * 2);
                 Finish(shape, AvatarBodyRegion.Torso, AvatarBodySide.Center);
@@ -250,7 +254,8 @@ namespace MateSoul.Runtime
                     .Select(p => Vector3.ProjectOnPlane(p - center, axis).magnitude);
                 var radius = Mathf.Clamp(Percentile(radii, .7f, fallbackRadius) - .003f,
                     .012f, fallbackRadius * 1.3f);
-                var shape = Part(start, center, rotation, region, side).AddComponent<CapsuleCollider>();
+                var shape = AddCollider<CapsuleCollider>(Part(start, center, rotation,
+                    region, side, "Band" + band));
                 shape.direction = 2;
                 shape.radius = radius;
                 shape.height = Mathf.Max(radius * 2, delta.magnitude / 3f + radius * .5f);
@@ -271,8 +276,8 @@ namespace MateSoul.Runtime
                     Quantile(points.Select(p => p.y), .94f), Quantile(points.Select(p => p.z), .94f));
                 bounds = new Bounds((minimum + maximum) * .5f, maximum - minimum);
             }
-            var shape = Part(bone, bone.TransformPoint(bounds.center), bone.rotation,
-                region, side).AddComponent<BoxCollider>();
+            var shape = AddCollider<BoxCollider>(Part(bone, bone.TransformPoint(bounds.center), bone.rotation,
+                region, side));
             shape.size = Vector3.Max(bounds.size - Vector3.one * .006f, Vector3.one * .012f);
             Finish(shape, region, side);
         }
@@ -294,20 +299,40 @@ namespace MateSoul.Runtime
             => Percentile(source, percentile, 0);
 
         private GameObject Part(Transform bone, Vector3 position, Quaternion rotation,
-            AvatarBodyRegion region, AvatarBodySide side)
+            AvatarBodyRegion region, AvatarBodySide side, string variant = null)
         {
-            var root = new GameObject($"{region} Contact {side}");
+            var partName = $"{region} Contact {side}" +
+                           (string.IsNullOrEmpty(variant) ? "" : " " + variant);
+            // Initialisation can run twice (enable/re-init). Reuse the existing part
+            // so the skeleton never carries duplicate bone names, which breaks the
+            // outfit swap that maps bones by name.
+            var existing = bone.Find(partName);
+            if (existing != null)
+            {
+                existing.SetPositionAndRotation(position, rotation);
+                return existing.gameObject;
+            }
+            var root = new GameObject(partName);
             root.layer = InteractionPhysicsLayers.AvatarDetail;
             root.transform.SetParent(bone, false);
             root.transform.SetPositionAndRotation(position, rotation);
             return root;
         }
 
+        private static T AddCollider<T>(GameObject part) where T : Collider
+        {
+            var collider = part.GetComponent<T>();
+            return collider != null ? collider : part.AddComponent<T>();
+        }
+
         private void Finish(Collider shape, AvatarBodyRegion region, AvatarBodySide side)
         {
-            var marker = shape.gameObject.AddComponent<AvatarBodyPartCollider>();
+            if (shape == null) return;
+            var marker = shape.GetComponent<AvatarBodyPartCollider>();
+            if (marker == null)
+                marker = shape.gameObject.AddComponent<AvatarBodyPartCollider>();
             marker.Configure(region, side, shape);
-            bodyParts.Add(marker);
+            if (!bodyParts.Contains(marker)) bodyParts.Add(marker);
         }
 
         public void ReceiveContact(AvatarBodyPartCollider part, Vector3 direction,

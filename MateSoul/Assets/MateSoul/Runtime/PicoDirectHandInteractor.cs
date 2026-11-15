@@ -8,7 +8,7 @@ namespace MateSoul.Runtime
     /// <summary>Near-only grasp input; XRI owns selection and PhysicsBody owns object motion.</summary>
     public sealed class PicoDirectHandInteractor : XRBaseInteractor, IHandHoldPoseProvider
     {
-        private const float TrackingGraceSeconds = .08f;
+        private const float TrackingGraceSeconds = .3f;
         private const float GrabRecoverySeconds = .35f;
         private const float RecoveryDistance = .12f;
         private const float RecoveryAngle = 45f;

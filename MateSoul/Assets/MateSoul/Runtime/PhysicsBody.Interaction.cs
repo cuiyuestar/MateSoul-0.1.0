@@ -52,6 +52,30 @@ namespace MateSoul.Runtime
             return true;
         }
 
+        // Hands a carried item over without releasing it, so a follow-up command
+        // can continue from the held state instead of dropping and re-picking it.
+        public bool TransferInteraction(Guid from, Guid to)
+        {
+            if (from == Guid.Empty || to == Guid.Empty || from != interactionOwner) return false;
+            interactionOwner = to;
+            return true;
+        }
+
+        // Re-asserts carry control after the reservation that owned it was released.
+        // The original release snapshot is preserved so the item still falls normally
+        // once it is finally put down.
+        public bool ReassertInteraction(Guid owner)
+        {
+            if (owner == Guid.Empty || IsPaused) return false;
+            interactionOwner = owner;
+            SetKinematic(true);
+            Rigidbody.useGravity = false;
+            Rigidbody.velocity = Vector3.zero;
+            Rigidbody.angularVelocity = Vector3.zero;
+            Rigidbody.detectCollisions = !RetainCollisionsWhileHeld;
+            return true;
+        }
+
         public bool TryMoveInteraction(Guid owner, Pose target)
         {
             if (owner == Guid.Empty || owner != interactionOwner || IsPaused) return false;

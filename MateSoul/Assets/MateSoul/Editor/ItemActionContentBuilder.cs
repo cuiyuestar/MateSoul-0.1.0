@@ -124,6 +124,9 @@ namespace MateSoul.Editor
                 EditorUtility.SetDirty(profile);
                 EditorUtility.SetDirty(item);
             }
+            // The generic grip rewrite above must not undo the prop poses that
+            // were measured from the authored clips.
+            ItemUseAnimationBuilder.FitGripForContent();
             AssetDatabase.SaveAssets();
             return catalog.Concat(new[] { quarter }).ToArray();
         }

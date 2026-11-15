@@ -68,8 +68,20 @@ namespace MateSoul.Editor
             if (old != null) Object.DestroyImmediate(old);
             var shape = root.GetComponent<CapsuleCollider>() ?? root.AddComponent<CapsuleCollider>();
             shape.radius = RoomNavigation.RuntimeRoomNavigation.CharacterRadius;
-            shape.height = RoomNavigation.RuntimeRoomNavigation.CharacterHeight;
-            shape.center = Vector3.up * shape.height * .5f;
+            shape.height = RoomNavigation.RuntimeRoomNavigation.CharacterHeight -
+                AvatarMotor.StandingSoleLift;
+            shape.center = Vector3.up *
+                (shape.height * .5f + AvatarMotor.StandingSoleLift);
+            Debug.Log("MATESOUL_CHARACTER_COLLIDER height=" +
+                shape.height.ToString("R",
+                    System.Globalization.CultureInfo.InvariantCulture) +
+                " centerY=" + shape.center.y.ToString("R",
+                    System.Globalization.CultureInfo.InvariantCulture) +
+                " radius=" + shape.radius.ToString("R",
+                    System.Globalization.CultureInfo.InvariantCulture) +
+                " soleLift=" + AvatarMotor.StandingSoleLift.ToString("R",
+                    System.Globalization.CultureInfo.InvariantCulture) +
+                " root=" + root.name);
             ConfigureBody(root, new BodySettings(45f, Rubber, 0, .05f));
             root.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation;
         }

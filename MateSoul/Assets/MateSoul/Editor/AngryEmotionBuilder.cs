@@ -23,14 +23,19 @@ namespace MateSoul.Editor
             if (!character)
                 throw new InvalidOperationException(
                     "Production character prefab is missing.");
+            // The mad source uses the re-rigged display-name skeleton; retarget
+            // the body through the same world-space pipeline as the item gestures
+            // (drink, hug toy, radio).
+            var clip = AvatarItemAnimationRetarget.Retarget(
+                SourcePath, ClipPath, AvatarItemAnimationRetarget.DisplayRig);
             // Character authoring tools belong to Unity's predefined editor
             // assembly, which cannot be referenced by this asmdef.
             var importer = Type.GetType(
                 "MateSoul.Editor.LengyueIdle01Builder, Assembly-CSharp-Editor", true);
-            var clip = (AnimationClip)importer.GetMethod("ImportAuthoredActionTracks")
-                .Invoke(null, new object[] { SourcePath, ClipPath,
-                    ResponseEmotionAudio.AngryClipName, character,
-                    Array.Empty<string>(), true });
+            // The re-rigged source uses face_* shapes; map them onto the production
+            // Fcl_*/Game_* face and add the angry brow/eye/mouth presets.
+            importer.GetMethod("MapAuthoredEmotionFace")
+                .Invoke(null, new object[] { character, clip, SourcePath, true });
             var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(
                 AvatarLocomotionBuilder.ControllerPath);
             if (!controller)
@@ -38,6 +43,7 @@ namespace MateSoul.Editor
                     "Production avatar controller is missing.");
             AvatarLocomotionBuilder.ConfigureProductionController(controller);
             Validate(character, controller, clip);
+            EditorUtility.SetDirty(clip);
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
             Debug.Log(

@@ -184,12 +184,12 @@ namespace MateSoul.Runtime
             RuntimeColliderRefiner.Ensure(gameObject);
             Body = GetComponent<PhysicsBody>() ?? gameObject.AddComponent<PhysicsBody>();
             Body.Configure(content.Physics);
-            // A carried pan still has to catch the food dropped into it.
+            // A carried pan, plate or bowl still has to catch what is put on it.
             Body.RetainCollisionsWhileHeld =
+                content.RetainCollisionsWhileHeld ||
                 GetComponent<CookwareHeatReceiver>() != null;
             if (Body.RetainCollisionsWhileHeld)
-                Debug.Log($"MATESOUL_COOK_BIND item={content.Id} cookware=1 " +
-                          $"retainCollisions=1");
+                Debug.Log($"MATESOUL_COOK_BIND item={content.Id} retainCollisions=1");
             if (cuttable != null)
                 Body.Rigidbody.mass = Mathf.Max(.001f,
                     content.Physics.mass * cuttable.VolumeRatio);

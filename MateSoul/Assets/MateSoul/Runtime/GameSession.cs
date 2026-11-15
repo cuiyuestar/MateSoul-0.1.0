@@ -36,7 +36,7 @@ namespace MateSoul.Runtime
         private GameSaveData saved;
         private readonly GameSaveData loadedSave;
         private Task<Pose> preparedRoomAnchor;
-        private bool itemsRestored, itemRestoreFailed, disposed;
+        private bool itemsRestored, itemRestoreFailed, disposed, suspendSaving;
         private float physicsSaveDelay = -1;
         private readonly Collider[] placementOverlaps = new Collider[64];
         private readonly Collider[] placementUpperOverlaps = new Collider[64];
@@ -134,6 +134,11 @@ namespace MateSoul.Runtime
             hasApproachSample = false;
             socialAttentionCandidate = false;
             proximityAttentionArmed = true;
+            Catalog.Register(new ActionDefinition("come",
+                "Walk to the player and stop beside them",
+                ControlChannels.Locomotion | ControlChannels.FullBody | ControlChannels.Gaze,
+                _ => CreateComeAction(), timeoutSeconds: 120,
+                exposeToAI: true, exitTimeoutSeconds: 1));
             Catalog.Register(new ActionDefinition(SocialAttentionAction.Id,
                 "Stop and attend to the nearby player",
                 // 对话打开期间社交注视会一直保持；Dialogue 通道属于投球等系统动作，
@@ -183,7 +188,7 @@ namespace MateSoul.Runtime
             Catalog.Register(new ActionDefinition(lie.Id, lie.Description,
                 ControlChannels.Locomotion | ControlChannels.FullBody | ControlChannels.Gaze,
                 intent => new LieOnBedAction(Beds, Items, intent.TargetId,
-                    (AvatarMotor)Motor, Navigation, lyingRig),
+                    (AvatarMotor)Motor, Navigation, lyingRig, wardrobe),
                 timeoutSeconds: 300f, targetCapability: lie.Id, exitTimeoutSeconds: 5f));
             RealityMesh.Start();
         }
@@ -214,6 +219,12 @@ namespace MateSoul.Runtime
             Persona = new CharacterPersonaState(personaDefinition, saved.personality);
             Subtitles = saved.subtitles;
             RegisterActions();
+            // Route the engine agnostic decision layers into the device log so an AI
+            // request can be followed from utterance to action outcome.
+            AvatarActionCoordinator.Trace = message =>
+                Debug.Log($"MATESOUL_ACTION {message}");
+            ConversationOrchestrator.Trace = message =>
+                Debug.Log($"MATESOUL_AI {message}");
             Avatar = new AvatarActionCoordinator(Catalog);
             Autonomy = new AutonomousBehaviour(Avatar, navigation, motor, Items,
                 item => ItemsReady && Items.IsCurrent(item) &&
@@ -452,6 +463,15 @@ namespace MateSoul.Runtime
                 body | ControlChannels.LeftArm | ControlChannels.RightArm,
                 intent => new PickupItemAction(this, intent.TargetId),
                 timeoutSeconds: 3600, targetCapability: "visit", exitTimeoutSeconds: 1));
+            Catalog.Register(new ActionDefinition(PlaceHeldAction.Id,
+                "Put the item already in hand down at a resolved spot",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                intent => new PlaceHeldAction(this, intent.TargetId, (Pose)intent.Payload),
+                timeoutSeconds: 120, exposeToAI: false, exitTimeoutSeconds: 1));
+            Catalog.Register(new ActionDefinition("go",
+                "Walk to a named virtual item or real object and stop beside it",
+                body, CreateGoAction, timeoutSeconds: 120,
+                exposeToAI: true, exitTimeoutSeconds: 1, allowsOptionalTarget: true));
             Catalog.Register(new ActionDefinition(EatItemAction.Id,
                 "Pick up an edible item and eat it in three bites",
                 body | ControlChannels.LeftArm | ControlChannels.RightArm,
@@ -465,21 +485,230 @@ namespace MateSoul.Runtime
             Catalog.Register(new ActionDefinition(RadioMusicAction.PlayId,
                 "Pick up the radio, perform its play gesture and start a randomly chosen station",
                 body | ControlChannels.LeftArm | ControlChannels.RightArm,
-                intent => CreateRadioMusicAction(intent, false), timeoutSeconds: 150,
+                intent => CreateRadioMusicAction(intent, RadioGesture.Play), timeoutSeconds: 150,
                 exposeToAI: true, exitTimeoutSeconds: 1, allowsOptionalTarget: true));
             Catalog.Register(new ActionDefinition(RadioMusicAction.SwitchId,
                 "Pick up the radio, perform its gesture and change to a different station; " +
                 "starts music when the radio is off",
                 body | ControlChannels.LeftArm | ControlChannels.RightArm,
-                intent => CreateRadioMusicAction(intent, true), timeoutSeconds: 150,
+                intent => CreateRadioMusicAction(intent, RadioGesture.Switch), timeoutSeconds: 150,
+                exposeToAI: true, exitTimeoutSeconds: 1, allowsOptionalTarget: true));
+            Catalog.Register(new ActionDefinition(RadioMusicAction.StopId,
+                "Pick up the radio, perform its gesture and turn the music off",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                intent => CreateRadioMusicAction(intent, RadioGesture.Stop), timeoutSeconds: 150,
+                exposeToAI: true, exitTimeoutSeconds: 1, allowsOptionalTarget: true));
+            Catalog.Register(new ActionDefinition(RadioMusicAction.VolumeUpId,
+                "Pick up the radio, perform its gesture and turn the volume louder",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                intent => CreateRadioMusicAction(intent, RadioGesture.VolumeUp), timeoutSeconds: 150,
+                exposeToAI: true, exitTimeoutSeconds: 1, allowsOptionalTarget: true));
+            Catalog.Register(new ActionDefinition(RadioMusicAction.VolumeDownId,
+                "Pick up the radio, perform its gesture and turn the volume quieter",
+                body | ControlChannels.LeftArm | ControlChannels.RightArm,
+                intent => CreateRadioMusicAction(intent, RadioGesture.VolumeDown), timeoutSeconds: 150,
                 exposeToAI: true, exitTimeoutSeconds: 1, allowsOptionalTarget: true));
             Catalog.Register(new ActionDefinition(PlacementCommands.ActionId,
-                "Put the item in hand down on a named real-world surface or virtual item, " +
-                "or beside a virtual item that has no surface; destination names the target",
+                "Put a named item down on a named real-world surface or virtual item, or beside a virtual " +
+                "item that has no surface; target_id names the item to move and is picked up first when it is " +
+                "not in hand, destination names the place",
                 body | ControlChannels.LeftArm | ControlChannels.RightArm,
                 _ => throw new InvalidOperationException("放置物品需要通过放置指令完成。"),
                 timeoutSeconds: 60, exposeToAI: true, exitTimeoutSeconds: 1,
                 allowsOptionalTarget: true, acceptsDestination: true));
+        }
+
+        // Semantic localisation for movement: virtual items use their own approach,
+        // scanned furniture uses the measured surface (chair seat / bed edge), and any
+        // other recognised real object falls back to its calibrated box.
+        private IAvatarAction CreateGoAction(AvatarIntent intent)
+        {
+            var targetId = intent.TargetId;
+            if (!string.IsNullOrEmpty(targetId) &&
+                views.TryGetValue(targetId, out var view) && view != null)
+                return new VisitItemAction(Items, targetId, () => view, Motor, Navigation);
+            var point = ResolveStandPoint(targetId);
+            if (point == null)
+                throw new InvalidOperationException("找不到可以走过去的落点。");
+            Debug.Log($"MATESOUL_GO target={targetId} point={point.Value}");
+            return new MoveAction(Motor, Navigation, () => point.Value);
+        }
+
+        private Vector3? ResolveStandPoint(string targetId)
+        {
+            if (string.IsNullOrEmpty(targetId)) return null;
+            RealityItemRecord record = null;
+            var hasCalibration = RealityItems != null &&
+                RealityItems.TryGet(targetId, out record);
+            var chair = Chairs?.Resolve(targetId);
+            var bed = Beds?.Resolve(targetId);
+            if (!hasCalibration && chair == null && bed == null)
+            {
+                // The model names objects the way the room report does ("table",
+                // "cabinet", 衣柜) instead of echoing an instance id, so the name is
+                // resolved to the nearest instance of that semantic.
+                if (!RealitySemanticCatalog.TryParse(targetId, out var semantic) ||
+                    !RealitySemanticCatalog.Get(semantic).IsItem)
+                {
+                    Debug.Log($"MATESOUL_GO unresolved target={targetId} reason=unknown-name");
+                    return null;
+                }
+                if (semantic == RealitySemantic.Chair)
+                    chair = Chairs?.Nearest(Motor.Position);
+                else if (semantic == RealitySemantic.Bed || semantic == RealitySemantic.Sofa)
+                    bed = Beds?.Targets
+                        .Where(item => item.Semantic == semantic)
+                        .OrderBy(item => Vector3.Distance(item.Center, Motor.Position))
+                        .FirstOrDefault();
+                if (chair == null && bed == null)
+                {
+                    record = NearestRealityItem(semantic);
+                    hasCalibration = record != null;
+                }
+                if (chair == null && bed == null && record == null)
+                {
+                    var available = RealityItems == null ? "" : string.Join(",",
+                        RealityItems.Items.Select(item => item.Semantic).Distinct());
+                    Debug.Log($"MATESOUL_GO unresolved target={targetId} semantic={semantic} " +
+                        $"reason=no-instance available=[{available}]");
+                    return null;
+                }
+                Debug.Log($"MATESOUL_GO semantic target={targetId} semantic={semantic} " +
+                    $"chair={chair != null} bed={bed != null} record={record?.Id ?? "none"}");
+            }
+            var dynamic = record == null ||
+                RealitySemanticMotion.IsDynamic(record.Semantic);
+            if (chair != null && chair.IsFresh &&
+                (dynamic || !ConflictsWithCalibration(chair.Center, record)))
+                return chair.Dock;
+            if (bed != null && bed.IsFresh &&
+                (dynamic || !ConflictsWithCalibration(bed.Center, record)))
+            {
+                var bedPoint = new Vector3(bed.Center.x, bed.FloorY, bed.Center.z) +
+                    bed.Forward * (bed.Length * .5f + .40f);
+                return ReachableStandPoint(bedPoint, bed.Center,
+                    Mathf.Max(bed.Width, bed.Length) * .5f + .40f, targetId);
+            }
+            if (hasCalibration)
+            {
+                var away = Motor.Position - record.Center;
+                away.y = 0;
+                if (away.sqrMagnitude < .01f) away = Vector3.forward;
+                var radius = Mathf.Max(record.Size.x, record.Size.z) * .5f + .45f;
+                var point = record.Center + away.normalized * radius;
+                point.y = Navigation.FloorHeight;
+                Debug.Log($"MATESOUL_GO calibration id={targetId} semantic={record.Semantic} " +
+                    $"dynamic={dynamic} point={point}");
+                return ReachableStandPoint(point, record.Center, radius, targetId);
+            }
+            return null;
+        }
+
+        private RealityItemRecord NearestRealityItem(RealitySemantic semantic)
+        {
+            if (RealityItems == null) return null;
+            RealityItemRecord best = null;
+            var bestDistance = float.PositiveInfinity;
+            foreach (var item in RealityItems.Items)
+            {
+                if (item.Semantic != semantic) continue;
+                var offset = item.Center - Motor.Position;
+                offset.y = 0;
+                if (offset.sqrMagnitude >= bestDistance) continue;
+                bestDistance = offset.sqrMagnitude;
+                best = item;
+            }
+            return best;
+        }
+
+        // A calibrated box can sit flush against a wall or behind other furniture,
+        // where the direct approach point has no complete route. Walk rings around
+        // the object before rejecting the command.
+        private Vector3 ReachableStandPoint(Vector3 point, Vector3 center,
+            float radius, string targetId)
+        {
+            if (Navigation.TryPath(Motor.Position, point, out _)) return point;
+            var best = point;
+            var bestDistance = float.PositiveInfinity;
+            foreach (var scale in new[] { 1f, 1.35f, 1.8f })
+            {
+                for (var index = 0; index < 16; index++)
+                {
+                    var angle = index * Mathf.PI * 2f / 16f;
+                    var candidate = center + new Vector3(
+                        Mathf.Cos(angle), 0, Mathf.Sin(angle)) * radius * scale;
+                    candidate.y = Navigation.FloorHeight;
+                    if (!Navigation.TryPath(Motor.Position, candidate, out _)) continue;
+                    var distance = (candidate - Motor.Position).sqrMagnitude;
+                    if (distance >= bestDistance) continue;
+                    bestDistance = distance;
+                    best = candidate;
+                }
+                if (!float.IsPositiveInfinity(bestDistance)) break;
+            }
+            if (float.IsPositiveInfinity(bestDistance))
+            {
+                Debug.Log($"MATESOUL_GO unreachable target={targetId} point={point}");
+                return point;
+            }
+            Debug.Log($"MATESOUL_GO approach target={targetId} point={best} " +
+                $"direct={point} fallback={best != point}");
+            return best;
+        }
+
+        // A static object seen by the live mesh far from its calibrated box was either
+        // moved by someone or mis-segmented; the calibration wins in both cases.
+        private static bool ConflictsWithCalibration(Vector3 scanned, RealityItemRecord record)
+        {
+            var offset = scanned - record.Center;
+            offset.y = 0;
+            return offset.magnitude > .25f;
+        }
+
+        private IAvatarAction CreateComeAction()
+        {
+            if (playerHead == null)
+                throw new InvalidOperationException("找不到玩家的位置。");
+            var forward = Vector3.ProjectOnPlane(playerHead.forward, Vector3.up);
+            if (forward.sqrMagnitude < .01f) forward = Vector3.forward;
+            var requested = playerHead.position - forward.normalized * .9f;
+            requested.y = Navigation.FloorHeight;
+            var destination = ResolveComeDestination(requested, playerHead.position);
+            Debug.Log($"MATESOUL_GO target=player point={destination} " +
+                      $"requested={requested} fallback={destination != requested}");
+            return new MoveAction(Motor, Navigation, () => destination);
+        }
+
+        // The player can stand just outside the scanned floor, where the exact
+        // approach point has no complete route. Fall back to the nearest reachable
+        // point on rings around the player instead of rejecting the command.
+        private Vector3 ResolveComeDestination(Vector3 requested, Vector3 playerPosition)
+        {
+            if (Navigation.TryPath(Motor.Position, requested, out _)) return requested;
+            foreach (var radius in new[] { .5f, .8f, 1.2f, 1.6f, 2.2f, 2.8f })
+            {
+                var best = requested;
+                var bestDistance = float.PositiveInfinity;
+                for (int index = 0; index < 16; index++)
+                {
+                    float angle = index * Mathf.PI * 2f / 16f;
+                    var candidate = playerPosition + new Vector3(
+                        Mathf.Cos(angle), 0, Mathf.Sin(angle)) * radius;
+                    candidate.y = Navigation.FloorHeight;
+                    if (!Navigation.TryPath(Motor.Position, candidate, out _)) continue;
+                    float distance = (candidate - Motor.Position).sqrMagnitude;
+                    if (distance >= bestDistance) continue;
+                    bestDistance = distance;
+                    best = candidate;
+                }
+                if (!float.IsPositiveInfinity(bestDistance))
+                {
+                    Debug.Log($"MATESOUL_GO come-fallback radius={radius:F1} point={best}");
+                    return best;
+                }
+            }
+            Debug.LogWarning($"MATESOUL_GO come-fallback failed player={playerPosition}");
+            return requested;
         }
 
         private IAvatarAction CreateVisitAction(AvatarIntent intent)
@@ -491,7 +720,7 @@ namespace MateSoul.Runtime
                 throw new InvalidOperationException("这个物品不在自主使用白名单中。");
             if (view != null && view.Definition.UseAnimation != null &&
                 view.GetComponent<RadioController>() != null)
-                return new RadioMusicAction(this, intent.TargetId, false);
+                return new RadioMusicAction(this, intent.TargetId, RadioGesture.Play);
             if (view != null && view.Definition.UseAnimation != null)
                 return new UseHeldItemAction(this, intent.TargetId);
             return new VisitItemAction(Items, intent.TargetId,
@@ -509,28 +738,28 @@ namespace MateSoul.Runtime
                 throw new InvalidOperationException("这个物品不在自主使用白名单中。");
             // The radio's own interaction is music playback, not a silent gesture.
             if (view.GetComponent<RadioController>() != null)
-                return new RadioMusicAction(this, intent.TargetId, false);
+                return new RadioMusicAction(this, intent.TargetId, RadioGesture.Play);
             return new UseHeldItemAction(this, intent.TargetId);
         }
 
-        private IAvatarAction CreateRadioMusicAction(AvatarIntent intent, bool switchTrack)
+        private IAvatarAction CreateRadioMusicAction(AvatarIntent intent, RadioGesture gesture)
         {
             var view = ResolveRadio(intent.TargetId);
             if (view == null)
                 throw new InvalidOperationException("房间里还没有放置复古收音机。");
             if (view.Definition.UseAnimation == null)
                 throw new InvalidOperationException("收音机还没有配置播放音乐的动画。");
-            return new RadioMusicAction(this, view.Instance.Id, switchTrack);
+            return new RadioMusicAction(this, view.Instance.Id, gesture);
         }
 
-        // An explicit target must be that exact radio; otherwise the nearest
-        // placed radio is used so a plain "play some music" still works.
+        // An explicit target must be that exact radio; a name that is not a
+        // registered instance ("radio", 收音机) falls back to the nearest placed
+        // radio so the spoken command still works.
         private GameItem ResolveRadio(string targetId)
         {
-            if (!string.IsNullOrEmpty(targetId))
+            if (!string.IsNullOrEmpty(targetId) &&
+                views.TryGetValue(targetId, out var target) && target != null)
             {
-                if (!views.TryGetValue(targetId, out var target) || target == null)
-                    throw new InvalidOperationException("动作目标不存在。");
                 if (target.GetComponent<RadioController>() == null)
                     throw new InvalidOperationException("这个物品不是可以播放音乐的收音机。");
                 return target;
@@ -553,6 +782,9 @@ namespace MateSoul.Runtime
                  intent.ActionId == EatItemAction.Id || intent.ActionId == UseHeldItemAction.Id ||
                  intent.ActionId == RadioMusicAction.PlayId ||
                  intent.ActionId == RadioMusicAction.SwitchId ||
+                 intent.ActionId == RadioMusicAction.StopId ||
+                 intent.ActionId == RadioMusicAction.VolumeUpId ||
+                 intent.ActionId == RadioMusicAction.VolumeDownId ||
                  intent.ActionId == "visit" && views.TryGetValue(intent.TargetId, out var view) &&
                  view.Definition.UseAnimation != null))
                 observedItemAction = action;
@@ -572,6 +804,7 @@ namespace MateSoul.Runtime
             using var perf = PerfMonitor.Sample("Session.Tick");
             Notifications.Tick(seconds);
             SpontaneousReplies.Tick(seconds);
+            TickPendingPlacement();
             RefreshDailyInventoryIfNeeded();
             if (!itemsRestored && !itemRestoreFailed)
             {
@@ -2060,8 +2293,12 @@ namespace MateSoul.Runtime
             if (Motor is AvatarMotor motor) motor.Body.SetPaused(unavailable);
         }
 
+        // 还原首次启动时先删除存档，再阻止退出/暂停流程把旧进度写回。
+        public void SuspendSaving() => suspendSaving = true;
+
         public void Save()
         {
+            if (suspendSaving) return;
             physicsSaveDelay = -1;
             Physics.SyncTransforms();
             saved.outfitId = wardrobe.CurrentOutfitId;

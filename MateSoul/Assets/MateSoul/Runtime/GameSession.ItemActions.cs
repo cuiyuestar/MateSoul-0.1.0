@@ -35,6 +35,13 @@ namespace MateSoul.Runtime
                      observedItemAction.Intent.ActionId == RadioMusicAction.SwitchId
                         ? observedItemAction.State == ActionState.Succeeded
                             ? "音乐已切换。" : "切换音乐已取消。" :
+                     observedItemAction.Intent.ActionId == RadioMusicAction.StopId
+                        ? observedItemAction.State == ActionState.Succeeded
+                            ? "收音机已关闭。" : "关闭收音机已取消。" :
+                     observedItemAction.Intent.ActionId == RadioMusicAction.VolumeUpId ||
+                     observedItemAction.Intent.ActionId == RadioMusicAction.VolumeDownId
+                        ? observedItemAction.State == ActionState.Succeeded
+                            ? "收音机音量已调整。" : "音量调整已取消。" :
                      observedItemAction.State == ActionState.Succeeded
                         ? "水果切好了，已装入盘子。" : "切水果已取消。"));
             observedItemAction = null;

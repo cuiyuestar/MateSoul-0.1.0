@@ -31,15 +31,42 @@ namespace MateSoul.Runtime
         private CookingEffects effects;
         private CookingSettings settings;
         private GameItem item;
-        private Collider shape;
         private FoodDoneness stage;
         private bool configured;
 
         public float Doneness => doneness;
         public FoodDoneness Stage => stage;
         public bool IsBurned => stage == FoodDoneness.Burned;
-        public Vector3 WorldCenter => Shape.bounds.center;
-        public float InPanRadius => Mathf.Min(Shape.bounds.extents.x, Shape.bounds.extents.z);
+        public Vector3 WorldCenter => WorldBounds.center;
+        public float InPanRadius
+        {
+            get
+            {
+                var bounds = WorldBounds;
+                return Mathf.Min(bounds.extents.x, bounds.extents.z);
+            }
+        }
+        // The body may replace the authored box with generated mesh colliders and
+        // disable it; a disabled collider reports zero bounds, so never read the
+        // first child collider for containment geometry.
+        private Bounds WorldBounds
+        {
+            get
+            {
+                var shapes = item != null && item.Body != null ? item.Body.Shapes : null;
+                if (shapes != null && shapes.Count > 0)
+                {
+                    var bounds = shapes[0].bounds;
+                    for (var index = 1; index < shapes.Count; index++)
+                        if (shapes[index] != null) bounds.Encapsulate(shapes[index].bounds);
+                    return bounds;
+                }
+                var fallback = GetComponentInChildren<Collider>(true);
+                return fallback != null
+                    ? fallback.bounds
+                    : new Bounds(transform.position, Vector3.one * .001f);
+            }
+        }
         public bool IsCookable => configured && settings.enabled;
         public bool IsHeating => effects != null && effects.IsHeating;
         public CookingEffects Effects => effects;
@@ -63,9 +90,6 @@ namespace MateSoul.Runtime
                 $"doneness={Mathf.RoundToInt(doneness)}%");
             return true;
         }
-
-        private Collider Shape
-            => shape != null ? shape : shape = GetComponentInChildren<Collider>();
 
         public void ConfigureVisual(GameObject rawRoot, GameObject cookedRoot)
         {
@@ -91,7 +115,7 @@ namespace MateSoul.Runtime
             value.Validate();
             if (!value.enabled)
                 throw new ArgumentException("CookableFood cannot bind a disabled marker.");
-            if (Shape == null)
+            if (GetComponentInChildren<Collider>(true) == null)
                 throw new InvalidOperationException("Cookable food requires a collider.");
             settings = value;
             item = owner;

@@ -181,6 +181,8 @@ namespace MateSoul.Runtime
         public void SetVolume(float value)
         {
             volume = Mathf.Clamp01(value);
+            // Keep the physical knob in sync when a scripted action turns it.
+            if (volumeKnob != null) volumeKnob.SetNormalizedValue(volume, false);
             ApplyMix();
         }
 

@@ -23,22 +23,12 @@ namespace MateSoul.Editor
                 GameSceneBuilder.CharacterPath);
             if (!character)
                 throw new InvalidOperationException("Production character prefab is missing.");
-            // Reuse the canonical transform remapping from the predefined editor assembly.
-            var importer = Type.GetType(
-                "MateSoul.Editor.LengyueIdle01Builder, Assembly-CSharp-Editor", true);
-            var excludedSourceBones = new[]
-            {
-                "lengyue_pelvis_root", "lengyue_head_tip",
-                "lengyue_breast_l", "lengyue_breast_r", "lengyue_breast_tip_l", "lengyue_breast_tip_r",
-                "lengyue_mech_cover_l", "lengyue_mech_cover_r", "lengyue_mech_in_l", "lengyue_mech_in_r",
-                "lengyue_mech_out_l", "lengyue_mech_out_r", "lengyue_upper_arm_twist_l", "lengyue_upper_arm_twist_r"
-            };
-            var clip = (AnimationClip)importer.GetMethod("ImportAuthoredActionTracks")
-                .Invoke(null, new object[]
-                {
-                    SourcePath, ClipPath, ResponseEmotionAudio.SadClipName,
-                    character, excludedSourceBones, false
-                });
+            // The cry source uses the re-rigged display-name skeleton; retarget
+            // the body through the same world-space pipeline as the item gestures
+            // (drink, hug toy, radio), then map its face_* shapes onto the
+            // production Fcl_*/Game_* face.
+            var clip = AvatarItemAnimationRetarget.Retarget(
+                SourcePath, ClipPath, AvatarItemAnimationRetarget.DisplayRig);
             MapFacialPerformance(character, clip);
             var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(
                 AvatarLocomotionBuilder.ControllerPath);
@@ -96,12 +86,24 @@ namespace MateSoul.Editor
                         Copy("Fcl_EYE_Sorrow", .3f);
                         break;
                     case "face_extra_01_BS": Copy("Fcl_MTH_Down", .25f); break;
+                    case "face_extra_02_BS": Copy("Fcl_MTH_Down", .2f); break;
+                    case "face_extra_03_BS": Copy("Fcl_MTH_Sorrow", .3f); break;
+                    case "face_E_mouth_BS": Copy("Fcl_MTH_E", 1); break;
+                    case "face_O_BS": Copy("Fcl_MTH_O", 1); break;
+                    case "face_eye_wide_L_BS": Copy("Game_EyeWide_L", 1); break;
+                    case "face_eye_wide_R_BS": Copy("Game_EyeWide_R", 1); break;
+                    case "face_smile_BS": Copy("Fcl_MTH_Up", .3f); break;
+                    case "face_eyeHappy_L": Copy("Fcl_EYE_Joy_L", .3f); break;
+                    case "face_eyeHappy_R": Copy("Fcl_EYE_Joy_R", .3f); break;
+                    case "face_Puff_BS": Copy("Fcl_MTH_SkinFung", .25f); break;
                     // The production face includes its teeth in the mouth morphs.
                     // Adapt the separate lower-teeth motion as a subtle rounded cry mouth.
                     case "BottomTeeth_BS": Copy("Fcl_MTH_O", .15f); break;
                     default:
-                        throw new InvalidOperationException(
-                            "Unmapped active sad facial curve: " + binding.path + "/" + shape);
+                        Debug.LogWarning(
+                            "MATESOUL_SAD_FACE_UNMAPPED path=" + binding.path +
+                            " shape=" + shape);
+                        break;
                 }
                 requiredTracks.Remove(shape);
 
@@ -125,9 +127,34 @@ namespace MateSoul.Editor
                 }
             }
             if (requiredTracks.Count > 0)
+                Debug.LogWarning(
+                    "MATESOUL_SAD_FACE_MISSING tracks=" +
+                    string.Join(",", requiredTracks.OrderBy(value => value)));
+
+            // The cry face must visibly move something even when the authoring
+            // file uses a different subset of shapes.
+            float maxPeak = 0;
+            var summary = new List<string>();
+            foreach (var shape in new[]
+                     {
+                         "Fcl_EYE_Close_L", "Fcl_EYE_Close_R",
+                         "Fcl_MTH_A", "Fcl_MTH_Sorrow"
+                     })
+            {
+                var curve = AnimationUtility.GetEditorCurve(clip,
+                    EditorCurveBinding.FloatCurve(path,
+                        typeof(SkinnedMeshRenderer), "blendShape." + shape));
+                float peak = curve == null
+                    ? 0
+                    : curve.keys.Max(key => key.value);
+                maxPeak = Mathf.Max(maxPeak, peak);
+                summary.Add(shape + ":" + peak.ToString("F1"));
+            }
+            Debug.Log("MATESOUL_SAD_FACE peaks=" + string.Join(",", summary));
+            if (maxPeak < 5f)
                 throw new InvalidOperationException(
-                    "Missing authored sad facial tracks: " +
-                    string.Join(", ", requiredTracks.OrderBy(value => value)));
+                    "Sad facial curves are effectively neutral; " +
+                    "morph playback would not be visible.");
 
             void SetCurve(string shape, AnimationCurve curve)
             {

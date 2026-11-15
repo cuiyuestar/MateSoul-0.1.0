@@ -48,8 +48,37 @@ namespace MateSoul.Runtime
         // while this item is held. Empty keeps the procedural grip.
         public AnimationClip handGesture;
         [Min(0)] public float handGestureLeadTime = .05f;
+        // The item's use clip already animates the fingers around the item. The
+        // procedural grip would fight that authored pose and push the hand
+        // through the model, so it is skipped while the use gesture plays.
+        public bool authoredFingerPose;
+        // Per-frame authored item pose expressed in the right-hand bone's local
+        // space. A single rigid grip offset cannot follow a two-hand hug or a
+        // re-gripped handle, so the use gesture samples this track instead.
+        public Vector3[] authoredHoldPositions;
+        public Quaternion[] authoredHoldRotations;
+        public float authoredHoldFrameRate;
 
         public Pose Grip => new Pose(gripPosition, Quaternion.Euler(gripEuler));
+
+        public bool TryReadAuthoredHold(float seconds, out Pose local)
+        {
+            local = default;
+            var positions = authoredHoldPositions;
+            var rotations = authoredHoldRotations;
+            if (positions == null || rotations == null || positions.Length == 0 ||
+                positions.Length != rotations.Length || authoredHoldFrameRate <= 0f)
+                return false;
+            float frame = Mathf.Clamp(
+                seconds * authoredHoldFrameRate, 0, positions.Length - 1);
+            int index = Mathf.FloorToInt(frame);
+            int next = Mathf.Min(index + 1, positions.Length - 1);
+            float blend = frame - index;
+            local = new Pose(
+                Vector3.Lerp(positions[index], positions[next], blend),
+                Quaternion.Slerp(rotations[index], rotations[next], blend));
+            return true;
+        }
         public Pose SecondaryGrip =>
             new Pose(secondaryGripPosition, Quaternion.Euler(secondaryGripEuler));
         public bool RequiresTwoHands => gripKind == ItemGripKind.LargeTwoHand;

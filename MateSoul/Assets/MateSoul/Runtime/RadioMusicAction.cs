@@ -4,22 +4,52 @@ using UnityEngine;
 
 namespace MateSoul.Runtime
 {
-    // Picks the radio up, performs its authored gesture and then either starts
-    // a random station or crossfades to a different one before putting it back.
+    public enum RadioGesture { Play, Switch, Stop, VolumeUp, VolumeDown }
+
+    // Picks the radio up, performs its authored gesture and then applies the
+    // requested playback change before putting it back.
     public sealed class RadioMusicAction : ItemActionRun
     {
         public const string PlayId = "play-music";
         public const string SwitchId = "switch-music";
-        private readonly bool switchTrack;
-        protected override string ActionName => switchTrack ? "切换音乐" : "播放音乐";
-        protected override string StartNotice => switchTrack
-            ? "冷月正在切换收音机的音乐。" : "冷月正在打开收音机。";
+        public const string StopId = "stop-music";
+        public const string VolumeUpId = "volume-up";
+        public const string VolumeDownId = "volume-down";
+        private readonly RadioGesture gesture;
+        protected override string ActionName
+        {
+            get
+            {
+                switch (gesture)
+                {
+                    case RadioGesture.Switch: return "切换音乐";
+                    case RadioGesture.Stop: return "关闭收音机";
+                    case RadioGesture.VolumeUp: return "调大音量";
+                    case RadioGesture.VolumeDown: return "调小音量";
+                    default: return "播放音乐";
+                }
+            }
+        }
+        protected override string StartNotice
+        {
+            get
+            {
+                switch (gesture)
+                {
+                    case RadioGesture.Switch: return "冷月正在切换收音机的音乐。";
+                    case RadioGesture.Stop: return "冷月正在关掉收音机。";
+                    case RadioGesture.VolumeUp: return "冷月正在调大收音机的音量。";
+                    case RadioGesture.VolumeDown: return "冷月正在调小收音机的音量。";
+                    default: return "冷月正在打开收音机。";
+                }
+            }
+        }
 
-        public RadioMusicAction(GameSession session, string instanceId, bool switchTrack)
+        public RadioMusicAction(GameSession session, string instanceId, RadioGesture gesture)
             : base(session, new ItemActionRequirement(
                 "radio", null, "复古收音机", instanceId ?? string.Empty))
         {
-            this.switchTrack = switchTrack;
+            this.gesture = gesture;
         }
 
         protected override string CheckBindings()
@@ -53,7 +83,7 @@ namespace MateSoul.Runtime
                 Session, Rig, item, RunId, finishAfterPickup: true);
             var dock = Motor.Position;
             yield return new HeldItemUseStep(Rig, item.View.Definition.UseAnimation);
-            yield return new RadioMusicStep(item.View, switchTrack);
+            yield return new RadioMusicStep(item.View, gesture);
             yield return new ItemTransferStep("放回" + item.View.Definition.DisplayName,
                 Session, Rig, item, RunId, () => origin, dock,
                 fromHeld: true);
@@ -64,12 +94,27 @@ namespace MateSoul.Runtime
     // changes the station. A switch request while powered off starts music.
     public sealed class RadioMusicStep : IItemActionStep
     {
+        private const float VolumeStep = .2f;
         private readonly GameItem view;
-        private readonly bool switchTrack;
-        public string Label => switchTrack ? "切换音乐" : "播放音乐";
+        private readonly RadioGesture gesture;
+        private bool logged;
+        public string Label
+        {
+            get
+            {
+                switch (gesture)
+                {
+                    case RadioGesture.Switch: return "切换音乐";
+                    case RadioGesture.Stop: return "关闭收音机";
+                    case RadioGesture.VolumeUp: return "调大音量";
+                    case RadioGesture.VolumeDown: return "调小音量";
+                    default: return "播放音乐";
+                }
+            }
+        }
 
-        public RadioMusicStep(GameItem view, bool switchTrack)
-        { this.view = view; this.switchTrack = switchTrack; }
+        public RadioMusicStep(GameItem view, RadioGesture gesture)
+        { this.view = view; this.gesture = gesture; }
 
         public void Start()
         {
@@ -77,9 +122,21 @@ namespace MateSoul.Runtime
             if (radio == null) throw new InvalidOperationException("这个物品不是收音机。");
             var count = radio.Stations.Count;
             if (count == 0) throw new InvalidOperationException("收音机里没有音乐。");
+            switch (gesture)
+            {
+                case RadioGesture.Stop:
+                    radio.SetPower(false);
+                    return;
+                case RadioGesture.VolumeUp:
+                    radio.SetVolume(radio.Volume + VolumeStep);
+                    return;
+                case RadioGesture.VolumeDown:
+                    radio.SetVolume(radio.Volume - VolumeStep);
+                    return;
+            }
             var powered = radio.IsPoweredOn;
             var next = count == 1 ? 0 : UnityEngine.Random.Range(0, count);
-            if (switchTrack && powered && count > 1)
+            if (gesture == RadioGesture.Switch && powered && count > 1)
             {
                 // Switching must land on a different station than the current one.
                 next = UnityEngine.Random.Range(0, count - 1);
@@ -89,7 +146,20 @@ namespace MateSoul.Runtime
             if (!powered) radio.SetPower(true);
         }
 
-        public bool Tick(float dt) => true;
+        public bool Tick(float dt)
+        {
+            if (!logged)
+            {
+                logged = true;
+                var radio = view.GetComponent<RadioController>();
+                // Release builds compile out the debug probes, so the applied
+                // playback state has to be readable from the plain device log.
+                Debug.Log($"MATESOUL_RADIO gesture={gesture} powered={radio.IsPoweredOn} " +
+                    $"station={radio.StationIndex + 1}/{radio.Stations.Count} " +
+                    $"volume={Mathf.RoundToInt(radio.Volume * 100)}%");
+            }
+            return true;
+        }
         public void Dispose() { }
     }
 }

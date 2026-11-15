@@ -29,6 +29,9 @@ namespace MateSoul.Gameplay
     {
         public string Destination { get; set; }
         public PlacementDestinationKind Kind { get; set; }
+        // The player's own words, so a placement can recover the item when the
+        // model only named the destination ("把苹果捡起来放到床上").
+        public string Request { get; set; }
     }
 
     public interface IPlacementCommandHandler
@@ -109,6 +112,15 @@ namespace MateSoul.Gameplay
 
     public sealed class ConversationOrchestrator : IDisposable
     {
+        // Wired by the runtime layer; the gameplay assembly keeps no engine dependency.
+        public static Action<string> Trace;
+        private static void Report(string message) => Trace?.Invoke(message);
+        private static string Short(string value, int limit)
+        {
+            if (string.IsNullOrEmpty(value)) return "";
+            return value.Length <= limit ? value : value.Substring(0, limit) + "…";
+        }
+
         private readonly ILLMProvider provider;
         private readonly IConversationContextProvider dialogueContext;
         private readonly ICharacterContextProvider characterContext;
@@ -169,6 +181,12 @@ namespace MateSoul.Gameplay
                 capture.Stop();
                 var request = new ConversationRequest(input, dialogueContext.Read(), actions, targets, moods,
                     character, (float)capture.Elapsed.TotalMilliseconds);
+                var actionIds = new List<string>();
+                foreach (var definition in actions) actionIds.Add(definition.Id);
+                var targetIds = new List<string>();
+                foreach (var item in targets) targetIds.Add(item.Id);
+                Report($"request input={Short(input, 120)} actions=[{string.Join(",", actionIds)}] " +
+                    $"targets=[{string.Join(",", targetIds)}] contextMs={capture.Elapsed.TotalMilliseconds:F0}");
                 var reply = await provider.CompleteAsync(request, requestCancellation.Token);
                 requestCancellation.Token.ThrowIfCancellationRequested();
                 if (!ReferenceEquals(pending, requestCancellation)) return;
@@ -176,8 +194,13 @@ namespace MateSoul.Gameplay
                     throw new InvalidOperationException("冷月正在完成小游戏回合，请稍候。");
                 if (reply == null || string.IsNullOrWhiteSpace(reply.reply_text) || reply.reply_text.Length > 4096)
                     throw new InvalidOperationException("模型回复缺少有效的 reply_text。");
-                if (!ResponseEmotionProtocol.TryParse(reply.response_emotion, out var responseEmotion))
-                    throw new InvalidOperationException("模型回复缺少有效的 response_emotion。");
+                var responseEmotion = ResponseEmotionProtocol.ParseOrDefault(reply.response_emotion);
+                if (!ResponseEmotionProtocol.TryParse(reply.response_emotion, out _))
+                    Report($"emotion fallback raw={reply.response_emotion}");
+                Report($"reply text={Short(reply.reply_text, 90)} " +
+                    $"emotion={reply.response_emotion} action={reply.action?.id} " +
+                    $"target={reply.action?.target_id} destination={reply.action?.destination} " +
+                    $"kind={reply.action?.destination_kind}");
 
                 if (reply.action != null && !string.IsNullOrEmpty(reply.action.id) && reply.action.id != "none")
                 {
@@ -192,7 +215,8 @@ namespace MateSoul.Gameplay
                             var directive = new PlacementDirective
                             {
                                 Destination = reply.action.destination,
-                                Kind = ParseDestinationKind(reply.action.destination_kind)
+                                Kind = ParseDestinationKind(reply.action.destination_kind),
+                                Request = input
                             };
                             if (!placement.TryPlace(directive, reply.action.target_id, out var failure))
                             {
@@ -216,16 +240,28 @@ namespace MateSoul.Gameplay
                         ActionError = "动作目标不存在或不支持此能力。";
                     else if (!action.AcceptsTarget && reply.action.target_id != null)
                         ActionError = "动作不接受目标。";
-                    else if (action.AcceptsTarget && reply.action.target_id != null &&
-                        !items.TryGet(reply.action.target_id, out _))
-                        ActionError = "动作目标不存在。";
                     else
                     {
+                        // Optional-target actions resolve real-world names inside the
+                        // runtime ("table", 衣柜); an id that is not a registered item
+                        // is delegated instead of being rejected here.
+                        if (action.AcceptsTarget && !string.IsNullOrEmpty(reply.action.target_id) &&
+                            !items.TryGet(reply.action.target_id, out _))
+                            Report($"target delegated id={reply.action.target_id} " +
+                                $"action={action.Id} reason=not-a-registered-item");
+                        // A fresh spoken command supersedes the previous one instead of
+                        // being blocked by it; a carried item is handed over in place.
                         LastAction = avatar.Submit(new AvatarIntent(
-                            action.Id, IntentSource.AI, reply.action.target_id));
+                            action.Id, IntentSource.AI, reply.action.target_id),
+                            preemptSamePriority: true);
                         if (LastAction.State == ActionState.Rejected) ActionError = LastAction.Error;
+                        Report($"submit action={action.Id} target={reply.action.target_id} " +
+                            $"state={LastAction.State} error={LastAction.Error}");
                     }
                 }
+                else if (reply.action != null && !string.IsNullOrEmpty(reply.action.id))
+                    Report($"action skipped id={reply.action.id} reason=no-action-or-none");
+                if (ActionError != null) Report($"action error={ActionError}");
                 if (reply.mood_signals != null)
                     foreach (var signal in reply.mood_signals)
                         if (signal != null && mood.Contains(signal.id) &&
@@ -243,6 +279,7 @@ namespace MateSoul.Gameplay
                 {
                     State = ConversationState.Cancelled;
                     Text = "对话已取消或超时。";
+                    Report("cancelled timeout=30s");
                 }
             }
             catch (Exception exception)
@@ -251,6 +288,7 @@ namespace MateSoul.Gameplay
                 {
                     State = ConversationState.Failed;
                     Text = exception.Message;
+                    Report($"failed type={exception.GetType().Name} error={exception.Message}");
                 }
             }
             finally

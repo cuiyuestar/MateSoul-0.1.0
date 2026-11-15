@@ -36,6 +36,9 @@ namespace MateSoul.Editor
         public const string SadPath =
             "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/" +
             "Emotion/Sad/lengyue_clip_sad01.anim";
+        public const string HappyPath =
+            "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Animations/" +
+            "Emotion/Happy/lengyue_clip_happy01.anim";
         private const string CharacterPrefabPath =
             "Assets/Characters/LengyueCharacter/Lengyue/Runtime/Prefabs/" +
             "lengyue_character.prefab";
@@ -65,6 +68,10 @@ namespace MateSoul.Editor
                 left, right, socialIdle);
             ConfigureEmotionLayer(controller, angry);
             ConfigureEmotionState(controller, ResponseEmotionAudio.SadStateName, sad);
+            // Happy is optional until its authored clip has been imported.
+            var happy = AssetDatabase.LoadAssetAtPath<AnimationClip>(HappyPath);
+            if (happy != null)
+                ConfigureEmotionState(controller, ResponseEmotionAudio.HappyStateName, happy);
             // Registers the side-sleep loop imported from the authored FBX. It is
             // an override layer at zero weight until the lying rig fades it in.
             SleepAnimationBuilder.ConfigureRuntimeLayer(controller);
@@ -186,12 +193,25 @@ namespace MateSoul.Editor
 
         public static void ConfigureEmotionState(
             AnimatorController controller, string stateName, AnimationClip clip)
+            => ConfigureLayerState(controller, ResponseEmotionAudio.EmotionLayerName,
+                stateName, clip);
+
+        // AI-driven gestures (dance, no-energy, yawn) live on their own override
+        // layer so they never fight the synchronized emotion performances.
+        public static void ConfigureGestureState(
+            AnimatorController controller, string stateName, AnimationClip clip)
+            => ConfigureLayerState(controller, GesturePerformance.LayerName,
+                stateName, clip);
+
+        private static void ConfigureLayerState(
+            AnimatorController controller, string layerName,
+            string stateName, AnimationClip clip)
         {
             var index = Array.FindIndex(controller.layers,
-                layer => layer.name == ResponseEmotionAudio.EmotionLayerName);
+                layer => layer.name == layerName);
             if (index < 0)
             {
-                controller.AddLayer(ResponseEmotionAudio.EmotionLayerName);
+                controller.AddLayer(layerName);
                 index = controller.layers.Length - 1;
             }
             var layers = controller.layers;

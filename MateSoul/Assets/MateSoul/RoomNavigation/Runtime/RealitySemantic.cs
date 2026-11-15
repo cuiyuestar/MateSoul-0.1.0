@@ -32,6 +32,27 @@ namespace MateSoul.RoomNavigation
         Stairway = 24
     }
 
+    // Static objects never move in practice, so the room calibration is authoritative
+    // and the live mesh is only a sanity check. Dynamic objects are re-localised from
+    // the live mesh every time and fall back to calibration when it goes stale.
+    public static class RealitySemanticMotion
+    {
+        public static bool IsDynamic(RealitySemantic semantic)
+        {
+            switch (semantic)
+            {
+                case RealitySemantic.Chair:
+                case RealitySemantic.Human:
+                case RealitySemantic.Unknown:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsStatic(RealitySemantic semantic) => !IsDynamic(semantic);
+    }
+
     public enum RealitySemanticRole
     {
         Unknown,
@@ -112,6 +133,11 @@ namespace MateSoul.RoomNavigation
             Array.AsReadOnly(definitions.Where(definition => definition.IsItem).ToArray());
         private static readonly Dictionary<RealitySemantic, RealitySemanticDefinition> bySemantic =
             definitions.ToDictionary(definition => definition.Semantic);
+        // The AI speaks in room vocabulary ("table", "cabinet", 书桌, 衣柜) rather
+        // than echoing instance ids, so every semantic also accepts the names
+        // people and the model actually use.
+        private static readonly Dictionary<string, RealitySemantic> vocabulary =
+            BuildVocabulary();
 
         static RealitySemanticCatalog()
         {
@@ -136,6 +162,62 @@ namespace MateSoul.RoomNavigation
             => bySemantic.TryGetValue(semantic, out var definition)
                 ? definition
                 : bySemantic[RealitySemantic.Unknown];
+
+        public static bool TryParse(string value, out RealitySemantic semantic)
+        {
+            semantic = RealitySemantic.Unknown;
+            if (string.IsNullOrWhiteSpace(value)) return false;
+            var key = Normalize(value);
+            if (vocabulary.TryGetValue(key, out semantic)) return true;
+            // Reality item groups are reported as "reality-chair" / "现实椅子";
+            // accept those echoes as the bare semantic name too.
+            foreach (var prefix in new[] { "reality ", "real ", "现实" })
+            {
+                if (!key.StartsWith(prefix, StringComparison.Ordinal)) continue;
+                if (vocabulary.TryGetValue(key.Substring(prefix.Length).Trim(), out semantic))
+                    return true;
+            }
+            return false;
+        }
+
+        private static string Normalize(string value)
+            => value.Trim().ToLowerInvariant().Replace('-', ' ').Replace('_', ' ');
+
+        private static Dictionary<string, RealitySemantic> BuildVocabulary()
+        {
+            var map = new Dictionary<string, RealitySemantic>(StringComparer.Ordinal);
+            foreach (var definition in definitions)
+            {
+                map[Normalize(definition.Id)] = definition.Semantic;
+                map[Normalize(definition.DisplayName)] = definition.Semantic;
+            }
+            Add(map, RealitySemantic.Table,
+                "desk", "worktable", "dining table", "coffee table", "书桌", "桌子", "餐桌", "茶几", "桌");
+            Add(map, RealitySemantic.Cabinet,
+                "wardrobe", "closet", "cupboard", "dresser", "sideboard", "bookshelf", "nightstand",
+                "衣柜", "书柜", "橱柜", "储物柜", "床头柜", "柜");
+            Add(map, RealitySemantic.Chair, "seat", "stool", "座椅", "凳子", "椅");
+            Add(map, RealitySemantic.Bed, "床铺", "大床");
+            Add(map, RealitySemantic.Sofa, "couch", "长沙发");
+            Add(map, RealitySemantic.Door, "房门");
+            Add(map, RealitySemantic.Window, "窗");
+            Add(map, RealitySemantic.Curtain, "窗帘布");
+            Add(map, RealitySemantic.Plant, "potted plant", "盆栽", "绿植", "花");
+            Add(map, RealitySemantic.Screen, "tv", "television", "monitor", "电视", "电视机", "显示器");
+            Add(map, RealitySemantic.Refrigerator, "fridge", "电冰箱");
+            Add(map, RealitySemantic.WashingMachine, "washer", "滚筒洗衣机");
+            Add(map, RealitySemantic.AirConditioner, "ac", "aircon", "冷气");
+            Add(map, RealitySemantic.Lamp, "light", "台灯", "落地灯");
+            Add(map, RealitySemantic.WallArt, "painting", "picture", "挂画", "装饰画", "壁画");
+            Add(map, RealitySemantic.Stairway, "stairs", "staircase", "阶梯");
+            return map;
+        }
+
+        private static void Add(Dictionary<string, RealitySemantic> map,
+            RealitySemantic semantic, params string[] names)
+        {
+            foreach (var name in names) map[Normalize(name)] = semantic;
+        }
 
         private static RealitySemanticDefinition Define(RealitySemantic semantic, string id,
             string displayName, RealitySemanticRole role, RealityGeometryKind geometry)

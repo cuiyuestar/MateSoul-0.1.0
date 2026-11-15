@@ -15,10 +15,10 @@ MonoBehaviour:
   capability: character-grip
   gripKind: 0
   handPose: 0
-  gripPosition: {x: 0, y: 0.32099998, z: 0}
-  gripEuler: {x: -0, y: 0, z: 0}
+  gripPosition: {x: -0.104184054, y: 0.043711882, z: -0.0940939}
+  gripEuler: {x: 81.4348, y: 349.17465, z: 100.378235}
   gripSize: {x: 0.2115553, y: 0.29999998, z: 0.20148464}
-  gripShapeOffset: {x: 0, y: -0.17099999, z: 0}
+  gripShapeOffset: {x: 0.06481409, y: -0.13386841, z: -0.094252475}
   fingerClearance: 0.003
   fingerCurl: 0.68
   secondaryGripPosition: {x: 0, y: 0, z: 0}
@@ -33,3 +33,6 @@ MonoBehaviour:
   platePosition: {x: 0, y: 0, z: 0}
   toolPosition: {x: 0, y: 0, z: 0}
   approachPosition: {x: 0, y: 0, z: 0}
+  handGesture: {fileID: 0}
+  handGestureLeadTime: 0.05
+  authoredFingerPose: 1

@@ -30,7 +30,8 @@ namespace MateSoul.Runtime
             Items,
             Settings,
             AIConfiguration,
-            AITutorial
+            AITutorial,
+            FirstRun
         }
 
         private static readonly Color DockColor = new Color(.22f, .14f, .22f, .52f);
@@ -68,6 +69,12 @@ namespace MateSoul.Runtime
         private const float HudDownwardAngle = 30f;
         private const float HudPitchFollowFraction = .25f;
         private const float HudPitchFollowLimit = 8f;
+        // Subtitle gap: closed height, panel rests here, and how far it may rise.
+        private const float SubtitleBaseY = 162f;
+        private const float SubtitleBaseHeight = 38f;
+        private const float SubtitleWidth = 760f;
+        private const float ContentBaseY = 200f;
+        private const float SubtitleMaxExtra = 150f;
         private const float HudYawDeadZone = 30f;
         private const float HudTranslationDeadZone = .2f;
 
@@ -132,6 +139,8 @@ namespace MateSoul.Runtime
         private Button meshOcclusionToggle, environmentOcclusionToggle;
         private Button coverageGateToggle, meshVisualizationToggle;
         private Button environmentPresetButton;
+        private TMP_Text resetFirstLaunchLabel;
+        private bool resetFirstLaunchArmed;
         private Canvas canvas;
         private TMP_FontAsset font;
         private Material overlayMaterial;
@@ -145,6 +154,8 @@ namespace MateSoul.Runtime
         private bool hudPoseInitialized, hudInteractionActive;
         private Vector3 hudFollowOrigin, hudTargetPosition;
         private Quaternion hudFollowRotation, hudTargetRotation;
+        private RectTransform subtitleRect;
+        private float subtitleGap, subtitleGapTarget;
         private RectTransform navigationRoot, dialogueRoot;
         private RectTransform personalitySettingsRoot, systemSettingsRoot;
         private CanvasGroup navigationGroup, dialogueGroup;
@@ -323,6 +334,8 @@ namespace MateSoul.Runtime
             AlwaysOnTopUi.Apply(root.transform, overlayMaterial);
             SetActivePage(HudPage.None);
             SetHudVisible(true);
+            if (bootstrap != null && bootstrap.IsFirstLaunchPending)
+                StartCoroutine(ShowFirstLaunchPanel());
             if (!Application.isEditor)
             {
                 Canvas.ForceUpdateCanvases();
@@ -537,18 +550,47 @@ namespace MateSoul.Runtime
 
         private void BuildSubtitle()
         {
+            // Sits in the gap between the page panel and the navigation buttons. The gap
+            // is closed while she is silent and grows upward to fit an actual reply.
             var root = AnchoredRect("角色字幕", hudRoot, new Vector2(.5f, 0),
-                new Vector2(.5f, 0), new Vector2(.5f, 0), new Vector2(0, 668), new Vector2(824, 64));
+                new Vector2(.5f, 0), new Vector2(.5f, 0),
+                new Vector2(0, SubtitleBaseY), new Vector2(SubtitleWidth, SubtitleBaseHeight));
+            subtitleRect = root;
             subtitle = AlwaysOnTopUi.ConfigureText(root.gameObject.AddComponent<TextMeshProUGUI>());
             subtitle.fontSize = 24;
-            subtitle.enableAutoSizing = true;
-            subtitle.fontSizeMin = 18;
-            subtitle.fontSizeMax = 26;
+            subtitle.enableAutoSizing = false;
             subtitle.color = TextColor;
             subtitle.alignment = TextAlignmentOptions.Center;
             subtitle.raycastTarget = false;
             subtitle.enableWordWrapping = true;
             subtitle.overflowMode = TextOverflowModes.Truncate;
+        }
+
+        // Grows the gap to fit the reply instead of shrinking the font.
+        private void UpdateSubtitleGap()
+        {
+            if (subtitle == null) return;
+            var text = subtitle.text;
+            if (string.IsNullOrEmpty(text))
+            {
+                subtitleGapTarget = 0f;
+                return;
+            }
+            var preferred = subtitle.GetPreferredValues(text, SubtitleWidth - 16f, 0f).y;
+            subtitleGapTarget = Mathf.Clamp(preferred + 8f - SubtitleBaseHeight, 0f,
+                SubtitleMaxExtra);
+        }
+
+        private void AnimateSubtitleGap(float deltaTime)
+        {
+            if (subtitleRect == null) return;
+            subtitleGap = Mathf.Lerp(subtitleGap, subtitleGapTarget,
+                1f - Mathf.Exp(-10f * deltaTime));
+            subtitleRect.sizeDelta =
+                new Vector2(SubtitleWidth, SubtitleBaseHeight + subtitleGap);
+            if (contentRoot != null)
+                contentRoot.anchoredPosition =
+                    new Vector2(contentRoot.anchoredPosition.x, ContentBaseY + subtitleGap);
         }
 
         private void BuildPages()
@@ -569,6 +611,7 @@ namespace MateSoul.Runtime
             BuildSettingsPage();
             BuildAIConfigurationPage();
             BuildAITutorialPage();
+            BuildFirstRunPage();
         }
 
         private GameObject CreatePage(HudPage page, string name)
@@ -965,28 +1008,28 @@ namespace MateSoul.Runtime
                 () => SetSettingsMode(true), page.transform, 19, "设置/角色性格", quiet: true);
             systemTab = PanelButton("系统", 388, 94, 344, 44,
                 () => SetSettingsMode(false), page.transform, 19, "设置/系统", quiet: true);
-            personalitySettingsRoot = Rect("角色性格设置", 28, 154, 704, 266, page.transform);
-            systemSettingsRoot = Rect("系统设置", 28, 154, 704, 266, page.transform);
-            var autonomyButton = PanelButton("自主活动：开启", 0, 0, 344, 60,
+            personalitySettingsRoot = Rect("角色性格设置", 28, 154, 704, 294, page.transform);
+            systemSettingsRoot = Rect("系统设置", 28, 154, 704, 294, page.transform);
+            var autonomyButton = PanelButton("自主活动：开启", 0, 0, 344, 52,
                 () => Run(() => bootstrap.Session.Autonomy.Enabled = !bootstrap.Session.Autonomy.Enabled),
                 systemSettingsRoot, 19);
             autonomyLabel = autonomyButton.GetComponentInChildren<TMP_Text>();
-            var pauseButton = PanelButton("暂停", 360, 0, 344, 60,
+            var pauseButton = PanelButton("暂停", 360, 0, 344, 52,
                 () => bootstrap.TogglePause(), systemSettingsRoot, 20, "暂停 / 继续");
             pauseLabel = pauseButton.GetComponentInChildren<TMP_Text>();
-            PanelButton("重试定位", 0, 74, 344, 60,
+            PanelButton("重试定位", 0, 60, 344, 52,
                 RetryLocalization, systemSettingsRoot, 20);
-            PanelButton("保存", 360, 74, 344, 60,
+            PanelButton("保存", 360, 60, 344, 52,
                 () => Run(() => { bootstrap.Session.Save(); message = "已保存"; }),
                 systemSettingsRoot, 20, primary: true);
-            PanelButton("重置界面", 0, 148, 344, 60, () =>
+            PanelButton("重置界面", 0, 120, 344, 52, () =>
             {
                 Recenter(true);
                 message = "界面已重新定位";
             }, systemSettingsRoot, 20);
-            PanelButton("AI配置", 360, 148, 344, 60,
+            PanelButton("AI配置", 360, 120, 344, 52,
                 () => OpenAIConfiguration(false), systemSettingsRoot, 20, "设置/AI配置");
-            var modeButton = PanelButton("交互模式", 0, 222, 344, 44, () => Run(() =>
+            var modeButton = PanelButton("交互模式", 0, 180, 344, 48, () => Run(() =>
             {
                 var mode = bootstrap.MiniGames.Input;
                 if (mode == null) return;
@@ -996,9 +1039,84 @@ namespace MateSoul.Runtime
                 else message = "菜单可注视后捏合点选，也可食指触碰；物品需伸手靠近后握紧拾取，松手放下。";
             }), systemSettingsRoot, 20);
             inputModeLabel = modeButton.GetComponentInChildren<TMP_Text>();
-            PanelButton("重启游戏", 360, 222, 344, 44, RestartGame,
+            PanelButton("重启游戏", 360, 180, 344, 48, RestartGame,
                 systemSettingsRoot, 20, "设置/重启游戏", danger: true);
+            var resetButton = PanelButton("还原首次启动", 0, 238, 704, 48,
+                RequestResetToFirstLaunch, systemSettingsRoot, 20,
+                "设置/还原首次启动", danger: true);
+            resetFirstLaunchLabel = resetButton.GetComponentInChildren<TMP_Text>();
             SetSettingsMode(true);
+        }
+
+        private void BuildFirstRunPage()
+        {
+            var page = CreatePage(HudPage.FirstRun, "首次启动引导");
+            PageHeader(page.transform, "欢迎来到 MateSoul",
+                "首次启动 · 建议先标定房间，获得最佳体验", "首次启动标题");
+            var card = PanelCard("房间标定说明", 28, 96, 704, 172, page.transform);
+            Label("冷月需要先认识你的房间。请使用 PICO 的房间标定功能扫描房间。\n" +
+                  "标定后，角色行走、物品摆放、床椅识别与虚实遮挡才能正常工作；\n" +
+                  "未标定房间时，许多功能会受到限制。",
+                20, 18, 664, 136, 19, card, TextAnchor.MiddleLeft, TextColor,
+                "房间标定说明文字");
+            PanelButton("去标定房间", 28, 284, 344, 64, LaunchRoomCalibration,
+                page.transform, 24, "首次启动/去标定房间", primary: true);
+            PanelButton("稍后再说", 388, 284, 344, 64, () =>
+            {
+                bootstrap?.MarkFirstLaunchSeen();
+                SetActivePage(HudPage.None);
+                message = "你可以随时在“设置 → 重试定位”中重新检测房间。";
+            }, page.transform, 22, "首次启动/稍后再说", quiet: true);
+            Label("标定完成后回到游戏；若房间仍未更新，请在“设置 → 重试定位”中重新检测。",
+                28, 362, 704, 52, 17, page.transform, TextAnchor.MiddleLeft,
+                MutedTextColor, "首次启动提示");
+        }
+
+        private IEnumerator ShowFirstLaunchPanel()
+        {
+            yield return null;
+            if (bootstrap == null || !bootstrap.IsFirstLaunchPending) yield break;
+            SetActivePage(HudPage.FirstRun);
+        }
+
+        private async void LaunchRoomCalibration()
+        {
+            if (bootstrap == null) return;
+            bootstrap.MarkFirstLaunchSeen();
+            message = "正在打开 PICO 房间标定…";
+            var error = await bootstrap.LaunchRoomCalibrationAsync();
+            if (this == null || bootstrap == null) return;
+            message = error ??
+                "标定完成后回到游戏；若房间仍未更新，请在“设置 → 重试定位”中重新检测。";
+        }
+
+        private void RequestResetToFirstLaunch()
+        {
+            if (!resetFirstLaunchArmed)
+            {
+                resetFirstLaunchArmed = true;
+                if (resetFirstLaunchLabel != null)
+                    resetFirstLaunchLabel.text = "再次点击确认：清除存档并回到首次启动";
+                message = "再次点击将清除游戏存档并回到首次启动；AI 配置会保留。";
+                return;
+            }
+            DisarmResetToFirstLaunch();
+            if (bootstrap == null) return;
+            bootstrap.Session?.SuspendSaving();
+            if (!bootstrap.ResetToFirstLaunch())
+            {
+                message = "无法清除存档，请稍后重试。";
+                return;
+            }
+            message = "已还原到首次启动，正在重新载入…";
+            StartCoroutine(ReloadSceneNextFrame());
+        }
+
+        private void DisarmResetToFirstLaunch()
+        {
+            resetFirstLaunchArmed = false;
+            if (resetFirstLaunchLabel != null)
+                resetFirstLaunchLabel.text = "还原首次启动";
         }
 
         private void RestartGame()
@@ -1232,6 +1350,10 @@ namespace MateSoul.Runtime
 
         private void SetActivePage(HudPage page)
         {
+            if (activePage == HudPage.FirstRun && page != HudPage.FirstRun)
+                bootstrap?.MarkFirstLaunchSeen();
+            if (activePage == HudPage.Settings && page != HudPage.Settings)
+                DisarmResetToFirstLaunch();
             CloseKeyboard();
             if (page != HudPage.Items && placementPreview != null)
                 placementPreview.Cancel();
@@ -2114,6 +2236,7 @@ namespace MateSoul.Runtime
 
         private void LateUpdate()
         {
+            AnimateSubtitleGap(Time.deltaTime);
             if (Application.isEditor) return;
             hudInteractionActive = false;
             if (EventSystem.current != null &&
@@ -2311,11 +2434,14 @@ namespace MateSoul.Runtime
                     $"{trait.display_name}：{option.display_name}";
             }
             if (subtitle != null)
+            {
                 subtitle.text = !session.Subtitles ? "" :
                     session.SpontaneousReplies.VisibleText ??
                     bootstrap.MiniGames.Active?.DialogueLine ??
                     (session.Conversation.State == MateSoul.Gameplay.ConversationState.Thinking ? "正在想…" :
                     session.Conversation.Text ?? "");
+                UpdateSubtitleGap();
+            }
             if (inputModeLabel != null && bootstrap.MiniGames.Input != null)
             {
                 var mode = bootstrap.MiniGames.Input;

@@ -18,6 +18,7 @@ namespace MateSoul.Cloth
         [Range(.1f, 1)] public float dampingRatio = .38f;
         public bool IsInitialized => runtimeMesh != null;
         public Mesh SourceMesh => originalMesh;
+        public Mesh RuntimeMesh => runtimeMesh;
         public int DrivenVertexCount => bindings.Count;
         public int SkinInfluences { get; private set; }
         public Vector3[] ParticlePositions => positions;

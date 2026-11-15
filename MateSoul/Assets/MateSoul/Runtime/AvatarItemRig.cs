@@ -53,6 +53,9 @@ namespace MateSoul.Runtime
         private Quaternion localLeftGripRotation;
         private PhysicsBody heldBody;
         private Pose itemFromGrip;
+        private Pose baseItemFromGrip;
+        private float authoredHoldSeconds;
+        private bool authoredHoldActive;
         private ItemInteractionProfile heldProfile;
         private bool twoHandAttachment;
         private Transform[][] rightFingerChains, leftFingerChains;
@@ -84,7 +87,11 @@ namespace MateSoul.Runtime
         private float useSpreadMin = -1f, useSpreadMax = -1f;
         private float useFirstSeconds, useLastSeconds;
         private int useSamples;
+        private Vector3 holdStartPosition;
+        private float nextHoldReport;
+        private int holdSamples;
         private bool naturalHold;
+        private bool passiveHold, retainOnEnd;
         private AvatarIdleVariation idleVariation;
 #region debug-point A-B-D:wrist-kinematics
 #if UNITY_EDITOR
@@ -191,7 +198,10 @@ namespace MateSoul.Runtime
             if (pickupLayer >= 0) animator.SetLayerWeight(pickupLayer, 1 - value);
             // Only fade the carry layer down; never raise it back over the base
             // locomotion while the arms hand over to it.
-            animator.SetLayerWeight(layer, Mathf.Min(animator.GetLayerWeight(layer), 1 - value));
+            // Keep a sliver of the carry pose so the relaxed arm is not pressed flat
+            // against the skirt; a carried prop would otherwise sink into the cloth.
+            animator.SetLayerWeight(layer,
+                Mathf.Min(animator.GetLayerWeight(layer), Mathf.Max(.12f, 1 - value)));
             authoredPickup = null;
             pickupPlacement = false;
             contactWeight = 1 - value;
@@ -268,6 +278,8 @@ namespace MateSoul.Runtime
             // arm bend (a hug must fold both elbows), how far apart the hands are, and
             // how the root drifts while the clip runs.
             useLastSeconds = seconds;
+            authoredHoldSeconds = seconds;
+            authoredHoldActive = weight > .001f;
             useSamples++;
             var elbowL = ElbowFlex(leftUpper, leftElbow, leftHand);
             var elbowR = ElbowFlex(upper, elbow, hand);
@@ -303,6 +315,32 @@ namespace MateSoul.Runtime
                 // owner is driving her body directly.
                 var body = GetComponent<Rigidbody>();
                 var physique = GetComponent<PhysicsBody>();
+                // Where the held prop actually sits on her body is the only way to
+                // tell a bad grip anchor from a bad animation without a screenshot.
+                var heldName = heldBody != null ? heldBody.name : "none";
+                var heldPosition = heldBody != null
+                    ? heldBody.Pose.position : Vector3.zero;
+                var heldCenter = heldPosition;
+                if (heldBody != null)
+                {
+                    var heldRenderers =
+                        heldBody.GetComponentsInChildren<Renderer>(true);
+                    if (heldRenderers.Length > 0)
+                    {
+                        var heldBounds = heldRenderers[0].bounds;
+                        foreach (var heldRenderer in heldRenderers)
+                            heldBounds.Encapsulate(heldRenderer.bounds);
+                        heldCenter = heldBounds.center;
+                    }
+                }
+                var heldToHead = heldBody != null && head != null
+                    ? Vector3.Distance(heldCenter, head.position) : 0f;
+                var heldToNeck = heldBody != null && neck != null
+                    ? Vector3.Distance(heldCenter, neck.position) : 0f;
+                var heldHeadLocal = heldBody != null && head != null
+                    ? head.InverseTransformPoint(heldCenter) : Vector3.zero;
+                var gripOffset = heldBody != null
+                    ? itemFromGrip.position : Vector3.zero;
                 Debug.Log($"MATESOUL_ITEM_USE clip={animation.clip.name} " +
                     $"len={animation.clip.length:F2} fps={animation.clip.frameRate:F0} " +
                     $"t={seconds:F2} w={weight:F2} " +
@@ -314,6 +352,10 @@ namespace MateSoul.Runtime
                     $"seat={(seatRig ? seatRig.Weight : 0f):F2} " +
                     $"lie={(lyingRig ? lyingRig.Weight : 0f):F2} " +
                     $"elbowL={elbowL:F0} elbowR={elbowR:F0} spread={spread:F2} " +
+                    $"item={heldName} heldPos={heldPosition} " +
+                    $"heldCenter={heldCenter} heldHeadLocal={heldHeadLocal} " +
+                    $"heldToHead={heldToHead:F3} heldToNeck={heldToNeck:F3} " +
+                    $"gripOffset={gripOffset} " +
                     $"root={transform.position} " +
                     $"hipsLocal={(hips ? hips.localPosition : Vector3.zero)} " +
                     $"hipsWorld={(hips ? hips.position : Vector3.zero)} " +
@@ -384,7 +426,9 @@ namespace MateSoul.Runtime
 
         public void Begin(Guid run)
         {
-            if (owner != Guid.Empty || !IsConfigured)
+            // An adopted carry already owns the rig with the new run id; only a
+            // foreign owner is a real conflict.
+            if ((owner != Guid.Empty && owner != run) || !IsConfigured)
                 throw new InvalidOperationException("角色物品动作未配置或已被占用。");
             if (rightFingerChains == null)
                 rightFingerChains = BuildFingerChains(hand, "_r");
@@ -506,12 +550,23 @@ namespace MateSoul.Runtime
                 itemFromGrip = new Pose(
                     Quaternion.Inverse(grip.rotation) * (item.position - grip.position),
                     Quaternion.Inverse(grip.rotation) * item.rotation);
+                baseItemFromGrip = itemFromGrip;
             }
+            authoredHoldSeconds = 0f;
+            authoredHoldActive = false;
             heldBody = body;
             // Cookware keeps its colliders while held so food can be dropped into it,
             // but that also made the carried item collide with her own torso and push
             // her across the room. The holder and the held item must never collide.
             IgnoreHeldCollisions(true);
+            holdStartPosition = transform.position;
+            holdSamples = 0;
+            nextHoldReport = 0f;
+            Debug.Log($"MATESOUL_ITEM_HOLD_BEGIN item={body.name} profile={profile.name} " +
+                $"root={transform.position} " +
+                $"itemColliders={body.GetComponentsInChildren<Collider>(true).Length} " +
+                $"retainCollisions={body.RetainCollisionsWhileHeld} " +
+                $"twoHands={twoHandAttachment} mass={body.Rigidbody.mass:F2}");
             SyncHeldBody();
             BeginHandGesture();
 #region debug-point A-C:attach-transform
@@ -585,6 +640,11 @@ namespace MateSoul.Runtime
                     rightFingerChains, rightFingerBaseRotations);
             RestoreFingerPose(
                 leftFingerChains, leftFingerBaseRotations);
+            var drift = Vector3.ProjectOnPlane(
+                transform.position - holdStartPosition, Vector3.up).magnitude;
+            if (heldBody != null)
+                Debug.Log($"MATESOUL_ITEM_HOLD_END item={heldBody.name} samples={holdSamples} " +
+                    $"drift={drift:F2} root={transform.position}");
             IgnoreHeldCollisions(false);
             heldBody = null;
             heldProfile = null;
@@ -594,6 +654,9 @@ namespace MateSoul.Runtime
             heldPinchIndexSide = 1;
             twoHandAttachment = false;
             itemFromGrip = default;
+            baseItemFromGrip = default;
+            authoredHoldActive = false;
+            authoredHoldSeconds = 0f;
             HeldAlignmentError = 0;
             FingerPoseError = 0;
             MinimumFingerClearance = 0;
@@ -625,11 +688,51 @@ namespace MateSoul.Runtime
             LeftContactError = 0;
         }
 
+        // Runs for every item the character holds, whichever action picked it up, so a
+        // drift can be traced for any prop without adding a probe per action.
+        private void ReportHold()
+        {
+            if (heldBody == null || Time.unscaledTime < nextHoldReport) return;
+            nextHoldReport = Time.unscaledTime + .25f;
+            holdSamples++;
+            var motor = GetComponent<AvatarMotor>();
+            var physique = GetComponent<PhysicsBody>();
+            var body = GetComponent<Rigidbody>();
+            var overlapCount = 0;
+            var overlapNames = "none";
+            var probes = Physics.OverlapSphere(transform.position + Vector3.up * .9f, .35f,
+                Physics.AllLayers, QueryTriggerInteraction.Ignore);
+            foreach (var probe in probes)
+            {
+                if (probe.transform.IsChildOf(transform)) continue;
+                overlapCount++;
+                if (overlapCount > 3) continue;
+                overlapNames = overlapNames == "none"
+                    ? probe.name : overlapNames + "," + probe.name;
+            }
+            var drift = Vector3.ProjectOnPlane(
+                transform.position - holdStartPosition, Vector3.up).magnitude;
+            Debug.Log($"MATESOUL_ITEM_HOLD item={heldBody.name} samples={holdSamples} " +
+                $"root={transform.position} drift={drift:F2} " +
+                $"velY={(body ? body.velocity.y : 0f):F2} " +
+                $"overlaps={overlapCount} on={overlapNames} " +
+                $"passive={passiveHold} controlled={heldBody.IsInteractionControlled} " +
+                $"retain={heldBody.RetainCollisionsWhileHeld} " +
+                $"seat={(GetComponent<AvatarSeatingRig>() ? GetComponent<AvatarSeatingRig>().Weight : 0f):F2} " +
+                $"lie={(GetComponent<AvatarLyingRig>() ? GetComponent<AvatarLyingRig>().Weight : 0f):F2} " +
+                $"kinematic={(physique ? physique.Rigidbody.isKinematic : false)} " +
+                (motor != null ? motor.MotionDiagnostics : "motor=none"));
+        }
+
         private void LateUpdate()
         {
+            ReportHold();
             if (owner != Guid.Empty && authoredUse != null)
             {
-                ApplyFingerPose();
+                // A hug-style gesture authors its own finger pose; the procedural
+                // grip would overwrite it and shove the fingers into the prop.
+                if (heldProfile == null || !heldProfile.authoredFingerPose)
+                    ApplyFingerPose();
                 ApplyHandGesture(Time.deltaTime);
                 SyncHeldBody();
                 return;
@@ -2060,8 +2163,19 @@ namespace MateSoul.Runtime
             {
                 item = heldProfile.ItemFromHands(HandGrip, LeftHandGrip);
             }
+            else if (authoredHoldActive &&
+                     heldProfile.TryReadAuthoredHold(authoredHoldSeconds, out var authored))
+            {
+                // The use gesture carries a per-frame authored prop trajectory;
+                // follow it from the hand bone instead of one rigid grip offset.
+                itemFromGrip = authored;
+                item = new Pose(
+                    hand.position + hand.rotation * authored.position,
+                    hand.rotation * authored.rotation);
+            }
             else
             {
+                itemFromGrip = baseItemFromGrip;
                 var grip = HandGrip;
                 item = new Pose(
                     grip.position + grip.rotation * itemFromGrip.position,
@@ -2107,9 +2221,82 @@ namespace MateSoul.Runtime
 #endregion
         }
 
+        // A pickup may finish while the item stays in her hand: the action ends and
+        // its control lease is released, leaving only the carry state behind.
+        public void RetainOnEnd(Guid run)
+        {
+            if (owner == run && heldBody != null) retainOnEnd = true;
+        }
+
+        public PhysicsBody PassiveHoldBody => passiveHold ? heldBody : null;
+
+        public bool IsHoldingFor(Guid run, PhysicsBody body) =>
+            owner == run && heldBody != null && heldBody == body;
+
+        // A follow-up command continues from the held state instead of re-picking up.
+        public bool AdoptPassive(PhysicsBody body, Guid run)
+        {
+            if (!passiveHold || heldBody == null || body == null || body != heldBody)
+                return false;
+            if (!body.TransferInteraction(owner, run)) return false;
+            owner = run;
+            passiveHold = false;
+            return true;
+        }
+
+        public void ReleasePassive()
+        {
+            if (!passiveHold) return;
+            passiveHold = false;
+            var body = heldBody;
+            var run = owner;
+            End(run);
+            // The reservation is already gone, so nothing else restores gravity.
+            if (body != null && body.IsInteractionControlled) body.EndInteraction(run);
+        }
+
         public void End(Guid run)
         {
             if (owner != run) return;
+            if (retainOnEnd)
+            {
+                retainOnEnd = false;
+                // Only an item that is still attached can be retained; a drop that
+                // already released it must fall through to the normal cleanup.
+                if (heldBody != null)
+                {
+                    // Releasing the reservation stops the item's interaction control, so a
+                    // carried item has to take it back before the physics body drops.
+                    if (!heldBody.IsInteractionControlled)
+                    {
+                        if (!heldBody.ReassertInteraction(run))
+                        {
+                            DetachHeld(run);
+                            owner = Guid.Empty;
+                            naturalHold = false;
+                            return;
+                        }
+                    }
+                    passiveHold = true;
+                    naturalHold = true;
+                    if (idleVariation != null) idleVariation.SetHoldLocked(true);
+                    var pickupLayer = animator != null
+                        ? animator.GetLayerIndex(PickupAnimationSet.LayerName) : -1;
+                    if (pickupLayer >= 0) animator.SetLayerWeight(pickupLayer, 0);
+                    ClearUse();
+                    ClearPickup();
+                    ClearReach();
+                    PostureLeanDegrees = 0;
+                    PostureTorsoLeanDegrees = 0;
+                    PostureCrouchDepth = 0;
+                    PostureHeadPitch = 0;
+                    LeftKneeAngle = 0;
+                    RightKneeAngle = 0;
+                    MaximumFootPlantError = 0;
+                    return;
+                }
+            }
+            passiveHold = false;
             naturalHold = false;
             if (idleVariation != null) idleVariation.SetHoldLocked(false);
             if (layer >= 0 && animator != null) animator.SetLayerWeight(layer, 0);

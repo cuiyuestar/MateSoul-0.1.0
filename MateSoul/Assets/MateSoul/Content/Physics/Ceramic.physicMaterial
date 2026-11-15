@@ -7,8 +7,8 @@ PhysicMaterial:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Ceramic
-  dynamicFriction: 0.32
-  staticFriction: 0.48
+  dynamicFriction: 0.6
+  staticFriction: 0.85
   bounciness: 0.04
   frictionCombine: 0
   bounceCombine: 0

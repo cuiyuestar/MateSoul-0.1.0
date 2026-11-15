@@ -16,13 +16,13 @@ namespace MateSoul.Editor
         public const string MeshPath = LengyueLayeredDressBuilder.Root +
             "/Runtime/Meshes/lengyue_mesh_layereddress_garments.asset";
 
-        // Shoe volume: sole bottom to collar top in mesh-local Z (centimetres).
+        // Sole slab: the original platform is 28 mm thick. Keep its top and
+        // raise its bottom by 8 mm so the upper and sock stay in place.
         const float SoleZ = .004f;
-        const float SoleEdgeZ = .006f;
-        const float ShoeTopZ = .105f;
-        const float BlendEndZ = .32f;
-        // 0.82 keeps the shoe 18% thinner while preserving its silhouette.
-        const float KeepRatio = .82f;
+        const float SoleLift = .008f;
+        const float SoleTaperEndZ = .040f;
+        const float SoleBottomZ = SoleZ + SoleLift;
+        const float SoleEdgeZ = SoleBottomZ + .002f;
 
         [MenuItem("MateSoul/Lengyue/Shoe/Thin And Seal Sole")]
         public static void ApplyToAsset()
@@ -35,7 +35,9 @@ namespace MateSoul.Editor
             }
             if (!Apply(mesh))
             {
-                Debug.Log("LENGYUE_SHOE_SKIP already sealed");
+                Debug.Log("LENGYUE_SHOE_SKIP already sealed mesh=" +
+                    mesh.name + " v=" + mesh.vertexCount +
+                    " tris=" + (mesh.triangles.Length / 3));
                 return;
             }
             EditorUtility.SetDirty(mesh);
@@ -43,6 +45,23 @@ namespace MateSoul.Editor
             AssetDatabase.ImportAsset(
                 MeshPath, ImportAssetOptions.ForceUpdate);
             Validate(mesh);
+            float minZ = float.MaxValue;
+            foreach (Vector3 vertex in mesh.vertices)
+                minZ = Mathf.Min(minZ, vertex.z);
+            Debug.Log("MATESOUL_SHOE size mesh=" + mesh.name +
+                " v=" + mesh.vertexCount +
+                " tris=" + (mesh.triangles.Length / 3) +
+                " minZ=" + minZ.ToString("R",
+                    System.Globalization.CultureInfo.InvariantCulture) +
+                " lift=" + SoleLift.ToString("R",
+                    System.Globalization.CultureInfo.InvariantCulture) +
+                " soleBottom=" + SoleBottomZ.ToString("R",
+                    System.Globalization.CultureInfo.InvariantCulture) +
+                " soleEdge=" + SoleEdgeZ.ToString("R",
+                    System.Globalization.CultureInfo.InvariantCulture) +
+                " capFaces=" + CountDownwardSoleTriangles(
+                    mesh.triangles, mesh.vertices) +
+                " path=" + MeshPath);
             Debug.Log("LENGYUE_SHOE_PASS " + MeshPath);
         }
 
@@ -80,8 +99,7 @@ namespace MateSoul.Editor
 
             Vector3[] normals = mesh.normals;
             bool hasNormals = normals != null && normals.Length == original;
-            Thin(vertices, hasNormals ? normals : null);
-            var loops = BuildSoleLoops(triangles, vertices);
+            LiftSole(vertices, hasNormals ? normals : null);            var loops = BuildSoleLoops(triangles, vertices);
             if (loops.Count == 0)
                 throw new InvalidOperationException(
                     "No sole boundary loops were found.");
@@ -184,29 +202,25 @@ namespace MateSoul.Editor
             return true;
         }
 
-        static void Thin(Vector3[] vertices, Vector3[] normals)
+        static void LiftSole(Vector3[] vertices, Vector3[] normals)
         {
-            float dropAtTop = (1f - KeepRatio) * (ShoeTopZ - SoleZ);
             for (int i = 0; i < vertices.Length; i++)
             {
                 float z = vertices[i].z;
-                if (z <= SoleZ) continue;
+                if (z >= SoleTaperEndZ) continue;
                 float slope;
-                if (z <= ShoeTopZ)
+                if (z <= SoleZ)
                 {
-                    vertices[i].z = SoleZ + KeepRatio * (z - SoleZ);
-                    slope = KeepRatio;
+                    vertices[i].z = z + SoleLift;
+                    slope = 1f;
                 }
-                else if (z >= BlendEndZ)
-                    continue;
                 else
                 {
-                    float t = (z - ShoeTopZ) / (BlendEndZ - ShoeTopZ);
+                    float t = (z - SoleZ) / (SoleTaperEndZ - SoleZ);
                     float smooth = t * t * (3f - 2f * t);
-                    vertices[i].z = z - dropAtTop * (1f - smooth);
-                    float derivative = 6f * t * (1f - t) /
-                        (BlendEndZ - ShoeTopZ);
-                    slope = 1f + dropAtTop * derivative;
+                    vertices[i].z = z + SoleLift * (1f - smooth);
+                    slope = 1f - SoleLift * (6f * t * (1f - t) /
+                        (SoleTaperEndZ - SoleZ));
                 }
                 if (normals == null || normals.Length != vertices.Length)
                     continue;
@@ -284,6 +298,9 @@ namespace MateSoul.Editor
             {
                 int source = loop.vertices[i];
                 remap[i] = capVertexOffset + extra.Count;
+                if (Mathf.Abs(loop.points[i].z - SoleBottomZ) > 1e-4f)
+                    throw new InvalidOperationException(
+                        "Sole cap is not on the lifted sole plane.");
                 extra.Add(new Vector3(
                     loop.points[i].x, loop.points[i].y, loop.points[i].z));
                 extraNormals.Add(Vector3.down);
@@ -561,6 +578,13 @@ namespace MateSoul.Editor
         {
             int[] triangles = mesh.triangles;
             Vector3[] vertices = mesh.vertices;
+            float minimumZ = float.MaxValue;
+            foreach (Vector3 vertex in vertices)
+                minimumZ = Mathf.Min(minimumZ, vertex.z);
+            if (Mathf.Abs(minimumZ - SoleBottomZ) > 1e-3f)
+                throw new InvalidOperationException(
+                    "Shoe validation failed: sole bottom is at " +
+                    minimumZ + ", expected " + SoleBottomZ + ".");
             int downward = CountDownwardSoleTriangles(
                 triangles, vertices);
             if (downward < 60)

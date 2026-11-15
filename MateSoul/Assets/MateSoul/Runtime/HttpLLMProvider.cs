@@ -89,6 +89,13 @@ namespace MateSoul.Runtime
             }
         }
 
+        private static string Shorten(string value, int limit = 240)
+        {
+            if (string.IsNullOrEmpty(value)) return "";
+            var flat = value.Replace('\n', ' ').Replace('\r', ' ');
+            return flat.Length <= limit ? flat : flat.Substring(0, limit) + "…";
+        }
+
         private static async Task<T> ValidatedReplyAsync<T>(PlayerAIConfiguration player, JArray messages,
             JObject completion, Func<string, T> parse, CancellationToken token)
         {
@@ -100,6 +107,8 @@ namespace MateSoul.Runtime
             }
             catch (Exception error) when (error is JsonException || error is FormatException)
             {
+                UnityEngine.Debug.Log($"AI_REPLY_REPAIR reason={error.Message} " +
+                    $"raw={Shorten(content)}");
                 messages.Add(ModelReplyProtocol.Message("assistant", content));
                 messages.Add(ModelReplyProtocol.Message("user",
                     "The previous response failed JSON protocol validation: " + error.Message +
@@ -108,9 +117,15 @@ namespace MateSoul.Runtime
                 var repaired = await SendModelAsync(player, messages, null, token);
                 if ((repaired["tool_calls"] as JArray)?.Count > 0)
                     throw new InvalidOperationException("模型未返回有效的修正回复。");
-                try { return parse((string)repaired["content"]); }
+                var repairedContent = repaired["content"]?.Type == JTokenType.String
+                    ? (string)repaired["content"] : "{}";
+                try { return parse(repairedContent); }
                 catch (Exception invalid) when (invalid is JsonException || invalid is FormatException)
-                { throw new InvalidOperationException("模型回复格式无效，请重试。"); }
+                {
+                    UnityEngine.Debug.Log($"AI_REPLY_FAILED reason={invalid.Message} " +
+                        $"raw={Shorten(repairedContent)}");
+                    throw new InvalidOperationException("模型回复格式无效，请重试。");
+                }
             }
         }
 

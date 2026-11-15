@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MateSoul.Core;
 using MateSoul.Gameplay;
 using MateSoul.RoomNavigation;
 using UnityEngine;
@@ -20,6 +21,30 @@ namespace MateSoul.Runtime
         public bool TryPlace(PlacementDirective directive, string itemInstanceId, out string failure)
         {
             failure = null;
+            // "把苹果捡起来放到床上": the reply may name only the destination.
+            // Recover the item the player said to fetch before deciding that the
+            // hand is empty, so the combined command stays a single action chain.
+            if (string.IsNullOrEmpty(itemInstanceId) && !IsHoldingAnyItem())
+            {
+                itemInstanceId = InferPlacementItem(directive?.Request);
+                if (itemInstanceId != null)
+                    Debug.Log($"MATESOUL_PLACE infer item={itemInstanceId} " +
+                        $"request={directive.Request}");
+            }
+            // Implicit prerequisite: an empty hand picks the item up first.
+            if (!string.IsNullOrEmpty(itemInstanceId) && !IsHeldByCharacter(itemInstanceId) &&
+                views.TryGetValue(itemInstanceId, out var target) &&
+                PickupItemAction.Supports(target))
+            {
+                pendingPlacementDirective = directive;
+                pendingPlacementItem = itemInstanceId;
+                var pickup = Avatar.Submit(new AvatarIntent(PickupItemAction.Id,
+                    IntentSource.AI, itemInstanceId), preemptSamePriority: true);
+                failure = pickup.State == ActionState.Rejected ? pickup.Error : null;
+                Debug.Log($"MATESOUL_PLACE defer item={itemInstanceId} " +
+                    $"pickup={pickup.State} failure={failure}");
+                return failure == null;
+            }
             var item = ResolvePlacementItem(itemInstanceId, out failure);
             if (item == null) return false;
             if (!item.Definition.AllowSurfacePlacement &&
@@ -46,7 +71,11 @@ namespace MateSoul.Runtime
 
             string reason = null;
             if (TryResolveTargets(item, targets, out var placement))
+            {
+                Debug.Log($"MATESOUL_PLACE resolve item={item.Instance.Id} " +
+                    $"destination={destination} kind={kind} route=reality point={placement.position}");
                 return RetargetPickup(item, placement, out failure);
+            }
             if (targets.Count > 0)
                 reason = $"“{destination}”附近没有能稳定放下{item.Definition.DisplayName}的位置";
 
@@ -55,7 +84,11 @@ namespace MateSoul.Runtime
                 var meshTargets = FindMeshTargets(destination);
                 Shuffle(meshTargets);
                 if (TryResolveTargets(item, meshTargets, out placement))
+                {
+                    Debug.Log($"MATESOUL_PLACE resolve item={item.Instance.Id} " +
+                        $"destination={destination} kind={kind} route=mesh point={placement.position}");
                     return RetargetPickup(item, placement, out failure);
+                }
                 if (reason == null && meshTargets.Count > 0)
                     reason = $"“{destination}”附近没有能稳定放下{item.Definition.DisplayName}的位置";
             }
@@ -68,6 +101,97 @@ namespace MateSoul.Runtime
             return false;
         }
 
+        private AvatarItemRig ItemRig =>
+            Motor is AvatarMotor avatar ? avatar.GetComponent<AvatarItemRig>() : null;
+
+        private string pendingPlacementItem;
+        private PlacementDirective pendingPlacementDirective;
+
+        // "Put the carrot on the bed" while her hand is empty picks the carrot up
+        // first; the placement resumes as soon as the pickup finishes.
+        private void TickPendingPlacement()
+        {
+            if (pendingPlacementDirective == null) return;
+            var held = PassivelyHeldItem();
+            if (held == null || held.Instance.Id != pendingPlacementItem) return;
+            var directive = pendingPlacementDirective;
+            var itemId = pendingPlacementItem;
+            pendingPlacementDirective = null;
+            pendingPlacementItem = null;
+            Debug.Log($"MATESOUL_PLACE resume item={itemId}");
+            TryPlace(directive, itemId, out var failure);
+            if (failure != null) Debug.Log($"MATESOUL_PLACE resume failed item={itemId} reason={failure}");
+        }
+
+        private bool IsHoldingAnyItem()
+        {
+            if (Avatar.TryGetRunning(PickupItemAction.Id, out PickupItemAction pickup) &&
+                pickup.IsHolding && pickup.HeldItem != null)
+                return true;
+            return PassivelyHeldItem() != null;
+        }
+
+        // Matches the item the player named in the request. Only the part before
+        // the placement verb is searched, so a destination ("放到桌上") is never
+        // mistaken for the item, and the rightmost match wins because the item
+        // being moved usually comes last before that verb.
+        private string InferPlacementItem(string request)
+        {
+            if (string.IsNullOrWhiteSpace(request)) return null;
+            var scope = request;
+            foreach (var marker in PlacementVerbs)
+            {
+                var index = request.IndexOf(marker, StringComparison.Ordinal);
+                if (index > 0 && index < scope.Length) scope = request.Substring(0, index);
+            }
+            string best = null;
+            var bestPosition = int.MinValue;
+            var bestLength = 0;
+            foreach (var view in views.Values)
+            {
+                if (view == null || view.Instance == null || !view.Instance.IsPresent ||
+                    view.Instance.IsOccupied || !PickupItemAction.Supports(view)) continue;
+                foreach (var name in new[]
+                {
+                    view.Definition.DisplayName, view.Instance.DisplayName, view.Definition.Id
+                })
+                {
+                    if (string.IsNullOrWhiteSpace(name) || name.Length < bestLength) continue;
+                    var index = scope.LastIndexOf(name, StringComparison.OrdinalIgnoreCase);
+                    if (index < 0 || index < bestPosition) continue;
+                    if (index == bestPosition && name.Length <= bestLength) continue;
+                    bestPosition = index;
+                    bestLength = name.Length;
+                    best = view.Instance.Id;
+                }
+            }
+            return best;
+        }
+
+        private static readonly string[] PlacementVerbs =
+            { "放到", "放在", "摆到", "摆在", "搁到", "搁在", "丢到", "扔到", "移到", "移至" };
+
+        private bool IsHeldByCharacter(string itemInstanceId)
+        {
+            if (string.IsNullOrEmpty(itemInstanceId)) return false;
+            if (Avatar.TryGetRunning(PickupItemAction.Id, out PickupItemAction pickup) &&
+                pickup.IsHolding && pickup.HeldItem != null &&
+                pickup.HeldItem.Instance.Id == itemInstanceId)
+                return true;
+            var held = PassivelyHeldItem();
+            return held != null && held.Instance.Id == itemInstanceId;
+        }
+
+        // Items whose pickup action has already finished but that are still carried.
+        private GameItem PassivelyHeldItem()
+        {
+            var body = ItemRig != null ? ItemRig.PassiveHoldBody : null;
+            if (body == null) return null;
+            foreach (var view in views.Values)
+                if (view != null && view.Body == body) return view;
+            return null;
+        }
+
         private GameItem ResolvePlacementItem(string itemInstanceId, out string failure)
         {
             failure = null;
@@ -78,6 +202,8 @@ namespace MateSoul.Runtime
                     failure = "冷月手里没有这件物品。";
                     return null;
                 }
+                var carried = ItemRig != null ? ItemRig.PassiveHoldBody : null;
+                if (carried != null && view.Body == carried) return view;
                 if (view.Instance.ControlState != ItemControlState.HeldByCharacter)
                 {
                     failure = $"{view.Definition.DisplayName}不在冷月手里。";
@@ -94,19 +220,29 @@ namespace MateSoul.Runtime
             if (Avatar.TryGetRunning(PickupItemAction.Id, out PickupItemAction pickup) &&
                 pickup.IsHolding && pickup.HeldItem != null)
                 return pickup.HeldItem;
+            var passive = PassivelyHeldItem();
+            if (passive != null) return passive;
             failure = "冷月现在手里没有可以放下的物品。";
             return null;
         }
 
         private bool RetargetPickup(GameItem item, Pose placement, out string failure)
         {
-            if (!Avatar.TryGetRunning(PickupItemAction.Id, out PickupItemAction pickup) ||
-                !pickup.IsHolding || !ReferenceEquals(pickup.HeldItem, item))
+            if (Avatar.TryGetRunning(PickupItemAction.Id, out PickupItemAction pickup) &&
+                pickup.IsHolding && ReferenceEquals(pickup.HeldItem, item))
+                return pickup.TryRetarget(() => placement, out failure);
+            // The pickup already finished and left the item in her hand, so the
+            // placement continues as its own action instead of retargeting.
+            var rig = Motor is AvatarMotor avatar ? avatar.GetComponent<AvatarItemRig>() : null;
+            if (rig != null && rig.PassiveHoldBody != null && rig.PassiveHoldBody == item.Body)
             {
-                failure = "冷月还没有拿稳这件物品。";
-                return false;
+                var handle = Avatar.Submit(new AvatarIntent(PlaceHeldAction.Id,
+                    IntentSource.AI, item.Instance.Id, placement), preemptSamePriority: true);
+                failure = handle.State == ActionState.Rejected ? handle.Error : null;
+                return failure == null;
             }
-            return pickup.TryRetarget(() => placement, out failure);
+            failure = "冷月还没有拿稳这件物品。";
+            return false;
         }
 
         private bool TryPlaceOnFloorNearAvatar(GameItem item, out string failure)
@@ -139,13 +275,21 @@ namespace MateSoul.Runtime
         {
             placement = default;
             foreach (var target in targets)
-            foreach (var point in target.Points)
             {
-                var facesPlayer = Motor.Position - point;
-                var pose = new Pose(point,
-                    item.Definition.ResolvePlacementRotation(facesPlayer));
-                if (TryResolveExactPlacement(item.Definition, pose, item, out placement))
-                    return true;
+                // Try the spot nearest to her first. A surface offers its centre
+                // as well as its edges, and picking the centre of a bed puts the
+                // item outside arm reach from every reachable standing position.
+                target.Points.Sort((left, right) =>
+                    (left - Motor.Position).sqrMagnitude.CompareTo(
+                        (right - Motor.Position).sqrMagnitude));
+                foreach (var point in target.Points)
+                {
+                    var facesPlayer = Motor.Position - point;
+                    var pose = new Pose(point,
+                        item.Definition.ResolvePlacementRotation(facesPlayer));
+                    if (TryResolveExactPlacement(item.Definition, pose, item, out placement))
+                        return true;
+                }
             }
             return false;
         }
@@ -157,15 +301,16 @@ namespace MateSoul.Runtime
             {
                 if (!record.Definition.IsItem) continue;
                 if (!IsPlacementDestination(record.Semantic)) continue;
+                // The English semantic id ("bed") and the Chinese aliases ("床")
+                // are two ways to name the same object; either one is enough.
                 if (!Matches(destination, record.Id, record.Definition.Id,
-                        record.Definition.DisplayName) ||
+                        record.Definition.DisplayName) &&
                     !Array.Exists(RealAliases(record.Semantic),
                         alias => Matches(destination, alias)))
                     continue;
                 var target = new PlacementTarget();
                 if (HasSurfaceSupport(record.Semantic))
-                    AddRealitySurfacePoints(target.Points, record.Center, record.Size,
-                        record.Rotation);
+                    AddRealitySurfacePoints(target.Points, record);
                 else
                     AddFloorRingPoints(target.Points, record.Center,
                         new Vector2(record.Size.x, record.Size.z));
@@ -184,7 +329,7 @@ namespace MateSoul.Runtime
                 if (!IsPlacementFurniture(definition)) continue;
                 if (view.Instance.ControlState == ItemControlState.HeldByCharacter) continue;
                 if (!Matches(destination, view.Instance.Id, definition.Id,
-                        definition.DisplayName, view.Instance.DisplayName) ||
+                        definition.DisplayName, view.Instance.DisplayName) &&
                     !Array.Exists(VirtualAliases(definition.Id),
                         alias => Matches(destination, alias)))
                     continue;
@@ -243,10 +388,18 @@ namespace MateSoul.Runtime
             return result;
         }
 
-        private void AddRealitySurfacePoints(List<Vector3> points, Vector3 center,
-            Vector3 size, Quaternion rotation)
+        private static void AddRealitySurfacePoints(List<Vector3> points,
+            RealityItemRecord record)
         {
-            var top = center.y + size.y * .5f;
+            // Room Capture volumes are centred boxes, while the chair/bed scanners
+            // publish the usable surface itself as the centre. Adding half the
+            // height to a scanner record lifted every point ~25cm above the bed.
+            var top = record.CapturedBySdk
+                ? record.Center.y + record.Size.y * .5f
+                : record.Center.y + .004f;
+            var center = record.Center;
+            var rotation = record.Rotation;
+            var size = record.Size;
             var right = rotation * Vector3.right;
             var forward = rotation * Vector3.forward;
             var x = Mathf.Max(.1f, size.x * .5f - .16f);

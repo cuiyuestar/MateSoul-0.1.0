@@ -25,6 +25,8 @@ namespace MateSoul.Runtime
         [SerializeField] private ItemDefinition[] items;
         [SerializeField, FormerlySerializedAs("conversationGateway")]
         private ModelConnectionSettings modelConnection;
+        private const string SaveFileName = "matesoul-v1.json";
+        private const string FirstLaunchSeenKey = "matesoul.first-launch.room-calibration";
         private CancellationTokenSource lifetime;
         private Task startupTask;
         private Transform itemRoot;
@@ -51,6 +53,64 @@ namespace MateSoul.Runtime
         {
             configuration.Save();
             aiConfiguration = configuration;
+        }
+
+        public bool IsFirstLaunchPending => PlayerPrefs.GetInt(FirstLaunchSeenKey, 0) == 0;
+
+        public void MarkFirstLaunchSeen()
+        {
+            PlayerPrefs.SetInt(FirstLaunchSeenKey, 1);
+            PlayerPrefs.Save();
+        }
+
+        // 仅清除游戏存档与首次启动标记，AI 配置（加密存储/编辑器 PlayerPrefs）保持不动。
+        public bool ResetToFirstLaunch()
+        {
+            Session?.SuspendSaving();
+            try
+            {
+                var path = Path.Combine(Application.persistentDataPath, SaveFileName);
+                if (File.Exists(path)) File.Delete(path);
+                if (File.Exists(path + ".tmp")) File.Delete(path + ".tmp");
+            }
+            catch (Exception error)
+            {
+                Debug.LogException(error, this);
+                return false;
+            }
+            PlayerPrefs.DeleteKey(FirstLaunchSeenKey);
+            PlayerPrefs.Save();
+            return true;
+        }
+
+        // 拉起 PICO 系统的房间标定（Room Capture），返回 null 表示已成功打开。
+        public async Task<string> LaunchRoomCalibrationAsync()
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
+            {
+                var stateResult = PXR_MixedReality.GetSenseDataProviderState(
+                    PxrSenseDataProviderType.SceneCapture, out var state);
+                if (stateResult != PxrResult.SUCCESS ||
+                    state != PxrSenseDataProviderState.Running)
+                {
+                    var startResult = await PXR_MixedReality.StartSenseDataProvider(
+                        PxrSenseDataProviderType.SceneCapture);
+                    if (startResult != PxrResult.SUCCESS)
+                        return $"无法启动房间标定：{startResult}";
+                }
+                var result = await PXR_MixedReality.StartSceneCaptureAsync();
+                return result == PxrResult.SUCCESS ? null : $"无法打开房间标定：{result}";
+            }
+            catch (Exception error)
+            {
+                Debug.LogException(error, this);
+                return "无法打开房间标定：" + error.Message;
+            }
+#else
+            await Task.Yield();
+            return "房间标定需要在 PICO 头显中运行游戏后使用。";
+#endif
         }
 
         public SystemNotifications Notifications { get; } = new SystemNotifications();
@@ -121,7 +181,7 @@ namespace MateSoul.Runtime
         private async Task InitializeAsync(CancellationToken token)
         {
             var store = new JsonGameSaveStore(
-                Path.Combine(Application.persistentDataPath, "matesoul-v1.json"));
+                Path.Combine(Application.persistentDataPath, SaveFileName));
             var save = store.Load();
             TraceStartup("save_loaded");
             var anchors = Application.isEditor
@@ -267,6 +327,7 @@ namespace MateSoul.Runtime
             ResponseEmotionAudio.Attach(
                 character, Session, Session.Conversation,
                 Session.SpontaneousReplies);
+            GesturePerformance.Attach(character, Session);
             TraceStartup("audio_bound");
             var playerHead = Camera.main != null ? Camera.main.transform : null;
             Session.ConfigureSocialAttention(socialAttentionRig, playerHead);

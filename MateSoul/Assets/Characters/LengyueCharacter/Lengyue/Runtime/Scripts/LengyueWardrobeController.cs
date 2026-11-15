@@ -34,6 +34,7 @@ namespace MateSoul.Wardrobe
         [Header("Simulation")]
         [SerializeField] LengyueSleeveCloth sleeveCloth;
         [SerializeField] SkirtPoseGuard skirtPoseGuard;
+        [SerializeField] LengyueSkirtCloth skirtCloth;
 
         GameObject runtimeOutfitRoot;
         SkinnedMeshRenderer currentGarment;
@@ -84,6 +85,9 @@ namespace MateSoul.Wardrobe
             currentUsesSleeveCloth = initialUsesSleeveCloth;
             currentUsesSkirtPoseGuard = initialUsesSkirtPoseGuard;
             initialized = true;
+            if (!skirtCloth)
+                skirtCloth = GetComponent<LengyueSkirtCloth>() ??
+                    gameObject.AddComponent<LengyueSkirtCloth>();
             ConfigureSimulation(
                 currentGarment,
                 currentUsesSleeveCloth,
@@ -499,10 +503,14 @@ namespace MateSoul.Wardrobe
             {
                 if (lookup.ContainsKey(bone.name))
                 {
-                    error =
-                        $"Character skeleton repeats bone name " +
-                        $"'{bone.name}'.";
-                    return false;
+                    // The current rig exposes display-named helper transforms
+                    // ("Hand Contact Left") that collide with deformation bones.
+                    // Keep the first match so the outfit still binds, instead of
+                    // failing the whole wardrobe swap.
+                    Debug.LogWarning(
+                        $"MATESOUL_WARDROBE_DUPLICATE_BONE name='{bone.name}' " +
+                        $"kept='{lookup[bone.name].name}' ignored='{bone.name}'");
+                    continue;
                 }
                 lookup.Add(bone.name, bone);
             }
@@ -550,6 +558,20 @@ namespace MateSoul.Wardrobe
             }
             else if (skirtPoseGuard)
                 skirtPoseGuard.SetActiveForOutfit(false);
+
+            if (!skirtCloth)
+                skirtCloth = GetComponent<LengyueSkirtCloth>() ??
+                    gameObject.AddComponent<LengyueSkirtCloth>();
+            if (useSkirtGuard && useSleeveCloth && garment)
+                skirtCloth.ConfigureForOutfit(garment, sleeveCloth);
+            else
+                skirtCloth.ConfigureForOutfit(null, null);
+            Debug.Log("MATESOUL_SKIRT_CLOTH wardrobe configure garment=" +
+                (garment ? garment.name : "<null>") +
+                " useSleeve=" + useSleeveCloth +
+                " useSkirtGuard=" + useSkirtGuard +
+                " component=" + (skirtCloth ? skirtCloth.name : "<null>") +
+                " initialized=" + skirtCloth.IsInitialized);
         }
 
         void RestoreSimulation(

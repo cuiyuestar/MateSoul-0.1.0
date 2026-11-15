@@ -243,6 +243,8 @@ namespace MateSoul.Runtime
         [SerializeField] private Material focusMaterial;
         [SerializeField] private BodySettings physics;
         [SerializeField] private bool allowSurfacePlacement;
+        [Tooltip("Keep physical collisions while held so the item can carry contents.")]
+        [SerializeField] private bool retainCollisionsWhileHeld;
         [SerializeField, Min(0)] private int inventoryLimit = 1;
         [SerializeField] private bool unlimitedInventory;
         [SerializeField] private bool restockDaily;
@@ -275,6 +277,7 @@ namespace MateSoul.Runtime
         public Material FocusMaterial => focusMaterial;
         public BodySettings Physics => physics;
         public bool AllowSurfacePlacement => allowSurfacePlacement;
+        public bool RetainCollisionsWhileHeld => retainCollisionsWhileHeld;
         public int InventoryLimit => inventoryLimit;
         public bool UnlimitedInventory => unlimitedInventory;
         public bool RestockDaily => restockDaily;

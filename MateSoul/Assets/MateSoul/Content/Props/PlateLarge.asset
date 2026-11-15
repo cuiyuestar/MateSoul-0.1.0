@@ -29,6 +29,7 @@ MonoBehaviour:
     linearDrag: 0.02
     angularDrag: 0.05
   allowSurfacePlacement: 1
+  retainCollisionsWhileHeld: 1
   inventoryLimit: 2
   unlimitedInventory: 0
   restockDaily: 0

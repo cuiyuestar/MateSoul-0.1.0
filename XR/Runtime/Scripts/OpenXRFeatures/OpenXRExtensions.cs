@@ -1,4 +1,4 @@
-﻿#if ENABLE_PICO_OPENXR_SDK
+#if ENABLE_PICO_OPENXR_SDK
 using System.Collections.Generic;
 using UnityEngine.XR.OpenXR;
 using UnityEngine.XR.OpenXR.Features;
@@ -89,6 +89,9 @@ namespace ByteDance.PICO.OpenXR
             OpenXRLayerProvider.RegisterLayerHandler(typeof(PicoLayerData), layerHandler);
 #endif
              PICO_setFlipYToAndroidSurface(ApplyFlipYToAndroidSurface);
+             Debug.Log("Unity SDK Version : Unity OpenXR " + PXR_Plugin.System.UPxr_GetSDKVersion());
+             string version = "UnityOpenXR_" + PXR_Plugin.System.UPxr_GetSDKVersion() + "_" + Application.unityVersion;
+             PXR_Plugin.System.UPxr_SetConfigString( ConfigType.EngineVersion, version );
         }
 
         public static int GetReferenceSpaceBoundsRect(XrReferenceSpaceType referenceSpace, ref XrExtent2Df extent2D)
@@ -118,6 +121,9 @@ namespace ByteDance.PICO.OpenXR
         {
             int status, action;
             Debug.Log($"XrEventDataBufferFunction eventType={eventDB.type}");
+#if AR_FOUNDATION_6_IMAGE_TRACKING
+            SpatialImageTrackingRuntimeEventRouter.Dispatch(eventDB);
+#endif
             switch (eventDB.type)
             {
                 case XrStructureType.XR_TYPE_EVENT_DATA_SENSE_DATA_PROVIDER_STATE_CHANGED:

@@ -171,11 +171,6 @@ namespace ByteDance.PICO.XR.Editor
             adaptiveContent.text = "Adaptive Hand Model(PICO)";
             adaptiveContent.tooltip = "If this function is selected, the hand model will change according to the actual size of the user's palm. Note that the hand model only works on PICO.";
             projectConfig.adaptiveHand = EditorGUILayout.Toggle(adaptiveContent, projectConfig.adaptiveHand);
-            //high frequency tracking
-            var highfrequencytracking = new GUIContent();
-            highfrequencytracking.text = "High Frequency Tracking(60Hz)";
-            highfrequencytracking.tooltip = "If turned on, hand tracking will run at a higher tracking frequency, which will improve the smoothness of hand tracking, but the power consumption will increase.";
-            projectConfig.highFrequencyHand = EditorGUILayout.Toggle(highfrequencytracking, projectConfig.highFrequencyHand);
             //body tracking
             var bodyContent = new GUIContent();
             bodyContent.text = "Body Tracking";
@@ -307,6 +302,10 @@ namespace ByteDance.PICO.XR.Editor
             {
                 projectConfig.lightEstimationTextureResolution = (PxrEnvironmentTextureResolution)EditorGUILayout.EnumPopup(" Resolution", projectConfig.lightEstimationTextureResolution);
             }
+#if ENABLE_PICO_XR_SDK
+            projectConfig.imageTracking = EditorGUILayout.Toggle("Image Tracking", projectConfig.imageTracking);
+            projectConfig.objectTracking = EditorGUILayout.Toggle("Object Tracking", projectConfig.objectTracking);
+#endif
             EditorGUILayout.EndVertical();
             //mr safeguard
 

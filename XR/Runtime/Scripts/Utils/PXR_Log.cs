@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 Copyright © 2015-2022 PICO Technology Co., Ltd.All rights reserved.  
 
 NOTICE：All information contained herein is, and remains the property of 
@@ -13,7 +13,6 @@ PICO Technology Co., Ltd.
 #if UNITY_ANDROID && !UNITY_EDITOR
 using System.Runtime.InteropServices;
 #endif
-using System;
 using UnityEngine;
 
 namespace ByteDance.PICO.XR
@@ -38,7 +37,9 @@ namespace ByteDance.PICO.XR
         {
             if (LogLevel.LogVerbose >= logLevel)
             {
-                Debug.Log(Format(tag, message, showFrameCount));
+                Debug.Log(showFrameCount
+                    ? string.Format("{0} FrameID={1}>>>>>>{2}", tag, Time.frameCount, message)
+                    : string.Format("{0} FrameID >>>>>>{1}", tag, message));
             }
         }
 
@@ -46,7 +47,9 @@ namespace ByteDance.PICO.XR
         {
             if (LogLevel.LogDebug >= logLevel)
             {
-                Debug.Log(Format(tag, message, showFrameCount));
+                Debug.Log(showFrameCount
+                    ? string.Format("{0} FrameID={1}>>>>>>{2}", tag, Time.frameCount, message)
+                    : string.Format("{0} FrameID >>>>>>{1}", tag, message));
             }
         }
 
@@ -54,7 +57,9 @@ namespace ByteDance.PICO.XR
         {
             if (LogLevel.LogInfo >= logLevel)
             {
-                Debug.Log(Format(tag, message, showFrameCount));
+                Debug.Log(showFrameCount
+                    ? string.Format("{0} FrameID={1}>>>>>>{2}", tag, Time.frameCount, message)
+                    : string.Format("{0} FrameID >>>>>>{1}", tag, message));
             }
         }
 
@@ -62,7 +67,9 @@ namespace ByteDance.PICO.XR
         {
             if (LogLevel.LogWarn >= logLevel)
             {
-                Debug.Log(Format(tag, message, showFrameCount));
+                Debug.Log(showFrameCount
+                    ? string.Format("{0} FrameID={1}>>>>>>{2}", tag, Time.frameCount, message)
+                    : string.Format("{0} FrameID >>>>>>{1}", tag, message));
             }
         }
 
@@ -70,7 +77,9 @@ namespace ByteDance.PICO.XR
         {
             if (LogLevel.LogError >= logLevel)
             {
-                Debug.Log(Format(tag, message, showFrameCount));
+                Debug.Log(showFrameCount
+                    ? string.Format("{0} FrameID={1}>>>>>>{2}", tag, Time.frameCount, message)
+                    : string.Format("{0} FrameID >>>>>>{1}", tag, message));
             }
         }
 
@@ -78,24 +87,9 @@ namespace ByteDance.PICO.XR
         {
             if (LogLevel.LogFatal >= logLevel)
             {
-                Debug.Log(Format(tag, message, showFrameCount));
-            }
-        }
-
-        private static string Format(string tag, string message, bool showFrameCount)
-        {
-            if (!showFrameCount)
-            {
-                return string.Format("{0} FrameID >>>>>>{1}", tag, message);
-            }
-
-            try
-            {
-                return string.Format("{0} FrameID={1}>>>>>>{2}", tag, Time.frameCount, message);
-            }
-            catch (InvalidOperationException)
-            {
-                return string.Format("{0} FrameID=worker>>>>>>{1}", tag, message);
+                Debug.Log(showFrameCount
+                    ? string.Format("{0} FrameID={1}>>>>>>{2}", tag, Time.frameCount, message)
+                    : string.Format("{0} FrameID >>>>>>{1}", tag, message));
             }
         }
 

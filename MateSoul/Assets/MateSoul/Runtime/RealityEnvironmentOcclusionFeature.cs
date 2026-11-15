@@ -78,7 +78,7 @@ namespace MateSoul.Runtime
             if (cameraData.camera != Camera.main) return "not-main-camera";
             var manager = cameraData.camera.GetComponentInParent<PXR_EnvironmentDepthManager>();
             if (manager == null) return "no-depth-manager";
-            if (!manager.IsDepthFrameCurrent) return "depth-stale";
+            if (!manager.IsDepthAvailable) return "depth-stale";
             if (RealityOcclusionMeshRenderer.EnvironmentCoverageSufficient(cameraData.camera))
                 return "coverage-gate";
             return null;
@@ -102,8 +102,8 @@ namespace MateSoul.Runtime
                       $"gate={RealityOcclusionMeshRenderer.CurrentCoverageGated} " +
                       $"meshDepth={(RealityOcclusionMeshRenderer.MeshDepthActive ? 1 : 0)} " +
                       $"depthAvailable={(manager != null && manager.IsDepthAvailable ? 1 : 0)} " +
-                      $"depthCurrent={(manager != null && manager.IsDepthFrameCurrent ? 1 : 0)} " +
-                      $"depthLastFrame={(manager != null ? manager.LastUpdatedFrame : -2)} " +
+                      $"depthCurrent={(manager != null && manager.IsDepthAvailable ? 1 : 0)} " +
+                      $"depthLastFrame={(manager != null && manager.IsDepthAvailable ? Time.frameCount : -2)} " +
                       $"compositeFrames={compositeFrames} compositeAge={CompositeAgeFrames} " +
                       $"nativeMeshes={RealityOcclusionMeshRenderer.ActiveNativeMeshCount} " +
                       $"frame={Time.frameCount} camera={Describe(camera)}");

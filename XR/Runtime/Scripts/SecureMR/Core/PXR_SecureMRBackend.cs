@@ -1,8 +1,11 @@
 #if !ENABLE_PICO_OPENXR_SDK
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using ByteDance.PICO.XR;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 namespace ByteDance.PICO.SecureMR
@@ -40,6 +43,7 @@ namespace ByteDance.PICO.SecureMR
         PxrResult SetResult(Operator op, string name, Tensor tensor);
 
         Task<T[]> ReadbackBufferAsync<T>(Tensor globalTensor, int pollIntervalMs) where T : struct;
+        Task<int> ReadbackIntoAsync<T>(Tensor globalTensor, NativeArray<T> destination, int pollIntervalMs) where T : unmanaged;
         Task<ReadbackTexture> ReadbackTextureAsync(Tensor globalTensor, int pollIntervalMs);
     }
 
@@ -219,6 +223,13 @@ namespace ByteDance.PICO.SecureMR
                 var cfg = (NmsOperatorConfiguration)configuration;
                 result = PXR_SecureMRPlugin.UPxr_CreateSecureMROperatorNonMaximumSuppression(pipelineHandle, cfg.threshold, out operatorHandle);
             }
+            else if (operatorType == SecureMROperatorType.Norm &&
+                     configuration is NormOperatorConfiguration normConfig && normConfig.normType != "L2")
+            {
+                // OpenXR exposes no NORM configuration structure for L1/INF.
+                result = PXR_SecureMRPlugin.UPxr_CreateSecureMROperatorJavascript(
+                    pipelineHandle, normConfig.XrScript, out operatorHandle);
+            }
             else if (operatorType == SecureMROperatorType.Normalize)
             {
                 var cfg = (NormalizeOperatorConfiguration)configuration;
@@ -244,10 +255,34 @@ namespace ByteDance.PICO.SecureMR
                 var cfg = (RenderTextOperatorConfiguration)configuration;
                 result = PXR_SecureMRPlugin.UPxr_CreateSecureMROperatorRenderText(pipelineHandle, cfg.typeface, cfg.languageAndLocale, cfg.width, cfg.height, out operatorHandle);
             }
+            else if (operatorType == SecureMROperatorType.Microphone)
+            {
+                var cfg = (MicrophoneOperatorConfiguration)configuration;
+                result = PXR_SecureMRPlugin.UPxr_CreateSecureMROperatorMicrophone(
+                    pipelineHandle, ParseAudioFormat(cfg.pcmType), cfg.sampleRate, out operatorHandle);
+            }
+            else if (operatorType == SecureMROperatorType.Speaker)
+            {
+                var cfg = (SpeakerOperatorConfiguration)configuration;
+                result = PXR_SecureMRPlugin.UPxr_CreateSecureMROperatorSpeaker(
+                    pipelineHandle, cfg.sampleRate, out operatorHandle);
+            }
             else if (operatorType == SecureMROperatorType.RunModelInference)
             {
                 var cfg = (ModelOperatorConfiguration)configuration;
-                result = PXR_SecureMRPlugin.UPxr_CreateSecureMrOperatorModel(pipelineHandle, cfg.inputConfigs, cfg.outputConfigs, cfg.modelData, cfg.modelType, cfg.modelName, out operatorHandle);
+                if (!ModelOperatorConfiguration.TryValidateModelType(cfg.modelType, out var modelTypeError))
+                {
+                    Debug.LogError($"{modelTypeError} Operator creation aborted.");
+                    return default;
+                }
+
+                result = PXR_SecureMRPlugin.UPxr_CreateSecureMrOperatorModel(
+                    pipelineHandle,
+                    cfg.modelData,
+                    cfg.modelType,
+                    cfg.modelName,
+                    cfg.liteRtConfiguration,
+                    out operatorHandle);
             }
             else if (operatorType == SecureMROperatorType.Javascript)
             {
@@ -271,6 +306,19 @@ namespace ByteDance.PICO.SecureMR
             return operatorHandle;
         }
 
+        private static SecureMRAudioFormatPcm ParseAudioFormat(string value)
+        {
+            switch (value)
+            {
+                case "PCM_16BIT":
+                case "PCM_INT16":
+                    return SecureMRAudioFormatPcm.Pcm16Bit;
+                case "PCM_32BIT": return SecureMRAudioFormatPcm.Pcm32Bit;
+                case "PCM_FLOAT": return SecureMRAudioFormatPcm.PcmFloat;
+                default: throw new InvalidOperationException($"Unsupported microphone PCM encoding: {value}");
+            }
+        }
+
         public PxrResult SetOperand(Operator op, string name, Tensor tensor)
         {
             return PXR_SecureMRPlugin.UPxr_SetSecureMROperatorOperandByName(op.PipelineHandle, op.OperatorHandle, tensor.TensorHandle, name);
@@ -284,6 +332,19 @@ namespace ByteDance.PICO.SecureMR
         public Task<T[]> ReadbackBufferAsync<T>(Tensor globalTensor, int pollIntervalMs) where T : struct
         {
             return Readback.ReadbackBufferAsync<T>(globalTensor, pollIntervalMs);
+        }
+
+        public async Task<int> ReadbackIntoAsync<T>(Tensor globalTensor, NativeArray<T> destination, int pollIntervalMs) where T : unmanaged
+        {
+            var values = await Readback.ReadbackBufferAsync<T>(globalTensor, pollIntervalMs);
+            if (values == null || values.Length == 0 || !destination.IsCreated || destination.Length == 0)
+            {
+                return 0;
+            }
+
+            var count = Math.Min(values.Length, destination.Length);
+            NativeArray<T>.Copy(values, destination, count);
+            return count * UnsafeUtility.SizeOf<T>();
         }
 
         public Task<ReadbackTexture> ReadbackTextureAsync(Tensor globalTensor, int pollIntervalMs)
@@ -314,7 +375,10 @@ namespace ByteDance.PICO.SecureMR
 #endif
         }
 
-        public ulong CreateProvider(int imageWidth, int imageHeight, int containerWidth, int containerHeight, int containerDepth)
+        public ulong CreateProvider(
+            int imageWidth,
+            int imageHeight,
+            SpatialContainerConfiguration containerConfiguration)
         {
 #if UNITY_ANDROID && !UNITY_EDITOR
             if (!PXR_SecureMRPlugin.SpatialSecureMR.EnsureConnected(2000))
@@ -322,7 +386,13 @@ namespace ByteDance.PICO.SecureMR
                 throw new InvalidOperationException("SSMR backend service is not connected");
             }
 
-            var sessionId = PXR_SecureMRPlugin.SpatialSecureMR.CreateSessionHandle(0, imageWidth, imageHeight, containerWidth, containerHeight, containerDepth);
+            var sessionId = PXR_SecureMRPlugin.SpatialSecureMR.CreateSessionHandle(
+                0,
+                imageWidth,
+                imageHeight,
+                containerConfiguration.containerWidth,
+                containerConfiguration.containerHeight,
+                containerConfiguration.GetBackendDepth());
             return unchecked((ulong)sessionId);
 #else
             return 0;
@@ -491,20 +561,28 @@ namespace ByteDance.PICO.SecureMR
             if (operatorType == SecureMROperatorType.RunModelInference)
             {
                 var cfg = (ModelOperatorConfiguration)configuration;
+                if (!ModelOperatorConfiguration.TryValidateModelType(cfg.modelType, out var modelTypeError))
+                {
+                    Debug.LogError($"{modelTypeError} Operator creation aborted.");
+                    return default;
+                }
+
                 using (var encoding = new PXR_SecureMRPlugin.SpatialSecureMR.ModelEncoding())
                 {
-                    foreach (var input in cfg.inputConfigs)
-                    {
-                        encoding.AddInput(input.nodeName, null, (int)input.encodingType);
-                    }
-                    foreach (var output in cfg.outputConfigs)
-                    {
-                        encoding.AddOutput(output.nodeName, null, (int)output.encodingType);
-                    }
-
                     using (var shMem = AndroidSharedMemory.CreateFromBytes("securemr_model", cfg.modelData))
                     {
-                        var opId = PXR_SecureMRPlugin.SpatialSecureMR.PipelineAddModelInference(unchecked((long)pipelineHandle), cfg.modelName, shMem, encoding.Handle);
+                        // LiteRT/TFLite path - use the 6-arg JNI overload added
+                        // in SpatialSDK MR 3712. cpuTargetNumThreads is currently
+                        // not surfaced by the Spatial JNI and is therefore
+                        // ignored here; if the service ever exposes it, pass it
+                        // through a future overload.
+                        int backendType = cfg.liteRtConfiguration != null
+                            ? PXR_SecureMRPlugin.SpatialSecureMR.ToSpatialBackendType(cfg.liteRtConfiguration.modelTarget)
+                            : 2; // NPU default
+                        long opId = PXR_SecureMRPlugin.SpatialSecureMR.PipelineAddModelInference(
+                            unchecked((long)pipelineHandle), cfg.modelName, shMem, encoding.Handle,
+                            PXR_SecureMRPlugin.SpatialSecureMR.SpatialRuntimeTypeTflite,
+                            backendType);
                         return unchecked((ulong)opId);
                     }
                 }
@@ -545,11 +623,57 @@ namespace ByteDance.PICO.SecureMR
 
             using (shMem)
             {
-                var bytes = AndroidSharedMemory.ReadAllBytes(shMem);
+                var byteCount = Math.Max(0, shMem.Call<int>("getSize"));
+                if (byteCount == 0)
+                {
+                    shMem.Call("close");
+                    return Task.FromResult(Array.Empty<T>());
+                }
+
+                byte[] bytes;
+                using (var nativeBytes = new NativeArray<byte>(byteCount, Allocator.TempJob))
+                {
+                    var copied = AndroidSharedMemory.CopyToNativeArray(shMem, nativeBytes);
+                    if (copied <= 0)
+                    {
+                        shMem.Call("close");
+                        return Task.FromResult(Array.Empty<T>());
+                    }
+
+                    bytes = new byte[copied];
+                    NativeArray<byte>.Copy(nativeBytes, bytes, copied);
+                }
+
+                shMem.Call("close");
                 return Task.FromResult(SpatialBytesConverter.ConvertBytesTo<T>(bytes));
             }
 #else
             return Task.FromResult(Array.Empty<T>());
+#endif
+        }
+
+        public Task<int> ReadbackIntoAsync<T>(Tensor globalTensor, NativeArray<T> destination, int pollIntervalMs) where T : unmanaged
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            if (!destination.IsCreated || destination.Length == 0)
+            {
+                return Task.FromResult(0);
+            }
+
+            var shMem = PXR_SecureMRPlugin.SpatialSecureMR.ReadbackSharedMemory(unchecked((long)globalTensor.TensorHandle));
+            if (shMem == null)
+            {
+                return Task.FromResult(0);
+            }
+
+            using (shMem)
+            {
+                var copied = AndroidSharedMemory.CopyToNativeArray(shMem, destination);
+                shMem.Call("close");
+                return Task.FromResult(copied);
+            }
+#else
+            return Task.FromResult(0);
 #endif
         }
 
@@ -700,7 +824,12 @@ namespace ByteDance.PICO.SecureMR
 
                 if (operatorType == SecureMROperatorType.Nms)
                 {
-                    return ((NmsOperatorConfiguration)configuration).threshold.ToString();
+                    return ((NmsOperatorConfiguration)configuration).threshold.ToString(CultureInfo.InvariantCulture);
+                }
+
+                if (operatorType == SecureMROperatorType.Norm)
+                {
+                    return ((NormOperatorConfiguration)configuration).normType;
                 }
 
                 if (operatorType == SecureMROperatorType.Normalize)
@@ -729,7 +858,7 @@ namespace ByteDance.PICO.SecureMR
                 if (operatorType == SecureMROperatorType.SortMatrix)
                 {
                     var s = ((SortMatrixOperatorConfiguration)configuration).sortType;
-                    return s == SecureMRMatrixSortType.Row ? "Row" : "Column";
+                    return s == SecureMRMatrixSortType.Row ? "ROW" : "COLUMN";
                 }
 
                 if (operatorType == SecureMROperatorType.Javascript)
@@ -826,6 +955,47 @@ namespace ByteDance.PICO.SecureMR
                     var bytes = new byte[size];
                     Buffer.BlockCopy(signedBytes, 0, bytes, 0, size);
                     return bytes;
+                }
+            }
+
+            internal static unsafe int CopyToNativeArray<T>(AndroidJavaObject sharedMemory, NativeArray<T> destination)
+                where T : unmanaged
+            {
+                if (sharedMemory == null || !destination.IsCreated || destination.Length == 0)
+                {
+                    return 0;
+                }
+
+                AndroidJavaObject buffer = null;
+                using (var sharedMemoryClass = new AndroidJavaClass("android.os.SharedMemory"))
+                {
+                    try
+                    {
+                        buffer = sharedMemory.Call<AndroidJavaObject>("mapReadOnly");
+                        var rawBuffer = buffer.GetRawObject();
+                        var src = AndroidJNI.GetDirectBufferAddress(rawBuffer);
+                        var capacity = AndroidJNI.GetDirectBufferCapacity(rawBuffer);
+                        if (src == null || capacity <= 0)
+                        {
+                            return 0;
+                        }
+
+                        var destinationBytes = destination.Length * UnsafeUtility.SizeOf<T>();
+                        var bytesToCopy = (int)Math.Min(capacity, destinationBytes);
+                        UnsafeUtility.MemCpy(
+                            NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(destination),
+                            src,
+                            bytesToCopy);
+                        return bytesToCopy;
+                    }
+                    finally
+                    {
+                        if (buffer != null)
+                        {
+                            sharedMemoryClass.CallStatic("unmap", buffer);
+                            buffer.Dispose();
+                        }
+                    }
                 }
             }
         }

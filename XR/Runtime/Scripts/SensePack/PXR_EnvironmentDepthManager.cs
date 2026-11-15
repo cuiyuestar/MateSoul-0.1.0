@@ -34,13 +34,9 @@ namespace ByteDance.PICO.XR
         private readonly Vector3 _scalingVector3 = new(1, 1, -1);
         
         public bool IsDepthAvailable { get; private set; }
-        public int LastUpdatedFrame { get; private set; } = -1;
-        public bool IsDepthFrameCurrent =>
-            isActiveAndEnabled && IsDepthAvailable && LastUpdatedFrame == Time.frameCount;
         
         private readonly Matrix4x4[] _reprojectionMatrices = new Matrix4x4[2];
         private XRDisplaySubsystem xrDisplay;
-        public void SetTrackingOrigin(Transform origin) => xrOrigin = origin;
 
         private void Awake()
         {
@@ -50,13 +46,15 @@ namespace ByteDance.PICO.XR
 #else
             SubsystemManager.GetInstances(displays);
 #endif
-
             xrDisplay = displays.FirstOrDefault();
             
 
             const string shaderName = "PICO/EnvironmentDepth/Preprocessing";
             var shader = Shader.Find(shaderName);
-            preprocessMaterial = new Material(shader);
+            if (shader != null)
+            {
+                preprocessMaterial = new Material(shader);
+            }
         }
 
         private void Start()
@@ -66,21 +64,23 @@ namespace ByteDance.PICO.XR
 
         private void OnEnable()
         {
+            Application.onBeforeRender += OnBeforeRender;
             _ = PXR_MixedReality.StartSenseDataProvider(PxrSenseDataProviderType.EnvironmentDepth);
         }
 
         private void ResetDepthTextureIfAvailable()
         {
-            prevTextureId = null;
-            IsDepthAvailable = false;
-            LastUpdatedFrame = -1;
-            Shader.SetGlobalTexture(DepthTextureID, null);
-            Shader.SetGlobalTexture(PreprocessedEnvironmentDepthTexture, null);
-            Shader.SetGlobalFloat(EnvironmentOcclusionEnabledID, 0.0f);
+            if (IsDepthAvailable)
+            {
+                IsDepthAvailable = false;
+                Shader.SetGlobalTexture(DepthTextureID, null);
+                Shader.SetGlobalFloat(EnvironmentOcclusionEnabledID, 0.0f);
+            }
         }
 
         private void OnDisable()
         {
+            Application.onBeforeRender -= OnBeforeRender;
             ResetDepthTextureIfAvailable();
             PXR_MixedReality.StopSenseDataProvider(PxrSenseDataProviderType.EnvironmentDepth);
                 
@@ -93,22 +93,17 @@ namespace ByteDance.PICO.XR
             if (preprocessTexture != null)
                 Destroy(preprocessTexture);
         }
-
-        private void Update()
+        
+        private void OnBeforeRender()
         {
 #if !UNITY_EDITOR
             var trackingSpaceWorldToLocal = GetTrackingSpaceWorldToLocalMatrix();
 
-            var depthTexture = TryFetchDepthTexture();
-            if (depthTexture == null)
+            if (!TryFetchDepthTexture(out var depthTexture))
                 return;
 
-            if (!TryGetFrameDesc(0, out var leftEyeData) ||
-                !TryGetFrameDesc(1, out var rightEyeData))
-            {
-                ResetDepthTextureIfAvailable();
-                return;
-            }
+            var leftEyeData = GetFrameDesc(0);
+            var rightEyeData = GetFrameDesc(1);
 
             var depthZBufferParams = ComputeNdcToLinearDepthParameters(leftEyeData.nearZ, leftEyeData.farZ);
             Shader.SetGlobalVector(ZBufferParamsID, depthZBufferParams);
@@ -116,76 +111,75 @@ namespace ByteDance.PICO.XR
             _reprojectionMatrices[0] = CalculateReprojection(leftEyeData) * trackingSpaceWorldToLocal;
             _reprojectionMatrices[1] = CalculateReprojection(rightEyeData) * trackingSpaceWorldToLocal;
             Shader.SetGlobalMatrixArray(ReprojectionMatricesID, _reprojectionMatrices);
-            // Swapchain IDs are reused. A stable ID is not an unchanged image.
+
             PreprocessDepthTexture(depthTexture);
-            Shader.SetGlobalTexture(PreprocessedEnvironmentDepthTexture, preprocessTexture);
-            IsDepthAvailable = true;
-            LastUpdatedFrame = Time.frameCount;
-            Shader.SetGlobalFloat(EnvironmentOcclusionEnabledID, 1.0f);
 #endif
-            
         }
-        
-        private RenderTexture TryFetchDepthTexture()
+
+        private void EnsureXrDisplay()
         {
+            if (xrDisplay != null)
+                return;
+
+            var displays = new List<XRDisplaySubsystem>(1);
+#if UNITY_6000_0_OR_NEWER
+            SubsystemManager.GetSubsystems(displays);
+#else
+            SubsystemManager.GetInstances(displays);
+#endif
+            xrDisplay = displays.FirstOrDefault();
+        }
+
+        private bool TryFetchDepthTexture(out RenderTexture depthTexture)
+        {
+            depthTexture = null;
+            EnsureXrDisplay();
+
             uint textureId = 0;
-            if (xrDisplay == null || !xrDisplay.running ||
-                PXR_MixedReality.GetEnvironmentDepthTextureId(ref textureId) != PxrResult.SUCCESS)
-            {
-                ResetDepthTextureIfAvailable();
-                return null;
-            }
+            if (xrDisplay == null || !xrDisplay.running || PXR_MixedReality.GetEnvironmentDepthTextureId(ref textureId) != PxrResult.SUCCESS)
+                return false;
 
-            var depthTexture = xrDisplay.GetRenderTexture(textureId);
+            depthTexture = xrDisplay.GetRenderTexture(textureId);
             
-            if (depthTexture == null || !depthTexture.IsCreated() ||
-                depthTexture.dimension != TextureDimension.Tex2DArray ||
-                depthTexture.volumeDepth != 2 || depthTexture.width < 8 ||
-                depthTexture.height < 8 || depthTexture.antiAliasing != 1)
+            if (depthTexture == null) 
             {
                 ResetDepthTextureIfAvailable();
-                return null;
+                return false;
             }
 
+            var textureChanged = prevTextureId != textureId;
             prevTextureId = textureId;
-            Shader.SetGlobalTexture(DepthTextureID, depthTexture);
-            return depthTexture;
+            
+            if (textureChanged || !IsDepthAvailable)
+            {
+                Shader.SetGlobalTexture(DepthTextureID, depthTexture);
+            }
+
+            if (!IsDepthAvailable)
+            {
+                IsDepthAvailable = true;
+                Shader.SetGlobalFloat(EnvironmentOcclusionEnabledID, preprocessMaterial != null ? 1.0f : 0.0f);
+            }
+
+            return true;
         }
 
         public EnvironmentDepthFrameDesc GetFrameDesc(int eye)
         {
-            return TryGetFrameDesc(eye, out var desc) ? desc : default;
+            EnvironmentDepthFrameDesc desc = new EnvironmentDepthFrameDesc();
+            PXR_Plugin.MixedReality.UPxr_GetEnvironmentDepthFrameDesc(ref desc,eye);
+            return new EnvironmentDepthFrameDesc
+            {
+                createPoseLocation = desc.createPoseLocation,
+                createPoseRotation = desc.createPoseRotation,
+                fovLeftAngle = desc.fovLeftAngle,
+                fovRightAngle = desc.fovRightAngle,
+                fovTopAngle = desc.fovTopAngle,
+                fovDownAngle = desc.fovDownAngle,
+                nearZ = desc.nearZ,
+                farZ = desc.farZ
+            };
         }
-
-        private bool TryGetFrameDesc(int eye, out EnvironmentDepthFrameDesc desc)
-        {
-            desc = default;
-            return PXR_Plugin.MixedReality.UPxr_GetEnvironmentDepthFrameDesc(ref desc, eye) ==
-                   PxrResult.SUCCESS && IsFrameDescValid(desc);
-        }
-
-        private static bool IsFrameDescValid(EnvironmentDepthFrameDesc desc)
-        {
-            var p = desc.createPoseLocation;
-            var q = desc.createPoseRotation;
-            // Reject failed or malformed native poses before publishing matrices.
-            return IsFinite(p.x) && IsFinite(p.y) && IsFinite(p.z) &&
-                   IsFinite(q.sqrMagnitude) && Mathf.Abs(q.sqrMagnitude - 1f) < .1f &&
-                   IsFinite(desc.nearZ) && IsFinite(desc.farZ) &&
-                   desc.nearZ > 0 && desc.farZ > desc.nearZ &&
-                   IsFovAngleValid(desc.fovLeftAngle) &&
-                   IsFovAngleValid(desc.fovRightAngle) &&
-                   IsFovAngleValid(desc.fovDownAngle) &&
-                   IsFovAngleValid(desc.fovTopAngle) &&
-                   desc.fovRightAngle - desc.fovLeftAngle > .001f &&
-                   desc.fovTopAngle - desc.fovDownAngle > .001f;
-        }
-
-        private static bool IsFinite(float value) =>
-            !float.IsNaN(value) && !float.IsInfinity(value);
-
-        private static bool IsFovAngleValid(float angle) =>
-            IsFinite(angle) && Mathf.Abs(angle) < Mathf.PI * .5f - .001f;
         
         private Matrix4x4 GetTrackingSpaceWorldToLocalMatrix()
         {
@@ -194,14 +188,18 @@ namespace ByteDance.PICO.XR
         
         private void PreprocessDepthTexture(RenderTexture depthTexture)
         {
-            if (preprocessTexture == null || preprocessTexture.width != depthTexture.width ||
-                preprocessTexture.height != depthTexture.height)
+            if (preprocessMaterial == null)
+                return;
+
+            if (preprocessTexture != null && (preprocessTexture.width != depthTexture.width || preprocessTexture.height != depthTexture.height))
             {
-                if (preprocessTexture != null)
-                {
-                    preprocessTexture.Release();
-                    Destroy(preprocessTexture);
-                }
+                preprocessTexture.Release();
+                Destroy(preprocessTexture);
+                preprocessTexture = null;
+            }
+
+            if (preprocessTexture == null)
+            {
                 preprocessTexture = new RenderTexture(depthTexture.width, depthTexture.height, GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormat.None)
                 {
                     dimension = TextureDimension.Tex2DArray,
@@ -226,11 +224,9 @@ namespace ByteDance.PICO.XR
                 };
             }
             
-            var previousTarget = RenderTexture.active;
             Graphics.SetRenderTarget(preprocessRenderTargetSetup);
             preprocessMaterial.SetPass(0);
             Graphics.DrawProceduralNow(MeshTopology.Triangles, 3, 2);
-            RenderTexture.active = previousTarget;
         }
         
         private Vector4 ComputeNdcToLinearDepthParameters(float near, float far)

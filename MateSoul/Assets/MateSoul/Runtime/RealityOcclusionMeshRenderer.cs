@@ -327,11 +327,21 @@ namespace MateSoul.Runtime
             {
                 var manager = host.GetComponent<PXR_EnvironmentDepthManager>() ??
                               host.AddComponent<PXR_EnvironmentDepthManager>();
-                manager.SetTrackingOrigin(origin != null && origin.CameraFloorOffsetObject != null
+                SetDepthReprojectionOrigin(manager, origin != null && origin.CameraFloorOffsetObject != null
                     ? origin.CameraFloorOffsetObject.transform : host.transform);
             }
             return host.GetComponent<RealityOcclusionMeshRenderer>() ??
                    host.AddComponent<RealityOcclusionMeshRenderer>();
+        }
+
+        // PICO SDK 6.x exposes the depth reprojection origin only as a private serialized field.
+        private static readonly System.Reflection.FieldInfo DepthOriginField =
+            typeof(PXR_EnvironmentDepthManager).GetField(
+                "xrOrigin", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        private static void SetDepthReprojectionOrigin(PXR_EnvironmentDepthManager manager, Transform origin)
+        {
+            DepthOriginField?.SetValue(manager, origin);
         }
 
         private void Awake()

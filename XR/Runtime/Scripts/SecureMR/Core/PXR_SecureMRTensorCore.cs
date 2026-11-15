@@ -6,6 +6,7 @@ using UnityEngine;
 using System.Threading;
 using System.Threading.Tasks;
 using ByteDance.PICO.XR;
+using Unity.Collections;
 
 namespace ByteDance.PICO.SecureMR
 {
@@ -65,6 +66,13 @@ namespace ByteDance.PICO.SecureMR
             if (!IsGlobalTensor) throw new InvalidOperationException("Only global tensors support readback");
             var backend = Backend ?? SecureMRBackendRouter.Current;
             return await backend.ReadbackBufferAsync<T>(this, pollIntervalMs);
+        }
+
+        public async Task<int> ReadbackIntoAsync<T>(NativeArray<T> destination, int pollIntervalMs = 5) where T : unmanaged
+        {
+            if (!IsGlobalTensor) throw new InvalidOperationException("Only global tensors support readback");
+            var backend = Backend ?? SecureMRBackendRouter.Current;
+            return await backend.ReadbackIntoAsync(this, destination, pollIntervalMs);
         }
 
         public async Task<ReadbackTexture> ReadbackTextureAsync(int pollIntervalMs = 5)

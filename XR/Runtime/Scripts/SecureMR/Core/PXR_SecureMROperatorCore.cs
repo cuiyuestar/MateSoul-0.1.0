@@ -52,6 +52,24 @@ namespace ByteDance.PICO.SecureMR
         }
     }
 
+    public class NormOperatorConfiguration : OperatorConfiguration
+    {
+        public string normType { get; }
+
+        public NormOperatorConfiguration(string normType = "L2")
+        {
+            if (normType != "L1" && normType != "L2" && normType != "INF")
+                throw new ArgumentException("Norm type must be L1, L2, or INF.", nameof(normType));
+            this.normType = normType;
+        }
+
+        internal string XrScript =>
+            "var operand; var result; var norm = 0; " +
+            "for (var i = 0; i < operand.length; i++) { " +
+            (normType == "L1" ? "norm += Math.abs(operand[i]); " : "norm = Math.max(norm, Math.abs(operand[i])); ") +
+            "} result[0] = norm;";
+    }
+
     public class ColorConvertOperatorConfiguration : OperatorConfiguration
     {
         public int convert { get; set; }
@@ -97,43 +115,64 @@ namespace ByteDance.PICO.SecureMR
 
     public class ModelOperatorConfiguration : OperatorConfiguration
     {
-        public List<SecureMROperatorModelConfig> inputConfigs { get; set; }
-        public List<SecureMROperatorModelConfig> outputConfigs { get; set; }
+        private const string UnsupportedModelTypeMessage =
+            "RunModelInferenceOperator only supports TFLite/LiteRT models. " +
+            "QNN context binaries and other model types are no longer supported.";
+
         public byte[] modelData { get; set; }
         public SecureMRModelType modelType { get; set; }
         public string modelName { get; set; }
+        public LiteRtModelConfiguration liteRtConfiguration { get; set; }
 
-        public ModelOperatorConfiguration(List<SecureMROperatorModelConfig> inputConfigs, List<SecureMROperatorModelConfig> outputConfigs, byte[] modelData, SecureMRModelType modelType, string modelName)
+        public ModelOperatorConfiguration(
+            byte[] modelData,
+            SecureMRModelType modelType,
+            string modelName,
+            LiteRtModelConfiguration liteRtConfiguration)
         {
-            this.inputConfigs = inputConfigs;
-            this.outputConfigs = outputConfigs;
+            ThrowIfUnsupportedModelType(modelType);
+
             this.modelData = modelData;
             this.modelType = modelType;
             this.modelName = modelName;
+            this.liteRtConfiguration = liteRtConfiguration;
         }
-        
+
         public ModelOperatorConfiguration(byte[] modelData, SecureMRModelType modelType, string modelName)
+            : this(modelData, modelType, modelName, null)
         {
-            this.inputConfigs = new List<SecureMROperatorModelConfig>();
-            this.outputConfigs = new List<SecureMROperatorModelConfig>();
-            this.modelData = modelData;
-            this.modelType = modelType;
-            this.modelName = modelName;
         }
 
-        public void AddInputMapping(string nodeName, string operatorIOName, SecureMRModelEncoding encodingType)
+        internal static bool TryValidateModelType(SecureMRModelType modelType, out string error)
         {
-            var config = new SecureMROperatorModelConfig
-                { encodingType = encodingType, nodeName = nodeName, operatorIOName = operatorIOName };
-            inputConfigs.Add(config);
-            
+            if (modelType == SecureMRModelType.LiteRtModel)
+            {
+                error = null;
+                return true;
+            }
+
+            error = $"{UnsupportedModelTypeMessage} Provided model type: {modelType}.";
+            return false;
         }
 
-        public void AddOutputMapping(string nodeName, string operatorIOName, SecureMRModelEncoding encodingType)
+        internal static void ThrowIfUnsupportedModelType(SecureMRModelType modelType)
         {
-            var config = new SecureMROperatorModelConfig
-                { encodingType = encodingType, nodeName = nodeName, operatorIOName = operatorIOName };
-            outputConfigs.Add(config);
+            if (!TryValidateModelType(modelType, out var error))
+            {
+                throw new ArgumentException(error, nameof(modelType));
+            }
+        }
+    }
+
+    public class LiteRtModelConfiguration
+    {
+        public SecureMRModelTarget modelTarget { get; set; }
+        public int cpuTargetNumThreads { get; set; }
+
+        public LiteRtModelConfiguration(SecureMRModelTarget modelTarget, int cpuTargetNumThreads = 0)
+        {
+            this.modelTarget = modelTarget;
+            this.cpuTargetNumThreads = cpuTargetNumThreads;
         }
     }
     
@@ -167,7 +206,7 @@ namespace ByteDance.PICO.SecureMR
         public MicrophoneOperatorConfiguration(int sampleRate, string pcmType)
         {
             this.sampleRate = sampleRate;
-            this.pcmType = pcmType;
+            this.pcmType = pcmType == "PCM_INT16" ? "PCM_16BIT" : pcmType;
         }
     }
 
@@ -365,6 +404,7 @@ namespace ByteDance.PICO.SecureMR
     public class NormOperator : Operator
     {
         public NormOperator(ulong pipelineHandle, SecureMROperatorType operatorType) : base(pipelineHandle, operatorType) { }
+        public NormOperator(ulong pipelineHandle, SecureMROperatorType operatorType, NormOperatorConfiguration configuration) : base(pipelineHandle, operatorType) { }
     }
     
     public class SwapHwcChwOperator : Operator

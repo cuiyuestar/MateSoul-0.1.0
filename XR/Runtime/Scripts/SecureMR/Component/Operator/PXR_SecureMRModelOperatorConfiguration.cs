@@ -1,5 +1,4 @@
 #if !ENABLE_PICO_OPENXR_SDK
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace ByteDance.PICO.SecureMR
@@ -10,32 +9,18 @@ namespace ByteDance.PICO.SecureMR
         [Tooltip("The ML model asset to use")]
         public TextAsset modelAsset;
 
-        [Tooltip("The type of model to use")]
-        public SecureMRModelType modelType = SecureMRModelType.QnnContextBinary;
+        [Tooltip("The type of model to use. RunModelInferenceOperator only supports LiteRT/TFLite models.")]
+        public SecureMRModelType modelType = SecureMRModelType.LiteRtModel;
 
         [Tooltip("Name of the model")]
         public string modelName;
 
-        [System.Serializable]
-        public class ModelIOConfig
-        {
-            [Tooltip("Node name in the model")]
-            public string nodeName;
+        [Header("LiteRT Settings")]
+        [Tooltip("LiteRT execution target.")]
+        public SecureMRModelTarget liteRtModelTarget = SecureMRModelTarget.Npu;
 
-            [Tooltip("Operator IO name")]
-            public string operatorIOName;
-
-            [Tooltip("Encoding type for the tensor")]
-            public SecureMRModelEncoding encodingType = SecureMRModelEncoding.Float32;
-        }
-
-        [Header("Input Configuration")]
-        [Tooltip("Input tensor configurations")]
-        public List<ModelIOConfig> inputs = new List<ModelIOConfig>();
-
-        [Header("Output Configuration")]
-        [Tooltip("Output tensor configurations")]
-        public List<ModelIOConfig> outputs = new List<ModelIOConfig>();
+        [Tooltip("Number of CPU threads for LiteRT CPU execution. Use 0 to let the runtime decide.")]
+        public int liteRtCpuTargetNumThreads = 0;
 
         /// <summary>
         /// Creates a ModelOperatorConfiguration from this ScriptableObject
@@ -49,24 +34,21 @@ namespace ByteDance.PICO.SecureMR
                 return null;
             }
 
+            if (modelType != SecureMRModelType.LiteRtModel)
+            {
+                Debug.LogError(
+                    $"RunModelInferenceOperator only supports TFLite/LiteRT models. " +
+                    $"QNN context binaries and other model types are no longer supported. Provided model type: {modelType}.");
+                return null;
+            }
+
             // Create the base configuration
             ModelOperatorConfiguration modelConfig = new ModelOperatorConfiguration(
                 modelAsset.bytes,
                 modelType,
-                string.IsNullOrEmpty(modelName) ? modelAsset.name : modelName
+                string.IsNullOrEmpty(modelName) ? modelAsset.name : modelName,
+                new LiteRtModelConfiguration(liteRtModelTarget, liteRtCpuTargetNumThreads)
             );
-
-            // Add input mappings
-            foreach (var input in inputs)
-            {
-                modelConfig.AddInputMapping(input.nodeName, input.operatorIOName, input.encodingType);
-            }
-
-            // Add output mappings
-            foreach (var output in outputs)
-            {
-                modelConfig.AddOutputMapping(output.nodeName, output.operatorIOName, output.encodingType);
-            }
 
             return modelConfig;
         }

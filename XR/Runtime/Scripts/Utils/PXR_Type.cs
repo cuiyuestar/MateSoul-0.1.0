@@ -41,6 +41,14 @@ namespace ByteDance.PICO.XR
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct XrFutureCancelInfoEXT
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public ulong future;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct XrFuturePollResultEXT
     {
         public XrStructureType type;
@@ -61,6 +69,113 @@ namespace ByteDance.PICO.XR
         public XrStructureType type;
         public IntPtr next;
     }
+
+    internal enum XrSpatialReferenceImageFormat
+    {
+        Rgba8888 = 1,
+        Rgb888 = 2,
+        Yuv420888 = 3
+    }
+
+    internal enum XrSpatialEntityComponentType
+    {
+        ImageTracking = 1010036000
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSystemSpatialImageTrackingProperties
+    {
+        internal XrStructureType type;
+        internal IntPtr next;
+        internal uint supportsSpatialImageTracking;
+    }
+#if AR_FOUNDATION_6_IMAGE_TRACKING
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSenseDataProviderCreateInfoSpatialImageTracking
+    {
+        internal XrStructureType type;
+        internal IntPtr next;
+        internal XrSpatialImageTrackingMode imageTrackingMode;
+    }
+#endif
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSpatialReferenceImagePlane
+    {
+        internal uint bufferSize;
+        internal IntPtr buffer;
+        internal uint rowStride;
+        internal uint pixelStride;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSpatialImageSize
+    {
+        internal float physicalWidth;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSpatialImageStaticOptimization
+    {
+        internal uint optimizeForStaticImage;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSpatialReferenceImage
+    {
+        internal XrStructureType type;
+        internal IntPtr next;
+        internal uint width;
+        internal uint height;
+        internal XrSpatialReferenceImageFormat format;
+        internal uint planeCount;
+        internal IntPtr planes;
+        internal XrSpatialImageSize imageSize;
+        internal XrSpatialImageStaticOptimization staticOptimization;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSpatialImageTrackingDatabaseCreateInfo
+    {
+        internal XrStructureType type;
+        internal IntPtr next;
+        internal uint spatialReferenceImageCount;
+        internal IntPtr spatialReferenceImages;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrCreateSpatialImageTrackingDatabaseCompletion
+    {
+        internal XrStructureType type;
+        internal IntPtr next;
+        internal PxrResult futureResult;
+        internal ulong database;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSpatialEntityImageTrackingGetInfo
+    {
+        internal XrStructureType type;
+        internal IntPtr next;
+        internal ulong entity;
+        internal XrSpatialEntityComponentType componentType;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSpatialImageTrackingData
+    {
+        internal ulong imageTrackingDatabase;
+        internal uint referenceImageIndex;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct XrSpatialEntityComponentDataImageTracking
+    {
+        internal XrStructureType type;
+        internal IntPtr next;
+        internal XrSpatialImageTrackingData data;
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct XrSenseDataProviderStartCompletion
     {
@@ -163,6 +278,172 @@ namespace ByteDance.PICO.XR
         public ulong locationFlags; //PxrSpaceLocationFlags
         public PxrPosef pose;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrSpaceLocationAligned
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public ulong locationFlags;
+        public PxrPosef pose;
+        public uint valid;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrSpaceLocationModelScale
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public float scale;
+    }
+
+    public enum PxrDynamicObjectType
+    {
+        Unknown = 0,
+        Keyboard = 1010018000,
+        Mouse = 1010019000,
+        PicoKeyboard = 1010022001,
+        PicoTouchpad = 1010022002
+    }
+
+    public enum PxrEnvironmentPassthroughType
+    {
+        Keyboard = 0,
+        PicoKeyboard = 1
+    }
+
+    public enum PxrKeyboardPassthroughLevel
+    {
+        Disabled = 0,
+        Enabled = 1,
+        EnabledHandNearby = 2
+    }
+
+    public enum PxrPicoKeyboardPassthroughLevel
+    {
+        Disabled = 0,
+        Enabled = 1
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrKeyboardPassthroughState
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public PxrKeyboardPassthroughLevel level;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrPicoKeyboardPassthroughState
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public PxrPicoKeyboardPassthroughLevel level;
+    }
+
+    public enum PxrPeripheralBrand
+    {
+        Unknown = 0,
+        Pico = 1
+    }
+
+    public enum PxrPeripheralCategory
+    {
+        Unknown = 0,
+        UncategorizedKeyboard = 1010018000,
+        LaptopKeyboard = 1010018001,
+        UncategorizedMouse = 1010019000,
+        UncategorizedTouchpad = 1010022001
+    }
+
+    public enum PxrPeripheralModel
+    {
+        Unknown = 0
+    }
+
+    [Flags]
+    public enum PxrPicoKeyboardProperty : ulong
+    {
+        None = 0,
+        Available = 0x00000001,
+        NotAvailable = 0x00000002
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrSpatialEntityDynamicObjectGetInfo
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public ulong entity;
+        public PxrSceneComponentType componentType;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrDynamicObjectData
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public PxrDynamicObjectType objectType;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrSpatialEntityComponentDataDynamicObject
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public XrDynamicObjectData data;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrSpatialEntityPeripheralGetInfo
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public ulong entity;
+        public PxrSceneComponentType componentType;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrPeripheralData
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public PxrPeripheralBrand brand;
+        public PxrPeripheralModel model;
+        public PxrPeripheralCategory category;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrSpatialEntityComponentDataPeripheral
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public XrPeripheralData data;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrPeripheralPicoKeyboardData
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public PxrPicoKeyboardProperty properties;
+    }
+
+    public struct PxrDynamicObjectData
+    {
+        public Guid uuid;
+        public ulong spatialEntity;
+        public ulong time;
+        public Vector3 position;
+        public Quaternion rotation;
+        public PxrDynamicObjectType objectType;
+        public PxrSceneComponentType[] types;
+        public PxrSceneBox3D box3D;
+        public float sphereRadius;
+        public XrPeripheralData peripheralData;
+        public XrPeripheralPicoKeyboardData picoKeyboardData;
+    }
+
     public enum PxrSpaceLocationFlags
     {
         OrientationValid = 0x00000001,
@@ -278,6 +559,21 @@ namespace ByteDance.PICO.XR
     {
         public PxrPosef center;
         public XrExtent3Df extents;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct PxrSpheref
+    {
+        public PxrPosef center;
+        public float radius;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct XrSpatialEntitySphereData
+    {
+        public XrStructureType type;
+        public IntPtr next;
+        public PxrSpheref sphere;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -716,13 +1012,39 @@ namespace ByteDance.PICO.XR
         XR_TYPE_SECURE_MR_OPERATOR_SORT_MATRIX_PICO = 1010007019,
         XR_TYPE_SECURE_MR_OPERATOR_COLOR_CONVERT_PICO = 1010007020,
         XR_TYPE_SECURE_MR_OPERATOR_JAVASCRIPT_PICO = 1010007021,
+        XR_TYPE_SECURE_MR_OPERATOR_AUDIO_MICROPHONE_PICO = 1010007022,
+        XR_TYPE_SECURE_MR_OPERATOR_AUDIO_SPEAKER_PICO = 1010007023,
+        XR_TYPE_SECURE_MR_OPERATOR_LITE_RT_MODEL_PICO = 1010007024,
+        XR_TYPE_SYSTEM_DYNAMIC_OBJECT_TRACKING_PROPERTIES_PICO = 1010017000,
+        XR_TYPE_SENSE_DATA_PROVIDER_CREATE_INFO_DYNAMIC_OBJECT_PICO = 1010017001,
+        XR_TYPE_SPATIAL_ENTITY_DYNAMIC_OBJECT_GET_INFO_PICO = 1010017002,
+        XR_TYPE_SPATIAL_ENTITY_COMPONENT_DATA_DYNAMIC_OBJECT_PICO = 1010017003,
+        XR_TYPE_DYNAMIC_OBJECT_DATA_PICO = 1010017004,
+        XR_TYPE_SENSE_DATA_FILTER_DYNAMIC_OBJECT_TYPE_PICO = 1010017005,
+        XR_TYPE_SYSTEM_DYNAMIC_OBJECT_KEYBOARD_PROPERTIES_PICO = 1010018000,
+        XR_TYPE_SYSTEM_DYNAMIC_OBJECT_MOUSE_PROPERTIES_PICO = 1010019000,
+        XR_TYPE_SYSTEM_DYNAMIC_OBJECT_PICO_KEYBOARD_PROPERTIES_PICO = 1010022001,
+        XR_TYPE_PERIPHERAL_PICO_KEYBOARD_DATA_PICO = 1010022002,
+        XR_TYPE_PICO_KEYBOARD_PASSTHROUGH_STATE_PICO = 1010023001,
+        XR_TYPE_EVENT_DATA_PICO_KEYBOARD_PASSTHROUGH_STATE_CHANGED_PICO = 1010023002,
+        XR_TYPE_SPACE_LOCATION_ALIGNED_PICO = 1010025000,
+        XR_TYPE_SPACE_LOCATION_MODEL_SCALE_PICO = 1010025001,
         XR_TYPE_SENSE_DATA_PROVIDER_CREATE_INFO_SPATIAL_PLANE_PICO =  1010027001,
+        XR_TYPE_SPATIAL_ENTITY_SPHERE_GET_INFO_PICO = 1200389029,
+        XR_TYPE_SPATIAL_ENTITY_COMPONENT_DATA_SPHERE_PICO = 1200389030,
         // Readback Tensor (RelaxMR)
         XR_TYPE_READBACK_TENSOR_BUFFER_PICO = 1010029000,
         XR_TYPE_CREATE_BUFFER_FROM_GLOBAL_TENSOR_COMPLETION_PICO = 1010029001,
         XR_TYPE_CREATE_TEXTURE_FROM_GLOBAL_TENSOR_COMPLETION_PICO = 1010029002,
         XR_TYPE_READBACK_TEXTURE_IMAGE_VULKAN_PICO = 1010030000,
         XR_TYPE_READBACK_TEXTURE_IMAGE_OPENGL_PICO = 1010031000,
+        XR_TYPE_SYSTEM_SPATIAL_IMAGE_TRACKING_PROPERTIES_PICO = 1010036000,
+        XR_TYPE_SENSE_DATA_PROVIDER_CREATE_INFO_SPATIAL_IMAGE_TRACKING_PICO = 1010036001,
+        XR_TYPE_SPATIAL_REFERENCE_IMAGE_PICO = 1010036002,
+        XR_TYPE_SPATIAL_IMAGE_TRACKING_DATABASE_CREATE_INFO_PICO = 1010036003,
+        XR_TYPE_CREATE_SPATIAL_IMAGE_TRACKING_DATABASE_COMPLETION_PICO = 1010036004,
+        XR_TYPE_SPATIAL_ENTITY_IMAGE_TRACKING_GET_INFO_PICO = 1010036005,
+        XR_TYPE_SPATIAL_ENTITY_COMPONENT_DATA_IMAGE_TRACKING_PICO = 1010036006,
         //pico system
         XR_TYPE_EVENT_CONTROLLER_STATE_CHANGED_PICO = 1200006064,
         XR_TYPE_EVENT_SEETHROUGH_STATE_CHANGED = 1200006065,
@@ -767,8 +1089,15 @@ namespace ByteDance.PICO.XR
         XR_TYPE_SENSE_DATA_QUERY_INFO = 1200389018,
         XR_TYPE_SENSE_DATA_QUERY_COMPLETION = 1200389019,
         XR_TYPE_QUERIED_SENSE_DATA_GET_INFO = 1200389020,
+        XR_TYPE_SPATIAL_ENTITY_STATE = 1200389021,
+        XR_TYPE_QUERIED_SENSE_DATA = 1200389022,
         XR_TYPE_EVENT_DATA_SENSE_DATA_UPDATED = 1200389023,
         XR_TYPE_SPATIAL_ENTITY_ANCHOR_RETRIEVE_INFO = 1200389025,
+        XR_TYPE_SPATIAL_ENTITY_PERIPHERAL_GET_INFO_PICO = 1200389031,
+        XR_TYPE_SPATIAL_ENTITY_COMPONENT_DATA_PERIPHERAL_PICO = 1200389032,
+        XR_TYPE_PERIPHERAL_DATA_PICO = 1200389033,
+        XR_TYPE_KEYBOARD_PASSTHROUGH_STATE_PICO = 1011020001,
+        XR_TYPE_EVENT_DATA_KEYBOARD_PASSTHROUGH_STATE_CHANGED_PICO = 1011020002,
         XR_TYPE_SENSE_DATA_PROVIDER_CREATE_INFO_SPATIAL_ANCHOR = 1200390001,
         XR_TYPE_SPATIAL_ANCHOR_CREATE_INFO  = 1200390002,
         XR_TYPE_SPATIAL_ANCHOR_CREATE_COMPLETION  = 1200390003,

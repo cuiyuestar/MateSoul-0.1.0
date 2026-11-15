@@ -93,6 +93,7 @@ namespace ByteDance.PICO.XR.Editor
         public const string spatialadapter_plugin = "PICO_MS_SDK";
         public const string picoxr_plugin = "ENABLE_PICO_XR_SDK";
         public const string PICO_Interaction = "ENABLE_PICO_INTERACTION_PACK";
+        public const string pico_live_preview = "PICO_LIVE_PREVIEW";
         public static string assetPath = "Assets/Resources/";
         public const string PICO_ICON_BLACK_NAME = "PICO developer logo black.png";
         public const string PICO_ICON_WHITE_NAME = "PICO developer logo white.png";
@@ -667,7 +668,7 @@ namespace ByteDance.PICO.XR.Editor
                 return CapabilityProfileSelection.Selected.Any(c => c is PXR_SDKCapability);
             }
 
-            return IsPXRPluginEnabled() && !PXR_ProjectSetting.GetProjectConfig().isSpatialAdapter;
+            return IsPXRPluginEnabled() && IsAppMode(PXR_Settings.AppMode.XR);
 #else
             return false;
 #endif
@@ -693,6 +694,12 @@ namespace ByteDance.PICO.XR.Editor
             CapabilityProfileSelection.Clear();
             CapabilityProfileSelection.Save();
             updateBasedOnCapabilityProfileSelection = false;
+        }
+
+        internal static bool IsAppMode(PXR_Settings.AppMode mode)
+        {
+            var settings = PXR_Settings.GetSettings();
+            return settings != null && settings.appMode == mode;
         }
 
         public static bool IsPXRPluginEnabled()
@@ -760,11 +767,6 @@ namespace ByteDance.PICO.XR.Editor
         }
 
         [InitializeOnLoadMethod]
-        private static void ScheduleDefaultDefineSymbols()
-        {
-            EditorApplication.delayCall += SetDefaultDefineSymbols;
-        }
-
         public static void SetDefaultDefineSymbols()
         {
             var buildTarget = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
@@ -773,7 +775,7 @@ namespace ByteDance.PICO.XR.Editor
             var defineSymbols = new HashSet<string>(currentDefines.Split(';', StringSplitOptions.RemoveEmptyEntries));
 
             if (!defineSymbols.Contains(openxr_plugin) && !defineSymbols.Contains(spatialadapter_plugin) &&
-                !defineSymbols.Contains(picoxr_plugin)&&!PXR_ProjectSetting.GetProjectConfig().isSpatialAdapter)
+                !defineSymbols.Contains(picoxr_plugin) && IsAppMode(PXR_Settings.AppMode.XR))
             {
                 defineSymbols.Add(picoxr_plugin);
                 string newDefines = string.Join(";", defineSymbols);
@@ -781,11 +783,19 @@ namespace ByteDance.PICO.XR.Editor
                 Debug.Log($"SetDefineSymbols init define symbols: {newDefines}");
             }
             
-            if (!defineSymbols.Contains(openxr_plugin) && PXR_ProjectSetting.GetProjectConfig().isSpatialAdapter &&
+            if (!defineSymbols.Contains(openxr_plugin) && IsAppMode(PXR_Settings.AppMode.Spatial) &&
                 IsMSPackageInstalled())
             {
                 SetDefineSymbols(spatialadapter_plugin);
             }
+        }
+
+        [InitializeOnLoadMethod]
+        public static void SyncLivePreviewSymbolOnLoad()
+        {
+            // Re-align PICO_LIVE_PREVIEW with the current Standalone PICO loader state after each domain reload
+            // (e.g. project open, branch switch, manual XR settings change).
+            UpdateLivePreviewSymbol();
         }
         public static bool IsMSPackageInstalled()
         {
@@ -830,6 +840,8 @@ namespace ByteDance.PICO.XR.Editor
 
         public static bool UpdateSDKSymbols()
         {
+            var settings = PXR_Settings.GetSettings();
+
             XRGeneralSettings generalSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
             if (generalSettings == null) return false;
             var assignedSettings = generalSettings.AssignedSettings;
@@ -852,14 +864,14 @@ namespace ByteDance.PICO.XR.Editor
                     }
                 }
 #endif
-                if (loader is PXR_Loader)
+                if (loader is PXR_Loader && settings != null)
                 {
                     modified |= defineSymbolsList.Remove(PXR_Utils.openxr_plugin);
-                    string targetSymbol = PXR_ProjectSetting.GetProjectConfig().isSpatialAdapter
+                    string targetSymbol = settings.appMode == PXR_Settings.AppMode.Spatial
                         ? spatialadapter_plugin
                         : picoxr_plugin;
 
-                    string oldSymbol = PXR_ProjectSetting.GetProjectConfig().isSpatialAdapter
+                    string oldSymbol = settings.appMode == PXR_Settings.AppMode.Spatial
                         ? picoxr_plugin
                         : spatialadapter_plugin;
                     modified |= defineSymbolsList.Remove(oldSymbol);
@@ -896,6 +908,44 @@ namespace ByteDance.PICO.XR.Editor
             return false;
         }
 
+        /// <summary>
+        /// Keeps the PICO_LIVE_PREVIEW scripting define in sync with the Standalone (Desktop) XR settings.
+        /// When the PICO loader is active for Standalone the symbol is added, otherwise it is removed.
+        /// The symbol is written to BOTH Android and Standalone targets, because Editor Play mode compiles
+        /// scripts with the ACTIVE build target's defines (often Android), while Live Preview itself runs on Desktop.
+        /// This lets the native P/Invoke branches guarded by PICO_LIVE_PREVIEW run under Editor/Standalone Live Preview
+        /// regardless of which build target is currently active.
+        /// Returns true if any target's define symbols were modified.
+        /// </summary>
+        public static bool UpdateLivePreviewSymbol()
+        {
+            var generalSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
+            bool picoActive = generalSettings != null
+                && generalSettings.AssignedSettings != null
+                && generalSettings.AssignedSettings.activeLoaders.Any(loader => loader is PXR_Loader);
+
+            bool modified = false;
+            modified |= ApplyLivePreviewSymbol(NamedBuildTarget.Standalone, picoActive);
+            modified |= ApplyLivePreviewSymbol(NamedBuildTarget.Android, picoActive);
+            return modified;
+        }
+
+        private static bool ApplyLivePreviewSymbol(NamedBuildTarget target, bool picoActive)
+        {
+            string currentDefines = PlayerSettings.GetScriptingDefineSymbols(target);
+            var defineSymbols = new HashSet<string>(currentDefines.Split(';', StringSplitOptions.RemoveEmptyEntries));
+
+            bool modified = picoActive ? defineSymbols.Add(pico_live_preview) : defineSymbols.Remove(pico_live_preview);
+
+            if (modified)
+            {
+                string newDefines = string.Join(";", defineSymbols);
+                PlayerSettings.SetScriptingDefineSymbols(target, newDefines);
+                Debug.Log($"UpdateLivePreviewSymbol [{target}] define symbols: {newDefines}");
+            }
+            return modified;
+        }
+
 #if URP
         public static UniversalRenderPipelineAsset GetCurrentURPAsset()
         {
@@ -915,9 +965,9 @@ namespace ByteDance.PICO.XR.Editor
 
         public static readonly string[] spatialAdapterPackagesLocalPath = new[]
         {
-            "SpatialAdapter/unity-gltf-exporter/package/com.plattar.unitygltf",
-            "SpatialAdapter/usd-unity-sdk/package/com.unity.formats.usd",
-            "SpatialAdapter/SpatialAdapter-Runtime-Package"
+            "https://github.com/Pico-Developer/gltf-exporter.git?path=package/com.plattar.unitygltf#master",
+            "https://github.com/Pico-Developer/usd-unity-sdk.git?path=package/com.unity.formats.usd#dev",
+            "SpatialAdapter"
         };
 
 
@@ -926,12 +976,15 @@ namespace ByteDance.PICO.XR.Editor
         private static string cachedParentDirectory = null;
         public static string appModelCheckInstallMSDialogTitle = "**SpatialAdapter Package Installation Required**";
         public static string appModelCheckInstallMSDialogMessage = @"To enable SpatialAdapter features, the following packages are required.
-Click ""OK"" to install them automatically, or ""Cancel"" to add them manually from local files.
+Click ""OK"" to install them automatically, or ""Cancel"" to add them manually.
 If automatic installation fails, please add the packages manually in the following order:
  
-1.SpatialAdapter/unity-gltf-exporter/package/com.plattar.unitygltf/package.json
-2.SpatialAdapter/usd-unity-sdk/package/com.unity.formats.usd/package.json
-3.SpatialAdapter/SpatialAdapter-Runtime-Package/package.json";
+1. Unity glTF Exporter
+   https://github.com/Pico-Developer/gltf-exporter.git?path=package/com.plattar.unitygltf#master
+2. USD Unity SDK
+   https://github.com/Pico-Developer/usd-unity-sdk.git?path=package/com.unity.formats.usd#dev
+3. PICO Spatial Adapter Runtime
+   SpatialAdapter/package.json";
 
 
         public static bool IsLocalPackageInstalled(string packageName)
@@ -939,6 +992,23 @@ If automatic installation fails, please add the packages manually in the followi
             string packagePath = Path.Combine("Packages", packageName);
             bool installed = Directory.Exists(packagePath);
             return installed;
+        }
+
+        private static bool IsRemotePackageSource(string source)
+        {
+            if (string.IsNullOrEmpty(source))
+                return false;
+            return source.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || source.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                || source.StartsWith("git@", StringComparison.OrdinalIgnoreCase)
+                || source.StartsWith("ssh://", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string ResolvePackageSource(string source)
+        {
+            if (IsRemotePackageSource(source))
+                return source;
+            return GetPackageUri(source);
         }
 
         private static string GetRootPackageDirectory()
@@ -1007,20 +1077,18 @@ If automatic installation fails, please add the packages manually in the followi
 
                 if (!IsLocalPackageInstalled(packageName))
                 {
-                    string sdkPackageDirectory = Directory.GetParent(PXR_Utils.sdkPackageName).FullName;
-                    string parentDirectory = Directory.GetParent(sdkPackageDirectory).FullName;
-                    if (string.IsNullOrEmpty(parentDirectory))
+                    string packageSource = spatialAdapterPackagesLocalPath[currentPackageIndex];
+                    string packageUri = ResolvePackageSource(packageSource);
+
+                    if (string.IsNullOrEmpty(packageUri))
                     {
-                        Debug.LogError("Aborting package import due to null parent directory.");
+                        Debug.LogError("Aborting package import due to unresolved package source: " + packageSource);
                         EditorApplication.update -= CheckAndLoadNextPackage;
                         return;
                     }
 
-                    string packageRelativePath = spatialAdapterPackagesLocalPath[currentPackageIndex];
-                    string packageUri = GetPackageUri(packageRelativePath);
-
                     currentRequest = Client.Add(packageUri);
-                    Debug.Log("Adding local package: " + packageRelativePath + ",\n from: " + packageUri + ", \n currentPackageIndex:" + currentPackageIndex + ", \n currentRequest:" + currentRequest + ", \n currentRequest.Status:" + currentRequest.Status);
+                    Debug.Log("Adding package: " + packageSource + ",\n from: " + packageUri + ", \n currentPackageIndex:" + currentPackageIndex + ", \n currentRequest:" + currentRequest + ", \n currentRequest.Status:" + currentRequest.Status);
                 }
                 currentPackageIndex++;
                 EditorApplication.update += CheckAndLoadNextPackage;
@@ -1032,23 +1100,20 @@ If automatic installation fails, please add the packages manually in the followi
             }
         }
 
-        public static AddRequest LoadLocalPackage(string packageName, string packageRelativePath)
+        public static AddRequest LoadLocalPackage(string packageName, string packageSource)
         {
             AddRequest request = null;
             if (!IsLocalPackageInstalled(packageName))
             {
-                string sdkPackageDirectory = Directory.GetParent(PXR_Utils.sdkPackageName).FullName;
-                string parentDirectory = Directory.GetParent(sdkPackageDirectory).FullName;
-                if (string.IsNullOrEmpty(parentDirectory))
+                string packageUri = ResolvePackageSource(packageSource);
+                if (string.IsNullOrEmpty(packageUri))
                 {
-                    Debug.LogError("Aborting package import due to null parent directory.");
+                    Debug.LogError("Aborting package import due to unresolved package source: " + packageSource);
                     return request;
                 }
 
-                string packageUri = GetPackageUri(packageRelativePath);
-
                 request = Client.Add(packageUri);
-                Debug.Log("LoadLocalPackage Adding local package: " + packageRelativePath + ",\n from: " + packageUri + ", \n packageRelativePath:" + packageRelativePath + ", \n request:" + request + ", \n request.Status:" + request.Status);
+                Debug.Log("LoadLocalPackage Adding package: " + packageSource + ",\n from: " + packageUri + ", \n request:" + request + ", \n request.Status:" + request.Status);
             }
             return request;
         }
@@ -1058,6 +1123,13 @@ If automatic installation fails, please add the packages manually in the followi
             "com.plattar.unitygltf",
             "com.unity.formats.usd",
             "com.bytedance.pico.spatialadapter",
+        };
+
+        public static readonly string[] spatialAdapterPackagesDisplayName = new[]
+        {
+            "Unity glTF Exporter (com.plattar.unitygltf)",
+            "USD Unity SDK (com.unity.formats.usd)",
+            "PICO Spatial Adapter Runtime",
         };
         
         static AddRequest currentPackageAddRequest;

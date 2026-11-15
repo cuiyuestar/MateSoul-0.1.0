@@ -96,7 +96,10 @@ namespace ByteDance.PICO.SecureMR
             var tensorHandle = backend.CreatePipelineTensorByShape(pipelineHandle, true, dataType, shape.Dimensions, (sbyte)channels, enumValue);
             var t = new Tensor(tensorHandle, pipelineHandle, true, false)
             {
+                Dimensions = shape.Dimensions,
+                Channels = (sbyte)channels,
                 Usage = PXR_SecureMRPlugin.TensorClassToEnum[typeof(TType)],
+                DataType = dataType
             };
             t.Backend = backend;
             return t;

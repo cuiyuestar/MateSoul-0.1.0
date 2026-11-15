@@ -93,7 +93,6 @@ namespace ByteDance.PICO.XR.Editor
         public static string strProjectValidation_AddPXRManager = "add_pxr_manager";
         public static string strProjectValidation_ETFRUseOpenGLES3 = "etfr_use_opengles3";
         public static string strProjectValidation_FTUnsafeCode = "ft_unsafe_code";
-        public static string strProjectValidation_URPNoHDR = "urp_no_hdr";
         public static string strProjectValidation_URPGraphicsQuality = "urp_graphics_quality";
         public static string strProjectValidation_MRARM64 = "mr_arm64";
         public static string strProjectValidation_OneXROrigin = "one_xr_origin";
@@ -128,8 +127,6 @@ namespace ByteDance.PICO.XR.Editor
         public static string strProjectValidation_WritePermissionAndroid14 = "write_permission_android14";
         public static string strProjectValidation_Unity2020321Unity6 = "unity2020321_unity6";
         public static string strProjectValidation_URPNoUseToDelete = "urp_no_use_to_delete";
-        public static string strProjectValidation_URPVSTNoPostProcessing = "urp_vst_no_post_processing";
-        public static string strProjectValidation_URPNoETFRAndFFR = "urp_no_etfr_and_ffr";
         public static string strProjectValidation_APPSWNeed = "appsw_need";
         public static string strProjectValidation_LateLatchingNeed = "late_latching_need";
         public static string strProjectValidation_LateLatchingOrOverlay = "late_latching_or_overlay";

@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+/*******************************************************************************
 Copyright © 2015-2022 PICO Technology Co., Ltd.All rights reserved.  
 
 NOTICE：All information contained herein is, and remains the property of 
@@ -53,7 +53,8 @@ namespace ByteDance.PICO.XR
         private Camera[] eyeCamera;
         private bool appSpaceWarp;
         private Transform m_AppSpaceTransform;
-        private DepthTextureMode m_CachedDepthTextureMode;
+        private readonly Dictionary<Camera, DepthTextureMode> m_CachedDepthTextureModes =
+            new Dictionary<Camera, DepthTextureMode>();
 
         [HideInInspector]
         public bool screenFade;
@@ -170,6 +171,10 @@ namespace ByteDance.PICO.XR
         public static event Action<List<PxrPlaneData>> PlaneDetectionDataUpdated;
         public static event Action LightEstimationUpdated;
         public static event Action SemiAutoCaptureDataUpdated;
+        public static event Action DynamicObjectDataUpdated;
+        public static event Action<List<PxrDynamicObjectData>> DynamicObjectTrackingDataUpdated;
+        public static event Action<PxrKeyboardPassthroughLevel> KeyboardPassthroughStateChanged;
+        public static event Action<PxrPicoKeyboardPassthroughLevel> PicoKeyboardPassthroughStateChanged;
         public static event Action<bool> EnableVideoSeeThroughAction;
         public static Action<PxrVstStatus> VstDisplayStatusChanged;
 
@@ -219,11 +224,11 @@ namespace ByteDance.PICO.XR
 #if ENABLE_PICO_OPENXR_SDK
 #else
             //version log
-            Debug.Log("PXRLog XR Platform----SDK Version:" + PXR_Plugin.System.UPxr_GetSDKVersion());
+            Debug.Log("Unity SDK Version : PICO XR " + PXR_Plugin.System.UPxr_GetSDKVersion());
 
             //log level
             int logLevel = PXR_Plugin.System.UPxr_GetConfigInt(ConfigType.UnityLogLevel);
-            Debug.Log("PXRLog XR Platform----SDK logLevel:" + logLevel);
+            Debug.Log("Unity XR----SDK logLevel:" + logLevel);
             PLog.logLevel = (PLog.LogLevel)logLevel;
             
 
@@ -274,6 +279,9 @@ namespace ByteDance.PICO.XR
                     StartCoroutine("StartXR");
                     isNeedResume = false;
                 }
+#if UNITY_6000_0_OR_NEWER && ENABLE_PICO_XR_SDK
+                ScheduleSrpFoveationReapply();
+#endif
             }
 #endif
 
@@ -313,6 +321,9 @@ namespace ByteDance.PICO.XR
 #if UNITY_EDITOR
             Application.targetFrameRate = 72;
 #endif
+#if UNITY_6000_0_OR_NEWER && ENABLE_PICO_XR_SDK
+            ScheduleSrpFoveationReapply();
+#endif
 #if ENABLE_PICO_OPENXR_SDK
 #else
             PXR_Plugin.Controller.UPxr_SetControllerDelay();
@@ -323,6 +334,28 @@ namespace ByteDance.PICO.XR
             }
 #endif
         }
+
+#if UNITY_6000_0_OR_NEWER && ENABLE_PICO_XR_SDK
+        private Coroutine srpFoveationReapplyCoroutine;
+
+        private void ScheduleSrpFoveationReapply()
+        {
+            if (srpFoveationReapplyCoroutine == null)
+            {
+                srpFoveationReapplyCoroutine = StartCoroutine(ApplySrpFoveationAfterDisplayStarts());
+            }
+        }
+
+        private IEnumerator ApplySrpFoveationAfterDisplayStarts()
+        {
+            while (!PXR_SrpFoveationRendering.TryReapplyLastRequestedState())
+            {
+                yield return null;
+            }
+
+            srpFoveationReapplyCoroutine = null;
+        }
+#endif
 
         void Update()
         {
@@ -438,6 +471,9 @@ namespace ByteDance.PICO.XR
 
         public void PollEvent(XrEventDataBuffer eventDB)
         {
+#if AR_FOUNDATION_6_IMAGE_TRACKING
+            SpatialImageTrackingRuntimeEventRouter.Dispatch(eventDB);
+#endif
             switch (eventDB.type)
             {
                 case XrStructureType.XR_TYPE_EVENT_DATA_SENSE_DATA_PROVIDER_STATE_CHANGED:
@@ -504,6 +540,16 @@ namespace ByteDance.PICO.XR
                         }
                     }
 
+                    if (providerHandle ==
+                        PXR_Plugin.MixedReality.DynamicObjectTrackingProviderHandle)
+                    {
+                        DynamicObjectDataUpdated?.Invoke();
+                        if (DynamicObjectTrackingDataUpdated != null)
+                        {
+                            StartCoroutine(QueryDynamicObjectData());
+                        }
+                    }
+
                     break;
                 }
 
@@ -530,6 +576,18 @@ namespace ByteDance.PICO.XR
                     }
                 }
                     break;
+                case XrStructureType.XR_TYPE_EVENT_DATA_KEYBOARD_PASSTHROUGH_STATE_CHANGED_PICO:
+                {
+                    var level = (PxrKeyboardPassthroughLevel)BitConverter.ToInt32(eventDB.data, 16);
+                    KeyboardPassthroughStateChanged?.Invoke(level);
+                    break;
+                }
+                case XrStructureType.XR_TYPE_EVENT_DATA_PICO_KEYBOARD_PASSTHROUGH_STATE_CHANGED_PICO:
+                {
+                    var level = (PxrPicoKeyboardPassthroughLevel)BitConverter.ToInt32(eventDB.data, 16);
+                    PicoKeyboardPassthroughStateChanged?.Invoke(level);
+                    break;
+                }
             }
         }
 
@@ -579,33 +637,78 @@ namespace ByteDance.PICO.XR
             }
         }
 
+        private IEnumerator QueryDynamicObjectData()
+        {
+            var task = PXR_MixedReality.QueryDynamicObjectDataAsync();
+            yield return new WaitUntil(() => task.IsCompleted);
+
+            var (result, objects) = task.Result;
+            if (result == PxrResult.SUCCESS)
+            {
+                DynamicObjectTrackingDataUpdated?.Invoke(objects);
+            }
+            else
+            {
+                Debug.LogError($"PXR_Manager QueryDynamicObjectData failed:{result}");
+            }
+        }
+
+        public static bool IsSpaceWarpAllowedForCurrentSdk(PxrReprojectionMode reprojectionMode)
+        {
+#if ENABLE_PICO_XR_SDK
+            return reprojectionMode == PxrReprojectionMode.AppSW;
+#else
+            return true;
+#endif
+        }
+
         public void SetSpaceWarp(bool enabled)
         {
+#if ENABLE_PICO_XR_SDK
+            PXR_Settings settings = PXR_Settings.GetSettings();
+            if (settings == null || !IsSpaceWarpAllowedForCurrentSdk(settings.reprojectionMode))
+            {
+                return;
+            }
+#endif
+
             for (int i = 0; i < 3; i++)
             {
-                if (eyeCamera[i] != null && eyeCamera[i].enabled)
+                Camera camera = eyeCamera[i];
+                if (camera == null)
                 {
-                    if (enabled)
-                    {
-                        m_CachedDepthTextureMode = eyeCamera[i].depthTextureMode;
-                        eyeCamera[i].depthTextureMode |= (DepthTextureMode.MotionVectors | DepthTextureMode.Depth);
+                    continue;
+                }
 
-                        if (eyeCamera[i].transform.parent == null)
-                        {
-                            m_AppSpaceTransform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-                        }
-                        else
-                        {
-                            m_AppSpaceTransform = eyeCamera[i].transform.parent;
-                        }
-                    }
-                    else
+                if (enabled)
+                {
+                    if (!camera.enabled)
                     {
-                        eyeCamera[i].depthTextureMode = m_CachedDepthTextureMode;
-                        m_AppSpaceTransform = null;
+                        continue;
                     }
+
+                    if (!m_CachedDepthTextureModes.ContainsKey(camera))
+                    {
+                        m_CachedDepthTextureModes.Add(camera, camera.depthTextureMode);
+                    }
+
+                    camera.depthTextureMode |= (DepthTextureMode.MotionVectors | DepthTextureMode.Depth);
+                    m_AppSpaceTransform = camera.transform.parent != null
+                        ? camera.transform.parent
+                        : camera.transform;
+                }
+                else if (m_CachedDepthTextureModes.TryGetValue(camera, out DepthTextureMode depthTextureMode))
+                {
+                    camera.depthTextureMode = depthTextureMode;
                 }
             }
+
+            if (!enabled)
+            {
+                m_CachedDepthTextureModes.Clear();
+                m_AppSpaceTransform = null;
+            }
+
             PXR_Plugin.Render.UPxr_SetSpaceWarp(enabled);
             appSpaceWarp = enabled;
         }

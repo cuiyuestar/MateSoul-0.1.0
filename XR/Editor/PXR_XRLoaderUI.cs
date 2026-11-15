@@ -51,12 +51,24 @@ namespace ByteDance.PICO.XR.Editor
             var newToggled = EditorGUI.ToggleLeft(labelRect, k_LoaderName, IsLoaderEnabled);
             if (newToggled != IsLoaderEnabled)
             {
+                // Detect the unchecked -> checked transition on the Standalone (Desktop) page.
+                // Only then verify the Windows Live Preview DLL import config, once per transition.
+                bool checkedOnStandalone = newToggled && !IsLoaderEnabled
+                    && ActiveBuildTargetGroup == BuildTargetGroup.Standalone;
+
                 IsLoaderEnabled = newToggled;
+
+                if (checkedOnStandalone)
+                {
+                    PXR_LivePreviewDllConfigurator.EnsureWindowsPluginConfig();
+                }
             }
 
 
             string currentDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
             PXR_Utils.UpdateSDKSymbols();
+            // Keep the Standalone PICO_LIVE_PREVIEW define in sync with the PICO loader checkbox.
+            PXR_Utils.UpdateLivePreviewSymbol();
         }
 
 

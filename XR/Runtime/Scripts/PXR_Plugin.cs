@@ -162,6 +162,9 @@ namespace ByteDance.PICO.XR
         /// </summary>
         Box3D,
         TriangleMesh = 5,
+        Sphere = 6,
+        Peripheral = 7,
+        DynamicObject = 1010017000,
     }
     
     
@@ -357,7 +360,15 @@ namespace ByteDance.PICO.XR
         // <summary>
         /// Light estimation data provider.
         /// </summary>
-        LightEstimation
+        LightEstimation,
+        /// <summary>
+        /// Dynamic object tracking data provider.
+        /// </summary>
+        DynamicObjectTracking,
+        /// <summary>
+        /// Spatial image tracking data provider.
+        /// </summary>
+        SpatialImageTracking
     }
 
 
@@ -1344,6 +1355,8 @@ namespace ByteDance.PICO.XR
 		public ushort spatialMeshLod;
         public ushort enableEyeTracking;
         public ushort dynamicFoveation;
+        public ushort reprojectionMode;
+        public ushort usesReversedZBuffer;
     }
     
     public enum SuperResolutionOrSharpeningType
@@ -2318,7 +2331,7 @@ namespace ByteDance.PICO.XR
     
     public static class PXR_Plugin
     {
-        public const string PXR_SDK_Version = "0.13.0";
+        public const string PXR_SDK_Version = "6.2.0";
         public const string PXR_PLATFORM_DLL = "PxrPlatform";
         private static int PXR_API_Version = 0;
 
@@ -2334,6 +2347,8 @@ namespace ByteDance.PICO.XR
 
         [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern int Pxr_PollFutureEXT(ref XrFuturePollInfoEXT pollInfo, ref XrFuturePollResultEXT pollResult);
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_CancelFutureEXT(ref XrFutureCancelInfoEXT cancelInfo);
         [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern int Pxr_PollFutureWithProgress(ref XrFuturePollInfoEXT pollInfo, ref XrFuturePollResultProgress pollResultProgress);
 
@@ -2386,6 +2401,74 @@ namespace ByteDance.PICO.XR
         private static extern int Pxr_LocateAnchor(ulong anchorHandle, ref XrSpaceLocation location);
 
         [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_LocateAnchorRaw(ulong anchorHandle, ref XrSpaceLocation location);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_LocateAnchorAligned(
+            ulong anchorHandle,
+            ref XrSpaceLocationAligned location,
+            ref XrSpaceLocationModelScale modelScale);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_CreateDynamicObjectTrackingSenseDataProvider(
+            uint trackingTypeCount,
+            [In] PxrDynamicObjectType[] trackingTypes,
+            out ulong providerHandle);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_UpdateDynamicObjectTrackingConfig(
+            ulong providerHandle,
+            uint trackingTypeCount,
+            [In] PxrDynamicObjectType[] trackingTypes);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_GetSpatialEntityDynamicObjectInfo(
+            ulong snapshotHandle,
+            ref XrSpatialEntityDynamicObjectGetInfo getInfo,
+            ref XrSpatialEntityComponentDataDynamicObject info);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_GetSpatialEntityPeripheralInfo(
+            ulong snapshotHandle,
+            ref XrSpatialEntityPeripheralGetInfo getInfo,
+            ref XrSpatialEntityComponentDataPeripheral info);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct XrPeripheralPicoKeyboardDataNative
+        {
+            public XrStructureType type;
+            public IntPtr next;
+            public float ignoredScale;
+            public PxrPicoKeyboardProperty properties;
+        }
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_GetSpatialEntityPicoKeyboardInfo(
+            ulong snapshotHandle,
+            ref XrSpatialEntityPeripheralGetInfo getInfo,
+            ref XrSpatialEntityComponentDataPeripheral info,
+            ref XrPeripheralPicoKeyboardDataNative picoKeyboardData);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_EnumerateSupportedEnvironmentPassthroughTypes(
+            ulong capacityInput,
+            out ulong countOutput,
+            [Out] PxrEnvironmentPassthroughType[] supportedTypes);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_SetEnvironmentPassthroughPreference(
+            PxrEnvironmentPassthroughType passthroughType,
+            [MarshalAs(UnmanagedType.I1)] bool enabled);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_GetKeyboardPassthroughState(
+            ref XrKeyboardPassthroughState state);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_GetPicoKeyboardPassthroughState(
+            ref XrPicoKeyboardPassthroughState state);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern int Pxr_GetAnchorUuid(ulong anchorHandle, out PxrUuid uuid);
 
         [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
@@ -2426,6 +2509,10 @@ namespace ByteDance.PICO.XR
         [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern int Pxr_GetSpatialEntityBox2DInfo(ulong snapshotHandle, ref XrSpatialEntityGetInfo componentGetInfo,
             ref XrSpatialEntityBoundingBox2DData componentInfo);
+
+        [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Pxr_GetSpatialEntitySphereInfo(ulong snapshotHandle, ref XrSpatialEntityGetInfo componentGetInfo,
+            ref XrSpatialEntitySphereData componentInfo);
 
         [DllImport(PXR_PLATFORM_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern int Pxr_GetSpatialEntityPolygonInfo(ulong snapshotHandle, ref XrSpatialEntityGetInfo componentGetInfo,
@@ -3013,7 +3100,9 @@ namespace ByteDance.PICO.XR
                     return ;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 Pxr_SetTrackingOrigin(mode);
+#endif
             }
 
             public static void UPxr_GetTrackingOrigin(ref PxrTrackingOrigin mode)
@@ -3024,7 +3113,9 @@ namespace ByteDance.PICO.XR
                     return ;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 Pxr_GetTrackingOrigin(ref mode);
+#endif
             }
 
             public static bool UPxr_QueryDeviceAbilities(PxrDeviceAbilities abilities)
@@ -3097,7 +3188,9 @@ namespace ByteDance.PICO.XR
                                                 
             public static void UPxr_SetXrEventDataBufferCallBack(XrEventDataBufferCallBack callback)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 Pxr_SetEventDataBufferCallBack(callback);
+#endif
             }
 
             public static bool UPxr_GetFocusState()
@@ -3108,7 +3201,11 @@ namespace ByteDance.PICO.XR
                     return false;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 return Pxr_GetFocusState();
+#else
+                return false;
+#endif
             }
 
             public static bool UPxr_IsSensorReady()
@@ -3166,9 +3263,8 @@ namespace ByteDance.PICO.XR
             {
                 int PXR_SDK_LogLevel = 0;
 #if UNITY_ANDROID && !UNITY_EDITOR
-               
-#endif
                 Pxr_GetLogLevel(ref PXR_SDK_LogLevel);
+#endif
                 PLog.logLevel=(PLog.LogLevel)PXR_SDK_LogLevel;
                 PLog.i(TAG, "PXR_SDK_LogLevel:" + PXR_SDK_LogLevel);
             }
@@ -3244,7 +3340,9 @@ namespace ByteDance.PICO.XR
 
             public static void UPxr_SetUserDefinedSettings(UserDefinedSettings settings)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 Pxr_SetUserDefinedSettings(settings);
+#endif
             }
 
             public static bool UPxr_GetHomeKey()
@@ -3916,7 +4014,11 @@ namespace ByteDance.PICO.XR
 
             public static int UPxr_SetSeeThroughBackground(bool value)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 return Pxr_SetSeeThroughBackground(value);
+#else
+                return 0;
+#endif
             }
 
             public static void UPxr_SetSeeThroughState(bool value)
@@ -4784,7 +4886,9 @@ namespace ByteDance.PICO.XR
 #endif
                 bool val = false;
                 {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                     Pxr_GetHandTrackerSettingState(ref val);
+#endif
                 }
                 return val;
             }
@@ -4799,7 +4903,9 @@ namespace ByteDance.PICO.XR
 #endif
                 ActiveInputDevice val = ActiveInputDevice.HeadActive;
                 {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                     Pxr_GetHandTrackerActiveInputType(ref val);
+#endif
                 }
                 return val;
             }
@@ -4812,7 +4918,11 @@ namespace ByteDance.PICO.XR
                     return false;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 bool val = Pxr_GetHandTrackerAimState(hand,ref aimState) == 0;
+#else
+                bool val = false;
+#endif
                 return val;
             }
 
@@ -4824,7 +4934,11 @@ namespace ByteDance.PICO.XR
                     return false;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 bool val = Pxr_GetHandTrackerJointLocations(hand, ref jointLocations) == 0;
+#else
+                bool val = false;
+#endif
                 return val;
             }
             public static bool UPxr_GetHandScale(int hand,ref float scale)
@@ -4835,7 +4949,11 @@ namespace ByteDance.PICO.XR
                     return false;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 bool val = Pxr_GetHandTrackerHandScale(hand, ref scale) == 0;
+#else
+                bool val = false;
+#endif
                 return val;
             }
            
@@ -4994,7 +5112,11 @@ namespace ByteDance.PICO.XR
                     return -1;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 int val =Pxr_StartBodyTrackingCalibApp();
+#else
+                int val = -1;
+#endif
                 return val;
             }
             public static int UPxr_WantBodyTrackingService()
@@ -5005,7 +5127,11 @@ namespace ByteDance.PICO.XR
                     return -1;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 int val = Pxr_WantBodyTrackingService();
+#else
+                int val = -1;
+#endif
                 return val;
             }
             public static unsafe int UPxr_GetBodyTrackingSupported(ref bool supported)
@@ -5016,7 +5142,11 @@ namespace ByteDance.PICO.XR
                     return -1;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 int val  = Pxr_GetBodyTrackingSupported(ref supported);
+#else
+                int val = -1;
+#endif
                 return val;
             }
             public static int UPxr_StartBodyTracking(BodyJointSet JointSet,BodyTrackingBoneLength boneLength)
@@ -5030,7 +5160,11 @@ namespace ByteDance.PICO.XR
                 BodyTrackingStartInfo startInfo = new BodyTrackingStartInfo();
                 startInfo.jointSet = JointSet;
                 startInfo.BoneLength = boneLength;
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 int val =  Pxr_StartBodyTracking(ref startInfo);
+#else
+                int val = -1;
+#endif
                 return val;
             }
             public static int UPxr_StopBodyTracking()
@@ -5041,7 +5175,11 @@ namespace ByteDance.PICO.XR
                     return -1;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 int val = Pxr_StopBodyTracking();
+#else
+                int val = -1;
+#endif
                 return val;
             }
             public static int UPxr_GetBodyTrackingState(ref bool isTracking, ref BodyTrackingStatus state)
@@ -5052,7 +5190,11 @@ namespace ByteDance.PICO.XR
                     return -1;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 int val = Pxr_GetBodyTrackingState(ref isTracking, ref state);
+#else
+                int val = -1;
+#endif
                 return val;
             }
             public unsafe static int UPxr_GetBodyTrackingData(ref BodyTrackingGetDataInfo getInfo, ref BodyTrackingData data)
@@ -5065,6 +5207,7 @@ namespace ByteDance.PICO.XR
 #endif
                 int val = -1;
                 {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                     val = Pxr_GetBodyTrackingData(ref getInfo, ref data);
                     for (int i = 0; i < (int)BodyTrackerRole.ROLE_NUM; i++)
                     {
@@ -5076,6 +5219,7 @@ namespace ByteDance.PICO.XR
                         data.roleDatas[i].wvelo[3] = -data.roleDatas[i].wvelo[3];
                         data.roleDatas[i].wacce[3] = -data.roleDatas[i].wacce[3];
                     }
+#endif
                 }           
                 return val;
             }
@@ -5109,14 +5253,22 @@ namespace ByteDance.PICO.XR
 
             public static int UPxr_CheckMotionTrackerNumber(int number)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 int val = Pxr_RequestMotionTrackerDevice((UInt32)number);
+#else
+                int val = -1;
+#endif
 
                 PLog.d(TAG, $"UPxr_CheckMotionTrackerNumber() number={number}, val={val}");
                 return val;
             }
             public static int UPxr_GetMotionTrackerLocation(long trackerid, ref MotionTrackerLocation location, ref bool isValidPose)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 int val = Pxr_GetLocateMotionTracker(trackerid,ref location,ref isValidPose);
+#else
+                int val = -1;
+#endif
                 return val;
             }
             public static  int UPxr_GetExpandDevice(out long[] deviceArray)
@@ -5243,6 +5395,70 @@ namespace ByteDance.PICO.XR
             public static ulong AutoSceneCaptureProviderHandle { get; set; }
             public static ulong PlaneDetectionProviderHandle { get; set; }
             public static ulong LightEstimationProviderHandle { get; set; }
+            public static ulong DynamicObjectTrackingProviderHandle { get; set; }
+#if AR_FOUNDATION_6_IMAGE_TRACKING
+            private static readonly object s_ImageTrackingProviderGate =
+                new object();
+            private static ulong s_ImageTrackingProviderHandle;
+            private static long s_ImageTrackingProviderGeneration;
+
+            public static ulong ImageTrackingProviderHandle
+            {
+                get
+                {
+                    lock (s_ImageTrackingProviderGate)
+                    {
+                        return s_ImageTrackingProviderHandle;
+                    }
+                }
+                set
+                {
+                    lock (s_ImageTrackingProviderGate)
+                    {
+                        if (s_ImageTrackingProviderHandle == value)
+                        {
+                            return;
+                        }
+
+                        s_ImageTrackingProviderHandle = value;
+                        s_ImageTrackingProviderGeneration++;
+                    }
+                }
+            }
+
+            internal static long ImageTrackingProviderGeneration
+            {
+                get
+                {
+                    lock (s_ImageTrackingProviderGate)
+                    {
+                        return s_ImageTrackingProviderGeneration;
+                    }
+                }
+            }
+
+            internal static bool TryGetImageTrackingProviderGeneration(
+                ulong eventProviderHandle,
+                out long generation)
+            {
+                lock (s_ImageTrackingProviderGate)
+                {
+                    generation = s_ImageTrackingProviderGeneration;
+                    return eventProviderHandle != 0
+                           && eventProviderHandle
+                           == s_ImageTrackingProviderHandle;
+                }
+            }
+
+            internal static void InvalidateImageTrackingProviderHandle()
+            {
+                lock (s_ImageTrackingProviderGate)
+                {
+                    s_ImageTrackingProviderHandle = 0;
+                    s_ImageTrackingProviderGeneration++;
+                }
+            }
+#endif
             public static Dictionary<ulong, PxrSceneComponentData> SceneAnchorData = new Dictionary<ulong, PxrSceneComponentData>();
             public static Dictionary<Guid, PxrPlaneData> PlaneAnchorData = new Dictionary<Guid, PxrPlaneData>();
             public static Dictionary<Guid, ulong> planeAnchorLastData = new Dictionary<Guid, ulong>();
@@ -5279,7 +5495,9 @@ namespace ByteDance.PICO.XR
                     case PxrSemanticLabel.VirtualWall:
                         return PxrSpatialSceneDataTypeFlags.Wall;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(label), label, null);
+                        // Forward compatibility: treat semantic labels added by newer
+                        // algorithm/runtime as Unknown instead of throwing.
+                        return PxrSpatialSceneDataTypeFlags.Unknown;
                 }
             }
 
@@ -5303,8 +5521,13 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_CreateSenseDataProvider(ref info, out providerHandle);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                providerHandle = ulong.MinValue;
+                return PxrResult.Unknown;
+#endif
             }
             
             public static PxrResult UPxr_CreateSpatialAnchorSenseDataProvider()
@@ -5331,6 +5554,178 @@ namespace ByteDance.PICO.XR
                 SceneCaptureProviderHandle = providerHandle;
                 return pxrResult;
             }
+#if AR_FOUNDATION_6_IMAGE_TRACKING
+            internal delegate PxrResult SpatialImageTrackingProviderCreateDelegate(
+                XrSpatialImageTrackingMode mode,
+                out ulong providerHandle);
+
+            internal delegate PxrResult SpatialImageTrackingProviderDestroyDelegate(
+                ulong providerHandle);
+
+            internal static PxrResult
+                UPxr_CreateSpatialImageTrackingSenseDataProvider(
+                    XrSpatialImageTrackingMode mode)
+            {
+                return UPxr_CreateSpatialImageTrackingSenseDataProvider(
+                    mode,
+                    PXR_SpatialImageTrackingPlugin.CreateProvider);
+            }
+
+            internal static PxrResult
+                UPxr_CreateSpatialImageTrackingSenseDataProvider(
+                    XrSpatialImageTrackingMode mode,
+                    SpatialImageTrackingProviderCreateDelegate createProvider)
+            {
+                if (ImageTrackingProviderHandle != 0)
+                {
+                    return PxrResult.SUCCESS;
+                }
+
+                PxrResult result = createProvider(mode, out ulong providerHandle);
+                if (result == PxrResult.SUCCESS)
+                {
+                    ImageTrackingProviderHandle = providerHandle;
+                }
+
+                return result;
+            }
+
+            internal static PxrResult
+                UPxr_DestroySpatialImageTrackingSenseDataProvider()
+            {
+                return UPxr_DestroySpatialImageTrackingSenseDataProvider(
+                    UPxr_DestroySenseDataProvider);
+            }
+
+            internal static PxrResult
+                UPxr_DestroySpatialImageTrackingSenseDataProvider(
+                    SpatialImageTrackingProviderDestroyDelegate destroyProvider)
+            {
+                ulong providerHandle = ImageTrackingProviderHandle;
+                if (providerHandle == 0)
+                {
+                    return PxrResult.SUCCESS;
+                }
+
+                PxrResult result = destroyProvider(providerHandle);
+                if (result == PxrResult.SUCCESS)
+                {
+                    ImageTrackingProviderHandle = 0;
+                }
+
+                return result;
+            }
+#endif
+            public static PxrResult UPxr_CreateDynamicObjectTrackingSenseDataProvider(
+                PxrDynamicObjectType[] trackingTypes)
+            {
+                if (trackingTypes == null)
+                {
+                    return PxrResult.ERROR_VALIDATION_FAILURE;
+                }
+                var normalizedTrackingTypes = NormalizeDynamicObjectTrackingTypes(trackingTypes);
+                if (normalizedTrackingTypes.Length == 0)
+                {
+                    return PxrResult.ERROR_VALIDATION_FAILURE;
+                }
+#if UNITY_ANDROID && !UNITY_EDITOR
+                var result = Pxr_CreateDynamicObjectTrackingSenseDataProvider(
+                    (uint)normalizedTrackingTypes.Length,
+                    normalizedTrackingTypes,
+                    out var providerHandle);
+                if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
+                {
+                    DynamicObjectTrackingProviderHandle = providerHandle;
+                }
+                return UPxr_ConvertIntToPxrResult(result);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+            }
+
+            public static PxrResult UPxr_UpdateDynamicObjectTrackingConfig(
+                PxrDynamicObjectType[] trackingTypes)
+            {
+                if (trackingTypes == null || DynamicObjectTrackingProviderHandle == 0)
+                {
+                    return PxrResult.ERROR_VALIDATION_FAILURE;
+                }
+                var normalizedTrackingTypes = NormalizeDynamicObjectTrackingTypes(trackingTypes);
+                if (normalizedTrackingTypes.Length == 0)
+                {
+                    return PxrResult.ERROR_VALIDATION_FAILURE;
+                }
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var result = Pxr_UpdateDynamicObjectTrackingConfig(
+                    DynamicObjectTrackingProviderHandle,
+                    (uint)normalizedTrackingTypes.Length,
+                    normalizedTrackingTypes);
+                return UPxr_ConvertIntToPxrResult(result);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+            }
+
+            private static PxrDynamicObjectType[] NormalizeDynamicObjectTrackingTypes(
+                PxrDynamicObjectType[] trackingTypes)
+            {
+                bool hasKeyboard = trackingTypes.Contains(PxrDynamicObjectType.Keyboard);
+                bool hasMouse = trackingTypes.Contains(PxrDynamicObjectType.Mouse);
+                var normalized = new List<PxrDynamicObjectType>();
+
+                foreach (var trackingType in trackingTypes)
+                {
+                    if (trackingType == PxrDynamicObjectType.Unknown)
+                    {
+                        continue;
+                    }
+                    if (hasKeyboard && trackingType == PxrDynamicObjectType.PicoKeyboard)
+                    {
+                        continue;
+                    }
+                    if (hasMouse && trackingType == PxrDynamicObjectType.PicoTouchpad)
+                    {
+                        continue;
+                    }
+                    if (!normalized.Contains(trackingType))
+                    {
+                        normalized.Add(trackingType);
+                    }
+                }
+
+                return normalized.ToArray();
+            }
+
+            public static PxrResult UPxr_DestroyDynamicObjectTrackingSenseDataProvider()
+            {
+                if (DynamicObjectTrackingProviderHandle == 0)
+                {
+                    return PxrResult.ERROR_HANDLE_INVALID;
+                }
+
+                var stateResult = UPxr_GetSenseDataProviderState(
+                    DynamicObjectTrackingProviderHandle,
+                    out var state);
+                if (stateResult != PxrResult.SUCCESS)
+                {
+                    return stateResult;
+                }
+                if (state == PxrSenseDataProviderState.Running)
+                {
+                    var stopResult = UPxr_StopSenseDataProvider(DynamicObjectTrackingProviderHandle);
+                    if (stopResult != PxrResult.SUCCESS)
+                    {
+                        return stopResult;
+                    }
+                }
+
+                var result = UPxr_DestroySenseDataProvider(DynamicObjectTrackingProviderHandle);
+                if (result == PxrResult.SUCCESS)
+                {
+                    DynamicObjectTrackingProviderHandle = 0;
+                }
+                return result;
+            }
 
             public static PxrResult UPxr_CreatePlaneDetectionSenseDataProvider()
             {
@@ -5350,22 +5745,34 @@ namespace ByteDance.PICO.XR
 
             public static PxrResult UPxr_CreateEnvironmentDepthSenseDataProvider()
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_CreateEnvironmentDepthProvider();
                 
                 return MixedReality.UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
 
             public static PxrResult UPxr_DestroyEnvironmentDepthSenseDataProvider()
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_DestroyEnvironmentDepthProvider();
                 return MixedReality.UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
 
             public static PxrResult UPxr_CreateLightEstimationProvider(PxrEnvironmentTextureResolution textureResolution)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_CreateLightEstimationSenseDataProvider(out var providerHandle,(int)textureResolution);
                 LightEstimationProviderHandle = providerHandle;
                 return MixedReality.UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
             
             public static ulong UPxr_GetSpatialMeshProviderHandle()
@@ -5376,7 +5783,11 @@ namespace ByteDance.PICO.XR
                     return ulong.MinValue;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 return Pxr_GetSpatialMeshProviderHandle();
+#else
+                return ulong.MinValue;
+#endif
             }
 
             public static void UPxr_AddOrUpdateMesh(PxrSpatialMeshInfo meshInfo)
@@ -5399,7 +5810,7 @@ namespace ByteDance.PICO.XR
                      SpatialNativeApi.Pmp_AddOrUpdateMesh(id1, id2, meshInfo.vertices.Length,
                         NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(vertices), meshInfo.indices.Length,
                         NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(indices), meshInfo.position, meshInfo.rotation);
-#else
+#elif (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                  Pxr_AddOrUpdateMesh(id1, id2, meshInfo.vertices.Length, NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(vertices), meshInfo.indices.Length, NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(indices), meshInfo.position, meshInfo.rotation);
 
 #endif
@@ -5423,7 +5834,7 @@ namespace ByteDance.PICO.XR
                 var id2 = BitConverter.ToUInt64(temp, 8);
 #if PICO_MS_SDK
                  SpatialNativeApi.Pmp_RemoveMesh(id1, id2);
-#else
+#elif (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                   Pxr_RemoveMesh(id1, id2);
 #endif
                 if (nativeMeshArrays.TryGetValue(uuid, out var nativeArrays))
@@ -5454,7 +5865,7 @@ namespace ByteDance.PICO.XR
 #endif
 #if PICO_MS_SDK
                  SpatialNativeApi.Pmp_ClearMeshes();
-#else
+#elif (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                   Pxr_ClearMeshes();
 #endif
             }
@@ -5471,6 +5882,12 @@ namespace ByteDance.PICO.XR
                         return PlaneDetectionProviderHandle;
                     case PxrSenseDataProviderType.LightEstimation:
                         return LightEstimationProviderHandle;
+                    case PxrSenseDataProviderType.DynamicObjectTracking:
+                        return DynamicObjectTrackingProviderHandle;
+#if AR_FOUNDATION_6_IMAGE_TRACKING
+                    case PxrSenseDataProviderType.SpatialImageTracking:
+                        return ImageTrackingProviderHandle;
+#endif
                     default:
                         throw new ArgumentOutOfRangeException(nameof(type), type, null);
                 }
@@ -5479,32 +5896,52 @@ namespace ByteDance.PICO.XR
             public static PxrResult UPxr_StartSenseDataProviderAsync(ulong providerHandle, out ulong future)
             {
                 future = UInt64.MinValue;
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_StartSenseDataProviderAsync(providerHandle, out future);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
 
             public static PxrResult UPxr_StartEnvironmentDepthSenseDataProvider()
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_StartEnvironmentDepthProvider();
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
             
             public static PxrResult UPxr_StopEnvironmentDepthSenseDataProvider()
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_StopEnvironmentDepthProvider();
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
 
             public static PxrResult UPxr_GetEnvironmentDepthTextureId(ref uint id)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_GetEnvironmentDepthTextureId(ref id);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
 
             public static PxrResult UPxr_GetEnvironmentDepthFrameDesc(ref EnvironmentDepthFrameDesc desc, int eye)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_GetEnvironmentDepthFrameDesc(ref desc,eye);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
 
             public static PxrResult UPxr_StartSenseDataProviderComplete(ulong future,out XrSenseDataProviderStartCompletion completion)
@@ -5520,8 +5957,12 @@ namespace ByteDance.PICO.XR
                 {
                     type = XrStructureType.XR_TYPE_SENSE_DATA_PROVIDER_START_COMPLETION,
                 };
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_StartSenseDataProviderComplete(future, ref completion);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.Unknown;
+#endif
 
             }
 
@@ -5534,8 +5975,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_GetSenseDataProviderState(providerHandle,ref state);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.Unknown;
+#endif
 
             }
 
@@ -5547,8 +5992,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_StopSenseDataProvider(providerHandle);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.Unknown;
+#endif
             }
 
             public static PxrResult UPxr_DestroySenseDataProvider(ulong providerHandle)
@@ -5559,8 +6008,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_DestroySenseDataProvider(providerHandle);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.Unknown;
+#endif
             }
 
 
@@ -5573,8 +6026,13 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_QuerySenseDataAsync(providerHandle, ref info, out future);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                future = ulong.MinValue;
+                return PxrResult.Unknown;
+#endif
             }
 
             public static PxrResult UPxr_DestroySenseDataQueryResult(ulong queryResultHandle)
@@ -5585,8 +6043,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_DestroySenseDataQueryResult(queryResultHandle);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.Unknown;
+#endif
             }
 
             public static PxrResult UPxr_QuerySenseDataByUuidAsync(Guid[] uuids, out ulong future)
@@ -5685,6 +6147,19 @@ namespace ByteDance.PICO.XR
                 return PxrResult.ERROR_RUNTIME_FAILURE;
 #endif
             }
+
+            public static PxrResult UPxr_QueryDynamicObjectsAsync(out ulong future)
+            {
+                var info = new XrSenseDataQueryInfo
+                {
+                    type = XrStructureType.XR_TYPE_SENSE_DATA_QUERY_INFO,
+                    filter = IntPtr.Zero
+                };
+                return UPxr_QuerySenseDataAsync(
+                    DynamicObjectTrackingProviderHandle,
+                    ref info,
+                    out future);
+            }
             
             public static PxrResult UPxr_QueryLightEstimationDataAsync(out ulong future)
             {
@@ -5716,8 +6191,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_QuerySenseDataComplete(providerHandle, future,ref completion);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.Unknown;
+#endif
 
             }
 
@@ -5730,12 +6209,7 @@ namespace ByteDance.PICO.XR
                     snapshotHandle = snapshotHandle
                 };
 
-                XrQueriedSenseData senseDataFirst = new XrQueriedSenseData()
-                {
-                    type = XrStructureType.XR_TYPE_QUERIED_SENSE_DATA_GET_INFO,
-                    queriedSpatialEntityCapacityInput = 0,
-                    queriedSpatialEntityCountOutput = 0,
-                };
+                XrQueriedSenseData senseDataFirst = CreateQueriedSenseData(0);
 #if UNITY_EDITOR||UNITY_STANDALONE
                 if (!pxrLoadstate)
                 {
@@ -5745,19 +6219,23 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var getResultFirst = Pxr_GetQueriedSenseData(providerHandle, ref info, ref senseDataFirst);
+#else
+                var getResultFirst = (int)PxrResult.Unknown;
+#endif
                 if (UPxr_ConvertIntToPxrResult(getResultFirst) == PxrResult.SUCCESS)
                 {
-                    XrQueriedSenseData senseDataSecond = new XrQueriedSenseData()
-                    {
-                        type = XrStructureType.XR_TYPE_QUERIED_SENSE_DATA_GET_INFO,
-                        queriedSpatialEntityCapacityInput = senseDataFirst.queriedSpatialEntityCountOutput,
-                        queriedSpatialEntityCountOutput = senseDataFirst.queriedSpatialEntityCountOutput,
-                    };
+                    XrQueriedSenseData senseDataSecond = CreateQueriedSenseData(
+                        senseDataFirst.queriedSpatialEntityCountOutput);
                     int resultSize = Marshal.SizeOf<PxrQueriedSpatialEntityInfo>();
                     int bytesSize = (int)senseDataFirst.queriedSpatialEntityCountOutput * resultSize;
                     senseDataSecond.queriedSpatialEntities = Marshal.AllocHGlobal(bytesSize);
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                     var getResultSecond = Pxr_GetQueriedSenseData(providerHandle, ref info, ref senseDataSecond);
+#else
+                    var getResultSecond = (int)PxrResult.Unknown;
+#endif
                     entityinfos = new List<PxrQueriedSpatialEntityInfo>();
                     if (UPxr_ConvertIntToPxrResult(getResultSecond) == PxrResult.SUCCESS)
                     {
@@ -5779,6 +6257,18 @@ namespace ByteDance.PICO.XR
                 }
             }
 
+            internal static XrQueriedSenseData CreateQueriedSenseData(
+                uint capacityInput)
+            {
+                return new XrQueriedSenseData
+                {
+                    type = XrStructureType.XR_TYPE_QUERIED_SENSE_DATA,
+                    queriedSpatialEntityCapacityInput = capacityInput,
+                    queriedSpatialEntityCountOutput = 0,
+                    queriedSpatialEntities = IntPtr.Zero
+                };
+            }
+
             public static PxrResult UPxr_EnumerateSpatialEntityComponentTypes(ulong snapshotHandle, ulong spatialEntityHandle, out PxrSceneComponentType[] types)
             {
                 var componentTypes = IntPtr.Zero;
@@ -5791,13 +6281,23 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var firstResult = Pxr_EnumerateSpatialEntityComponentTypes(snapshotHandle, spatialEntityHandle, 0, out var firstOutputCount, componentTypes);
+#else
+                var firstResult = (int)PxrResult.Unknown;
+                uint firstOutputCount = 0;
+#endif
                 if (UPxr_ConvertIntToPxrResult(firstResult) == PxrResult.SUCCESS)
                 {
                     int size = (int)firstOutputCount * Marshal.SizeOf(typeof(int));
                     componentTypes = Marshal.AllocHGlobal(size);
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                     var secondResult = Pxr_EnumerateSpatialEntityComponentTypes(snapshotHandle, spatialEntityHandle, firstOutputCount,
                         out var outputCount, componentTypes);
+#else
+                    var secondResult = (int)PxrResult.Unknown;
+                    uint outputCount = 0;
+#endif
                     if (UPxr_ConvertIntToPxrResult(secondResult) == PxrResult.SUCCESS)
                     {
                         types = new PxrSceneComponentType[outputCount];
@@ -5849,7 +6349,11 @@ namespace ByteDance.PICO.XR
                 {
                     type = XrStructureType.XR_TYPE_SPATIAL_ENTITY_LOCATION_DATA
                 };
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var result = Pxr_GetSpatialEntityLocationInfo(snapshotHandle, ref getInfo, ref locationInfo);
+#else
+                var result = (int)PxrResult.Unknown;
+#endif
                 if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
                 {
                     foreach (PxrSpaceLocationFlags value in Enum.GetValues(typeof(PxrSpaceLocationFlags)))
@@ -5941,7 +6445,11 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var result = Pxr_GetSpatialMeshVerticesAndIndices(snapshotHandle, ref getInfo, ref meshInfo);
+#else
+                var result = (int)PxrResult.Unknown;
+#endif
                 if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
                 {
                  
@@ -5950,7 +6458,9 @@ namespace ByteDance.PICO.XR
                     meshInfo.vertexCapacityInput = meshInfo.vertexCountOutput;
                     meshInfo.vertices = Marshal.AllocHGlobal((int)meshInfo.vertexCountOutput * Marshal.SizeOf(typeof(PxrVector3f)));
                    
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                     result = Pxr_GetSpatialMeshVerticesAndIndices(snapshotHandle, ref getInfo, ref meshInfo);
+#endif
                     if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
                     {
                        
@@ -6012,7 +6522,11 @@ namespace ByteDance.PICO.XR
                     semanticLabels = IntPtr.Zero
                 };
 
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var result = Pxr_GetSpatialEntitySemanticInfo(snapshotHandle, ref getInfo, ref semanticInfo);
+#else
+                var result = (int)PxrResult.Unknown;
+#endif
                 if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
                 {
                     if (semanticInfo.semanticCountOutput > 0)
@@ -6021,7 +6535,9 @@ namespace ByteDance.PICO.XR
 
                         semanticInfo.semanticLabels = Marshal.AllocHGlobal((int)semanticInfo.semanticCapacityInput * Marshal.SizeOf(typeof(int)));
 
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                         result = Pxr_GetSpatialEntitySemanticInfo(snapshotHandle, ref getInfo, ref semanticInfo);
+#endif
                         if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
                         {
                             labels = new PxrSemanticLabel[semanticInfo.semanticCountOutput];
@@ -6084,7 +6600,11 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var result =  Pxr_GetSpatialEntityBox3DInfo(snapshotHandle, ref getInfo, ref box3DInfo);
+#else
+                var result = (int)PxrResult.Unknown;
+#endif
                 if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
                 {
                     position = new Vector3(box3DInfo.box3D.center.position.x, box3DInfo.box3D.center.position.y, box3DInfo.box3D.center.position.z);
@@ -6119,11 +6639,49 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var result =  Pxr_GetSpatialEntityBox2DInfo(snapshotHandle, ref getInfo, ref box2DInfo);
+#else
+                var result = (int)PxrResult.Unknown;
+#endif
                 if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
                 {
                     offset = box2DInfo.box2D.offset;
                     extent =box2DInfo.box2D.extent.ToVector2();
+                }
+                return UPxr_ConvertIntToPxrResult(result);
+            }
+
+            public static PxrResult UPxr_GetSpatialEntitySphereInfo(ulong snapshotHandle, ulong spatialEntityHandle, out float radius)
+            {
+                radius = 0.0f;
+                var getInfo = new XrSpatialEntityGetInfo
+                {
+                    type = XrStructureType.XR_TYPE_SPATIAL_ENTITY_SPHERE_GET_INFO_PICO,
+                    entity = spatialEntityHandle,
+                    componentType = PxrSceneComponentType.Sphere
+                };
+
+                var sphereInfo = new XrSpatialEntitySphereData
+                {
+                    type = XrStructureType.XR_TYPE_SPATIAL_ENTITY_COMPONENT_DATA_SPHERE_PICO,
+                };
+#if UNITY_EDITOR||UNITY_STANDALONE
+                if (!pxrLoadstate)
+                {
+                    snapshotHandle = ulong.MinValue;
+                    spatialEntityHandle = ulong.MinValue;
+                    return PxrResult.Unknown;
+                }
+#endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var result = Pxr_GetSpatialEntitySphereInfo(snapshotHandle, ref getInfo, ref sphereInfo);
+#else
+                var result = (int)PxrResult.Unknown;
+#endif
+                if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
+                {
+                    radius = sphereInfo.sphere.radius;
                 }
                 return UPxr_ConvertIntToPxrResult(result);
             }
@@ -6153,7 +6711,11 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var result = Pxr_GetSpatialEntityPolygonInfo(snapshotHandle, ref getInfo, ref polygonInfo);
+#else
+                var result = (int)PxrResult.Unknown;
+#endif
 
                 if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
                 {
@@ -6162,7 +6724,9 @@ namespace ByteDance.PICO.XR
                         polygonInfo.polygonCapacityInput = polygonInfo.polygonCountOutput;
                         polygonInfo.vertices = Marshal.AllocHGlobal((int)polygonInfo.polygonCountOutput * Marshal.SizeOf(typeof(PxrVector2f)));
 
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                         result = Pxr_GetSpatialEntityPolygonInfo(snapshotHandle, ref getInfo, ref polygonInfo);
+#endif
                         if (UPxr_ConvertIntToPxrResult(result) == PxrResult.SUCCESS)
                         {
                             vertices = new Vector2[polygonInfo.polygonCountOutput];
@@ -6185,34 +6749,54 @@ namespace ByteDance.PICO.XR
             public static PxrResult UPxr_GetSpatialEntityLightEstimationGlesTextureInfo(ulong snapshotHandle, ulong spatialEntityHandle, out uint cubeTexture)
             {
                 cubeTexture = 0;
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var result = Pxr_GetSpatialEntityLightEstimationGlesInfo(snapshotHandle, spatialEntityHandle, ref cubeTexture);
                 
                 return UPxr_ConvertIntToPxrResult(result);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
 
             public static PxrResult UPxr_GetSpatialEntityLightEstimationVulkanTextureInfo(ulong snapshotHandle, ulong spatialEntityHandle, out ulong vkImage)
             {
                 vkImage = 0;
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var result = Pxr_GetSpatialEntityLightEstimationVulkanImage(snapshotHandle, spatialEntityHandle, ref vkImage);
                 return UPxr_ConvertIntToPxrResult(result);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
             
             public static PxrResult UPxr_ReleaseEnvironmentTextureImage(uint cubeTexture)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_ReleaseEnvironmentTextureImage(cubeTexture);
                 return MixedReality.UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
 
             public static PxrResult UPxr_ReleaseEnvironmentTextureImageVulkan(ulong image)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_ReleaseEnvironmentTextureImageVulkan(image);
                 return MixedReality.UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
 
             public static PxrResult UPxr_CopyLightEstimationVulkanImageToUnityTexture(IntPtr unityTexture, ulong image, int size, int mipCount)
             {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_CopyLightEstimationVulkanImageToUnityTexture(unityTexture, image, size, mipCount);
                 return MixedReality.UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
             }
             
             public static PxrResult UPxr_RetrieveSpatialEntityAnchor(ulong snapshotHandle, ulong spatialEntityHandle,out ulong anchorHandle)
@@ -6226,6 +6810,7 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 XrSpatialEntityAnchorRetrieveInfo info = new XrSpatialEntityAnchorRetrieveInfo()
                 {
                     type = XrStructureType.XR_TYPE_SPATIAL_ENTITY_ANCHOR_RETRIEVE_INFO,
@@ -6233,6 +6818,10 @@ namespace ByteDance.PICO.XR
                 };
                 var pxrResult = Pxr_RetrieveSpatialEntityAnchor(snapshotHandle, ref info,out anchorHandle);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                anchorHandle = ulong.MinValue;
+                return PxrResult.Unknown;
+#endif
             }
 
             public static PxrResult UPxr_PollFuture(ulong future,out PxrFutureState futureState)
@@ -6244,6 +6833,7 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 XrFuturePollInfoEXT pollInfo = new XrFuturePollInfoEXT()
                 {
                     type = XrStructureType.XR_TYPE_FUTURE_POLL_INFO_EXT,
@@ -6257,6 +6847,31 @@ namespace ByteDance.PICO.XR
                 futureState = pollResult.state;
 
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                futureState = new PxrFutureState();
+                return PxrResult.Unknown;
+#endif
+            }
+
+            public static PxrResult UPxr_CancelFuture(ulong future)
+            {
+#if UNITY_EDITOR||UNITY_STANDALONE
+                if (!pxrLoadstate)
+                {
+                    return PxrResult.Unknown;
+                }
+#endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                XrFutureCancelInfoEXT cancelInfo = new XrFutureCancelInfoEXT()
+                {
+                    type = XrStructureType.XR_TYPE_FUTURE_CANCEL_INFO_EXT,
+                    future = future,
+                };
+                var pxrResult = Pxr_CancelFutureEXT(ref cancelInfo);
+                return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.Unknown;
+#endif
             }
 
             public static PxrResult UPxr_PollFutureWithProgress(ulong future, out PxrFutureState futureState,out int progress)
@@ -6307,8 +6922,13 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_CreateSpatialAnchorAsync(providerHandle, ref pose, out future);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                future = ulong.MinValue;
+                return PxrResult.Unknown;
+#endif
             }
 
             public static PxrResult UPxr_CreateSpatialAnchorComplete(ulong providerHandle, ulong future,out XrSpatialAnchorCompletion completion)
@@ -6323,8 +6943,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_CreateSpatialAnchorComplete(providerHandle, future, ref completion);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.Unknown;
+#endif
             }
 
             public static PxrResult UPxr_DestroyAnchor(ulong anchorHandle)
@@ -6335,8 +6959,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_DestroyAnchor(anchorHandle);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.Unknown;
+#endif
 
             }
 
@@ -6349,16 +6977,52 @@ namespace ByteDance.PICO.XR
                     return PxrResult.Unknown;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_GetAnchorUuid(anchorHandle,out var pUuid);
                 byte[] byteArray = new byte[16];
                 BitConverter.GetBytes(pUuid.value0).CopyTo(byteArray, 0);
                 BitConverter.GetBytes(pUuid.value1).CopyTo(byteArray, 8);
                 uuid = new Guid(byteArray);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                uuid = new Guid();
+                return PxrResult.Unknown;
+#endif
 
             }
 
-            public static PxrResult UPxr_LocateAnchor(ulong anchorHandle, out Vector3 position, out Quaternion rotation)
+            private static bool TryConvertLocation(
+                ulong locationFlags,
+                PxrPosef pose,
+                out Vector3 position,
+                out Quaternion rotation)
+            {
+                foreach (PxrSpaceLocationFlags value in Enum.GetValues(typeof(PxrSpaceLocationFlags)))
+                {
+                    if ((locationFlags & (ulong)value) != (ulong)value)
+                    {
+                        position = Vector3.zero;
+                        rotation = Quaternion.identity;
+                        return false;
+                    }
+                }
+
+                rotation = new Quaternion(
+                    pose.orientation.x,
+                    pose.orientation.y,
+                    -pose.orientation.z,
+                    -pose.orientation.w);
+                position = new Vector3(
+                    pose.position.x,
+                    pose.position.y,
+                    -pose.position.z);
+                return true;
+            }
+
+            public static PxrResult UPxr_LocateAnchorRaw(
+                ulong anchorHandle,
+                out Vector3 position,
+                out Quaternion rotation)
             {
 #if UNITY_EDITOR||UNITY_STANDALONE
                 if (!pxrLoadstate)
@@ -6372,28 +7036,203 @@ namespace ByteDance.PICO.XR
                 {
                     type = XrStructureType.XR_TYPE_SPACE_LOCATION,
                 };
-                var pxrResult = Pxr_LocateAnchor(anchorHandle, ref location);
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var pxrResult = Pxr_LocateAnchorRaw(anchorHandle, ref location);
+#else
+                var pxrResult = (int)PxrResult.Unknown;
+#endif
                 if (UPxr_ConvertIntToPxrResult(pxrResult) == PxrResult.SUCCESS)
                 {
-                    foreach (PxrSpaceLocationFlags value in Enum.GetValues(typeof(PxrSpaceLocationFlags)))
-                    {
-                        if ((location.locationFlags & (ulong)value) != (ulong)value)
-                        {
-                            position = Vector3.zero;
-                            rotation = Quaternion.identity;
-                            return PxrResult.ERROR_POSE_INVALID;
-                        }
-                    }
-                    rotation = new Quaternion(location.pose.orientation.x, location.pose.orientation.y, -location.pose.orientation.z, -location.pose.orientation.w);
-                    position = new Vector3(location.pose.position.x, location.pose.position.y, -location.pose.position.z);
+                    TryConvertLocation(location.locationFlags, location.pose, out position, out rotation);
                     return UPxr_ConvertIntToPxrResult(pxrResult);
                 }
-                else
+
+                position = Vector3.zero;
+                rotation = Quaternion.identity;
+                return UPxr_ConvertIntToPxrResult(pxrResult);
+            }
+
+            public static PxrResult UPxr_LocateAnchorAligned(
+                ulong anchorHandle,
+                out Vector3 position,
+                out Quaternion rotation,
+                out float modelScale)
+            {
+                var location = new XrSpaceLocationAligned
+                {
+                    type = XrStructureType.XR_TYPE_SPACE_LOCATION_ALIGNED_PICO,
+                };
+                var scale = new XrSpaceLocationModelScale
+                {
+                    type = XrStructureType.XR_TYPE_SPACE_LOCATION_MODEL_SCALE_PICO,
+                    scale = 1.0f,
+                };
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var result = Pxr_LocateAnchorAligned(anchorHandle, ref location, ref scale);
+#else
+                var result = (int)PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+                modelScale = scale.scale;
+                if (UPxr_ConvertIntToPxrResult(result) != PxrResult.SUCCESS)
                 {
                     position = Vector3.zero;
                     rotation = Quaternion.identity;
-                    return UPxr_ConvertIntToPxrResult(pxrResult);
+                    return UPxr_ConvertIntToPxrResult(result);
                 }
+
+                if (location.valid == 0)
+                {
+                    position = Vector3.zero;
+                    rotation = Quaternion.identity;
+                    return PxrResult.SUCCESS;
+                }
+                TryConvertLocation(location.locationFlags, location.pose, out position, out rotation);
+                return PxrResult.SUCCESS;
+            }
+
+            public static PxrResult UPxr_LocateAnchor(
+                ulong anchorHandle,
+                out Vector3 position,
+                out Quaternion rotation)
+            {
+                return UPxr_LocateAnchorRaw(anchorHandle, out position, out rotation);
+            }
+
+            public static PxrResult UPxr_GetSpatialEntityDynamicObjectInfo(
+                ulong snapshotHandle,
+                ulong entity,
+                out PxrDynamicObjectType objectType)
+            {
+                var getInfo = new XrSpatialEntityDynamicObjectGetInfo { entity = entity };
+                var info = new XrSpatialEntityComponentDataDynamicObject();
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var result = Pxr_GetSpatialEntityDynamicObjectInfo(snapshotHandle, ref getInfo, ref info);
+#else
+                var result = (int)PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+                objectType = info.data.objectType;
+                return UPxr_ConvertIntToPxrResult(result);
+            }
+
+            public static PxrResult UPxr_GetSpatialEntityPeripheralInfo(
+                ulong snapshotHandle,
+                ulong entity,
+                out XrPeripheralData peripheralData)
+            {
+                var getInfo = new XrSpatialEntityPeripheralGetInfo { entity = entity };
+                var info = new XrSpatialEntityComponentDataPeripheral();
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var result = Pxr_GetSpatialEntityPeripheralInfo(snapshotHandle, ref getInfo, ref info);
+#else
+                var result = (int)PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+                peripheralData = info.data;
+                peripheralData.next = IntPtr.Zero;
+                return UPxr_ConvertIntToPxrResult(result);
+            }
+
+            public static PxrResult UPxr_GetSpatialEntityPicoKeyboardInfo(
+                ulong snapshotHandle,
+                ulong entity,
+                out XrPeripheralData peripheralData,
+                out XrPeripheralPicoKeyboardData picoKeyboardData)
+            {
+                var getInfo = new XrSpatialEntityPeripheralGetInfo { entity = entity };
+                var info = new XrSpatialEntityComponentDataPeripheral();
+                var nativePicoKeyboardData = new XrPeripheralPicoKeyboardDataNative();
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var result = Pxr_GetSpatialEntityPicoKeyboardInfo(
+                    snapshotHandle,
+                    ref getInfo,
+                    ref info,
+                    ref nativePicoKeyboardData);
+#else
+                var result = (int)PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+                peripheralData = info.data;
+                peripheralData.next = IntPtr.Zero;
+                picoKeyboardData = new XrPeripheralPicoKeyboardData
+                {
+                    type = nativePicoKeyboardData.type,
+                    next = IntPtr.Zero,
+                    properties = nativePicoKeyboardData.properties,
+                };
+                return UPxr_ConvertIntToPxrResult(result);
+            }
+
+            public static PxrResult UPxr_EnumerateSupportedEnvironmentPassthroughTypes(
+                out PxrEnvironmentPassthroughType[] supportedTypes)
+            {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var result = Pxr_EnumerateSupportedEnvironmentPassthroughTypes(
+                    0,
+                    out var count,
+                    null);
+                if (UPxr_ConvertIntToPxrResult(result) != PxrResult.SUCCESS)
+                {
+                    supportedTypes = Array.Empty<PxrEnvironmentPassthroughType>();
+                    return UPxr_ConvertIntToPxrResult(result);
+                }
+
+                if (count > int.MaxValue)
+                {
+                    supportedTypes = Array.Empty<PxrEnvironmentPassthroughType>();
+                    return PxrResult.ERROR_SIZE_INSUFFICIENT;
+                }
+                supportedTypes = new PxrEnvironmentPassthroughType[(int)count];
+                result = Pxr_EnumerateSupportedEnvironmentPassthroughTypes(
+                    count,
+                    out count,
+                    supportedTypes);
+                return UPxr_ConvertIntToPxrResult(result);
+#else
+                supportedTypes = Array.Empty<PxrEnvironmentPassthroughType>();
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+            }
+
+            public static PxrResult UPxr_SetEnvironmentPassthroughPreference(
+                PxrEnvironmentPassthroughType passthroughType,
+                bool enabled)
+            {
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                return UPxr_ConvertIntToPxrResult(
+                    Pxr_SetEnvironmentPassthroughPreference(passthroughType, enabled));
+#else
+                return PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+            }
+
+            public static PxrResult UPxr_GetKeyboardPassthroughState(
+                out PxrKeyboardPassthroughLevel level)
+            {
+                var state = new XrKeyboardPassthroughState
+                {
+                    type = XrStructureType.XR_TYPE_KEYBOARD_PASSTHROUGH_STATE_PICO
+                };
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var result = Pxr_GetKeyboardPassthroughState(ref state);
+#else
+                var result = (int)PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+                level = state.level;
+                return UPxr_ConvertIntToPxrResult(result);
+            }
+
+            public static PxrResult UPxr_GetPicoKeyboardPassthroughState(
+                out PxrPicoKeyboardPassthroughLevel level)
+            {
+                var state = new XrPicoKeyboardPassthroughState
+                {
+                    type = XrStructureType.XR_TYPE_PICO_KEYBOARD_PASSTHROUGH_STATE_PICO
+                };
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
+                var result = Pxr_GetPicoKeyboardPassthroughState(ref state);
+#else
+                var result = (int)PxrResult.ERROR_RUNTIME_FAILURE;
+#endif
+                level = state.level;
+                return UPxr_ConvertIntToPxrResult(result);
             }
 
             public static PxrResult UPxr_PersistSpatialAnchorAsync(ulong providerHandle, ulong anchorHandle,out ulong future)
@@ -6407,6 +7246,7 @@ namespace ByteDance.PICO.XR
                     return PxrResult.ERROR_INITIALIZATION_FAILED;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 XrSpatialAnchorPersistInfo persistInfo = new XrSpatialAnchorPersistInfo()
                 {
                     type = XrStructureType.XR_TYPE_SPATIAL_ANCHOR_PERSIST_INFO,
@@ -6415,6 +7255,10 @@ namespace ByteDance.PICO.XR
                 };
                 var pxrResult = Pxr_PersistSpatialAnchorAsync(providerHandle, ref persistInfo, out future);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                future = ulong.MinValue;
+                return PxrResult.ERROR_INITIALIZATION_FAILED;
+#endif
             }
 
             public static PxrResult UPxr_PersistSpatialAnchorComplete(ulong providerHandle,ulong future,out XrSpatialAnchorCompletion completion)
@@ -6429,8 +7273,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.ERROR_INITIALIZATION_FAILED;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_PersistSpatialAnchorComplete(providerHandle, future, ref completion);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_INITIALIZATION_FAILED;
+#endif
             }
 
             public static PxrResult UPxr_UnPersistSpatialAnchorAsync(ulong providerHandle, ulong anchorHandle, out ulong future)
@@ -6442,6 +7290,7 @@ namespace ByteDance.PICO.XR
                     return PxrResult.ERROR_INITIALIZATION_FAILED;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 XrSpatialAnchorUnpersistInfo unPersistInfo = new XrSpatialAnchorUnpersistInfo()
                 {
                     type = XrStructureType.XR_TYPE_SPATIAL_ANCHOR_UNPERSIST_INFO,
@@ -6451,6 +7300,10 @@ namespace ByteDance.PICO.XR
                 
                 var pxrResult = Pxr_UnpersistSpatialAnchorAsync(providerHandle, ref unPersistInfo, out future);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                future = ulong.MinValue;
+                return PxrResult.ERROR_INITIALIZATION_FAILED;
+#endif
 
             }
 
@@ -6466,8 +7319,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.ERROR_INITIALIZATION_FAILED;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_UnpersistSpatialAnchorComplete(providerHandle, future, ref completion);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_INITIALIZATION_FAILED;
+#endif
 
             }
 
@@ -6480,8 +7337,13 @@ namespace ByteDance.PICO.XR
                     return PxrResult.ERROR_INITIALIZATION_FAILED;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_StartSceneCaptureAsync(UPxr_GetSenseDataProviderHandle(PxrSenseDataProviderType.SceneCapture), out future);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                future = ulong.MinValue;
+                return PxrResult.ERROR_INITIALIZATION_FAILED;
+#endif
             }
 
             public static PxrResult UPxr_StartSceneCaptureComplete(ulong future,out XrSceneCaptureStartCompletion completion)
@@ -6496,8 +7358,12 @@ namespace ByteDance.PICO.XR
                     return PxrResult.ERROR_INITIALIZATION_FAILED;
                 }
 #endif
+#if (UNITY_ANDROID && !UNITY_EDITOR) || PICO_LIVE_PREVIEW
                 var pxrResult = Pxr_StartSceneCaptureComplete(UPxr_GetSenseDataProviderHandle(PxrSenseDataProviderType.SceneCapture), future,ref completion);
                 return UPxr_ConvertIntToPxrResult(pxrResult);
+#else
+                return PxrResult.ERROR_INITIALIZATION_FAILED;
+#endif
             }
 
             public static PxrResult UPxr_ShareSpatialAnchorAsync(ulong anchorHandle, out ulong future)
@@ -6571,19 +7437,32 @@ namespace ByteDance.PICO.XR
 
             public static int UPxr_EnableVideoSeeThroughEffect(bool value)
             {
+#if UNITY_ANDROID && !UNITY_EDITOR
                 return Pxr_EnablePassthroughStyle(value);
+#else
+                return 0;
+#endif
             }
 
             public static int UPxr_SetVideoSeeThroughEffect(PxrLayerEffect type, float value, float duration)
             {
+#if UNITY_ANDROID && !UNITY_EDITOR
                 return Pxr_SetPassthroughStyle(type, value, duration);
+#else
+                return 0;
+#endif
             }
 
             public static int UPxr_SetVideoSeeThroughLUT(ref byte[] data, int width, int height, int row, int col)
             {
+#if UNITY_ANDROID && !UNITY_EDITOR
                 return Pxr_SetPassthroughLUT(ref data, width, height, row, col);
+#else
+                return 0;
+#endif
             }
             
         }
     }
 }
+

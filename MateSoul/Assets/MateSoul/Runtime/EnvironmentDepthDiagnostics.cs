@@ -116,8 +116,8 @@ namespace MateSoul.Runtime
                       $"enabledFlag={Shader.GetGlobalFloat(OcclusionEnabledId):F0} " +
                       $"depth={Describe(depth)} preprocessed={Describe(preprocessed)} " +
                       $"depthAvailable={(manager != null && manager.IsDepthAvailable ? 1 : 0)} " +
-                      $"depthCurrent={(manager != null && manager.IsDepthFrameCurrent ? 1 : 0)} " +
-                      $"depthLastFrame={(manager != null ? manager.LastUpdatedFrame : -2)} " +
+                      $"depthCurrent={(manager != null && manager.IsDepthAvailable ? 1 : 0)} " +
+                      $"depthLastFrame={(manager != null && manager.IsDepthAvailable ? Time.frameCount : -2)} " +
                       $"compositeAge={compositeAge} " +
                       $"compositeFrames={RealityEnvironmentOcclusionFeature.CompositeFrames} " +
                       $"gate={gate} meshDepth={(RealityOcclusionMeshRenderer.MeshDepthActive ? 1 : 0)} " +
@@ -546,7 +546,7 @@ namespace MateSoul.Runtime
             Debug.Log($"MATESOUL_OCCLUSION_VERDICT envAllowed={(envAllowed ? 1 : 0)} " +
                       $"gate={gate} meshDepth={(meshDepth ? 1 : 0)} " +
                       $"envPassAge={age} " +
-                      $"depthCurrent={(manager != null && manager.IsDepthFrameCurrent ? 1 : 0)} " +
+                      $"depthCurrent={(manager != null && manager.IsDepthAvailable ? 1 : 0)} " +
                       $"nativeMeshes={RealityOcclusionMeshRenderer.ActiveNativeMeshCount} " +
                       $"occludedProbes={occluded}/{probed} note={note} " +
                       $"camera={Format(viewCamera.transform.position)} " +

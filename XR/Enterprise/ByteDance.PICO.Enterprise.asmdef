@@ -28,7 +28,7 @@
         },
         {
             "name": "com.unity.xr.compositionlayers",
-            "expression": "",
+            "expression": "0.0.0",
             "define": "UNITY_XR_COMPOSITIONLAYERS"
         }
     ],

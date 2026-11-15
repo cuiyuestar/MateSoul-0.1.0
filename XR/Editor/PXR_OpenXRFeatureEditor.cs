@@ -44,11 +44,6 @@ namespace ByteDance.PICO.OpenXR.Editor
                 var handSupport = new GUIContent();
                 handSupport.text = "Hand Tracking Support";
                 projectConfig.handTrackingSupportType =(HandTrackingSupport)EditorGUILayout.EnumPopup(handSupport, projectConfig.handTrackingSupportType); 
-                //high frequency tracking
-                var highfrequencytracking = new GUIContent();
-                highfrequencytracking.text = "High Frequency Tracking(60Hz)";
-                highfrequencytracking.tooltip = "If turned on, hand tracking will run at a higher tracking frequency, which will improve the smoothness of hand tracking, but the power consumption will increase.";
-                projectConfig.highFrequencyHand = EditorGUILayout.Toggle(highfrequencytracking, projectConfig.highFrequencyHand);
             }
             
             var displayFrequencyContent = new GUIContent();

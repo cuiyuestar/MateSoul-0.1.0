@@ -122,6 +122,14 @@ namespace ByteDance.PICO.SecureMR
                     if (operatorConfig != null && operatorConfig is PXR_SecureMRModelOperatorConfiguration opConfig)
                     {
                         var modelOperatorConfiguration = opConfig.CreateModelOperatorConfiguration();
+                        if (modelOperatorConfiguration == null)
+                        {
+                            // Prevent later parameter binding from dereferencing a null Operator.
+                            Operator = null;
+                            UnityEngine.Debug.LogError("[SecureMR] RunModelInference: modelOperatorConfiguration is null. Operator will not be created; parameter initialization will be skipped for this component.");
+                            return;
+                        }
+
                         Operator = pipeline.pipeline.CreateOperator<RunModelInferenceOperator>(modelOperatorConfiguration);
                     }
                 }
@@ -201,8 +209,8 @@ namespace ByteDance.PICO.SecureMR
                 {
                     if (operatorConfig != null && operatorConfig is PXR_SecureMRRenderTextOperatorConfig opConfig)
                     {
-                        RenderTextOperatorConfiguration colorConvertOperatorConfig = new RenderTextOperatorConfiguration(opConfig.typeface, opConfig.languageAndLocale, opConfig.width, opConfig.height);
-                        Operator = pipeline.pipeline.CreateOperator<UpdateGltfOperator>(colorConvertOperatorConfig);
+                        RenderTextOperatorConfiguration textConfig = new RenderTextOperatorConfiguration(opConfig.typeface, opConfig.languageAndLocale, opConfig.width, opConfig.height);
+                        Operator = pipeline.pipeline.CreateOperator<RenderTextOperator>(textConfig);
                     }
                 }
                     break;
@@ -255,6 +263,12 @@ namespace ByteDance.PICO.SecureMR
 
         public void InitializeParameters()
         {
+            if (Operator == null)
+            {
+                UnityEngine.Debug.LogError($"[SecureMR] Skipping parameter initialization for operator '{operatorType}' because it was not created.");
+                return;
+            }
+
             for (int i = 0; i < operands.Length; i++)
             {
                 Operator.SetOperand(operands[i].name, operands[i].tensor.tensor);

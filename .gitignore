@@ -93,3 +93,9 @@ XR/**/*.pdb.meta
 node_modules/
 services/ai-gateway/dist/
 services/ai-gateway/coverage/
+
+# Temporary Vibe Lab Gradle export output.
+/vibelab-export/
+
+# Local Gradle toolchain cache for verification builds.
+/_tools/

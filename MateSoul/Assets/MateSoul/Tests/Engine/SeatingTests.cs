@@ -160,7 +160,7 @@ namespace MateSoul.Tests
             var character = new GameObject("Seat contact sweep diagnostic avatar");
             character.AddComponent<Rigidbody>();
             character.AddComponent<CapsuleCollider>();
-            var material = new PhysicMaterial("Seat contact sweep diagnostic material");
+            var material = new PhysicsMaterial("Seat contact sweep diagnostic material");
             character.AddComponent<PhysicsBody>().Configure(new BodySettings(50, material));
             var animator = character.AddComponent<Animator>();
             var motor = character.AddComponent<AvatarMotor>();

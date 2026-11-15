@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace MateSoul.Runtime
 {
@@ -122,7 +124,7 @@ namespace MateSoul.Runtime
             }
             else
             {
-                var controller = (owner as XRBaseControllerInteractor)?.xrController;
+                var controller = (owner as XRBaseInputInteractor)?.xrController;
                 if (controller == null ||
                     controller.enableInputTracking &&
                     (controller.currentControllerState.inputTrackingState &

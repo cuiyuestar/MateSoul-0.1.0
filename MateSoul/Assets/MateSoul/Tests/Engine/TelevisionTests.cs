@@ -14,6 +14,8 @@ using UnityEngine.TestTools;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using Object = UnityEngine.Object;
 

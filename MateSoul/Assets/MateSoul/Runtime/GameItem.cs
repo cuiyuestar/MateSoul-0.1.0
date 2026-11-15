@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Networking;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace MateSoul.Runtime
 {

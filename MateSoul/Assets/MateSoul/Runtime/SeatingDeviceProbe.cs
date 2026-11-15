@@ -9,6 +9,8 @@ using MateSoul.Core;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace MateSoul.Runtime
 {

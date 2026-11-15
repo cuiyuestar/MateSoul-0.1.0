@@ -3,6 +3,8 @@ using MateSoul.Gameplay;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace MateSoul.Runtime
 {
@@ -194,7 +196,7 @@ namespace MateSoul.Runtime
                 body.HoldFollowPose();
                 return;
             }
-            var controller = (interactor as XRBaseControllerInteractor)?.xrController;
+            var controller = (interactor as XRBaseInputInteractor)?.xrController;
             if (!interactor.transform.gameObject.activeInHierarchy ||
                 controller != null && controller.enableInputTracking &&
                 (controller.currentControllerState.inputTrackingState &

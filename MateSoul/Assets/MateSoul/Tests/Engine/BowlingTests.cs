@@ -42,7 +42,7 @@ namespace MateSoul.Tests
                 Mathf.Abs(point.z - BowlingGame.PinSpacing * Mathf.Sqrt(3) * 1.5f) < .001f), Is.EqualTo(4));
 
             root = new GameObject("Pin threshold", typeof(CapsuleCollider));
-            var material = new PhysicMaterial("Pin test");
+            var material = new PhysicsMaterial("Pin test");
             var body = root.AddComponent<PhysicsBody>();
             body.Configure(new BodySettings(1.55f, material));
             var pin = root.AddComponent<BowlingPin>();
@@ -96,7 +96,7 @@ namespace MateSoul.Tests
         public void CanOccupyHonorsIgnoredColliderPairs()
         {
             root = new GameObject("Ignored collision occupancy");
-            var material = new PhysicMaterial("Ignored collision occupancy");
+            var material = new PhysicsMaterial("Ignored collision occupancy");
             var bodyObject = new GameObject("lengyue_body_root", typeof(BoxCollider));
             bodyObject.transform.SetParent(root.transform);
             var body = bodyObject.AddComponent<PhysicsBody>();
@@ -119,7 +119,7 @@ namespace MateSoul.Tests
         {
             yield return new EnterPlayMode();
             root = new GameObject("Pin placement lock", typeof(CapsuleCollider));
-            var material = new PhysicMaterial("Pin placement lock");
+            var material = new PhysicsMaterial("Pin placement lock");
             var body = root.AddComponent<PhysicsBody>();
             body.Configure(new BodySettings(1.55f, material));
             var pin = root.AddComponent<BowlingPin>();
@@ -161,7 +161,7 @@ namespace MateSoul.Tests
                 .Invoke(null, new object[] { root.transform });
             root.GetComponent<PlayerInteractionModeController>().SetMode(PlayerInteractionMode.Controller);
             var ray = root.transform.Find("RightHand UI Ray")
-                .GetComponent<UnityEngine.XR.Interaction.Toolkit.XRRayInteractor>();
+                .GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRRayInteractor>();
             var controller = ray.GetComponent<UnityEngine.XR.Interaction.Toolkit.ActionBasedController>();
             controller.enableInputTracking = false;
             ray.transform.position = new Vector3(0, 1, 0);
@@ -229,7 +229,7 @@ namespace MateSoul.Tests
         {
             yield return new EnterPlayMode();
             root = new GameObject("Bowling collision test");
-            var material = new PhysicMaterial("Bowling collision test")
+            var material = new PhysicsMaterial("Bowling collision test")
             { staticFriction = .5f, dynamicFriction = .35f, bounciness = .05f };
             var floor = new GameObject("Floor", typeof(BoxCollider));
             floor.transform.SetParent(root.transform);

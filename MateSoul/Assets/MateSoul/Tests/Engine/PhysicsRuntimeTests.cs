@@ -13,12 +13,12 @@ namespace MateSoul.Tests
     public sealed class PhysicsRuntimeTests
     {
         private GameObject root;
-        private PhysicMaterial material;
+        private PhysicsMaterial material;
 
         private void SetUp()
         {
             root = new GameObject("Physics integration room");
-            material = new PhysicMaterial("Physics test")
+            material = new PhysicsMaterial("Physics test")
             {
                 staticFriction = .6f, dynamicFriction = .45f, bounciness = .05f
             };
@@ -191,7 +191,7 @@ namespace MateSoul.Tests
 
         private IEnumerator ExerciseFrictionAndCcd()
         {
-            var slippery = new PhysicMaterial("Slippery") { staticFriction = 0, dynamicFriction = 0 };
+            var slippery = new PhysicsMaterial("Slippery") { staticFriction = 0, dynamicFriction = 0 };
             root.GetComponentInChildren<BoxCollider>().sharedMaterial = slippery;
             var low = Box("Low friction", new Vector3(-2, .11f, 0));
             var high = Box("High friction", new Vector3(2, .11f, 0));

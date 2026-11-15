@@ -8,34 +8,34 @@ namespace MateSoul.Editor
     public static class PhysicsContentBuilder
     {
         private const string DirectoryPath = "Assets/MateSoul/Content/Physics";
-        public static PhysicMaterial Wood => Surface("Wood", .55f, .4f, .05f);
-        public static PhysicMaterial Metal => Surface("Metal", .5f, .35f, .08f);
-        public static PhysicMaterial Ceramic => Surface("Ceramic", .48f, .32f, .04f);
-        public static PhysicMaterial Glass => Surface("Glass", .34f, .22f, .03f);
-        public static PhysicMaterial Plastic => Surface("Plastic", .42f, .3f, .06f);
-        public static PhysicMaterial Paper => Surface("Paper", .62f, .48f, .02f);
-        public static PhysicMaterial Food => Surface("Food", .58f, .44f, .03f);
-        public static PhysicMaterial Fabric => Surface("Fabric", .72f, .58f, .01f);
-        public static PhysicMaterial Rubber => Surface("Rubber", .8f, .65f, .1f);
-        public static PhysicMaterial Room => Surface("Room", .6f, .45f, .02f);
-        public static PhysicMaterial BowlingBall => Surface("BowlingBall", .18f, .08f, .08f);
-        public static PhysicMaterial BowlingPin => Surface("BowlingPin", .35f, .25f, .12f);
+        public static PhysicsMaterial Wood => Surface("Wood", .55f, .4f, .05f);
+        public static PhysicsMaterial Metal => Surface("Metal", .5f, .35f, .08f);
+        public static PhysicsMaterial Ceramic => Surface("Ceramic", .48f, .32f, .04f);
+        public static PhysicsMaterial Glass => Surface("Glass", .34f, .22f, .03f);
+        public static PhysicsMaterial Plastic => Surface("Plastic", .42f, .3f, .06f);
+        public static PhysicsMaterial Paper => Surface("Paper", .62f, .48f, .02f);
+        public static PhysicsMaterial Food => Surface("Food", .58f, .44f, .03f);
+        public static PhysicsMaterial Fabric => Surface("Fabric", .72f, .58f, .01f);
+        public static PhysicsMaterial Rubber => Surface("Rubber", .8f, .65f, .1f);
+        public static PhysicsMaterial Room => Surface("Room", .6f, .45f, .02f);
+        public static PhysicsMaterial BowlingBall => Surface("BowlingBall", .18f, .08f, .08f);
+        public static PhysicsMaterial BowlingPin => Surface("BowlingPin", .35f, .25f, .12f);
 
-        private static PhysicMaterial Surface(string name, float friction, float sliding, float bounce)
+        private static PhysicsMaterial Surface(string name, float friction, float sliding, float bounce)
         {
             Directory.CreateDirectory(DirectoryPath);
             var path = DirectoryPath + "/" + name + ".physicMaterial";
-            var material = AssetDatabase.LoadAssetAtPath<PhysicMaterial>(path);
+            var material = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(path);
             if (material == null)
             {
-                material = new PhysicMaterial(name);
+                material = new PhysicsMaterial(name);
                 AssetDatabase.CreateAsset(material, path);
             }
             material.staticFriction = friction;
             material.dynamicFriction = sliding;
             material.bounciness = bounce;
-            material.frictionCombine = PhysicMaterialCombine.Average;
-            material.bounceCombine = PhysicMaterialCombine.Average;
+            material.frictionCombine = PhysicsMaterialCombine.Average;
+            material.bounceCombine = PhysicsMaterialCombine.Average;
             EditorUtility.SetDirty(material);
             return material;
         }

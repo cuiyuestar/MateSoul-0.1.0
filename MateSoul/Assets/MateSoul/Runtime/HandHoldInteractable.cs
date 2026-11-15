@@ -2,6 +2,8 @@ using MateSoul.Core;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace MateSoul.Runtime
 {
@@ -31,7 +33,7 @@ namespace MateSoul.Runtime
 
         public void SendHaptic(float amplitude, float duration)
         {
-            if (interactor is XRBaseControllerInteractor controller)
+            if (interactor is XRBaseInputInteractor controller)
                 controller.SendHapticImpulse(Mathf.Clamp01(amplitude), Mathf.Max(0, duration));
         }
 

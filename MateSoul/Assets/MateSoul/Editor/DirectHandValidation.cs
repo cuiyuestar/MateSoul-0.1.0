@@ -9,6 +9,8 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Object = UnityEngine.Object;
 
 namespace MateSoul.Editor
@@ -38,7 +40,7 @@ namespace MateSoul.Editor
             item.transform.localScale = Vector3.one * .1f;
             item.transform.position = new Vector3(.12f, 1, 0);
             var body = item.AddComponent<PhysicsBody>();
-            var material = new PhysicMaterial("Validation Surface");
+            var material = new PhysicsMaterial("Validation Surface");
             body.Configure(new BodySettings(.2f, material));
             var grab = item.AddComponent<PhysicsGrabInteractable>();
             grab.ConfigureSnap(true); // Direct hands must ignore authored ray snap.

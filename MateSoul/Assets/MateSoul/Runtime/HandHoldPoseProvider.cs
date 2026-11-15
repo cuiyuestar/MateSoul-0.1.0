@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace MateSoul.Runtime
 {
@@ -19,13 +21,13 @@ namespace MateSoul.Runtime
                 return false;
             if (interactor is IHandHoldPoseProvider provider)
                 return provider.TryGetHandHoldPose(out pose);
-            if (interactor is XRBaseControllerInteractor controller)
+            if (interactor is XRBaseInputInteractor controller)
                 return TryRead(controller, controller.xrController == null
                     ? null : controller.xrController.transform, out pose);
             return false;
         }
 
-        internal static bool TryRead(XRBaseControllerInteractor interactor,
+        internal static bool TryRead(XRBaseInputInteractor interactor,
             Transform source, out Pose pose)
         {
             pose = default;

@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace MateSoul.Runtime
 {
@@ -24,7 +26,7 @@ namespace MateSoul.Runtime
         {
             lid?.DetachByHand();
             base.Grab();
-            if (interactorsSelecting[0] is XRBaseControllerInteractor controller)
+            if (interactorsSelecting[0] is XRBaseInputInteractor controller)
                 controller.SendHapticImpulse(.24f, .045f);
         }
 

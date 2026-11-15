@@ -10,6 +10,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.TestTools;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Object = UnityEngine.Object;
 
 namespace MateSoul.Tests
@@ -18,7 +20,7 @@ namespace MateSoul.Tests
     {
         private GameObject root;
         private InputDevice device;
-        private PhysicMaterial material;
+        private PhysicsMaterial material;
 
         [UnityTest]
         public IEnumerator ControllerGripDrivesSelectionFollowAndReleaseThroughRealRay()
@@ -37,7 +39,7 @@ namespace MateSoul.Tests
         private IEnumerator ExerciseController(bool digitalGrip)
         {
             root = new GameObject("Grip regression");
-            material = new PhysicMaterial("Grip support");
+            material = new PhysicsMaterial("Grip support");
             var floor = new GameObject("Floor", typeof(BoxCollider));
             floor.transform.SetParent(root.transform);
             floor.transform.position = Vector3.down * .1f;

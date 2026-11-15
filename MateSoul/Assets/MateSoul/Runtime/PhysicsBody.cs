@@ -10,11 +10,11 @@ namespace MateSoul.Runtime
     public struct BodySettings
     {
         [Min(.001f)] public float mass;
-        public PhysicMaterial material;
+        public PhysicsMaterial material;
         [Min(0)] public float linearDrag;
         [Min(0)] public float angularDrag;
 
-        public BodySettings(float kilograms, PhysicMaterial surface, float drag = .02f,
+        public BodySettings(float kilograms, PhysicsMaterial surface, float drag = .02f,
             float rotationDrag = .05f)
         {
             mass = kilograms; material = surface;

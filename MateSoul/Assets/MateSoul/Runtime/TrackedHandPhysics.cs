@@ -233,9 +233,9 @@ namespace MateSoul.Runtime
             support = CreateProxy("Palm Support", true);
             support.Shape.isTrigger = false;
             support.Body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-            var material = new PhysicMaterial("Palm Support") {
+            var material = new PhysicsMaterial("Palm Support") {
                 staticFriction = .8f, dynamicFriction = .65f, bounciness = 0,
-                frictionCombine = PhysicMaterialCombine.Maximum };
+                frictionCombine = PhysicsMaterialCombine.Maximum };
             support.Shape.sharedMaterial = material;
             foreach (var definition in SegmentDefinitions)
                 proxies.Add(CreateProxy(

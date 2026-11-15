@@ -1,4 +1,4 @@
-﻿﻿﻿﻿using System;
+﻿﻿using System;
 using System.IO;
 using System.Linq;
 using ByteDance.PICO.XR;
@@ -17,6 +17,9 @@ using UnityEngine.Animations.Rigging;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Unity.XR.CoreUtils;
 
 namespace MateSoul.Editor
@@ -1233,7 +1236,7 @@ namespace MateSoul.Editor
         }
 
         private static ItemDefinition BuildCatalogProp(string id, string title, string sourcePath,
-            Vector3 dimensions, float mass, PhysicMaterial physicsMaterial, bool allowSurfacePlacement,
+            Vector3 dimensions, float mass, PhysicsMaterial physicsMaterial, bool allowSurfacePlacement,
             Material focusMaterial, ItemCategory category,
             CatalogColliderShape colliderShape = CatalogColliderShape.Box,
             bool layFlat = false, string sourceObjectName = null, bool catalogVisible = true,

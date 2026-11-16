@@ -37,7 +37,7 @@ namespace MateSoul.Editor
             AssetDatabase.DeleteAsset(AssetPath);
             AssetDatabase.DeleteAsset(DynamicAssetPath);
             var fontAsset = TMP_FontAsset.CreateFontAsset(source, 96, 10,
-                GlyphRenderMode.SDFAA, 2048, 2048, AtlasPopulationMode.Dynamic, true);
+                GlyphRenderMode.SDFAA, 4096, 4096, AtlasPopulationMode.Dynamic, true);
             if (fontAsset == null)
                 throw new InvalidOperationException("Unable to create the UI SDF font asset.");
             fontAsset.name = "NotoSansCJKsc-Regular SDF";
@@ -49,16 +49,34 @@ namespace MateSoul.Editor
             fontAsset.material.shader = overlayShader;
             fontAsset.isMultiAtlasTexturesEnabled = true;
             fontAsset.ClearFontAssetData(false);
-            if (!fontAsset.TryAddCharacters(CollectRequiredCharacters(),
+            var requiredCharacters = CollectRequiredCharacters();
+            if (!fontAsset.TryAddCharacters(requiredCharacters,
                     out var missingCharacters) && !string.IsNullOrEmpty(missingCharacters))
                 throw new InvalidOperationException(
                     $"The UI font is missing required characters: {missingCharacters}");
+            UnityEngine.Debug.Log(
+                $"MATESOUL_FONT baked={requiredCharacters.Length} " +
+                $"atlases={fontAsset.atlasTextures.Length} " +
+                $"missing={missingCharacters?.Length ?? 0}");
 
             var alphaAtlases = fontAsset.atlasTextures;
             var rgbaAtlases = new Texture2D[alphaAtlases.Length];
             for (var index = 0; index < alphaAtlases.Length; index++)
             {
                 var alphaAtlas = alphaAtlases[index];
+                if (alphaAtlas == null)
+                {
+                    var blank = new Texture2D(4096, 4096, TextureFormat.RGBA32, false, true)
+                    {
+                        name = $"NotoSansCJKsc-Regular SDF Atlas {index}",
+                        filterMode = FilterMode.Bilinear,
+                        wrapMode = TextureWrapMode.Clamp
+                    };
+                    blank.SetPixels32(new Color32[4096 * 4096]);
+                    blank.Apply(false, false);
+                    rgbaAtlases[index] = blank;
+                    continue;
+                }
                 var pixels = alphaAtlas.GetPixels32();
                 for (var pixel = 0; pixel < pixels.Length; pixel++)
                     pixels[pixel] = new Color32(255, 255, 255, pixels[pixel].a);
@@ -148,7 +166,29 @@ namespace MateSoul.Editor
                                        Array.Empty<MateSoul.Gameplay.PersonalityOptionDefinition>())
                     AddCharacters(characters, option?.display_name);
             }
+
+            // Bake every non-ASCII character used in C# string literals so fixed hints and
+            // labels never depend on runtime glyph addition from the dynamic fallback.
+            foreach (var guid in AssetDatabase.FindAssets("t:MonoScript", new[] { "Assets" }))
+            {
+                var scriptPath = AssetDatabase.GUIDToAssetPath(guid);
+                if (!scriptPath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) continue;
+                AddLiteralCharacters(characters, System.IO.File.ReadAllText(scriptPath));
+            }
             return new string(characters.ToArray());
+        }
+
+        private static void AddLiteralCharacters(ISet<char> characters, string source)
+        {
+            foreach (var line in source.Split('\n'))
+            {
+                var inString = false;
+                foreach (var character in line)
+                {
+                    if (character == '"') inString = !inString;
+                    else if (inString && character > 0x7E) characters.Add(character);
+                }
+            }
         }
 
         private static void AddCharacters(ISet<char> characters, string value)
@@ -192,7 +232,7 @@ namespace MateSoul.Editor
             var dynamicFontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(DynamicAssetPath);
             var source = AssetDatabase.LoadAssetAtPath<Font>(SourcePath);
             if (fontAsset == null || fontAsset.atlasTexture == null ||
-                fontAsset.atlasTexture.width != 2048 || fontAsset.atlasTexture.height != 2048 ||
+                fontAsset.atlasTexture.width != 4096 || fontAsset.atlasTexture.height != 4096 ||
                 fontAsset.atlasTexture.format != TextureFormat.RGBA32 ||
                 fontAsset.atlasPopulationMode != AtlasPopulationMode.Static ||
                 fontAsset.material.shader.name != AlwaysOnTopUi.TextShaderName ||

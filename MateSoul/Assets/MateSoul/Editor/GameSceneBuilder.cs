@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿﻿﻿﻿using System;
 using System.IO;
 using System.Linq;
 using ByteDance.PICO.XR;
@@ -1590,6 +1590,46 @@ namespace MateSoul.Editor
                 Debug.Log($"MATESOUL_BUILD_PASS path={path} bytes={report.summary.totalSize} duration={report.summary.totalTime}");
             }
             finally { PlayerSettings.insecureHttpOption = insecureHttpOption; }
+        }
+
+        // Temporary Vibe Lab export entry point; remove after the Gradle project is produced.
+        public static void ExportAndroidGradleProjectVibeLab()
+        {
+            var outDir = Environment.GetEnvironmentVariable("VIBELAB_EXPORT_DIR");
+            if (string.IsNullOrEmpty(outDir))
+                throw new InvalidOperationException("VIBELAB_EXPORT_DIR is not set.");
+            if (Directory.Exists(outDir) && Directory.GetFileSystemEntries(outDir).Length > 0)
+                throw new InvalidOperationException($"Export directory is not empty: {outDir}");
+            Directory.CreateDirectory(outDir);
+
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android &&
+                !EditorUserBuildSettings.SwitchActiveBuildTarget(
+                    BuildTargetGroup.Android, BuildTarget.Android))
+                throw new InvalidOperationException("Unable to switch the Unity build target to Android.");
+
+            ValidateModelConnectionForBuild(false);
+            ConfigureInteractionCapabilities();
+            SleepAnimationBuilder.PrepareForBuild();
+            ConfigurePicoBuildSettings();
+            PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevel36;
+
+            var previousExport = EditorUserBuildSettings.exportAsGoogleAndroidProject;
+            try
+            {
+                EditorUserBuildSettings.exportAsGoogleAndroidProject = true;
+                var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+                {
+                    scenes = new[] { ScenePath }, locationPathName = outDir,
+                    target = BuildTarget.Android, options = BuildOptions.None
+                });
+                if (report.summary.result != BuildResult.Succeeded)
+                    throw new InvalidOperationException($"Android export failed: {report.summary.result}");
+                Debug.Log($"MATESOUL_EXPORT_PASS path={outDir} duration={report.summary.totalTime}");
+            }
+            finally
+            {
+                EditorUserBuildSettings.exportAsGoogleAndroidProject = previousExport;
+            }
         }
 
 #region debug-point A-D:diagnostic-build

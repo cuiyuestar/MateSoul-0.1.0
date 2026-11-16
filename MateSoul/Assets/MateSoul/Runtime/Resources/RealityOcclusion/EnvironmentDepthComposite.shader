@@ -57,7 +57,7 @@ Shader "Hidden/MateSoul/Reality Environment Depth Composite"
 
             #define ENVIRONMENT_DEPTH_CONVERT_OBJECT_TO_WORLD(positionOS) \
                 TransformObjectToWorld(positionOS.xyz)
-            #include "Packages/com.bytedance.pico.xr/Assets/Resources/Shader/EnvironmentOcclusion.cginc"
+            #include "Packages/com.bytedance.pico.xr/Resources/Shader/EnvironmentOcclusion.cginc"
             #include "Assets/MateSoul/Runtime/Shaders/RealityEnvironmentDepth.hlsl"
 
             struct Attributes

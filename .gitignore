@@ -99,3 +99,4 @@ services/ai-gateway/coverage/
 
 # Local Gradle toolchain cache for verification builds.
 /_tools/
+/vibelab-export2/
